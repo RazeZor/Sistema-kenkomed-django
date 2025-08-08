@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -60,10 +61,9 @@
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center">
                 <div class="flex items-center justify-center w-10 h-10 text-white rounded-full bg-white/20 backdrop-blur-sm">
-                    <i class='bx bx-plus-medical'></i>
+                    <h1>
                 </div>
                 <h1 class="ml-3 text-xl font-bold text-white">KenkoMed</h1>
-                <span class="ml-2 px-2 py-1 text-xs bg-medical-orange text-white rounded-full">BETA</span>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-white/80">v1.0.0-beta</span>
@@ -82,7 +82,7 @@
             <div class="max-w-4xl mx-auto">
                 <div class="mb-8">
                     <div class="flex items-center justify-center w-24 h-24 mb-8 mx-auto transition-all rounded-2xl bg-white/20 backdrop-blur-sm text-white float-animation">
-                        <i class='text-4xl bx bx-heart-circle'></i>
+                        <img src=" {% static 'image/logoblanco.png' %} " alt="">
                     </div>
                     <h1 class="text-6xl font-bold mb-6">
                         Bienvenido a <span class="text-yellow-300">KenkoMed</span>
