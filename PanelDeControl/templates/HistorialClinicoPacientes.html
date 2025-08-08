@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha Clínica | Sistema Clínico</title>
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{% static 'css/historial.css' %}">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      {% include 'menu.html' %}
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        <header class="top-header">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Ficha Clínica</h1>
+        </header>
+
+        <div class="content">
+            <!-- Sección de búsqueda -->
+            <section class="search-section">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" action="{% url 'historialClinico' %}" class="search-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="rutsito">Buscar paciente por RUT</label>
+                                <div class="input-group">
+                                    <input type="text" id="rutsito" name="rutsito" placeholder="Ej: 12345678-9" required>
+                                    <button type="submit" class="search-button">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        {% if error %}
+                        <div class="alert">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>{{ error }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- Información del paciente -->
+            <section class="patient-section" id="patientCard">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Información del Paciente</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="patient-info">
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Nombre completo</label>
+                                    <p id="nombre">{{ paciente.nombre }} {{ paciente.apellido }}</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>RUT</label>
+                                    <p id="rut">{{ paciente.rut }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Fecha de nacimiento</label>
+                                    <p id="fechanac">{{ paciente.fechaNacimiento }}</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Teléfono</label>
+                                    <p id="telefono">{{ paciente.contacto }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Cobertura de salud</label>
+                                    <p id="cobertura_de_salud">{{ paciente.cobertura_de_salud }}</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Profesión</label>
+                                    <p id="profesion">{{ paciente.profesion }}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="info-row">
+                                <div class="info-group">
+                                    <label>Género</label>
+                                    <p id="genero">{{ paciente.genero }}</p>
+                                </div>
+                                <div class="info-group">
+                                    <label>Tipo de trabajo</label>
+                                    <p id="trabajo">{{ paciente.trabajo }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de acciones -->
+            <div class="actions-grid">
+                <!-- Formularios -->
+                <section class="forms-section" id="formsCard">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Formularios</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="formulario">Seleccionar formulario</label>
+                                <select id="formulario" class="form-select">
+                                    <option value="{% url 'gestionar_psfs' %}">PSFS - Escala Funcional Específica del Paciente</option>
+                                    <option value="{% url 'GROK' %}">GROC - Escala de Calificación de Cambio Global</option>
+                                    <option value="{% url 'EQ_5D' %}">EQ-5D - Cuestionario de Calidad de Vida</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-primary" id="agregarFormulario">
+                                <i class="fas fa-plus"></i> Agregar Formulario
+                            </button>
+                            <!-- Botón de informe -->
+                            <a href="{% url 'informe' %}?rut={{ paciente.rut }}" id="informe-button" class="report-button" target="_blank">
+                                <i class="fas fa-file-medical-alt"></i>
+                                <span>Ver Informe Completo</span>
+                            </a>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Historial médico -->
+                <section class="history-section" id="historyCard">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Historial Médico</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="history-item" id="eventos1">
+                                <div class="history-header">
+                                    <i class="fas fa-file-medical"></i>
+                                    <h3>Licencia Médica</h3>
+                                </div>
+                                <div class="history-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Inicio:</span>
+                                        <span class="detail-value">{{ paciente.LicenciaInicio|default:"No registrado" }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Fin:</span>
+                                        <span class="detail-value">{{ paciente.LicenciaFin|default:"No registrado" }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Días:</span>
+                                        <span class="detail-value">{{ paciente.LicenciaDias|default:"0" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {% if paciente %}
+                            <form method="post" action="{% url 'historialClinico' %}" class="notes-form" id="eventos2">
+                                {% csrf_token %}
+                                <input type="hidden" name="rutsito" value="{{ paciente.rut }}">
+                                <div class="history-item">
+                                    <div class="history-header">
+                                        <i class="fas fa-sticky-note"></i>
+                                        <h3>Notas Clínicas</h3>
+                                    </div>
+                                    <div class="form-group">
+                                        <textarea name="nota" id="nota" rows="3" placeholder="Ingrese notas importantes sobre el paciente">{{ nota|default:"" }}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn-secondary">
+                                        <i class="fas fa-save"></i> Guardar Nota
+                                    </button>
+                                </div>
+                            </form>
+                            {% endif %}
+
+                            
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle sidebar
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            
+            menuToggle.addEventListener('click', function() {
+                sidebar.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            sidebarClose.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Cerrar sidebar al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (sidebar.classList.contains('active') && 
+                    !sidebar.contains(e.target) && 
+                    e.target !== menuToggle) {
+                    sidebar.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Función para mostrar/ocultar elementos según la información del paciente
+            function actualizarVisibilidad() {
+                const nombre = document.getElementById('nombre').textContent;
+                const rut = document.getElementById('rut').textContent;
+                const fechanac = document.getElementById('fechanac').textContent;
+                const telefono = document.getElementById('telefono').textContent;
+                const coberturaDeSalud = document.getElementById('cobertura_de_salud').textContent;
+                
+                const patientCard = document.getElementById('patientCard');
+                const formsCard = document.getElementById('formsCard');
+                const historyCard = document.getElementById('historyCard');
+                const informeButton = document.getElementById('informe-button');
+                const eventos1 = document.getElementById('eventos1');
+                const eventos2 = document.getElementById('eventos2');
+                
+                // Verificar si hay información del paciente
+                const hayPaciente = nombre && rut && fechanac && telefono && coberturaDeSalud;
+                
+                // Mostrar u ocultar elementos según corresponda
+                patientCard.style.display = hayPaciente ? 'block' : 'none';
+                formsCard.style.display = hayPaciente ? 'block' : 'none';
+                historyCard.style.display = hayPaciente ? 'block' : 'none';
+                
+                if (informeButton) {
+                    informeButton.style.display = hayPaciente ? 'flex' : 'none';
+                }
+                
+                if (eventos1) {
+                    eventos1.style.display = hayPaciente ? 'block' : 'none';
+                }
+                
+                if (eventos2) {
+                    eventos2.style.display = hayPaciente ? 'block' : 'none';
+                }
+            }
+            
+            // Agregar formulario seleccionado
+            document.getElementById('agregarFormulario').addEventListener('click', function() {
+                const formulario = document.getElementById('formulario').value;
+                const rut = document.getElementById('rut').textContent;
+                
+                if (formulario && rut) {
+                    window.location.href = formulario + "?rut=" + encodeURIComponent(rut);
+                } else {
+                    mostrarAlerta('Seleccione un formulario y asegúrese de que el paciente tenga un RUT válido.');
+                }
+            });
+            
+            // Función para mostrar alertas
+            function mostrarAlerta(mensaje) {
+                const alerta = document.createElement('div');
+                alerta.className = 'alert';
+                alerta.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${mensaje}</span>`;
+                
+                const searchSection = document.querySelector('.search-section .card-body');
+                searchSection.appendChild(alerta);
+                
+                setTimeout(() => {
+                    alerta.classList.add('fade-out');
+                    setTimeout(() => {
+                        alerta.remove();
+                    }, 300);
+                }, 3000);
+            }
+            
+
+            actualizarVisibilidad();
+        });
+    </script>
+</body>
+</html>

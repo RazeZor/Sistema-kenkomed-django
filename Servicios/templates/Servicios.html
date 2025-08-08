@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a KenkoMed - Sistema de Prueba</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hero-overlay {
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.8) 0%, rgba(2, 132, 199, 0.6) 50%, rgba(20, 184, 166, 0.7) 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
+    <!-- Header Navigation -->
+    <header class="absolute top-0 left-0 right-0 z-50 bg-white/10 backdrop-blur-sm border-b border-white/20">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-10 h-10 text-white rounded-full bg-white/20 backdrop-blur-sm">
+                    <i class='bx bx-plus-medical'></i>
+                </div>
+                <h1 class="ml-3 text-xl font-bold text-white">KenkoMed</h1>
+                <span class="ml-2 px-2 py-1 text-xs bg-medical-orange text-white rounded-full">BETA</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-white/80">v1.0.0-beta</span>
+                <button class="px-4 py-2 text-sm text-white hover:text-white/80 transition-colors">
+                    <i class='bx bx-help-circle mr-1'></i> Ayuda
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section con imagen de fondo -->
+    <section class="relative bg-[linear-gradient(rgba(2,132,199,0.8),rgba(20,184,166,0.7)),url('/static/image/fondo1.webp')] bg-cover bg-center text-white py-32">
+        <div class="hero-overlay absolute inset-0"></div>
+        
+        <div class="relative container mx-auto px-6 text-center">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <div class="flex items-center justify-center w-24 h-24 mb-8 mx-auto transition-all rounded-2xl bg-white/20 backdrop-blur-sm text-white float-animation">
+                        <i class='text-4xl bx bx-heart-circle'></i>
+                    </div>
+                    <h1 class="text-6xl font-bold mb-6">
+                        Bienvenido a <span class="text-yellow-300">KenkoMed</span>
+                    </h1>
+                    <p class="text-xl text-blue-100 mb-8 leading-relaxed max-w-3xl mx-auto">
+                        Sistema integral para profesionales de la salud especializado en evaluación y manejo del dolor crónico
+                    </p>
+                </div>
+                
+                <!-- Botón principal -->
+                <div class="mb-12">
+                    <a href="#comenzar" class="inline-flex items-center px-10 py-4 bg-white text-medical-blue font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        <i class='mr-3 text-xl bx bx-play-circle'></i>
+                        Comenzar Evaluación
+                    </a>
+                </div>
+
+                <!-- Indicadores flotantes -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
+                    <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center justify-center w-12 h-12 mb-4 mx-auto rounded-xl bg-white/20 text-white">
+                            <i class='text-xl bx bx-shield-alt-2'></i>
+                        </div>
+                        <h3 class="font-semibold mb-2">Seguro y Confiable</h3>
+                        <p class="text-sm text-blue-100">Datos protegidos con los más altos estándares</p>
+                    </div>
+                    <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center justify-center w-12 h-12 mb-4 mx-auto rounded-xl bg-white/20 text-white">
+                            <i class='text-xl bx bx-brain'></i>
+                        </div>
+                        <h3 class="font-semibold mb-2">Análisis Inteligente</h3>
+                        <p class="text-sm text-blue-100">Interpretación automática basada en evidencia</p>
+                    </div>
+                    <div class="p-6 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20">
+                        <div class="flex items-center justify-center w-12 h-12 mb-4 mx-auto rounded-xl bg-white/20 text-white">
+                            <i class='text-xl bx bx-time-five'></i>
+                        </div>
+                        <h3 class="font-semibold mb-2">Rápido y Eficiente</h3>
+                        <p class="text-sm text-blue-100">Evaluación completa en 15-20 minutos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Aviso de Sistema de Prueba -->
+    <section class="py-12 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="p-8 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                    <div class="flex items-start space-x-6">
+                        <div class="flex-shrink-0">
+                            <div class="flex items-center justify-center w-16 h-16 rounded-2xl bg-medical-orange/10 text-medical-orange">
+                                <i class='text-2xl bx bx-error-alt'></i>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="mb-3 text-xl font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-flask text-medical-orange'></i>
+                                Sistema en Fase de Prueba
+                            </h3>
+                            <p class="mb-6 text-gray-600">
+                                Este es un <strong>sistema de prueba</strong> en desarrollo activo. Durante su uso, es posible que encuentre:
+                            </p>
+                            <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-3">
+                                <div class="flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50">
+                                    <i class='mr-3 text-medical-red bx bx-bug'></i>
+                                    <span class="text-sm text-gray-600">Errores ocasionales</span>
+                                </div>
+                                <div class="flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50">
+                                    <i class='mr-3 text-medical-blue bx bx-cog'></i>
+                                    <span class="text-sm text-gray-600">Funciones en desarrollo</span>
+                                </div>
+                                <div class="flex items-center p-4 border border-gray-100 rounded-xl bg-gray-50">
+                                    <i class='mr-3 text-medical-orange bx bx-data'></i>
+                                    <span class="text-sm text-gray-600">Posible pérdida de datos</span>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-medical-blue/5">
+                                <p class="text-sm text-medical-blue-dark">
+                                    <i class='mr-2 bx bx-info-circle'></i>
+                                    <strong>Recomendación:</strong> Use este sistema únicamente para pruebas y evaluaciones no críticas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Características del Sistema -->
+    <section class="py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="mb-12 text-center">
+                <h2 class="mb-4 text-3xl font-bold text-gray-800">¿Qué incluye KenkoMed?</h2>
+                <p class="max-w-2xl mx-auto text-gray-600">
+                    Nuestro sistema está diseñado específicamente para la evaluación integral del dolor crónico
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8 max-w-6xl mx-auto md:grid-cols-2 lg:grid-cols-3">
+                <!-- Evaluación Integral -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-medical-blue/10 text-medical-blue group-hover:bg-medical-blue group-hover:text-white">
+                        <i class='text-2xl bx bx-clipboard'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Evaluación Integral</h3>
+                    <p class="text-center text-gray-600">
+                        Formularios especializados para evaluación completa del dolor crónico y factores asociados
+                    </p>
+                </div>
+
+                <!-- Escalas Validadas -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-medical-green/10 text-medical-green group-hover:bg-medical-green group-hover:text-white">
+                        <i class='text-2xl bx bx-line-chart'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Escalas Validadas</h3>
+                    <p class="text-center text-gray-600">
+                        Implementación de escalas reconocidas como DN4, PHQ-9 y Pain Catastrophizing Scale
+                    </p>
+                </div>
+
+                <!-- Análisis Automático -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-medical-teal/10 text-medical-teal group-hover:bg-medical-teal group-hover:text-white">
+                        <i class='text-2xl bx bx-brain'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Análisis Automático</h3>
+                    <p class="text-center text-gray-600">
+                        Interpretación automática de resultados con recomendaciones clínicas basadas en evidencia
+                    </p>
+                </div>
+
+                <!-- Mapa Corporal -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-medical-red/10 text-medical-red group-hover:bg-medical-red group-hover:text-white">
+                        <i class='text-2xl bx bx-body'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Mapa Corporal</h3>
+                    <p class="text-center text-gray-600">
+                        Localización visual interactiva del dolor con diferentes niveles de intensidad
+                    </p>
+                </div>
+
+                <!-- Reportes Detallados -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-medical-orange/10 text-medical-orange group-hover:bg-medical-orange group-hover:text-white">
+                        <i class='text-2xl bx bx-file-blank'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Reportes Detallados</h3>
+                    <p class="text-center text-gray-600">
+                        Generación automática de reportes clínicos completos y recomendaciones terapéuticas
+                    </p>
+                </div>
+
+                <!-- Seguimiento -->
+                <div class="p-8 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                    <div class="flex items-center justify-center w-16 h-16 mb-6 mx-auto transition-all rounded-2xl bg-indigo-500/10 text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white">
+                        <i class='text-2xl bx bx-history'></i>
+                    </div>
+                    <h3 class="mb-3 text-xl font-semibold text-center text-gray-800">Seguimiento</h3>
+                    <p class="text-center text-gray-600">
+                        Registro temporal de evaluaciones para seguimiento de la evolución del paciente
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Sección de Inicio -->
+    <section id="comenzar" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="mb-6 text-3xl font-bold text-gray-800">¿Listo para comenzar?</h2>
+                
+                <div class="relative overflow-hidden p-10 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                    <div class="absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16 rounded-full bg-medical-blue/5"></div>
+                    <div class="absolute bottom-0 left-0 w-32 h-32 -mb-16 -ml-16 rounded-full bg-medical-green/5"></div>
+                    
+                    <div class="relative">
+                        <div class="mb-8">
+                            <div class="flex items-center justify-center w-20 h-20 mx-auto mb-6 transition-all rounded-2xl bg-gradient-to-r from-medical-blue to-medical-blue-light text-white">
+                                <i class='text-3xl bx bx-user-check'></i>
+                            </div>
+                            <h3 class="mb-3 text-2xl font-semibold text-gray-800">Evaluación de Dolor Crónico</h3>
+                            <p class="mb-8 text-gray-600">
+                                Sistema completo de evaluación para profesionales de la salud
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6 mb-10 md:grid-cols-2">
+                            <div class="flex items-center justify-center p-4 space-x-3 border border-gray-100 rounded-xl bg-gray-50">
+                                <i class='text-medical-green bx bx-shield-alt-2'></i>
+                                <span class="text-sm text-gray-600">Datos seguros y confidenciales</span>
+                            </div>
+                            <div class="flex items-center justify-center p-4 space-x-3 border border-gray-100 rounded-xl bg-gray-50">
+                                <i class='text-medical-blue bx bx-bar-chart-alt-2'></i>
+                                <span class="text-sm text-gray-600">Análisis automático incluido</span>
+                            </div>
+                        </div>
+                        
+                        <a href="{% url 'login' %}" class="inline-flex items-center px-10 py-4 text-white font-semibold transition-all bg-gradient-to-r from-medical-blue to-medical-blue-light rounded-2xl hover:shadow-lg transform hover:scale-105">
+                            <i class='mr-3 bx bx-play'></i>
+                            Iniciar Evaluación
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 text-white bg-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+                <!-- Logo y descripción -->
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="flex items-center justify-center w-10 h-10 text-white rounded-full bg-medical-blue">
+                            <i class='bx bx-plus-medical'></i>
+                        </div>
+                        <span class="ml-3 text-xl font-bold">KenkoMed</span>
+                        <span class="ml-2 px-2 py-1 text-xs bg-medical-orange text-white rounded-full">BETA</span>
+                    </div>
+                    <p class="text-sm leading-relaxed text-gray-400">
+                        Sistema integral para profesionales de la salud especializado en evaluación del dolor crónico.
+                    </p>
+                </div>
+                
+                <!-- Enlaces útiles -->
+                <div>
+                    <h4 class="mb-4 text-lg font-semibold">Enlaces Útiles</h4>
+                    <ul class="space-y-3 text-sm">
+                        <li><a href="#" class="flex items-center text-gray-400 transition-colors hover:text-white"><i class='mr-2 bx bx-book-open'></i>Documentación</a></li>
+                        <li><a href="#" class="flex items-center text-gray-400 transition-colors hover:text-white"><i class='mr-2 bx bx-help-circle'></i>Guía de Usuario</a></li>
+                        <li><a href="#" class="flex items-center text-gray-400 transition-colors hover:text-white"><i class='mr-2 bx bx-bug'></i>Reportar Errores</a></li>
+                        <li><a href="#" class="flex items-center text-gray-400 transition-colors hover:text-white"><i class='mr-2 bx bx-envelope'></i>Contacto</a></li>
+                    </ul>
+
+                    
+                </div>
+                
+                <!-- Información del sistema -->
+                <div>
+                    <h4 class="mb-4 text-lg font-semibold">Sistema</h4>
+                    <ul class="space-y-3 text-sm text-gray-400">
+                        <li class="flex items-center"><i class='mr-2 bx bx-code-alt'></i>Versión: 1.0.0-beta</li>
+                        <li class="flex items-center"><i class='mr-2 bx bx-calendar'></i>Última actualización: Junio 2025</li>
+                        <li class="flex items-center"><i class='mr-2 bx bx-cog'></i>Estado: En desarrollo</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="pt-8 mt-8 text-center border-t border-gray-700">
+                <p class="text-sm text-gray-400">
+                    &copy; 2025 KenkoMed - M.I.N.I.S.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll para enlaces internos
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animación de entrada para las tarjetas
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Aplicar animación a las tarjetas de características
+        document.querySelectorAll('.group').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = `all 0.6s ease ${index * 0.1}s`;
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>

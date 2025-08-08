@@ -1,0 +1,223 @@
+# Documentación Técnica del Proyecto Delphi-Django
+
+## Índice
+1. [Arquitectura del Sistema](#arquitectura-del-sistema)
+2. [Patrones de Diseño](#patrones-de-diseño)
+3. [Estructura de Aplicaciones](#estructura-de-aplicaciones)
+4. [Modelo de Datos](#modelo-de-datos)
+5. [Flujo de la Aplicación](#flujo-de-la-aplicación)
+6. [Seguridad](#seguridad)
+7. [Despliegue](#despliegue)
+8. [Requisitos del Sistema](#requisitos-del-sistema)
+
+## Arquitectura del Sistema
+
+El proyecto sigue una arquitectura basada en el patrón Modelo-Vista-Controlador (MVC) implementado por Django (MTV - Modelo-Template-Vista), con las siguientes capas principales:
+
+### 1. Capa de Presentación (Frontend)
+- Plantillas HTML con Tailwind CSS para estilos
+- JavaScript para interacciones dinámicas
+- Diseño responsivo para diferentes dispositivos
+
+### 2. Capa de Lógica de Negocio (Backend)
+- Vistas basadas en funciones (FBV) y clases (CBV)
+- Lógica de negocio distribuida en aplicaciones Django
+- Validación de datos y reglas de negocio
+
+### 3. Capa de Acceso a Datos
+- ORM de Django para interacción con la base de datos
+- Modelos que representan las entidades del dominio
+- Migraciones para el control de versiones del esquema
+
+### 4. Capa de Servicios
+- Autenticación y autorización
+- Generación de informes
+- Procesamiento de formularios clínicos
+
+## Patrones de Diseño
+
+### 1. Patrón MVC/MTV
+- **Modelos**: Clases que representan la estructura de la base de datos
+- **Vistas**: Manejan la lógica de presentación y procesamiento de solicitudes
+- **Templates**: Plantillas HTML para la presentación de datos
+
+### 2. Patrón Singleton
+- Uso de la configuración centralizada en `settings.py`
+- Conexión única a la base de datos
+
+### 3. Patrón Fábrica
+- Creación dinámica de formularios clínicos
+- Generación de informes personalizados
+
+### 4. Patrón Observador
+- Notificaciones de cambios en los modelos
+- Actualizaciones en tiempo real de la interfaz
+
+## Estructura de Aplicaciones
+
+### 1. Login
+- **Responsabilidad**: Autenticación y gestión de sesiones
+- **Características**:
+  - Inicio de sesión seguro
+  - Control de acceso basado en roles
+  - Gestión de contraseñas
+
+### 2. PanelDeControl
+- **Responsabilidad**: Vista general del sistema
+- **Características**:
+  - Dashboard con métricas clave
+  - Acceso rápido a funciones principales
+  - Visualización de alertas y notificaciones
+
+### 3. CrudClinico
+- **Responsabilidad**: Operaciones CRUD para datos clínicos
+- **Características**:
+  - Creación y edición de registros clínicos
+  - Validación de datos clínicos
+  - Gestión de historiales médicos
+
+### 4. FormularioInicial
+- **Responsabilidad**: Captura de datos iniciales del paciente
+- **Características**:
+  - Formularios dinámicos
+  - Validación en tiempo real
+  - Guardado progresivo
+
+### 5. TiposDeFormularios
+- **Responsabilidad**: Gestión de diferentes tipos de formularios clínicos
+- **Características**:
+  - Cuestionario EQ-5D
+  - Escalas de evaluación clínica
+  - Formularios personalizables
+
+### 6. ListaDePacientes
+- **Responsabilidad**: Gestión del catálogo de pacientes
+- **Características**:
+  - Búsqueda y filtrado
+  - Ordenamiento por diferentes criterios
+  - Paginación de resultados
+
+### 7. PerfilClinico
+- **Responsabilidad**: Visualización y gestión de perfiles clínicos
+- **Características**:
+  - Historial clínico completo
+  - Evolución del paciente
+  - Documentación adjunta
+
+### 8. Servicios
+- **Responsabilidad**: Funcionalidades adicionales
+- **Características**:
+  - Integración con servicios externos
+  - Herramientas de diagnóstico
+  - Utilidades del sistema
+
+### 9. Informe
+- **Responsabilidad**: Generación de informes clínicos
+- **Características**:
+  - Plantillas de informes
+  - Exportación a diferentes formatos
+  - Personalización de contenidos
+
+## Modelo de Datos
+
+### Entidades Principales
+
+1. **Clinico**
+   - Información de profesionales de la salud
+   - Relación muchos a muchos con Pacientes
+   - Control de acceso y permisos
+
+2. **Paciente**
+   - Datos personales y demográficos
+   - Historial clínico
+   - Relación con formularios y evaluaciones
+
+3. **formularioClinico**
+   - Datos de evaluación clínica
+   - Campos estructurados para diferentes tipos de evaluación
+   - Relaciones con Paciente y Clínico
+
+4. **Cuestionarios Especializados**
+   - CuestionarioPSFS
+   - CuestionarioEQ_5D
+   - Otras escalas de evaluación
+
+## Flujo de la Aplicación
+
+1. **Autenticación**
+   - Validación de credenciales
+   - Inicio de sesión seguro
+   - Gestión de sesiones
+
+2. **Navegación**
+   - Menú contextual según perfil
+   - Acceso rápido a funciones frecuentes
+   - Navegación intuitiva
+
+3. **Gestión de Pacientes**
+   - Registro de nuevos pacientes
+   - Búsqueda y filtrado
+   - Acceso a historial clínico
+
+4. **Evaluación Clínica**
+   - Captura de datos clínicos
+   - Validación en tiempo real
+   - Guardado seguro de información
+
+5. **Generación de Informes**
+   - Selección de parámetros
+   - Vista previa
+   - Exportación y compartición
+
+## Seguridad
+
+### Medidas Implementadas
+- Autenticación segura
+- Control de acceso basado en roles
+- Protección contra CSRF
+- Validación de entrada de datos
+- Cifrado de información sensible
+
+### Buenas Prácticas
+- Uso de variables de entorno para datos sensibles
+- Contraseñas almacenadas de forma segura
+- Registro de actividades
+- Actualizaciones de seguridad
+
+## Despliegue
+
+### Requisitos del Servidor
+- Servidor web (Nginx/Apache)
+- Base de datos MySQL
+- Python 3.x
+- Node.js (para assets frontend)
+
+### Proceso de Despliegue
+1. Configuración del entorno de producción
+2. Instalación de dependencias
+3. Migración de la base de datos
+4. Configuración del servidor web
+5. Pruebas de rendimiento
+
+### Docker
+El proyecto incluye configuración para Docker:
+```
+docker-compose up --build
+```
+
+## Requisitos del Sistema
+
+### Desarrollo
+- Python 3.8+
+- Django 5.1.4
+- MySQL 8.0+
+- Node.js 16+
+
+### Producción
+- Servidor Linux/Windows Server
+- Base de datos en producción
+- Certificado SSL
+- Backup automático
+
+---
+*Documentación técnica actualizada el 2025-07-15*

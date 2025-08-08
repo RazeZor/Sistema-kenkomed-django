@@ -1,0 +1,194 @@
+:root {
+    --pink: #cd2481;
+    --blue: #21294e;
+    --white: #ffffff;
+    --light-pink: #fce4ef;
+    --light-blue: #e8e9f3;
+    --gray: #6c757d;
+    --light-gray: #f8f9fa;
+    --text-dark: #2c3e50;
+}
+
+
+.btn-primary {
+
+    background-color: var(--pink);
+    border: 2px solid var(--pink);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem; /* Borde ligeramente redondeado */
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+.btn-primary:hover {
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: var(--light-blue);
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15); /* Sombra más intensa al pasar el mouse */
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+.btn-primary:active {
+    transform: translateY(0); /* Restaura el estado al hacer clic */
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    font-family: 'Inter', 'Roboto', 'Segoe UI', Arial, sans-serif;
+    background-color: var(--light-gray);
+    color: var(--blue);
+}
+
+
+
+.btn-back {
+    margin-left: 1000px;
+    background: none;
+    border: none;
+    color: #ffffff; /* Usa el color azul definido en variables */
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    text-decoration: none; /* Quita cualquier subrayado */
+}
+
+.btn-back:hover {
+    color: var(--pink); /* Cambia de color al pasar el mouse */
+    text-decoration: underline; /* Simula un enlace */
+}
+
+.btn-back i {
+    margin-right: 5px;
+}
+
+
+.navbar {
+    background: var(--blue);
+    padding: 1rem;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    color: var(--white) !important;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.nav-link {
+    color: var(--white) !important;
+    margin: 0 1rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--pink);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* GROC Scale Buttons */
+.groc-btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.groc-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+}
+
+
+
+#chart-container {
+    height: 600px; /* Puedes aumentar la altura según lo necesites */
+    width: 100%;   /* Se asegura de que el contenedor ocupe todo el ancho disponible */
+}
+
+canvas {
+    width: 100% !important;   /* Asegura que el canvas ocupe el 100% del ancho del contenedor */
+    height: 100% !important;  /* Asegura que el canvas ocupe el 100% del alto del contenedor */
+}
+#chart-container {
+    margin: 0 auto;  /* Centrar el contenedor */
+    padding: 20px;
+    border: 2px solid #ccc;  /* Agregar un borde */
+    border-radius: 10px;  /* Bordes redondeados */
+    background-color: #f4f4f4;  /* Fondo gris claro */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Sombra sutil */
+}
+
+canvas {
+    width: 100% !important;  /* Asegura que el canvas ocupe todo el ancho disponible */
+    height: 100% !important;  /* Asegura que el canvas ocupe toda la altura disponible */
+}
+
+
+
+/* Footer */
+footer {
+    background: linear-gradient(to right, var(--blue), var(--pink));
+    color: var(--white);
+}
+
+/* Additional Color Theming */
+.text-primary {
+    color: var(--blue) !important;
+}
+
+.bg-primary {
+    background-color: var(--blue) !important;
+}
+
+.btn-primary {
+    background-color: var(--pink);
+    border-color: var(--pink);
+}
+
+.btn-primary:hover {
+    background-color: color-mix(in srgb, var(--pink) 90%, white 10%);
+}
+
+.btn-secondary {
+    background-color: var(--blue);
+    border: 2px solid var(--blue);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem; /* Borde ligeramente redondeado */
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+.btn-secondary:hover {
+    background-color: color-mix(in srgb, var(--blue) 90%, white 10%);
+    border-color: var(--light-pink);
+    color: var(--light-blue);
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15); /* Sombra más intensa al pasar el mouse */
+    transform: translateY(-2px); /* Efecto de elevación */
+}
+
+.btn-secondary:active {
+    transform: translateY(0); /* Restaura el estado al hacer clic */
+    box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+}
+

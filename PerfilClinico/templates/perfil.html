@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Perfil Clínico | Portal Médico</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        {% include 'menu.html' %}
+
+        <!-- Contenido principal -->
+        <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
+            <div class="mx-auto space-y-8 max-w-7xl">
+                
+                <!-- Header simple -->
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-800">Mi Perfil</h1>
+                </div>
+
+                <!-- Información Personal -->
+                <section class="relative overflow-hidden bg-white shadow-sm rounded-2xl">
+                    <div class="absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16 rounded-full bg-medical-blue/5"></div>
+                    
+                    <div class="relative p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="flex items-center justify-center w-12 h-12 mr-4 rounded-xl bg-medical-blue/10 text-medical-blue">
+                                <i class='text-2xl bx bx-user-circle'></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800">Información Personal</h2>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <div>
+                                <p class="mb-1 text-sm text-gray-500">RUT</p>
+                                <p class="font-medium text-gray-800">{{ perfil.rut }}</p>
+                            </div>
+                            <div>
+                                <p class="mb-1 text-sm text-gray-500">Profesión</p>
+                                <p class="font-medium text-gray-800">{{ perfil.profesion }}</p>
+                            </div>
+                            <div>
+                                <p class="mb-1 text-sm text-gray-500">Email</p>
+                                <p class="font-medium text-gray-800">doctor@clinica.com</p>
+                            </div>
+                            <div>
+                                <p class="mb-1 text-sm text-gray-500">Teléfono</p>
+                                <p class="font-medium text-gray-800">+56 9 1234 5678</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 mt-6">
+                            {% if perfil.EsAdmin %}
+                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium text-orange-800 bg-orange-100 rounded-full">
+                                <i class='mr-1 bx bx-shield-alt'></i> Admin
+                            </span>
+                            {% endif %}
+                            <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full text-medical-blue bg-medical-blue/10">
+                                <i class='mr-1 bx bx-user-check'></i> {{ perfil.profesion }}
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Estadísticas -->
+                <section>
+                    <h2 class="mb-6 text-xl font-bold text-gray-800">Estadísticas</h2>
+                    
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <!-- Pacientes -->
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <p class="mb-1 text-sm text-gray-500">Pacientes Atendidos</p>
+                                    <h3 class="text-2xl font-bold text-gray-800">{{pacientesAtendidos|default:"0"}}</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-blue/10 text-medical-blue">
+                                    <i class='bx bx-user-plus'></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <span class="flex items-center text-medical-green">
+                                    <i class='bx bx-up-arrow-alt'></i>
+                                    <span>12%</span>
+                                </span>
+                                <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Consultas -->
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <p class="mb-1 text-sm text-gray-500">Consultas</p>
+                                    <h3 class="text-2xl font-bold text-gray-800">3,567</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-green/10 text-medical-green">
+                                    <i class='bx bx-calendar-check'></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <span class="flex items-center text-medical-green">
+                                    <i class='bx bx-up-arrow-alt'></i>
+                                    <span>8%</span>
+                                </span>
+                                <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Calificación -->
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                            <div class="flex items-start justify-between mb-4">
+                                <div>
+                                    <p class="mb-1 text-sm text-gray-500">Calificación</p>
+                                    <h3 class="text-2xl font-bold text-gray-800">4.9</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-orange/10 text-medical-orange">
+                                    <i class='bx bx-star'></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center text-xs">
+                                <span class="flex items-center text-medical-green">
+                                    <i class='bx bx-up-arrow-alt'></i>
+                                    <span>5%</span>
+                                </span>
+                                <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Actividad Reciente -->
+                <section class="bg-white shadow-sm rounded-2xl">
+                    <div class="p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="flex items-center justify-center w-12 h-12 mr-4 rounded-xl bg-medical-blue/10 text-medical-blue">
+                                <i class='text-2xl bx bx-time'></i>
+                            </div>
+                            <h2 class="text-xl font-bold text-gray-800">Actividad Reciente</h2>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-start p-4 border-l-4 rounded-r-lg border-medical-blue bg-medical-blue/5">
+                                <div class="flex items-center justify-center w-10 h-10 mr-4 rounded-full bg-medical-blue/20 text-medical-blue">
+                                    <i class='bx bx-user-plus'></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Nuevo paciente registrado</p>
+                                    <p class="text-sm text-gray-500">María González - Hace 2 horas</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start p-4 border-l-4 rounded-r-lg border-medical-green bg-medical-green/5">
+                                <div class="flex items-center justify-center w-10 h-10 mr-4 rounded-full bg-medical-green/20 text-medical-green">
+                                    <i class='bx bx-check-circle'></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Consulta completada</p>
+                                    <p class="text-sm text-gray-500">Juan Pérez - Hace 1 día</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start p-4 border-l-4 rounded-r-lg border-medical-orange bg-medical-orange/5">
+                                <div class="flex items-center justify-center w-10 h-10 mr-4 rounded-full bg-medical-orange/20 text-medical-orange">
+                                    <i class='bx bx-calendar'></i>
+                                </div>
+                                <div>
+                                    <p class="font-medium text-gray-800">Cita programada</p>
+                                    <p class="text-sm text-gray-500">Ana Silva - Hace 3 días</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Efectos hover simples
+            const cards = document.querySelectorAll('.hover\\:shadow-md');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

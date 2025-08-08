@@ -1,0 +1,97 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Registro Clínico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/AgregarClinico.css' %}" />
+</head>
+<body>
+    <header class="site-header">
+        <div class="container">
+            <nav class="main-nav">
+                <div class="nav-brand">
+                    <a href="#" class="brand-link">
+                        <i class="fas fa-hospital-user"></i>
+                        <a href="{% url 'panel' %}" class="nav-link">Sistema Clinico</a>
+                    </a>
+                </div>
+                
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <div class="nav-menu" id="navMenu">
+                    <ul class="nav-links">
+                        <li class="nav-item"></li>
+                    </ul>
+                    
+                    <div class="nav-actions">
+                        <a href="{% url 'panel' %}" class="nav-link">Ver clínicos</a>
+                        <a href="#" class="btn-nav">Cerrar Sesión</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+    
+    <main>
+        <div class="container">
+            <div class="form-container">
+                <h1>Registro de Clínico</h1>
+                <center>
+                    <form method="post" action="">
+                        {% csrf_token %}
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="rut">Rut</label>
+                                <input type="text" id="rut" name="rut" placeholder="12345678-9" required />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="profesion">Profesión</label>
+                                <input type="text" id="profesion" name="profesion" placeholder="Kinesiólogo" required />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" id="nombre" name="nombre" placeholder="Juan" required />
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="apellido">Apellido</label>
+                                <input type="text" id="apellido" name="apellido" placeholder="Pérez" required />
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="contraseña">Contraseña</label>
+                            <input type="password" id="contraseña" name="contraseña" placeholder="••••••••" required />
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">Agregar Clínico</button>
+                        </div>
+                    </form>
+                </center>
+               
+            </div>
+        </div>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileToggle = document.getElementById('mobileToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        mobileToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+        });
+    });
+    </script>
+</body>
+</html>

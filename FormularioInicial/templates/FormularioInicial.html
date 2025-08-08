@@ -1,0 +1,1993 @@
+{% load static  %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Dolor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <script src="{% static 'formulario.js' %}"></script>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{%url 'panel' %}">
+                <i class="fas fa-hospital-user me-2"></i>Sistema Clínico
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+    <main>
+        <form id="Step" action="{% url 'formularioInicial' %}" method="post">
+            {% csrf_token %}
+            <!-- Mensajes de Errores.  -->
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <i class="bi bi-info-circle-fill me-2"></i> 
+                        {{ message|capfirst }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+
+            
+            <input type="hidden" name="duracion_sesion" id="duracionSesionInput" value="00:00:00">
+            
+            <!-- Contacto y datos del Paciente   -->
+            <div class="step">
+                <h2 class="mb-4">Datos de ingreso de paciente</h2>
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Rut</label>
+                        <input type="text" class="form-control" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" required/>
+                        <div id="mensaje-error" style="color: red; display: none;">Error en el formato. Por favor, ingrese un RUT válido.</div>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" name="nombre" id="nombre" placeholder="Ingrese su nombre" required/>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Apellido</label>
+                        <input type="text" class="form-control" name="apellido" id="apellido" placeholder="Ingrese su apellido" required/>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Fecha de Nacimiento</label>
+                        <input type="text" id="fechaNac" name="fechaNac" class="form-control" placeholder="Ingrese su Fecha de Nacimiento" required/>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Seleccione género</label>
+                        <div>
+                            <input type="radio" class="btn-check" name="genero" id="masculino1" autocomplete="off" value="Masculino"/>
+                            <label class="btn btn-outline-primary me-2" for="masculino1">Masculino</label>
+                            
+                            <input type="radio" class="btn-check" name="genero" id="fem2" autocomplete="off" value="Femenino"/>
+                            <label class="btn btn-outline-primary" for="fem2">Femenino</label>
+                        </div>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Contacto</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Flag_of_Chile.svg" alt="Chile" width="20">
+                            </span>
+                            <input type="tel" class="form-control" name="contact" id="contact" placeholder="Ingrese Teléfono de paciente" required />
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Seleccione tipo de cobertura de salud</label>
+                        <div>
+                            <input type="radio" class="btn-check" name="cobertura" id="fonasa1" autocomplete="off" value="fonasa"/>
+                            <label class="btn btn-outline-primary me-2" for="fonasa1">Fonasa</label>
+            
+                            <input type="radio" class="btn-check" name="cobertura" id="isapre1" autocomplete="off" value="isapre"/>
+                            <label class="btn btn-outline-primary" for="isapre1">Isapre</label>
+                        </div>
+                    </div>
+            
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Fecha inicio licencia:</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" required class="form-control">
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label class="form-label">Días de Licencia</label>
+                        <input type="number" id="dias_licencia" name="dias_licencia" required class="form-control" placeholder="Ingresa tus días de licencia">
+                    </div>
+                    <input type="date" id="fecha_fin" name="fecha_fin" required class="form-control">
+                    
+                    <script>
+                        function calcularFechaFin() {
+                            const fechaInicio = document.getElementById("fecha_inicio").value;
+                            const diasLicencia = Number.parseInt(document.getElementById("dias_licencia").value);
+                    
+                            if (fechaInicio && !isNaN(diasLicencia)) {
+                                const fechaInicioObj = new Date(fechaInicio);
+                                fechaInicioObj.setDate(fechaInicioObj.getDate() + diasLicencia);
+                    
+                                // Convertir a formato YYYY-MM-DD
+                                const fechaFin = fechaInicioObj.toISOString().split("T")[0];
+                    
+                                // Asignar el valor corregido al campo oculto
+                                document.getElementById("fecha_fin").value = fechaFin;
+                            }
+                        }
+                    
+                        document.getElementById("fecha_inicio").addEventListener("input", calcularFechaFin);
+                        document.getElementById("dias_licencia").addEventListener("input", calcularFechaFin);
+                    </script>
+                    
+                </div>
+            </div>
+            
+            <!-- step de trabajos  -->
+            <div class="step">
+                <h2 class="mb-4">Datos de trabajo del paciente</h2>
+                <div class="form-group">
+                    <label class="form-label"><strong>Escriba el nombre del trabajo que realiza </strong></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="profesion" id="Trabajo" placeholder="Ingrese el nombre de su trabajo" required/>
+                    </div>
+                </div>
+                <div class="work-type-section">
+                    <label class="form-label"><strong>Seleccione el tipo de trabajo que realiza </strong></label>
+                    
+                    <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo sedentario" required/>
+                                <strong>Trabajo sedentario </strong> (Actividad física en la cual se encuentra sentado la mayor parte del tiempo)
+                            </label>      
+                    </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo con movilidad moderada" required/>
+                                <strong>Trabajo con movilidad moderada</strong> (Actividad física en la cual alterna entre estar sentado y de pie, con desplazamientos ocasionales)
+                            </label>
+                            
+                        </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo de moderado esfuerzo físico" required/>
+                                <strong>Trabajo de moderado esfuerzo físico</strong> (Actividad física variable que puede implicar levantar cargas medias y posturas prolongadas)
+                            </label>
+                            
+                        </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo de alto esfuerzo físico" required/>
+                                <strong>Trabajo de alto esfuerzo físico</strong> (Actividad física constante que implica levantar cargas pesadas y posturas forzadas)
+                            </label>
+                            
+                        </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo en transporte y maquinaria pesada" required/>
+                                <strong>Trabajo en transporte</strong> (Actividad con prolongadas horas de conducción, puede implicar vibraciones constantes, ruido y esfuerzo postural)
+                            </label>
+                            
+                        </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo manual especializado" required/>
+                                <strong>Trabajo manual especializado</strong> (Actividad que requiere precisión y movimientos repetitivos, puede implicar posturas constantes)
+                            </label>
+                            
+                        </div>
+            
+                        <div class="form-group">
+                            <label class="work-type-label">
+                                <input class="form-check-input" type="radio" name="trabajo" value="Trabajo con alta exposición ambiental" required/>
+                                <strong>Trabajo con exposición ambiental</strong> (Actividad que implica exposición a condiciones climáticas extremas, esfuerzo físico combinado con equipos de protección)
+                            </label>
+                           
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- caracteristicas del dolor  -->
+            <div class="step">
+                <h2 class="mb-4">Características de su dolor</h2>
+                <div class="form-group">
+                    <label class="form-label"><strong>Duración de su dolor</strong></label>
+                    <div class="btn-group" role="group" aria-label="Duración del dolor">
+                        
+                        <input type="radio" class="btn-check" name="btnradio1" id="btncheck1" autocomplete="off" value="menos de 3 meses" />
+                        <label class="btn btn-outline-primary" for="btncheck1">Menos de 3 meses</label>
+                
+                        <input type="radio" class="btn-check" name="btnradio1" id="btncheck2" autocomplete="off" value="de 3 a 6 meses" />
+                        <label class="btn btn-outline-primary" for="btncheck2">Entre 3 y 6 meses</label>
+                
+                        <input type="radio" class="btn-check" name="btnradio1" id="btncheck3" autocomplete="off" value="mas de 6 meses" />
+                        <label class="btn btn-outline-primary" for="btncheck3">Más de 6 meses</label>
+                    </div>
+                </div>
+                <div class="list-group">
+                    <label class="form-label"><strong>Seleccione las características de su dolor</strong></label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="Punzante" required/> Punzante (Un dolor agudo y localizado, como si te pincharan con una aguja)
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="ardiente" required/> Ardiente (Sensación de quemazón o calor intenso en la zona)
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="sordo"required/> Sordo (Un dolor constante y molesto, pero no muy intenso, como una presión continua)
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="pulsativo"required/> Pulsátil (Dolor que late o se siente como un pulso rítmico)
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="opresivo" required/> Opresivo (Sensación de algo que aprieta o comprime, como si tuvieras un peso encima)
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="corriente" required/> Corriente (Dolor que recorre o se desplaza como si fuera una descarga eléctrica)
+                        
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="adormecimiento"required/> Adormecimiento (Sensación de pérdida de sensibilidad o como si la zona estuviera "dormida")
+                    </label>
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="Hormigueo" required/> Hormigueo (Sensación de pequeños pinchazos o cosquilleo, como si algo caminara sobre la piel)
+                    </label>
+                </div>
+            </div>
+
+            <!-- Cuerpo Humano  -->
+            <div class="step">
+                <div class="container">
+                    <div class="row">
+                        <label class="form-label">Seleccione las partes del cuerpo donde sienta dolor o dificultades. Luego, elija la intensidad del dolor en la tabla de al lado, la parte sera seleccionada cuando
+                            la zona se marque de el color correspondiente a la intensidad de dolor. Si se equivoca, puede eliminar la selección usando el botón correspondiente en la columna de acciones. UNISEX</label>
+                        <div class="col-md-6"> 
+                            <center>
+                                <div class="cuerpoHumano" id="cuerpoHumano">
+                                    <img src="{% static 'image/cuerpo.png' %}" alt="" srcset="">
+                                </div>
+                            </center>
+                        </div>
+                            <div class="col-md-6">
+                                <table class="tabla-dolor table table-bordered mt-3">
+                                    <thead>
+                                        <tr>
+                                            <th class="columna-header">Parte del Cuerpo</th>
+                                            <th class="columna-header">Intensidad de Dolor</th>
+                                            <th class="columna-header">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="minitablita"></tbody>
+                                </table>
+                                <div class="explicacion-vistas">
+                                
+                                    <div class="vista-item">
+                                        <span class="acronimo">VF</span>
+                                        <span class="descripcion">Vista Frontal</span>
+                                    </div>
+                                    <div class="vista-item">
+                                        <span class="acronimo">VT</span>
+                                        <span class="descripcion">Vista Trasera</span>
+                                    </div>
+                                </div>
+                            </div> 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Causas Del Dolor -->
+            <div class="step">
+                <h2 class="mb-4">Causa del dolor</h2>
+                <div class="form-group">
+                    <label class="form-label"><strong>¿Qué elemento o circunstancia relaciona usted con el comienzo de su dolor?</strong></label>
+                    <select class="form-select form-select-lg" name="causaDolor">
+                        <option selected>--Seleccione uno--</option>
+                        <option value="Accidente doméstico">Accidente doméstico</option>
+                        <option value="Accidente vehicular">Accidente vehicular</option>
+                        <option value="Accidente laboral">Accidente laboral</option>
+                        <option value="Por enfermedad">Por enfermedad</option>
+                        <option value="Post cirugía">Post cirugía</option>
+                        <option value="Sin causa identificada o reconocida">Sin causa identificada o reconocida</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><strong>¿Piensa usted que su dolor es resultado de un accidente laboral?</strong></label>
+                    <div class="btn-group w-100">
+                        <input type="radio" class="btn-check" name="accidenteLaboral" id="opdolor1" value="si" autocomplete="off" />
+                        <label class="btn btn-outline-primary" for="opdolor1">Si</label>
+                        <input type="radio" class="btn-check" name="accidenteLaboral" id="opdolor2" autocomplete="off" value="no" />
+                        <label class="btn btn-outline-primary" for="opdolor2">No</label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="calidadAtencionContainer" style="display: none;">
+                    <label class="form-label"><strong>¿Recibió una buena atención por la mutualidad contratada por su empresa?</strong></label>
+                    <div class="btn-group w-100">
+                        <input type="radio" class="btn-check" name="calidadAtencion" id="calidadAtencion1" value="si" autocomplete="off"/>
+                        <label class="btn btn-outline-primary" for="calidadAtencion1">Si</label>
+                        <input type="radio" class="btn-check" name="calidadAtencion" id="calidadAtencion2" autocomplete="off" value="no" />
+                        <label class="btn btn-outline-primary" for="calidadAtencion2">No</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><strong>¿Piensa usted que su dolor es señal de un problema/enfermedad seria que no ha sido diagnosticada?</strong></label>
+                    <div class="btn-group w-100">
+                        <input type="radio" class="btn-check" name="diagnosis" id="diagnosis1" autocomplete="off" value="si"/>
+                        <label class="btn btn-outline-primary" for="diagnosis1">Si</label>
+                        <input type="radio" class="btn-check" name="diagnosis" id="diagnosis2" autocomplete="off" value="no"/>
+                        <label class="btn btn-outline-primary" for="diagnosis2">No</label>
+                        <input type="radio" class="btn-check" name="diagnosis" id="diagnosis3" autocomplete="off" value="no lo sé"/>
+                        <label class="btn btn-outline-primary" for="diagnosis3">No lo sé</label>
+                    </div>
+                </div>
+                <div class="form-group mt-4">
+                    <label class="form-label"><strong>¿Piensa usted que hay cura para su dolor?</strong></label>
+                    <div class="btn-group w-100">
+                        <input type="radio" class="btn-check" name="cure" id="cure1" autocomplete="off" value="si"/>
+                        <label class="btn btn-outline-primary" for="cure1" >Si</label>
+                        <input type="radio" class="btn-check" name="cure" id="cure2" autocomplete="off" value="no"/>
+                        <label class="btn btn-outline-primary" for="cure2">No</label>
+                        <input type="radio" class="btn-check" name="cure" id="cure3" autocomplete="off" value="no lo sé"/>
+                        <label class="btn btn-outline-primary" for="cure3">No lo sé</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condiciones de Salud Tabla -->
+            <div class="step">
+                <div class="Pagina3">  
+                    <h4><strong>Lea detenidamente y selecciona las condiciones de salud que presente</strong></h4>
+                    <table id="tablaPagina3">
+                        <tr>
+                            <th>Musculoesqueléticos</th>
+                            <th>Neurológicos</th>
+                            <th>Endocrinos</th>
+                            <th>Cardiopulmonar</th>
+                            <th>Otros</th>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Artrosis" name="TiposDeEnfermedades" />Artrosis</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Cefaleas" name="TiposDeEnfermedades" />Cefaleas</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="diabetes" name="TiposDeEnfermedades" />Diabetes</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="arritmia"  name="TiposDeEnfermedades"/>Arritmia</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Ansiedad" name="TiposDeEnfermedades"/>Ansiedad</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Artritis reumatoide"name="TiposDeEnfermedades" />Artritis reumatoide</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Accidente Vascular" name="TiposDeEnfermedades"/>Accidente Vascular</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Problemas renales" name="TiposDeEnfermedades"/>Problemas renales</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Colesterol Alto" name="TiposDeEnfermedades"/>Colesterol Alto</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Depresion"name="TiposDeEnfermedades" />Depresión</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Fibromialgia" name="TiposDeEnfermedades"/>Fibromialgia</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Hormigueos o adormecimiento" name="TiposDeEnfermedades"/>Hormigueos o adormecimiento</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Problemas de vejiga" name="TiposDeEnfermedades"/>Problemas de vejiga</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Marcapasos" name="TiposDeEnfermedades"/>Marcapasos</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Cáncer" name="TiposDeEnfermedades"/>Cáncer</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Osteoporosis" name="TiposDeEnfermedades"/>Osteoporosis</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Parkinson" name="TiposDeEnfermedades"/>Párkinson</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Problemas de hígado" name="TiposDeEnfermedades"/>Problemas de hígado</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Anemia" name="TiposDeEnfermedades"/>Anemia</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Cirugias previas" name="TiposDeEnfermedades"/>Cirugías previas</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Historia de caídas" name="TiposDeEnfermedades"/>Historia de caídas</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Epilepsia" name="TiposDeEnfermedades"/>Epilepsia</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Alteracion de tiroides" name="TiposDeEnfermedades"/>Alteración de tiroides</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Hipertension" name="TiposDeEnfermedades"/>Hipertensión</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Sindrome de fatiga cronica" name="TiposDeEnfermedades"/>Síndrome de fatiga crónica</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Dolor mandibular" name="TiposDeEnfermedades"/>Dolor mandibular</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Esclerosis múltiple" name="TiposDeEnfermedades"/>Esclerosis múltiple</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Resistencia a la insulina" name="TiposDeEnfermedades"/>Resistencia a la insulina</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Asma" name="TiposDeEnfermedades"/>Asma</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Alergias" name="TiposDeEnfermedades"/>Alergias</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Hernia discal o discopatias" name="TiposDeEnfermedades"/>Hernia discal o discopatías</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Sindrome de piernas inquietas" name="TiposDeEnfermedades"/>Síndrome de piernas inquietas</td>
+                            <td></td>
+                            <td><input class="custom-checkbox" type="checkbox" value="VIH" name="TiposDeEnfermedades"/>VIH</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Obesidad" name="TiposDeEnfermedades"/>Obesidad</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Fracturas"name="TiposDeEnfermedades" />Fracturas</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Sindrome de fatiga cronica"name="TiposDeEnfermedades" />Sindrome de fatiga crónica</td>
+                            <td></td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Falta de air" name="TiposDeEnfermedades"/>Falta de aire</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Trombosis" name="TiposDeEnfermedades"/>Trombosis</td>
+                        </tr>
+                        <tr>
+                            <td><input class="custom-checkbox" type="checkbox" value="Hiperlaxo"name="TiposDeEnfermedades" />Hiperlaxo</td>
+                            <td></td> 
+                            <td></td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Colon irritable"name="TiposDeEnfermedades" />Colon irritable</td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Secuela de COVID"name="TiposDeEnfermedades" />Secuela de COVID</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td><input class="custom-checkbox" type="checkbox" value="Secuela de COVID"name="TiposDeEnfermedades" />Dermatitis nerviosas o atópicas </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Medicamentos  -->
+            <div class="step">
+                <div class="form-group">
+                    <label class="form-label"><strong>Detalla a continuación medicamentos para el dolor que usas o has usado. Marque el medicamento que le resulte más efectivo:</strong></label>
+                    
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Analgesicos simples" /> 
+                    1. Analgésicos simples  (⁠Paracetamol, Dipirona, Ibuprofeno)
+                    </label>
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antiinflamatorios no esteroideos" />  
+                    2. Antiinflamatorios no esteroideos (Diclofenaco, Naproxeno, Ketoprofeno, Meloxicam)
+                    </label>
+                    
+                    <label class="list-group-item">
+                        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides debiless" />  
+                        3. Opioides débiles (Tramadol, Codeína)
+                    </label>
+                    
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides fuertes" />  
+                    4. Opioides fuertes( Morfina, Fentanilo, parches de Bupenorfrina)
+                    </label> 
+                    <label class="list-group-item">   
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Anticonvulsivantess" />  
+                    5. Anticonvulsivantes (Pregabalina, Gabapentina, Carbamazepina)
+                    </label> 
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antidepresivos" />  
+                    6. Antidepresivos (para el manejo del dolor crónico)•⁠ Amitriptilina, Duloxetina, Venlafaxina
+                    </label>
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Relajantes musculares y Benzodiacepinas" />  
+                    7. Relajantes musculares (Benzodiacepinas, Diazepam, Clonazepam, Alprazolam, Clotiazepam)
+                    </label> 
+                    <label class="list-group-item">   
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Inductores del Sueño." />  
+                    8. Inductores del Sueño (Zopiclona, Eszopiclona, Melatonina, Zolpide, ketiapina)
+                    </label>
+                    <label class="list-group-item"> 
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Corticoide" />  
+                    9. Corticoides (para inflamación severa) Prednisona, Dexametasona, Betametasona.
+                    </label>
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Medicamentos topicos" />  
+                    10. Medicamentos tópicos (Capsaicina, Lidocaina en crema o parches, Diclofenaco en gel)
+                    </label>
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Terapias biologicas" />  
+                    11. Terapias biológicas (si corresponde)⁠  Adalimumab, Etanercept.
+                    </label>   
+                    </label>
+                    <label class="list-group-item">
+                    <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Cannabis medicinal" />  
+                    12. Cannabis Medicinal
+                    </label>  
+                </div>
+            </div>
+
+            <!-- Formulario Screenning  -->
+            <div class="step">
+            
+                <h3>PARA RESPONDER LAS SIGUIENTES PREGUNTAS, PIENSE SOLO RESPECTO DE LAS ÚLTIMAS 2 SEMANAS</h3>
+                <label class="form-label"><strong>1.- En promedio, ¿Cuán intenso ha sido su dolor?</strong> </label>
+                <div class="form-group">
+                    <div class="mb-3">
+            
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad1" autocomplete="off" value="0"/>
+                            <label class="form-check-label" for="intensidad1">No he tenido dolor</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad2" autocomplete="off" value="3"/>
+                            <label class="form-check-label" for="intensidad2">Dolor leve, que casi no interfiere con mis actividades.</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad3" autocomplete="off" value="6"/>
+                            <label class="form-check-label" for="intensidad3">Dolor moderado, que interfiere de forma notable con mis actividades.</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad4" autocomplete="off" value="9"/>
+                            <label class="form-check-label" for="intensidad4">Dolor intenso, que limita severamente mis actividades diarias.</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad5" autocomplete="off" value="10"/>
+                            <label class="form-check-label" for="intensidad5">El peor dolor posible, que me resulta insoportable.</label>
+                        </div>
+                    </div>
+                        
+                </div>
+                
+            
+            
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th colspan="3"><label class="form-label"><strong>Por favor marque una casilla para cada pregunta a continuación</strong></label></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td scope="row">¿Ha experimentado molestias significativas en las articulaciones o músculos en más de una parte de su cuerpo?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" id="pregunta1_si" name="preguntas1"> Sí</label></td> 
+                            <td><label><input class="form-check-input" type="checkbox" value="no" id="pregunta1_no" name="preguntas1"> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope="row">¿Ha tenido dificultades para caminar largas distancias debido a su dolor?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                            <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope="row">¿Ha tenido que vestirse más lentamente de lo habitual debido a su dolor?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                            <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope="row">¿Tiene algún otro problema de salud importante que considere relevante?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                            <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope="row">¿Cree que no es seguro para alguien con su condición realizar actividad física?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                            <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope="row">En las últimas dos semanas, ¿ha tenido pensamientos recurrentes o preocupantes sobre su dolor?</td>
+                            <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td> 
+                            <td><label><input class="form-check-input" type='checkbox' value='no' name='preguntas1'> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope='row'>¿Cree que su condición de dolor persistirá durante mucho tiempo?</td>
+                            <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
+                            <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
+                        </tr>
+                        <tr>
+                            <td scope='row'>¿Ha dejado de disfrutar actividades que usualmente le gustan debido a su dolor?</td>
+                            <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
+                            <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
+                        </tr>
+                        <tr>
+                            
+                        </tr>  
+                    </tbody>  
+                </table>
+
+                
+                <div class="molestia">
+                    <label class="form-label"><strong>¿Qué tan molesto ha sido su dolor en las últimas dos semanas?</strong></label>
+                    <div class="checkbox-group">
+                        <label><input class="form-check-input" type="checkbox" value="nada" name="preguntas1">Nada</label> 
+                        <label><input class="form-check-input" type="checkbox" value="leve" name="preguntas1">Leve</label> 
+                        <label><input class="form-check-input" type="checkbox" value="moderado" name="preguntas1">Moderado</label> 
+                        <label><input class="form-check-input" type="checkbox" value="mucho" name="preguntas1">Mucho</label> 
+                        <label><input class="form-check-input" type="checkbox" value="extremo" name="preguntas1">Extremo</label> 
+                    </div>
+                </div>
+
+                <table id="apoyo" border="1" cellpadding="20" cellspacing="0" style="width: 100%; text-align: left;">
+                    <tr>
+                        <td>
+                            <label class="form-label">
+                            Las personas con dolor crónico frecuentemente también padecen ansiedad o depresión. Un mejor manejo de la ansiedad y la depresión a menudo conduce a un mejor manejo del dolor. Hable con su médico de familia o enfermero especializado para una evaluación de la ansiedad y la depresión si cree que esto se aplica a usted.
+                            </label>
+                            <label class="form-label"><strong>¿Desea usted apoyo en esta situación?</strong></label>
+                            <center>
+                                <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                                    <input type="radio" class="btn-check" name="support" id="support-yes" autocomplete="off" value="si"/>
+                                    <label class="btn btn-outline-primary" for="support-yes">Sí</label>
+
+                                    <input type="radio" class="btn-check" name="support" id="support-no" autocomplete="off" value="no"/>
+                                    <label class="btn btn-outline-primary" for="support-no">No</label>
+                                </div>
+                            </center>
+                        </td>
+                    </tr>
+                </table>
+                                    
+                
+            </div>
+
+            <!-- Actividades de evitacion y persistencia -->
+            <div class="step" name="PreguntaNueva">
+                <div class="mb-3">
+                    <label class="form-label"> <strong>
+                        seleccione tres actividades que realiza o que ha dejado de realizar debido a su dolor.
+                    </strong></label>
+                    
+                    <label class="form-label"><strong>
+                        Actividades Familiares
+                    </strong></label>    
+                        <ul>
+                            <li> <input type="checkbox" name="actividades_afectadas" value="Ayudar en las tareas del hogar">  Ayudar en las tareas del hogar (cocinar, limpiar, cuidar a familiares)</li>
+                            <li> <input type="checkbox" name="actividades_afectadas" value="Jugar o compartir tiempo con los hijos/nietos">  Jugar o compartir tiempo con los hijos/nietos.</li>
+                            <li> <input type="checkbox" name="actividades_afectadas" value="Participar en reuniones o celebraciones familiares.<">  Participar en reuniones o celebraciones familiares.</li>
+                            <li> <input type="checkbox" name="actividades_afectadas" value=" Acompañar a familiares en actividades diarias">  Acompañar a familiares en actividades diarias (compras, trámites, paseos).</li>
+                        </ul>
+                    
+                    <label class="form-label"><strong>
+                         Actividades Laborales
+                    </strong></label>    
+                        <ul>
+                            <li> <input type="checkbox"  name="actividades_afectadas" value="Cumplir con mi trabajo o actividades profesionales"> Cumplir con mi trabajo o actividades profesionales.</li>
+                            <li> <input type="checkbox"  name="actividades_afectadas" value="Realizar tareas físicas en el trabajo"> Realizar tareas físicas en el trabajo (levantar peso, caminar mucho).</li>
+                            <li> <input type="checkbox"  name="actividades_afectadas" value=" Asistir a reuniones o capacitaciones laborales"> Asistir a reuniones o capacitaciones laborales</li>
+                        </ul>
+
+                        <label class="form-label"><strong>
+                              Actividades educativas o universitarias
+                        </strong></label>    
+                            <ul>
+                                <li><input type="checkbox" name="actividades_afectadas"  value="Asistir a clases o estudiar en casa"> Asistir a clases o estudiar en casa</li>
+                                <li><input type="checkbox" name="actividades_afectadas"  value="Completar tareas, proyectos o actividades academicas"> Completar tareas, proyectos o actividades académicas</li>
+                                <li><input type="checkbox" name="actividades_afectadas"  value="Participar en actividades extracurriculares"> Participar en actividades extracurriculares (grupos, talleres)</li>
+                            </ul>
+
+                            
+                        <label class="form-label"><strong>
+                            Actividades deportivas o físicas
+                        </strong></label> 
+                            <ul>
+                                <li> <input type="checkbox"  name="actividades_afectadas"  value="Salir a caminar, trotar o hacer ejercicio">Salir a caminar, trotar o hacer ejercicio.</li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Practicar deportes (futbol, tenis, natacion, etc.)"> Practicar deportes (fútbol, tenis, natación, etc.).</li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Realizar actividades recreativas al aire libre"> Realizar actividades recreativas al aire libre (bicicleta, senderismo).</li>
+                            </ul>
+
+                        <label class="form-label"><strong>
+                            Actividades sociales
+                        </strong></label>    
+                            <ul>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Salir con amigos o asistir a reuniones sociales"> Salir con amigos o asistir a reuniones sociales.</li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Participar en actividades comunitarias o religiosas"> Participar en actividades comunitarias o religiosas.</li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Ir al cine, teatro o eventos culturales"> Ir al cine, teatro o eventos culturales.</li>
+                            </ul>
+                         <label class="form-label"><strong>
+                            Actividades de autocuidado
+                         </strong></label>    
+                            <ul>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Realizar mis rutinas diarias"> Realizar mis rutinas diarias (vestirme, asearme, comer)</li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Asistir a citas medicas o terapias"> Asistir a citas médicas o terapias </li>
+                                <li><input type="checkbox"  name="actividades_afectadas"  value="Relajarme o descansar cuando lo necesito"> Relajarme o descansar cuando lo necesito</li>
+                            </ul>
+                </div>
+            </div>
+
+            <!--estilo de vida-->
+            <div class="step">
+                <div class="contenedor">
+                    <div class="pregunta">
+                        <label for="pregunta1_nivelDeSalud" class="form-label"><strong>
+                            1) Por favor indique en qué rango se encuentra su nivel de salud
+                        </strong></label>
+                            <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="Muy malo" autocomplete="off" value="No consumo drogas"/>
+                            Siento que mi salud está muy afectada, con problemas graves que dificultan casi todas mis actividades diarias<br/>
+                            <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="malo" autocomplete="off" value="La consumo ocasionalmente (menos de una vez al mes)"/>
+                            Tengo muchas molestias o limitaciones que afectan significativamente mi vida diaria<br/>
+                            <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="Deficiente" autocomplete="off" value="La consumo esporádicamente (algunas veces al mes)"/>
+                            Puedo realizar algunas actividades, pero con esfuerzo constante y molestias frecuentes<br/>
+                            <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="bien" autocomplete="off" value="La consumo regularmente (al menos una vez por semana)"/>
+                            Me siento bien la mayor parte del tiempo, con pocas molestias que no afectan mucho mi día a día<br/>
+                            <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="saludable" autocomplete="off" value="La consumo frecuentemente (todos los días o casi todos los días)"/>
+                            Estoy saludable y puedo realizar todas mis actividades con comodidad, salvo molestias menores<br/>
+                    </div> 
+                
+                    <div class="pregunta">
+                        <label for="" class="form-label"><strong>
+                            2) Durante las últimas dos semanas, ¿con qué frecuencia se sintió cansado o tuvo dificultad para mantenerse despierto al realizar tareas rutinarias durante el día?
+                        </strong></label>
+                        <div>
+                            <input type="radio" name="op3" class="form-check-input" value="Nunca" /> Nunca<br />
+                            <input type="radio" name="op3" class="form-check-input" value="A veces" /> A veces<br />
+                            <input type="radio" name="op3" class="form-check-input" value="Frecuentemente"/> Frecuentemente<br />
+                            <input type="radio" name="op3" class="form-check-input" value="Siempre"/> Siempre
+                        </div>
+                    </div>
+                    
+                    <div class="pregunta">
+                        <label for="" class="form-label"><strong>
+                            3) ¿Qué opinas sobre tu peso actual?
+                        </strong></label>
+                        <div>
+                            <input type="radio" name="pregunta4_opinion_peso_actual" class="form-check-input" value="Quiero ganar mucho peso"/>Quiero ganar mucho peso<br />
+                            <input type="radio" name="pregunta4_opinion_peso_actual" class="form-check-input" value="quiero ganar poco peso"/>quiero ganar poco peso<br />
+                            <input type="radio" name="pregunta4_opinion_peso_actual" class="form-check-input" value="estoy feliz con mi peso"/>estoy feliz con mi peso<br />
+                            <input type="radio" name="pregunta4_opinion_peso_actual" class="form-check-input" value="quiero perder un poco de peso"/>quiero perder un poco de peso<br />
+                            <input type="radio" name="pregunta4_opinion_peso_actual" class="form-check-input" value="quiero perder mucho peso"/> quiero perder mucho peso
+                        </div>
+                </div>
+                    <div class="pregunta">
+                        <label for="" class="form-label"><strong>
+                            4) Durante las últimas dos semanas, ¿con qué frecuencia ha comido comida rápida, bebidas azucaradas (por ejemplo, soda, bebidas deportivas, jugos) o 
+                            alimentos envasados (por ejemplo, papas fritas, dulces, galletas saladas, galletas dulces)?
+                        </strong> </label>
+                        <div>
+                            <input type="radio" name="op5" class="form-check-input" value="nunca"/> nunca <br />
+                            <input type="radio" name="op5" class="form-check-input" value="varios dias"/> varios días<br />
+                            <input type="radio" name="op5" class="form-check-input" value="mas de la mitad de los dias"/> más de la mitad de los días<br />
+                            <input type="radio" name="op5" class="form-check-input" value="casi todos los dias"/> casi todos los días
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Sueño -->
+            <div class="step">
+                <!-- Pregunta 1 -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>1. ¿A qué hora suele acostarse en días habituales?</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_acostarse" value="antes_21">
+                        <label class="form-check-label">Antes de las 21:00 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_acostarse" value="21_2230">
+                        <label class="form-check-label">Entre 21:00 y 22:30 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_acostarse" value="2230_0000">
+                        <label class="form-check-label">Entre 22:30 y 00:00 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_acostarse" value="despues_0000">
+                        <label class="form-check-label">Después de las 00:00 hrs</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>2. ¿Cuánto tiempo tarda aproximadamente en quedarse dormido?</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tiempo_dormirse" value="menos de 15 minutos">
+                        <label class="form-check-label">Menos de 15 minutos</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tiempo_dormirse" value="15_30">
+                        <label class="form-check-label">Entre 15 y 30 minutos</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tiempo_dormirse" value="30_60">
+                        <label class="form-check-label">Entre 30 minutos y 1 hora</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="tiempo_dormirse" value="mas_60">
+                        <label class="form-check-label">Más de 1 hora</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>3. ¿A qué hora suele despertarse habitualmente?</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_despertar" value="antes_0500">
+                        <label class="form-check-label">Antes de las 05:00 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_despertar" value="0500_0630">
+                        <label class="form-check-label">Entre 05:00 y 06:30 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_despertar" value="0630_0800">
+                        <label class="form-check-label">Entre 06:30 y 08:00 hrs</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_despertar" value="despues_0800">
+                        <label class="form-check-label">Después de las 08:00 hrs</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>4. ¿A qué hora se levanta definitivamente de la cama?</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_levantarse" value="inmediato">
+                        <label class="form-check-label">Inmediatamente al despertar</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_levantarse" value="10_30">
+                        <label class="form-check-label">Entre 10 y 30 minutos después de despertar</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_levantarse" value="30_60">
+                        <label class="form-check-label">Entre 30 minutos y 1 hora después de despertar</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="hora_levantarse" value="mas_60">
+                        <label class="form-check-label">Más de 1 hora después de despertar</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>5. ¿Cuántas veces se despierta durante la noche por cualquier motivo?</strong></label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="despertares" value="nunca">
+                        <label class="form-check-label">Nunca </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="despertares" value="1">
+                        <label class="form-check-label">1 vez por noche </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="despertares" value="2_3">
+                        <label class="form-check-label">2-3 veces por noche </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="despertares" value="mas_3">
+                        <label class="form-check-label">Más de 3 veces por noche </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- preguntas de proposito de vida y psicologia -->
+            <div class="step">
+                <div class="contenedor">
+                    <div class="pregunta">
+                        <label for="" class="form-label">
+                            1) En un día normal, ¿cuántas porciones de frutas y verduras enteras comes
+                            (1 porción equivale aproximadamente a un puñado y no incluye jugo de fruta)?
+                        </label>
+                        <div>
+                            <input type="radio" name="op6" class="form-check-input" value="menos de 2 porciones"/>menos de 2 porciones <br />
+                            <input type="radio" name="op6" class="form-check-input" value="2 a 3 porciones"/> 2 a 3 porciones <br />
+                            <input type="radio" name="op6" class="form-check-input" value="4 a 5 porciones"/> 4 a 5 porciones <br />
+                            <input type="radio" name="op6" class="form-check-input" value="mas de 5 porciones"/> mas de 5 porciones<br />
+
+                        </div>
+                    </div>
+                    <div class="pregunta">
+                        <label for="" class="form-label">
+                            2) durante las ultimas 2 semanas, 
+                            ¿Cuántos días hiciste ejercicio a una intensidad moderada a extenuante 
+                            (es decir, caminar a paso ligero o movimiento suficiente para sudar un poco)?
+                        </label>
+                        <div>
+                            <input type="radio" name="op7" class="form-check-input" value="menos de 1 ves por semana"/>menos de 1 vez por semana <br />
+                            <input type="radio" name="op7" class="form-check-input" value="1 - 2 veces por semana "/> 1-2 veces por semana <br />
+                            <input type="radio" name="op7" class="form-check-input" value="3-4 veces por semana"/> 3-4 veces por semana<br />
+                            <input type="radio" name="op7" class="form-check-input" value="5 o mas veces por semana"/> 5 o mas veces por semana <br />
+
+                        </div>
+                    </div>
+
+                    <div class="pregunta">
+                        <label for="" class="form-label">
+                            3) Durante una sesión promedio, ¿cuántos minutos haces ejercicio a una intensidad moderada a intensa 
+                            (es decir, caminar a paso ligero o moverse lo suficiente como para sudar un poco)?
+                        </label>
+                        <div>
+                            <input type="radio" name="op8" class="form-check-input" value="Menos de 10 Minutos" /> Menos de 10 Minutos<br />
+                            <input type="radio" name="op8" class="form-check-input" value="10-29 minutos"/> 10-29 minutos<br />
+                            <input type="radio" name="op8" class="form-check-input" value="30-49 minutoss"/>30-49 minutos <br />
+                            <input type="radio" name="op8" class="form-check-input" value="50 minutos o mas"/> 50 minutos o mas <br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="step">
+                <div class="contenedor">
+                    
+                    <div class="pregunta">
+                            <label for="" class="form-label">
+                                Sentiste que tu vida, tenia un proposito o significado
+                            </label>
+                        <div>
+                            <input type="radio" class="form-check-input" name="proposito" id="preocupacion0" value="Me preocupa un poco" />
+                            nunca<br/>
+                            <input type="radio" class="form-check-input" name="proposito" id="preocupacion1" value="Me preocupa un poco" />
+                            un poco<br/>
+                            <input type="radio"class="form-check-input" name="proposito" id="preocupacion2" value="Me preocupa moderadamente" />
+                            moderadamente<br/>
+                            <input type="radio"  class="form-check-input" name="proposito" id="preocupacion3" value="Me preocupa mucho" />
+                            mucho<br/>
+                        </div>
+                    
+                    </div>
+                    <div class="pregunta">
+                            <label for="" class="form-label">¿Estuvo conectado con alguna red de apoyo (ejemplo: comunidad espiritual, amistad, familia, naturaleza, yoga o meditación)?</label>
+                            <div>
+                                <input type="radio" name="red_de_apoyo" class="form-check-input" id="red_de_apoyo_0" value="No estuve conectado en absoluto" />
+                                nunca<br/>
+                                
+                                <input type="radio" name="red_de_apoyo" class="form-check-input" id="red_de_apoyo_1" value="Estuve algo conectado" />
+                                un poco<br/>
+                                
+                                <input type="radio" name="red_de_apoyo" class="form-check-input" id="red_de_apoyo_2" value="Estuve moderadamente conectado" />
+                                moderadamente<br/>
+                                
+                                <input type="radio" name="red_de_apoyo" class="form-check-input" id="red_de_apoyo_3" value="Estuve muy conectado" />
+                                mucho<br/>
+                            </div>
+                    </div>
+                    <div class="pregunta">
+                        
+                        <label for="" class="form-label">¿Se ha sentido molesto por tener poco interés o placer en hacer las cosas?</label>
+                        <div>
+                            <input type="radio" name="placer_cosas"  class="form-check-input" id="placer_cosas_0" value="No, en absoluto" />
+                            nunca<br/>
+                            
+                            <input type="radio" name="placer_cosas"  class="form-check-input"id="placer_cosas_1" value="Un poco" />
+                            un poco<br/>
+                            
+                            <input type="radio" name="placer_cosas"  class="form-check-input"id="placer_cosas_2" value="Moderadamente" />
+                            Moderadamente<br/>
+                            
+                            <input type="radio" name="placer_cosas" class="form-check-input" id="placer_cosas_3" value="Mucho" />
+                            Mucho<br/>
+                        </div>
+                    </div>
+                    
+                    <div class="pregunta">
+                        <label for="" class="form-label">¿Se ha sentido deprimido?</label>
+                        <div>
+                            <input type="radio" name="deprimido" class="form-check-input" id="deprimido_0" class="opcion-radio" value="No, en absoluto" />
+                            nunca<br />   
+                            
+                            <input type="radio" name="deprimido"class="form-check-input" id="deprimido_1"  class="opcion-radio"value="Un poco" />
+                            un poco<br/>
+                            
+                            <input type="radio" name="deprimido" id="deprimido_2" class="form-check-input" value="Moderadamente" />
+                            Moderadamente<br/>
+                            
+                            <input type="radio" name="deprimido" id="deprimido_3" class="form-check-input" value="Mucho" />
+                            Mucho<br />
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="pregunta">
+                        <label for="" class="form-label">¿Se ha sentido molesto por estar nervioso, ansioso o tenso?</label>
+                        
+                            <input type="radio" name="preocupacion" id="preocupacion1" class="form-check-input" value="No estoy preocupado en absoluto" />
+                            nunca<br />
+                            
+                            <input type="radio" name="preocupacion" id="preocupacion2" class="form-check-input" value="Estoy un poco preocupado" />
+                            Un poco<br/>
+                            
+                            <input type="radio" name="preocupacion" id="preocupacion3" class="form-check-input" value="Estoy moderadamente preocupado" />
+                            Moderadamente<br/>
+                            
+                            <input type="radio" name="preocupacion" id="preocupacion4" class="form-check-input" value="Estoy muy preocupado" />
+                            Mucho<br/>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Inicio de Consumo de sustancias  -->
+            <div class="step">
+                <div class="sustanciasUsadas">
+                    <h5>¿Ha consumido alguna de las siguientes sustancias durante el último año?</h5>
+                    <label class="form-label"> Nicotina (cigarrillos, cigarrillos electrónicos, entre otros) </label>
+                    
+                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                        <input type="radio" class="btn-check" name="NicotinaSiOno" id="nicotina" autocomplete="off" value="si" />
+                        <label class="btn btn-outline-primary" for="nicotina">Sí</label>
+                    
+                        <input type="radio" class="btn-check" name="NicotinaSiOno" id="nicotinaNO" autocomplete="off" value="no" />
+                        <label class="btn btn-outline-primary" for="nicotinaNO">No</label>
+                    </div>
+                    
+                    <!-- Opciones adicionales -->
+                    <div id="opcionesNicotina" style="display: none; margin-top: 1rem;">
+                        <label class="form-label">Si marcaste sí, ¿cuánto fumas usualmente por día?</label>
+                        <div class="mb-3">
+                            <input type="radio" name="frecuenciaNicotina" id="frecuencia1" class="form-check-input" value="Ocacionalmente" />
+                            Ocasionalmente (Una vez a la semana)<br />
+                    
+                            <input type="radio" name="frecuenciaNicotina" id="frecuencia2" class="form-check-input" value="Regularmente" />
+                            Regularmente (Una vez al día)<br />
+                    
+                            <input type="radio" name="frecuenciaNicotina" id="frecuencia3" class="form-check-input" value="Frecuentemente" />
+                            Frecuentemente (Más de uno al día)<br />
+
+                            <input type="radio" name="frecuenciaNicotina" id="frecuencia3" class="form-check-input" value="Siempre" />
+                            Casi Todos los dias <br />
+                        </div>
+                    
+                        <label class="form-label">Si marcaste sí, marca en un círculo el nivel de preocupación que tienes con respecto a tu consumo de nicotina.</label>
+                        <div>
+                            <input type="radio" name="preocupacionNicotina" id="preocupacion1" class="form-check-input" value="Poco" />
+                            Me preocupa un poco<br />
+                    
+                            <input type="radio" name="preocupacionNicotina" id="preocupacion2" class="form-check-input" value="Moderada" />
+                            Me preocupa moderadamente<br />
+                    
+                            <input type="radio" name="preocupacionNicotina" id="preocupacion3" class="form-check-input" value="Alta" />
+                            Me preocupa mucho<br />
+                    
+                            <input type="radio" name="preocupacionNicotina" id="preocupacion4" class="form-check-input" value="Extrema" />
+                            Estoy extremadamente preocupado<br />
+                        </div>
+                    </div>
+
+                    <label class="form-label"> Alcohol (cervezas, vino, licores) </label>
+
+                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                        <input type="radio" class="btn-check" name="AlcoholSiOno" id="alcoholsi" autocomplete="off" value="si" />
+                        <label class="btn btn-outline-primary" for="alcoholsi">Sí</label>
+                    
+                        <input type="radio" class="btn-check" name="AlcoholSiOno" id="alcoholno" autocomplete="off" value="no" />
+                        <label class="btn btn-outline-primary" for="alcoholno">No</label>
+                    </div>
+                    
+                    <!-- Opciones adicionales -->
+                    <div id="opcionesAlcohol" style="display: none; margin-top: 1rem;">
+                        <label class="form-label">Si marcaste sí, ¿cuánto alcohol usualmente consumes?</label>
+                        <div class="mb-3">
+                            <input type="radio" name="frecuenciaAlcohol" id="frecuencia1" class="form-check-input" value="Ocacionalmente" />
+                            Ocasionalmente (Una vez a la semana)<br />
+                    
+                            <input type="radio" name="frecuenciaAlcohol" id="frecuencia2" class="form-check-input" value="Regularmente" />
+                            Regularmente (Una vez al día)<br />
+                    
+                            <input type="radio" name="frecuenciaAlcohol" id="frecuencia3" class="form-check-input" value="Frecuentemente" />
+                            Frecuentemente (Más de uno al día)<br />
+                            
+                            <input type="radio" name="frecuenciaAlcohol" id="frecuencia3" class="form-check-input" value="Siempre" />
+                            siempre(Casi todos los dias)<br />
+                        </div>
+                    
+                        <label class="form-label">Si marcaste sí, marca en un círculo el nivel de preocupación que tienes con respecto al consumo de alcohol.</label>
+                        <div>
+                            <input type="radio" name="preocupacionAlcohol" id="preocupacion1" class="form-check-input" value="Poco" />
+                            Me preocupa un poco<br />
+                    
+                            <input type="radio" name="preocupacionAlcohol" id="preocupacion2" class="form-check-input" value="Moderada" />
+                            Me preocupa moderadamente<br />
+                    
+                            <input type="radio" name="preocupacionAlcohol" id="preocupacion3" class="form-check-input" value="Alta" />
+                            Me preocupa mucho<br />
+                    
+                            <input type="radio" name="preocupacionAlcohol" id="preocupacion4" class="form-check-input" value="Extrema" />
+                            Estoy extremadamente preocupado<br />
+                        </div>
+                    </div>
+                </div>
+            </div>
+                
+            <!-- Impacto del Dolor -->
+            <div class="step">
+                <h5>¿Ha consumido alguna de las siguientes sustancias durante el último año?</h5>
+                <label class="form-label"> Drogras recreativas (cocaina, heroina, Metanfetaminas, LSD, entre otras) </label>      
+                        <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                            <input type="radio" class="btn-check" name="drogasSiOno" id="drogasi" autocomplete="off" value="si"/>
+                            <label class="btn btn-outline-primary" for="drogasi">Sí</label>
+                            <input type="radio" class="btn-check" name="drogasSiOno" id="drogasNO" autocomplete="off" value="no"/>
+                            <label class="btn btn-outline-primary" for="drogasNO">No</label>
+                        </div>   
+                    
+                        <!-- Opciones adicionales -->
+                <div id="opcionesDrogas" style="display: none; margin-top: 1rem;">
+                        <label class="form-label">si marcaste si, cuanta droga consumes usualmente por dia?</label> 
+                            <div class="mb-3">
+            
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="CantidadDrogras" id="noConsumo1" autocomplete="off" value="ocasionalmente"/> 
+                                    Ocasionalmente (Una vez a la semana)<br />
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="CantidadDrogras" id="ocasional1" autocomplete="off" value="regularmente"/>
+                                    Regularmente (Una vez al día)<br />
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="CantidadDrogras" id="esporadico1" autocomplete="off" value="frecuentemente"/>
+                                    Frecuentemente (Más de uno al día)<br />
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="CantidadDrogras" id="regular1" autocomplete="off" value="siempre (todos los dias)"/>
+                                    siempre (todos los dias )<br />
+                                </div>
+
+                            </div>
+                            
+                                <label class="form-label">Si marcaste si, marca en un círculo el nivel de 
+                                preocupación que tienes con respecto a el consumo de drogas.</label>    
+                                <div>
+                                
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="DrogasPreocupacion" id="preocupacion10" value="0 - Me preocupa un poc">
+                                        Me preocupa un poco<br />
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="DrogasPreocupacion" id="preocupacion11" value="me preocupa moderadamente ">
+                                        me preocupa moderadamente <br />
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="DrogasPreocupacion" id="preocupacion12" value="Me preocupa mucho">
+                                        Me preocupa mucho <br />
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="radio" class="form-check-input" name="DrogasPreocupacion" id="preocupacion13" value="Estoy Extremadamente Preocupado">
+                                        estoy extremadamente preocupado<br />
+                                    </div>
+
+                                </div>  
+                </div>
+
+                    <label class="form-label"> Marihuana </label>      
+                    <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
+                        <input type="radio" class="btn-check" name="marihuanaSiOno" id="marihuanaSi" autocomplete="off" value="si"/>
+                        <label class="btn btn-outline-primary" for="marihuanaSi">Sí</label>
+                        <input type="radio" class="btn-check" name="marihuanaSiOno" id="marihuanaNo" autocomplete="off" value="no"/>
+                        <label class="btn btn-outline-primary" for="marihuanaNo">No</label>
+                    </div>
+                <div id="opcionesmarihuana" style="display: none; margin-top: 1rem;"> 
+                <label class="form-label">¿cuánta marihuana consumes habitualmente por día?</label>
+                <div class="mb-3">
+        
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="frecuenciaMarihuana" id="noConsumo22" autocomplete="off" value="No consumo marihuana"/>
+                            <label class="form-check-label" for="noConsumo22">Ocasionalmente (Una vez a la semana)</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="frecuenciaMarihuana" id="ocasional21" autocomplete="off" value="La consumo ocasionalmente (menos de una vez al mes)"/>
+                            <label class="form-check-label" for="ocasional21">Regularmente (Una vez al día)</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="frecuenciaMarihuana" id="esporadico23" autocomplete="off" value="La consumo esporádicamente (algunas veces al mes)"/>
+                            <label class="form-check-label" for="esporadico23"> Frecuentemente (Más de uno al día)<br /></label>
+                        </div>
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" name="frecuenciaMarihuana" id="regular14" autocomplete="off" value="La consumo regularmente (al menos una vez por semana)"/>
+                            <label class="form-check-label" for="regular14">siempre (todos los dias )<br /></label>
+                        </div>
+
+                    </div>
+                        
+                    <label class="form-label">Marca el nivel de preocupación que tienes con respecto a la marihuana:</label>
+                    <div class="mb-3">
+                        <div style="display: flex; flex-direction: column;">
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="marihuanaPreocupacion" id="preocupacion0" value="No me preocupa en absoluto">
+                                    <label class="form-check-label" for="preocupacion0">Me preocupa un poco</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="marihuanaPreocupacion" id="preocupacion1" value="Me preocupa un poco">
+                                    <label class="form-check-label" for="preocupacion1">me preocupa moderadamente</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="marihuanaPreocupacion" id="preocupacion2" value="Me preocupa moderadamente">
+                                    <label class="form-check-label" for="preocupacion2">Me preocupa mucho</label>
+                                </div>
+                                <div class="form-check">
+                                    <input type="radio" class="form-check-input" name="marihuanaPreocupacion" id="preocupacion3" value="Me preocupa bastante">
+                                    <label class="form-check-label" for="preocupacion3">estoy extremadamente preocupado</label>
+                                </div>
+                                
+                        </div>
+                    </div> 
+                </div>
+            </div>
+                
+                        
+                
+            </div>
+        
+     
+         <!-- Preguntas Finales, impacto y objetivos -->
+        <div class="step"> 
+            <h3>Impacto del Dolor en tus Objetivos</h3>
+                <label class="form-label">¿Qué esperas lograr con un mejor manejo del dolor? Selecciona máximo 3 opciones.</label>
+                <div class="form-group">
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" type="checkbox" value="mejor comprension de por que tengo dolor persistente." >
+                            Mejor comprensión de por qué tengo dolor persistente.
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Aprender habilidades para manejar mi dolor sin medicacion.">
+                            Aprender habilidades para manejar mi dolor sin medicación.
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Aprender a identificar los desencadenantes de mi dolor.">
+                            Aprender a identificar los desencadenantes de mi dolor.
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Explorar opciones farmacologicas.">
+                            Hoy  me gustaria Explorar opciones Farmacologicas....
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Explorar el manejo intervencionista (bloqueos nerviosos, infiltraciones, etc).">
+                            Explorar el manejo intervencionista (bloqueos nerviosos, infiltraciones, etc).
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Me gustaria mejorar mi actividad fisica.">
+                            Me gustaría mejorar mi actividad física.
+                        </label>
+                        <label>
+                            <input type="checkbox" name="preguntas2" class="opcion-checkbox" value=" Me gustaria mejorar mis habilidades de comunicacion relacionadas con el manejo de mi dolor cronico..">
+                            Me gustaría mejorar mis habilidades de comunicación relacionadas con el manejo de mi dolor crónico.
+                        </label>
+                </div>
+            <div class="motivacion">
+                <label class="form-label"> en que areas de su estilo de vida se siente mas motivado para trabajar o recibir apoyo de acompañamiento? porfavor
+                    seleccione las 3 que considere mas importantes para usted.
+                </label>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Mejorar mi salud fisica: Reducir el dolor, prevenir enfermedades o mejorar mi bienestar general. " name="motivacion">
+                        Alimentación saludable: Mejorar mi dieta para que sea más equilibrada y antiinflamatoria.
+                    </label>
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Tener mas energia o vitalidad: Sentirme mejor en mi dia a dua y mantenerme activo." name="motivacion">
+                        Manejo del estrés: Aprender a controlar el estrés con técnicas como meditación o relajación.
+                    </label>
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Cuidar de mi familia: Estar presente y disponible para mis seres queridos." name="motivacion">
+                        Relaciones sociales: Construir o fortalecer relaciones significativas con otras personas.
+                    </label>
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Mejorar mi salud mental o emocional: Sentirme más tranquilo, feliz y en control de mi vida." name="motivacion">
+                        Control de sustancias: Reducir o evitar el consumo de tabaco, alcohol u otras sustancias.
+                    </label>
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Aumentar mi calidad de vida: Poder disfrutar más de las actividades que me gustan." name="motivacion">
+                        Autocuidado emocional: Trabajar en mi bienestar emocional, como autoestima o manejo de emociones.
+                    </label>
+                    <label>
+                        <input type="checkbox" class="opcion-checkbox2" type="checkbox" value="Cumplir con las recomendaciones de mi medico o terapeuta: Seguir un plan de tratamiento para mejorar mi salud." name="motivacion">
+                        Cumplir con las recomendaciones de mi médico o terapeuta: Seguir un plan de tratamiento para mejorar mi salud.
+                    </label>
+                </div>
+                    <div class="mb-3">
+                        <label for="" class="form-label">¿Cual es su principal motivacion y razon para 
+                            querer cambiar sus habitos y mejorar su estilo de vida? seleccione la opcion que mas 
+                        refleje su situacion</label>
+                        
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Mejorar mi salud fisica: Reducir el dolor, prevenir enfermedades o mejorar mi bienestar general. " >
+                                Mejorar mi salud física: Reducir el dolor, prevenir enfermedades o mejorar mi bienestar general.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Tener mas energia o vitalidad: Sentirme mejor en mi dia a dua y mantenerme activo.">
+                                Tener más energía o vitalidad: Sentirme mejor en mi día a día y mantenerme activo.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Cuidar de mi familia: Estar presente y disponible para mis seres queridos." >
+                                Cuidar de mi familia: Estar presente y disponible para mis seres queridos.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Mejorar mi salud mental o emocional: Sentirme más tranquilo, feliz y en control de mi vida." >
+                                Mejorar mi salud mental o emocional: Sentirme más tranquilo, feliz y en control de mi vida.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Aumentar mi calidad de vida: Poder disfrutar más de las actividades que me gustan." >
+                                Aumentar mi calidad de vida: Poder disfrutar más de las actividades que me gustan.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Cumplir con las recomendaciones de mi medico o terapeuta: Seguir un plan de tratamiento para mejorar mi salud." >
+                                Cumplir con las recomendaciones de mi médico o terapeuta: Seguir un plan de tratamiento para mejorar mi salud.
+                            </label>
+                            <label>
+                                <input type="checkbox" name="motivacion_Salud" class="opcion-checkbox3" type="checkbox" value="Evitar complicaciones futuras: Prevenir problemas de salud o deterioro funcional.">
+                                Evitar complicaciones futuras: Prevenir problemas de salud o deterioro funcional.
+                            </label>
+                        </div>
+                    </div>
+                <div>
+
+                </div>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button type="button" class="nav-btn prev-btn" id="prevBtn">&#8592;</button>
+            <button type="button" class="nav-btn next-btn" id="nextBtn">&#8594;</button>
+        </div>
+    </form>
+    </main>
+    
+    <footer>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
+
+<script>
+    /**
+* Formulario de Evaluación de Dolor - Script Principal
+*
+* Este archivo contiene todas las funcionalidades JavaScript necesarias para
+* el formulario de evaluación de dolor, incluyendo validación, navegación entre pasos,
+* interacción con el mapa corporal, y gestión de campos condicionales.
+*
+* @author v0
+* @version 1.0
+*/
+
+// =============================================================================
+// FUNCIONES DE UTILIDAD
+// =============================================================================
+
+/**
+* Formatea un RUT chileno con puntos y guión
+* @param {string} rut - RUT sin formato o parcialmente formateado
+* @return {string} RUT formateado
+*/
+function formatearRut(rut) {
+// Eliminar caracteres no numéricos ni el guion
+rut = rut.replace(/[^\dKk-]/g, "")
+
+// Formatear con puntos y guion: 12.345.678-9 o 7.654.678-5
+if (rut.length >= 7) {
+rut = rut.replace(/^(\d{1,2})(\d{3})(\d{3})([\dkK])$/, "$1.$2.$3-$4")
+rut = rut.replace(/^(\d{1})(\d{3})(\d{3})([\dkK])$/, "$1.$2.$3-$4")
+rut = rut.replace(/^(\d{7})([\dkK])$/, "$1-$2") // Para 7 dígitos
+}
+return rut
+}
+
+/**
+* Valida un RUT chileno verificando su dígito verificador
+* @param {string} rut - RUT a validar
+* @return {boolean} true si el RUT es válido, false en caso contrario
+*/
+function validarRut(rut) {
+var rutLimpio = rut.replace(/[^\dKk]/g, "") // Eliminar caracteres no numéricos ni K/k
+
+// Validar longitud: debe ser entre 7 y 9 dígitos sin contar el guion
+if (rutLimpio.length < 7 || rutLimpio.length > 9) {
+return false // El RUT no tiene la longitud correcta
+}
+
+var dv = rutLimpio.charAt(rutLimpio.length - 1).toUpperCase() // Último carácter es el DV
+var cuerpo = rutLimpio.slice(0, -1) // El resto es el número del RUT
+var suma = 0
+var multiplo = 2
+
+// Algoritmo para calcular dígito verificador
+for (var i = cuerpo.length - 1; i >= 0; i--) {
+suma += cuerpo.charAt(i) * multiplo
+multiplo = multiplo === 7 ? 2 : multiplo + 1
+}
+
+var resto = suma % 11
+var dvCalculado = 11 - resto
+if (dvCalculado === 11) dvCalculado = 0
+if (dvCalculado === 10) dvCalculado = "K"
+
+return dv === dvCalculado || dv === dvCalculado.toString()
+}
+
+/**
+* Maneja el evento de entrada de texto en el campo RUT
+*/
+function manejarRut() {
+var rutInput = document.getElementById("rut")
+var rut = rutInput.value
+var mensajeError = document.getElementById("mensaje-error")
+
+// Validar el RUT
+if (validarRut(rut)) {
+// Si es válido, formateamos el RUT y ocultamos el mensaje de error
+rutInput.value = formatearRut(rut)
+mensajeError.style.display = "none" // Ocultar mensaje de error
+} else {
+// Si no es válido, mostramos el mensaje de error
+mensajeError.style.display = "block" // Mostrar mensaje de error
+}
+}
+
+/**
+* Maneja el evento de pérdida de foco en el campo RUT
+*/
+function onBlurRut() {
+var rutInput = document.getElementById("rut")
+var rut = rutInput.value
+var mensajeError = document.getElementById("mensaje-error")
+
+rutInput.value = formatearRut(rut)
+
+if (validarRut(rut)) {
+mensajeError.style.display = "none"
+} else {
+mensajeError.style.display = "block"
+}
+}
+
+/**
+* Calcula la fecha de fin de licencia basada en la fecha de inicio y días
+*/
+
+
+/**
+* Muestra u oculta el contenedor de calidad de atención según la selección
+*/
+function toggleCalidadAtencion() {
+const accidenteLaboralSi = document.getElementById("opdolor1")
+const calidadAtencionContainer = document.getElementById("calidadAtencionContainer")
+
+if (accidenteLaboralSi.checked) {
+calidadAtencionContainer.style.display = "block" // Muestra la segunda pregunta
+} else {
+calidadAtencionContainer.style.display = "none" // Oculta la segunda pregunta
+}
+}
+
+// =============================================================================
+// MAPA CORPORAL Y SELECCIÓN DE PARTES DEL CUERPO
+// =============================================================================
+
+/**
+* Definición de las partes del cuerpo para el mapa interactivo
+* Cada parte tiene nombre, coordenadas y dimensiones
+*/
+const partesDelCuerpo = [
+//VISTA FRONTAL
+{ nombre: "VFCara", x: 42, y: 0, ancho: 34, alto: 51 }, // Cabeza FRONTAL
+{ nombre: "VFCuello ", x: 29, y: 50, ancho: 52, alto: 20 }, // cuello FRONTAL
+{ nombre: "VFPectoral derecho", x: 23, y: 70, ancho: 35, alto: 39 }, // Pectoral Izquierdo FRONTAL
+{ nombre: "VFPectoral izquierdo", x: 58, y: 70, ancho: 35, alto: 39 }, // Pectoral derecho FRONTAL
+{ nombre: "VFHombro derecho", x: 4, y: 70, ancho: 19, alto: 39 }, // Hombro izquierdo FRONTAL
+{ nombre: "VFHombro izquierdo", x: 92, y: 70, ancho: 19, alto: 39 }, // Hombro derecho FRONTAL
+{ nombre: "VFBrazo derecho", x: 4, y: 108, ancho: 22, alto: 40 }, // Brazo izquierdo FRONTAL
+{ nombre: "VFBrazo izquierdo", x: 92, y: 108, ancho: 21, alto: 40 }, // Brazo derecho FRONTAL
+{ nombre: "VFAntebrazo derecho", x: 1, y: 148, ancho: 24, alto: 60 }, // Antebrazo izquierdo FRONTAL
+{ nombre: "VFAntebrazo izquierdo", x: 92, y: 148, ancho: 24, alto: 60 }, // Antebrazo derecho FRONTAL
+{ nombre: "VFMano derecha", x: 0, y: 207, ancho: 20, alto: 39 }, // Man izquierdo FRONTAL
+{ nombre: "VFMano izquierda", x: 97, y: 207, ancho: 20, alto: 39 }, // Man derecho FRONTAL
+{ nombre: "VFAbdomen Superior derecho", x: 28, y: 109, ancho: 31, alto: 40 }, // Abdomen Superior Izquierdo FRONTAL
+{ nombre: "VFAbdomen Superior izquierdo", x: 58, y: 109, ancho: 32, alto: 40 }, // Abdomen Superior Derecho FRONTAL
+{ nombre: "VFAbdomen Inferior derecho", x: 28, y: 149, ancho: 31, alto: 28 }, // Abdomen Inferior Izquierdo FRONTAL
+{ nombre: "VFAbdomen Inferior izquierdo", x: 58, y: 149, ancho: 32, alto: 28 }, // Abdomen Inferior Derecho FRONTAL
+{ nombre: "VFPelvis", x: 27, y: 176, ancho: 63, alto: 27 }, // Pelvis FRONTAL
+{ nombre: "VFGenitales", x: 52, y: 202, ancho: 13, alto: 8 }, // Genitales FRONTAL
+{ nombre: "VFMuslo derecho", x: 24, y: 202, ancho: 29, alto: 85 }, // Muslo Izquierdo FRONTAL
+{ nombre: "VFMuslo izquierdo", x: 64, y: 202, ancho: 29, alto: 85 }, // Muslo Derecho FRONTAL
+{ nombre: "VFRodilla derecha", x: 27, y: 287, ancho: 29, alto: 20 }, // Rodilla Izquiera FRONTAL
+{ nombre: "VFRodilla izquierda", x: 64, y: 287, ancho: 29, alto: 20 }, // Rodilla Derecha FRONTAL
+{ nombre: "VFPierna derecha", x: 27, y: 307, ancho: 26, alto: 93 }, // Pierna Izquierdo FRONTAL
+{ nombre: "VFPierna izquierda", x: 64, y: 307, ancho: 26, alto: 93 }, // Pierna Derecho FRONTAL
+{ nombre: "VFTalon derecha", x: 29, y: 400, ancho: 24, alto: 12 }, // Talon Izquierdo FRONTAL
+{ nombre: "VFTalon izquierda", x: 64, y: 400, ancho: 26, alto: 12 }, // Talon Derecho FRONTAL
+{ nombre: "VFPie derec", x: 29, y: 412, ancho: 24, alto: 37 }, // Pie Izquierdo FRONTAL
+{ nombre: "VFPie izquierdo", x: 64, y: 412, ancho: 26, alto: 37 }, // Pie Derecho FRONTAL
+//VISTA TRASERA
+{ nombre: "VTCabeza", x: 211, y: 0, ancho: 34, alto: 51 }, // Cabeza TRASERA
+{ nombre: "VTcuello", x: 198, y: 50, ancho: 52, alto: 20 }, // cuello TRASERA
+{ nombre: "VTEspalda Alta", x: 192, y: 70, ancho: 70, alto: 70 }, // Espalda Alta
+{ nombre: "VTHombro izquierdo", x: 173, y: 70, ancho: 19, alto: 39 }, // Hombro izquierdo TRASERA
+{ nombre: "VTHombro derecho", x: 261, y: 70, ancho: 19, alto: 39 }, // Hombro derecho TRASERA
+{ nombre: "VTBrazo izquierdo", x: 173, y: 108, ancho: 22, alto: 40 }, // Brazo izquierdo TRASERA
+{ nombre: "VTBrazo derecho", x: 261, y: 108, ancho: 21, alto: 40 }, // Brazo derecho TRASERA
+{ nombre: "VTAntebrazo izquierdo", x: 170, y: 148, ancho: 24, alto: 60 }, // Antebrazo izquierdo TRASERA
+{ nombre: "VTAntebrazo derecho", x: 261, y: 148, ancho: 24, alto: 60 }, // Antebrazo derecho TRASERA
+{ nombre: "VTMano izquierda", x: 169, y: 207, ancho: 20, alto: 39 }, // Man izquierdo TRASERA
+{ nombre: "VTMano derecha", x: 266, y: 207, ancho: 20, alto: 39 }, // Man derecho TRASERA
+{ nombre: "VTEspalda Baja", x: 197, y: 140, ancho: 63, alto: 32 }, // Abdomen Inferior Izquierdo TRASERA
+{ nombre: "VTGluteo Izquierdo", x: 196, y: 176, ancho: 30, alto: 27 }, // Pelvis TRASERA
+{ nombre: "VTGluteo Derecho", x: 226, y: 176, ancho: 33, alto: 27 }, // Pelvis TRASERA
+{ nombre: "VTMuslo Izquierdo", x: 193, y: 202, ancho: 29, alto: 105 }, // Muslo Izquierdo TRASERA
+{ nombre: "VTMuslo Derecho", x: 233, y: 202, ancho: 29, alto: 105 }, // Muslo Derecho TRASERA
+{ nombre: "VTPierna Izquierda", x: 196, y: 307, ancho: 26, alto: 93 }, // Pierna Izquierda TRASERA
+{ nombre: "VTPierna Derecha", x: 233, y: 307, ancho: 26, alto: 93 }, // Pierna Derecha TRASERA
+{ nombre: "VTPie Izquierdo", x: 198, y: 398, ancho: 24, alto: 50 }, // Pie Izquierdo TRASERA
+{ nombre: "VTPie Derecho", x: 233, y: 398, ancho: 26, alto: 50 }, // Pie Derecho TRASERA
+]
+
+// Objeto para mantener un registro de los elementos creados
+const elementosPorNombre = {}
+
+/**
+* Crea los elementos interactivos para cada parte del cuerpo
+*/
+function CrearPartesDelCuerpo() {
+const cuerpo = document.getElementById("cuerpoHumano")
+if (!cuerpo) return
+
+partesDelCuerpo.forEach((parte) => {
+const parteElemento = document.createElement("div")
+parteElemento.classList.add("parteCuerpo")
+parteElemento.style.left = `${parte.x}px`
+parteElemento.style.top = `${parte.y}px`
+parteElemento.style.width = `${parte.ancho}px`
+parteElemento.style.height = `${parte.alto}px`
+parteElemento.setAttribute("title", parte.nombre)
+parteElemento.setAttribute("data-nombre", parte.nombre)
+
+parteElemento.addEventListener("click", () => {
+    mostrarSelectorIntensidad(parte.nombre, parteElemento)
+})
+
+elementosPorNombre[parte.nombre] = parteElemento
+cuerpo.appendChild(parteElemento)
+})
+}
+
+/**
+* Actualiza el color de una parte del cuerpo según la intensidad del dolor
+* @param {HTMLElement} elemento - Elemento DOM de la parte del cuerpo
+* @param {string} intensidad - Nivel de intensidad (baja, media, alta)
+*/
+function actualizarColorParte(elemento, intensidad) {
+// Primero removemos todas las clases de dolor
+elemento.classList.remove("dolor-baja", "dolor-media", "dolor-alta")
+
+// Añadimos la clase correspondiente según la intensidad
+if (intensidad) {
+elemento.classList.add(`dolor-${intensidad.toLowerCase()}`)
+}
+}
+
+/**
+* Muestra el selector de intensidad de dolor para una parte del cuerpo
+* @param {string} nombreParte - Nombre de la parte del cuerpo
+* @param {HTMLElement} elemento - Elemento DOM de la parte del cuerpo
+*/
+function mostrarSelectorIntensidad(nombreParte, elemento) {
+const minitablita = document.getElementById("minitablita")
+if (!minitablita) return
+
+// Verificar si ya existe una fila para esta parte
+const filaExistente = Array.from(document.querySelectorAll("#minitablita tr")).find(
+(tr) => tr.cells[0].textContent === nombreParte,
+)
+
+if (filaExistente) {
+alert("Esta parte del cuerpo ya ha sido seleccionada")
+return
+}
+
+const intensidades = ["Baja", "Media", "Alta"]
+const tr = document.createElement("tr")
+tr.innerHTML = `
+    <td>${nombreParte}</td>
+    <input type="hidden" name="ubicacionDolor" value="${nombreParte}">
+    <td>
+        <select class="form-select" name="intensidad">
+            <option value="">Seleccionar intensidad</option>
+            ${intensidades
+                .map((intensidad) => `<option value="${intensidad.toLowerCase()}">${intensidad}</option>`)
+                .join("")}
+        </select>
+    </td>
+    <td>
+        <button class="btn btn-danger btn-sm eliminar-fila">Eliminar</button>
+    </td>
+`
+
+// Añadir event listener al select
+const select = tr.querySelector("select")
+select.addEventListener("change", (e) => {
+actualizarColorParte(elemento, e.target.value)
+})
+
+// Añadir event listener al botón de eliminar
+const btnEliminar = tr.querySelector("button")
+btnEliminar.addEventListener("click", () => {
+tr.remove()
+actualizarColorParte(elemento, null)
+})
+
+minitablita.appendChild(tr)
+}
+
+// =============================================================================
+// NAVEGACIÓN ENTRE PASOS DEL FORMULARIO
+// =============================================================================
+
+/**
+* Inicializa la navegación entre pasos del formulario
+*/
+function inicializarNavegacion() {
+let currentStep = 0
+const steps = document.querySelectorAll(".step")
+const indicators = document.querySelectorAll(".step-indicator")
+const progressLine = document.querySelector(".progress-line")
+const btnNext = document.getElementById("nextBtn")
+const btnPrev = document.getElementById("prevBtn")
+
+if (!steps.length || !btnNext || !btnPrev) return
+
+/**
+* Actualiza la interfaz según el paso actual
+* @param {number} stepIndex - Índice del paso actual
+*/
+const updateUI = (stepIndex) => {
+steps.forEach((step, i) => {
+    step.classList.toggle("active", i === stepIndex)
+})
+
+if (indicators && indicators.length) {
+    indicators.forEach((indicator, i) => {
+    indicator.classList.toggle("active", i === stepIndex)
+    indicator.classList.toggle("completed", i < stepIndex)
+    })
+}
+
+if (progressLine) {
+    const progress = (stepIndex / (steps.length - 1)) * 100
+    progressLine.style.width = `calc(${progress}% - 40px)`
+}
+
+btnPrev.style.display = stepIndex === 0 ? "none" : "block"
+btnNext.textContent = stepIndex === steps.length - 1 ? "Enviar" : ""
+}
+
+/**
+* Desplaza la página al inicio para mejor visibilidad del nuevo paso
+*/
+const scrollToTop = () => {
+window.scrollTo({
+    top: 0,
+    behavior: "smooth", // Para un scroll suave
+})
+}
+
+// Configurar botón siguiente
+btnNext.addEventListener("click", () => {
+if (currentStep < steps.length - 1) {
+    currentStep++
+    updateUI(currentStep)
+    scrollToTop()
+} else {
+    document.getElementById("Step").submit()
+}
+})
+
+// Configurar botón anterior
+btnPrev.addEventListener("click", () => {
+if (currentStep > 0) {
+    currentStep--
+    updateUI(currentStep)
+    scrollToTop()
+}
+})
+
+// Inicializar UI con el primer paso
+updateUI(currentStep)
+}
+
+// =============================================================================
+// GESTIÓN DE CHECKBOXES Y SELECCIONES MÚLTIPLES
+// =============================================================================
+
+/**
+* Inicializa la gestión de checkboxes mutuamente excluyentes
+*/
+function inicializarCheckboxesExcluyentes() {
+// Selecciona todos los checkbox
+const checkboxes = document.querySelectorAll(".form-check-input")
+
+checkboxes.forEach((checkbox) => {
+checkbox.addEventListener("change", (event) => {
+    // Verifica si está en una fila (<tr>)
+    const fila = event.target.closest("tr")
+    if (fila) {
+    // Desmarca otros checkbox en la misma fila
+    fila.querySelectorAll(".form-check-input").forEach((cb) => {
+        if (cb !== event.target) {
+        cb.checked = false
+        }
+    })
+    return // Sale para evitar que se ejecute el otro bloque
+    }
+
+    // Verifica si está en un grupo específico (.checkbox-group)
+    const grupo = event.target.closest(".checkbox-group")
+    if (grupo) {
+    // Desmarca otros checkbox en el mismo grupo
+    grupo.querySelectorAll(".form-check-input").forEach((cb) => {
+        if (cb !== event.target) {
+        cb.checked = false
+        }
+    })
+    }
+})
+})
+}
+
+/**
+* Inicializa la limitación de selecciones para grupos de checkboxes
+*/
+function inicializarLimitacionSelecciones() {
+const grupos = [
+{ clase: "opcion-checkbox", max: 3 },
+{ clase: "opcion-checkbox2", max: 3 },
+{ clase: "opcion-checkbox3", max: 1 },
+]
+
+grupos.forEach(({ clase, max }) => {
+const checkboxes = document.querySelectorAll(`.${clase}`)
+
+checkboxes.forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+    const seleccionados = Array.from(checkboxes).filter((chk) => chk.checked)
+
+    if (seleccionados.length > max) {
+        checkbox.checked = false
+        alert(`Solo puedes seleccionar un máximo de ${max} opciones.`)
+    }
+    })
+})
+})
+}
+
+/**
+* Inicializa los parámetros dinámicos para actividades afectadas
+*/
+function inicializarParametrosActividades() {
+const checkboxes = document.querySelectorAll('input[type="checkbox"][name="actividades_afectadas"]')
+const maxSelecciones = 3
+let seleccionadas = 0
+
+checkboxes.forEach((checkbox, index) => {
+// Crear un contenedor dinámico para cada checkbox
+const parametersSection = document.createElement("div")
+parametersSection.classList.add("parameters-section")
+parametersSection.style.display = "none"
+
+// Contenido dinámico de los checkboxes
+parametersSection.innerHTML = `
+    <hr/>
+    <input type="checkbox" name="parametros" class="form-check-input" value="evitativo"> No realizo mucho esta actividad porque miedo a que el dolor empeore
+    <hr/>
+    <input type="checkbox" name="parametros" class="form-check-input" value="evitativo"> No realizo esta actividad que me gusta porque el dolor no me deja
+    <hr/>
+    <input type="checkbox" name="parametros" class="form-check-input" value="persistente"> Realizo esta actividad pero me detengo o descanso seguido
+    <hr/>
+    <input type="checkbox" name="parametros" class="form-check-input" value="persistente"> Realizo esta actividad aunque sienta dolor
+    <hr/>
+    <input type="checkbox" name="parametros" class="form-check-input" value="persistente"> Me esfuerzo mucho por hacer esta actividad aunque el dolor persista o moleste
+    <hr/>
+    `
+
+// Insertar el contenedor después del checkbox correspondiente
+checkbox.parentElement.appendChild(parametersSection)
+
+// Manejar la lógica de mostrar/ocultar el contenedor dinámico
+checkbox.addEventListener("change", function () {
+    if (this.checked) {
+    // Si se seleccionan más de 3 actividades, se desmarca el checkbox
+    if (seleccionadas >= maxSelecciones) {
+        this.checked = false
+        alert("Solo puede seleccionar hasta 3 actividades")
+        return
+    }
+    seleccionadas++
+    parametersSection.style.display = "block"
+    } else {
+    seleccionadas--
+    parametersSection.style.display = "none"
+    }
+})
+
+// Desmarcar otros checkboxes cuando uno sea seleccionado
+const checkboxesInSection = parametersSection.querySelectorAll('input[type="checkbox"][name="parametros"]')
+checkboxesInSection.forEach((cb) => {
+    cb.addEventListener("change", function () {
+    if (this.checked) {
+        // Desmarcar todos los demás checkboxes en la misma sección
+        checkboxesInSection.forEach((otherCb) => {
+        if (otherCb !== this) {
+            otherCb.checked = false
+        }
+        })
+    }
+    })
+})
+})
+}
+
+// =============================================================================
+// GESTIÓN DE CAMPOS CONDICIONALES
+// =============================================================================
+
+/**
+* Inicializa los campos condicionales que se muestran/ocultan según selecciones
+*/
+function inicializarCamposCondicionales() {
+// Nicotina
+const nicotinaSi = document.getElementById("nicotina")
+const nicotinaNo = document.getElementById("nicotinaNO")
+const opcionesNicotina = document.getElementById("opcionesNicotina")
+
+if (nicotinaSi && nicotinaNo && opcionesNicotina) {
+nicotinaSi.addEventListener("change", () => {
+    if (nicotinaSi.checked) {
+    opcionesNicotina.style.display = "block"
+    }
+})
+
+nicotinaNo.addEventListener("change", () => {
+    if (nicotinaNo.checked) {
+    opcionesNicotina.style.display = "none"
+    }
+})
+}
+
+// Alcohol
+const alcoholSi = document.getElementById("alcoholsi")
+const alcoholNo = document.getElementById("alcoholno")
+const opcionesAlcohol = document.getElementById("opcionesAlcohol")
+
+if (alcoholSi && alcoholNo && opcionesAlcohol) {
+alcoholSi.addEventListener("change", () => {
+    if (alcoholSi.checked) {
+    opcionesAlcohol.style.display = "block"
+    }
+})
+
+alcoholNo.addEventListener("change", () => {
+    if (alcoholNo.checked) {
+    opcionesAlcohol.style.display = "none"
+    }
+})
+}
+
+// Drogas
+const drogasSi = document.getElementById("drogasi")
+const drogasNo = document.getElementById("drogasNO")
+const opcionesDrogas = document.getElementById("opcionesDrogas")
+
+if (drogasSi && drogasNo && opcionesDrogas) {
+drogasSi.addEventListener("change", () => {
+    if (drogasSi.checked) {
+    opcionesDrogas.style.display = "block"
+    }
+})
+
+drogasNo.addEventListener("change", () => {
+    if (drogasNo.checked) {
+    opcionesDrogas.style.display = "none"
+    }
+})
+}
+
+// Marihuana
+const marihuanaSi = document.getElementById("marihuanaSi")
+const marihuanaNo = document.getElementById("marihuanaNo")
+const opcionesMarihuana = document.getElementById("opcionesmarihuana")
+
+if (marihuanaSi && marihuanaNo && opcionesMarihuana) {
+marihuanaSi.addEventListener("change", () => {
+    if (marihuanaSi.checked) {
+    opcionesMarihuana.style.display = "block"
+    }
+})
+
+marihuanaNo.addEventListener("change", () => {
+    if (marihuanaNo.checked) {
+    opcionesMarihuana.style.display = "none"
+    }
+})
+}
+}
+
+// =============================================================================
+// CONTADOR DE TIEMPO
+// =============================================================================
+
+/**
+* Inicializa el contador de tiempo para la sesión
+*/
+function inicializarContadorTiempo() {
+let segundos = 0
+const tiempoElemento = document.getElementById("tiempo")
+const duracionInput = document.getElementById("duracionSesionInput")
+
+if (!tiempoElemento || !duracionInput) return
+
+const actualizarTiempo = () => {
+const horas = Math.floor(segundos / 3600)
+const minutos = Math.floor((segundos % 3600) / 60)
+const seg = segundos % 60
+
+// Formateamos con ceros iniciales
+const formatoTiempo = `${String(horas).padStart(2, "0")}:${String(minutos).padStart(2, "0")}:${String(seg).padStart(2, "0")}`
+
+// Actualizamos el contenido del elemento HTML
+tiempoElemento.textContent = `Tiempo: ${formatoTiempo}`
+
+// Actualizamos el contenido del elemento HTML
+tiempoElemento.textContent = `Tiempo: ${formatoTiempo}`
+duracionInput.value = formatoTiempo // Actualiza el campo oculto con la duración
+
+// Incrementamos el contador
+segundos++
+}
+
+// Llamamos a la función cada segundo
+setInterval(actualizarTiempo, 1000)
+}
+
+// =============================================================================
+// INICIALIZACIÓN DEL FORMULARIO
+// =============================================================================
+
+/**
+* Inicializa el campo de teléfono con formato chileno
+*/
+function inicializarCampoTelefono() {
+const contactInput = document.getElementById("contact")
+if (!contactInput) return
+
+contactInput.value = "+569 "
+
+contactInput.addEventListener("input", () => {
+if (!contactInput.value.startsWith("+569")) {
+    contactInput.value = "+569 "
+}
+if (contactInput.value.length > 12) {
+    contactInput.value = contactInput.value.slice(0, 13)
+}
+})
+
+contactInput.addEventListener("keydown", (event) => {
+if (contactInput.selectionStart < 5 && event.key !== "Backspace" && event.key !== "Delete") {
+    event.preventDefault()
+}
+})
+}
+
+/**
+* Inicializa el datepicker para el campo de fecha de nacimiento
+*/
+function inicializarDatepicker() {
+// Verificar si jQuery está definido
+if (typeof jQuery !== "undefined") {
+jQuery("#fechaNac").datepicker({
+    changeMonth: true,
+    changeYear: true,
+    yearRange: "1900:+0",
+    dateFormat: "yy-mm-dd",
+})
+} else {
+console.error("jQuery is not loaded.")
+}
+}
+
+/**
+* Función principal que inicializa todos los componentes del formulario
+*/
+function inicializarFormulario() {
+// Declare jQuery if it's not already declared
+if (typeof jQuery === "undefined") {
+var jQuery = window.jQuery
+}
+
+// Inicializar validación de RUT
+const rutInput = document.getElementById("rut")
+if (rutInput) {
+rutInput.addEventListener("blur", onBlurRut)
+rutInput.addEventListener("input", manejarRut)
+}
+
+// Inicializar componentes del formulario
+inicializarContadorTiempo()
+inicializarCampoTelefono()
+
+inicializarDatepicker()
+CrearPartesDelCuerpo()
+inicializarNavegacion()
+inicializarCheckboxesExcluyentes()
+inicializarLimitacionSelecciones()
+inicializarParametrosActividades()
+inicializarCamposCondicionales()
+}
+
+// Inicializar todo cuando el DOM esté completamente cargado
+document.addEventListener("DOMContentLoaded", inicializarFormulario)
+
+
+</script>
+
+

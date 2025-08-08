@@ -1,0 +1,94 @@
+:root {
+    --primary: #21294e;
+    --accent: #cd2481;
+    --light: #f8f9fa;
+    --gray: #6c757d;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: var(--light);
+    color: var(--primary);
+    line-height: 1.6;
+}
+
+.header-section {
+    background-color: var(--primary);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.report-card {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+}
+
+.patient-info {
+    background-color: var(--light);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.info-value {
+    color: var(--gray);
+    margin-bottom: 1rem;
+}
+
+.seccionDeDolor {
+    background-color: var(--light);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.clinic-logo {
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+footer {
+    background-color: var(--primary);
+    color: white;
+    padding: 1.5rem 0;
+    margin-top: 3rem;
+}
+
+img{
+    width: 250px;
+}
+
+@media print {
+    body {
+        background-color: white;
+    }
+    .report-card {
+        box-shadow: none;
+    }
+    .header-section {
+        background-color: white;
+        color: var(--primary);
+    }
+    footer {
+        background-color: white;
+        color: var(--primary);
+    }
+}

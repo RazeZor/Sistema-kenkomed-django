@@ -1,0 +1,120 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos mínimos que no se pueden lograr fácilmente con Tailwind */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+            <!-- Sidebar Navigation - Más compacto y moderno -->
+            <aside class="fixed z-50 flex flex-col w-20 h-screen transition-all duration-300 bg-white border-r border-gray-100 lg:w-64 lg:relative" id="sidebar">
+                <!-- Logo y título -->
+                <div class="flex items-center justify-center h-16 px-4 border-b border-gray-100 lg:justify-start">
+                    <a href="{% url 'panel' %}" class="flex items-center">
+                        <div class="flex items-center justify-center w-20 h-20 text-white">
+                            <img src="{% static 'image/logo.png' %}" alt="Logo" class="w-full h-full">
+                        </div>
+                    </a>
+                    <button class="absolute text-gray-500 right-4 top-4 lg:hidden" id="sidebarClose">
+                        <i class='text-xl bx bx-x'></i>
+                    </button>
+                </div>
+    
+                <!-- Navegación principal -->
+                <div class="flex flex-col flex-1 py-6 overflow-y-auto scrollbar-hide">
+                    <!-- Usuario -->
+                    
+                    <!-- Enlaces de navegación -->
+                    <nav class="px-2 space-y-1">
+                        <a href="{% url 'panel' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
+                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/' %}               text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='bx bx-home'></i>
+                            </div>
+                            <span class="hidden ml-3 lg:block">Inicio</span>
+                        </a>
+                        <a href="{% url 'pacientes' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
+                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/ListaPacientes' %} text-white rounded-lg bg-medical-blue {% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='bx bx-folder-open'></i>
+                            </div>
+                            <span class="hidden ml-3 lg:block">Pacientes</span>
+                        </a>
+                        <a href="{% url 'historialClinico' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
+                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/historialClinico/' %} text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='bx bx-file'></i>
+                            </div>
+                            <span class="hidden ml-3 lg:block">Historiales</span>
+                        </a>
+                        {% if es_admin %}
+                        <a href="{% url 'ver' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
+                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/Ver/' %} text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='bx bx-group'></i>
+                            </div>
+                            <span class="hidden ml-3 lg:block">Clínicos</span>
+                        </a>
+                        {% endif %}
+                    </nav>
+    
+                    <!-- Separador -->
+                    <div class="hidden px-4 mt-auto lg:block">
+                        <hr class="my-6 border-gray-100">         
+                        <!-- Botón de cerrar sesión -->
+                        <a href="{% url 'cerrarSesion' %}" class="flex items-center w-full p-3 mt-2 text-gray-700 transition-all rounded-xl hover:bg-red-50 hover:text-red-500">
+                            <div class="flex items-center justify-center w-8 h-8 text-gray-600 bg-gray-100 rounded-lg">
+                                <i class='bx bx-log-out'></i>
+                            </div>
+                            <span class="ml-3">Cerrar Sesión</span>
+                        </a>
+                    </div>
+                </div>
+            </aside>    
+</body>
+</html>

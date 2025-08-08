@@ -1,0 +1,145 @@
+:root {
+    --pink: #cd2481;
+    --blue: #21294e;
+    --white: #ffffff;
+    --light-pink: #fce4ef;
+    --light-blue: #e8e9f3;
+    --gray: #6c757d;
+    --light-gray: #f8f9fa;
+}
+
+body {
+    background-image: url("{% static 'image/background_1.jpg' %}");
+    background-size: cover;
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.92);
+    z-index: -1;
+}
+
+/* Navbar mejorado */
+.navbar {
+    background: linear-gradient(to right, var(--blue), #2d3766);
+    padding: 1rem;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    color: var(--white) !important;
+    font-weight: 600;
+    font-size: 1.5rem;
+    font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.nav-link {
+    color: var(--white) !important;
+    margin: 0 1rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    position: relative;
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--pink);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Contenedor principal */
+main {
+    min-height: calc(100vh - 160px);
+    padding: 2rem 0;
+}
+
+.card {
+    background-color: var(--white);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: var(--blue);
+    color: var(--white);
+    border-radius: 10px 10px 0 0;
+}
+
+.btn-primary {
+    background-color: var(--pink);
+    border-color: var(--pink);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--light-pink);
+    border-color: var(--light-pink);
+    color: var(--blue);
+}
+
+.form-control {
+    border-radius: 5px;
+    border: 1px solid var(--light-blue);
+}
+
+.form-control:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 5px rgba(205, 36, 129, 0.5);
+}
+
+/* Estilos para la tabla */
+.table {
+    margin-top: 1rem;
+}
+
+.table th {
+    background-color: var(--light-blue);
+    color: var(--blue);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.total {
+    font-weight: bold;
+    color: var(--pink);
+}
+
+@media (max-width: 768px) {
+    .card {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+
+    h1 {
+        font-size: 1.8rem;
+    }
+
+    .btn-primary {
+        padding: 0.7rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .form-control {
+        padding: 0.7rem;
+    }
+}

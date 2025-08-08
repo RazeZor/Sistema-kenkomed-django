@@ -1,0 +1,263 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Lista de Pacientes - Sistema Clínico</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        {% include 'menu.html' %}
+
+        <!-- Contenido principal -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100">
+                <div class="flex items-center">
+                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggle">
+                        <i class='text-2xl bx bx-menu'></i>
+                    </button>
+                    <h1 class="text-lg font-medium text-gray-800">Lista de Pacientes</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Botón de notificaciones -->
+                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
+                        <i class='text-xl bx bx-bell'></i>
+                    </button>
+                    
+                </div>
+            </header>
+
+            <!-- Contenido principal con scroll -->
+            <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
+                <div class="mx-auto space-y-6 max-w-7xl">
+                    <!-- Barra de búsqueda y acciones -->
+                    <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
+                        <!-- Barra de búsqueda -->
+                        <div class="w-full md:w-96">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                    <i class='text-gray-400 bx bx-search'></i>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    id="searchInput" 
+                                    class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-medical-blue focus:border-medical-blue block w-full pl-10 p-2.5" 
+                                    placeholder="Buscar paciente por nombre, RUT o cobertura..."
+                                >
+                            </div>
+                        </div>
+                        
+                        <!-- Botón para agregar paciente -->
+                        <a href="{% url 'formularioInicial' %}" class="inline-flex items-center px-4 py-2.5 bg-medical-blue text-white rounded-lg text-sm font-medium transition-all hover:bg-medical-blue-dark">
+                            <i class='mr-2 bx bx-user-plus'></i>
+                            <span>Nuevo Paciente</span>
+                        </a>
+                    </div>
+                    
+                    <!-- Lista de pacientes -->
+                    <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
+                        <!-- Encabezado de tabla en desktop -->
+                        <div class="hidden px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-100 md:grid md:grid-cols-6 bg-gray-50">
+                            <div>RUT</div>
+                            <div>Nombre</div>
+                            <div>Apellido</div>
+                            <div>Teléfono</div>
+                            <div>Género</div>
+                            <div>Cobertura</div>
+                        </div>
+                        
+                        <!-- Filas de pacientes -->
+                        <div id="pacienteTableBody" class="divide-y divide-gray-100">
+                            {% for paciente in paginacion_Pacientes %}
+                            <div class="transition-all duration-200 patient-row hover:bg-gray-50">
+                                <!-- Vista móvil -->
+                                <div class="p-4 space-y-2 md:hidden">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-gray-500">RUT:</span>
+                                        <span class="text-sm font-medium">{{ paciente.rut }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-gray-500">Nombre:</span>
+                                        <span class="text-sm">{{ paciente.nombre }} {{ paciente.apellido }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-gray-500">Teléfono:</span>
+                                        <span class="flex items-center text-sm">
+                                            <i class='mr-1 bx bx-phone text-medical-blue'></i>
+                                            {{ paciente.contacto }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-gray-500">Género:</span>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-medical-blue/10 text-medical-blue">
+                                            {{ paciente.genero }}
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-medium text-gray-500">Cobertura:</span>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-medical-blue/5 text-medical-blue">
+                                            {{ paciente.cobertura_de_salud }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Vista desktop -->
+                                <div class="hidden px-6 py-4 md:grid md:grid-cols-6 md:items-center">
+                                    <div class="text-sm font-medium">{{ paciente.rut }}</div>
+                                    <div class="text-sm">{{ paciente.nombre }}</div>
+                                    <div class="text-sm">{{ paciente.apellido }}</div>
+                                    <div class="flex items-center text-sm text-gray-600">
+                                        <i class='mr-2 bx bx-phone text-medical-blue'></i>
+                                        {{ paciente.contacto }}
+                                    </div>
+                                    <div>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-medical-blue/10 text-medical-blue">
+                                            {{ paciente.genero }}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="px-2 py-1 text-xs rounded-full bg-medical-blue/5 text-medical-blue">
+                                            {{ paciente.cobertura_de_salud }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="py-8 text-center text-gray-400">
+                                <div class="flex justify-center mb-3">
+                                    <i class='text-3xl bx bx-folder-open'></i>
+                                </div>
+                                <p>No hay pacientes registrados.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                
+        <!-- Paginación -->
+                    <div class="flex justify-center mt-6">
+                        <div class="inline-flex rounded-md shadow-sm">
+                            {% if paginacion_Pacientes.has_previous %}
+                                <a href="?page=1" class="px-3 py-2 text-sm font-medium bg-white border border-gray-200 rounded-l-lg text-medical-blue hover:bg-gray-50">
+                                    <i class='bx bx-chevrons-left'></i>
+                                </a>
+                                <a href="?page={{ paginacion_Pacientes.previous_page_number }}" class="px-3 py-2 text-sm font-medium bg-white border-t border-b border-gray-200 text-medical-blue hover:bg-gray-50">
+                                    <i class='bx bx-chevron-left'></i>
+                                </a>
+                            {% else %}
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-white border border-gray-200 rounded-l-lg cursor-not-allowed">
+                                    <i class='bx bx-chevrons-left'></i>
+                                </span>
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-white border-t border-b border-gray-200 cursor-not-allowed">
+                                    <i class='bx bx-chevron-left'></i>
+                                </span>
+                            {% endif %}
+                            
+                            <span class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border-t border-b border-gray-200">
+                                {{ paginacion_Pacientes.number }} de {{ paginacion_Pacientes.paginator.num_pages }}
+                            </span>
+                            
+                            {% if paginacion_Pacientes.has_next %}
+                                <a href="?page={{ paginacion_Pacientes.next_page_number }}" class="px-3 py-2 text-sm font-medium bg-white border-t border-b border-gray-200 text-medical-blue hover:bg-gray-50">
+                                    <i class='bx bx-chevron-right'></i>
+                                </a>
+                                <a href="?page={{ paginacion_Pacientes.paginator.num_pages }}" class="px-3 py-2 text-sm font-medium bg-white border border-gray-200 rounded-r-lg text-medical-blue hover:bg-gray-50">
+                                    <i class='bx bx-chevrons-right'></i>
+                                </a>
+                            {% else %}
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-white border-t border-b border-gray-200 cursor-not-allowed">
+                                    <i class='bx bx-chevron-right'></i>
+                                </span>
+                                <span class="px-3 py-2 text-sm font-medium text-gray-300 bg-white border border-gray-200 rounded-r-lg cursor-not-allowed">
+                                    <i class='bx bx-chevrons-right'></i>
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay para sidebar móvil -->
+    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlay"></div>
+
+    <script>
+        // Toggle sidebar en móvil
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('translate-x-0');
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        sidebarClose.addEventListener('click', () => {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        // Función de búsqueda de pacientes
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.patient-row');
+    
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const shouldShow = text.includes(searchTerm);
+                row.style.display = shouldShow ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>

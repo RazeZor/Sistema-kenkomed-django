@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PSFS - Evaluación Funcional</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e40af;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+        
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .activity-card {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .score-circle {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header Minimalista -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-tasks text-blue-600"></i>
+                <h1 class="text-lg font-semibold text-gray-900">PSFS - Escala Funcional</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <div class="text-xs text-gray-500">Paciente</div>
+                    <div class="text-sm font-medium">{{ rut }}</div>
+                </div>
+                <button onclick="window.history.back();" class="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Evaluación PSFS -->
+            <div class="lg:col-span-2">
+                <form method="POST" action="{% url 'gestionar_psfs' %}" id="psfsForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="rut" value="{{ rut }}">
+                    
+                    <!-- Instrucciones compactas -->
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Califique la dificultad actual para realizar cada actividad (0 = capaz, 10 = incapaz)
+                        </p>
+                    </div>
+
+                    <!-- Actividades -->
+                    <div class="space-y-4">
+                        <!-- Actividad 1 -->
+                        <div class="activity-card">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-medium text-gray-900">Actividad 1</h3>
+                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Principal</span>
+                            </div>
+                            <input type="text" name="actividad[]" value="{{ actividad1 }}" 
+                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" readonly>
+                            
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs text-green-600 w-12">Capaz</span>
+                                <input type="range" min="0" max="10" value="5" name="rango1" 
+                                       class="flex-1 range-slider" 
+                                       oninput="updateScore(this, 1); updateTotalScore();">
+                                <span class="text-xs text-red-600 w-12">Incapaz</span>
+                                <div class="score-circle bg-blue-600" id="score1">5</div>
+                            </div>
+                        </div>
+
+                        <!-- Actividad 2 -->
+                        <div class="activity-card">
+                            <h3 class="font-medium text-gray-900 mb-3">Actividad 2</h3>
+                            <input type="text" name="actividad[]" value="{{ actividad2 }}" 
+                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" required>
+                            
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs text-green-600 w-12">Capaz</span>
+                                <input type="range" min="0" max="10" value="5" name="rango2" 
+                                       class="flex-1 range-slider" 
+                                       oninput="updateScore(this, 2); updateTotalScore();">
+                                <span class="text-xs text-red-600 w-12">Incapaz</span>
+                                <div class="score-circle bg-gray-400" id="score2">5</div>
+                            </div>
+                        </div>
+
+                        <!-- Actividad 3 -->
+                        <div class="activity-card">
+                            <h3 class="font-medium text-gray-900 mb-3">Actividad 3</h3>
+                            <input type="text" name="actividad[]" value="{{ actividad3 }}" 
+                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" required>
+                            
+                            <div class="flex items-center space-x-3">
+                                <span class="text-xs text-green-600 w-12">Capaz</span>
+                                <input type="range" min="0" max="10" value="5" name="rango3" 
+                                       class="flex-1 range-slider" 
+                                       oninput="updateScore(this, 3); updateTotalScore();">
+                                <span class="text-xs text-red-600 w-12">Incapaz</span>
+                                <div class="score-circle bg-gray-400" id="score3">5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Puntuación Total -->
+                    <div class="activity-card mt-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-medium text-gray-900">Puntuación Total</h3>
+                                <p class="text-xs text-gray-600">Promedio de las actividades</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
+                                    <span id="totalScore" class="text-2xl font-bold text-white">5.0</span>
+                                </div>
+                                <p class="text-xs text-gray-600 mt-1">Puntos</p>
+                            </div>
+                        </div>
+                        <input type="hidden" name="total_score" id="totalScoreInput" value="5.0">
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="flex space-x-3 mt-4">
+                        {% if not sesiones_existentes %}
+                        <button type="submit" name="action" value="guardar" 
+                                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-medium">
+                            Guardar Evaluación
+                        </button>
+                        {% endif %}
+                        <button type="submit" name="action" value="actualizar" 
+                                class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm font-medium">
+                            Actualizar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Gráfico -->
+                <div class="activity-card mt-6">
+                    <h3 class="font-medium text-gray-900 mb-4">Evolución Funcional</h3>
+                    <div class="h-64">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                    <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
+                        <div class="bg-green-50 p-1 rounded">
+                            <span class="font-medium">0-3:</span> Funcional
+                        </div>
+                        <div class="bg-yellow-50 p-1 rounded">
+                            <span class="font-medium">4-6:</span> Moderado
+                        </div>
+                        <div class="bg-red-50 p-1 rounded">
+                            <span class="font-medium">7-10:</span> Limitado
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel lateral -->
+            <div class="space-y-6">
+                <!-- Historial compacto -->
+                <div class="activity-card">
+                    <h3 class="font-medium text-gray-900 mb-4">Historial</h3>
+                    
+                    {% if sesiones %}
+                    <div class="space-y-2 max-h-64 overflow-y-auto">
+                        {% for sesion in sesiones %}
+                        <div class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
+                            <span class="text-sm text-gray-600">Sesión {{ sesion.sesion }}</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="flex space-x-1">
+                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                        {% if sesion.actividad_1 < 4 %}bg-green-100 text-green-800
+                                        {% elif sesion.actividad_1 < 7 %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ sesion.actividad_1 }}
+                                    </span>
+                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                        {% if sesion.actividad_2 < 4 %}bg-green-100 text-green-800
+                                        {% elif sesion.actividad_2 < 7 %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ sesion.actividad_2 }}
+                                    </span>
+                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                        {% if sesion.actividad_3 < 4 %}bg-green-100 text-green-800
+                                        {% elif sesion.actividad_3 < 7 %}bg-yellow-100 text-yellow-800
+                                        {% else %}bg-red-100 text-red-800{% endif %}">
+                                        {{ sesion.actividad_3 }}
+                                    </span>
+                                </div>
+                                <span class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center
+                                    {% if sesion.total < 4 %}bg-green-100 text-green-800
+                                    {% elif sesion.total < 7 %}bg-yellow-100 text-yellow-800
+                                    {% else %}bg-red-100 text-red-800{% endif %}">
+                                    {{ sesion.total }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-gray-900" id="avg-score">0</div>
+                                <div class="text-gray-500">Promedio</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-gray-900" id="trend">→</div>
+                                <div class="text-gray-500">Tendencia</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-clipboard-list text-2xl mb-2"></i>
+                        <p class="text-sm">Sin evaluaciones previas</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Notas clínicas -->
+                <form method="POST" action="{% url 'gestionar_psfs' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rut" value="{{ rut }}">
+                    <div class="activity-card">
+                        <h3 class="font-medium text-gray-900 mb-3">Notas Clínicas</h3>
+                        <textarea name="notes" rows="4" 
+                                  class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
+                                  placeholder="Observaciones sobre el progreso funcional...">{{ nota }}</textarea>
+                        <div class="mt-3 flex justify-end">
+                            <button type="submit" 
+                                    class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium">
+                                Guardar Nota
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Actualizar puntuación individual
+        function updateScore(slider, activityNum) {
+            const scoreElement = document.getElementById(`score${activityNum}`);
+            const value = parseInt(slider.value);
+            scoreElement.textContent = value;
+            
+            // Cambiar color según el valor
+            if (value < 4) {
+                scoreElement.className = 'score-circle bg-green-500';
+            } else if (value < 7) {
+                scoreElement.className = 'score-circle bg-yellow-500';
+            } else {
+                scoreElement.className = 'score-circle bg-red-500';
+            }
+        }
+
+        // Actualizar puntuación total
+        function updateTotalScore() {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            const totalScoreElement = document.getElementById('totalScore');
+            const totalScoreInput = document.getElementById('totalScoreInput');
+            
+            const values = Array.from(sliders).map(slider => parseInt(slider.value));
+            const average = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+            
+            totalScoreElement.textContent = average;
+            totalScoreInput.value = average;
+            
+            // Cambiar color del círculo total
+            const totalCircle = totalScoreElement.parentElement;
+            if (average < 4) {
+                totalCircle.className = 'w-16 h-16 rounded-full bg-green-500 flex items-center justify-center';
+            } else if (average < 7) {
+                totalCircle.className = 'w-16 h-16 rounded-full bg-yellow-500 flex items-center justify-center';
+            } else {
+                totalCircle.className = 'w-16 h-16 rounded-full bg-red-500 flex items-center justify-center';
+            }
+        }
+
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            updateTotalScore();
+            
+            // Calcular estadísticas
+            const sesiones = {{ sesiones|safe }};
+            if (sesiones && sesiones.length > 0) {
+                const totales = sesiones.map(s => s.total);
+                const promedio = (totales.reduce((a, b) => a + b, 0) / totales.length).toFixed(1);
+                document.getElementById('avg-score').textContent = promedio;
+                
+                // Calcular tendencia
+                if (totales.length >= 2) {
+                    const ultimo = totales[totales.length - 1];
+                    const penultimo = totales[totales.length - 2];
+                    const tendencia = ultimo < penultimo ? "↗" : ultimo > penultimo ? "↘" : "→";
+                    document.getElementById('trend').textContent = tendencia;
+                }
+            }
+        });
+
+        // Gráfico minimalista
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        const sesiones = {{ sesiones|safe }} || [];
+        const labels = sesiones.map((s, i) => i + 1);
+        const data = sesiones.map(s => s.total);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.05)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#1e40af',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBorderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 8,
+                        cornerRadius: 4,
+                        displayColors: false,
+                        callbacks: {
+                            title: function(context) {
+                                return `Sesión ${context[0].label}`;
+                            },
+                            label: function(context) {
+                                return `Puntuación: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 10,
+                        ticks: {
+                            stepSize: 1,
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 11 }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,340 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>HealthPanel - Sistema Clínico</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos mínimos que no se pueden lograr fácilmente con Tailwind */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-gray-800 bg-white">
+    
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation - Más compacto y moderno -->
+        {% include 'menu.html' %}
+
+        <!-- Contenido principal -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100">
+                <div class="flex items-center">
+                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggle">
+                        <i class='text-2xl bx bx-menu'></i>
+                    </button>
+                    <h1 class="text-lg font-medium text-gray-800">Panel Médico</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <!-- Botón de notificaciones (simulado) -->
+                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
+                        <i class='text-xl bx bx-bell'></i>
+                        <span class="absolute w-2 h-2 rounded-full top-1 right-1 bg-medical-red"></span>
+                    </button>
+                    
+                    <!-- Enlace al perfil -->
+                    <a href="{% url 'perfilClinico' %}" class="flex items-center p-2 space-x-2 transition-all rounded-lg hover:bg-gray-50">
+                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-gradient-to-r from-medical-blue to-medical-blue-light">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <span class="hidden text-sm font-medium text-gray-700 md:block">Mi Perfil</span>
+                    </a>
+                </div>
+            </header>
+
+            <!-- Contenido principal con scroll -->
+            <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
+                <div class="mx-auto space-y-8 max-w-7xl">
+                    <!-- Sección de bienvenida con diseño moderno -->
+                    <section class="relative overflow-hidden bg-white shadow-sm rounded-2xl">
+                        <div class="absolute top-0 right-0 w-64 h-64 -mt-32 -mr-32 rounded-full bg-medical-blue/5"></div>
+                        <div class="absolute bottom-0 left-0 w-64 h-64 -mb-32 -ml-32 rounded-full bg-medical-blue/5"></div>
+                        
+                        <div class="relative items-center justify-between p-8 md:flex">
+                            <div class="mb-6 md:mb-0">
+                                <h2 class="mb-2 text-2xl font-bold text-gray-800">Bienvenido, {{ nombre_clinico }}</h2>
+                                <p class="text-gray-600">Panel de control del Sistema Clínico</p>
+                                
+                                <div class="flex flex-wrap gap-4 mt-6">
+                                    <a href="{% url 'formularioInicial' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-white transition-all bg-medical-blue rounded-xl hover:bg-medical-blue-dark hover:shadow-md">
+                                        <i class='mr-2 bx bx-user-plus'></i>
+                                        <span>Nuevo Paciente</span>
+                                    </a>
+                                    <a href="{% url 'historialClinico' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-gray-700 transition-all bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-medical-blue hover:text-medical-blue">
+                                        <i class='mr-2 bx bx-search-alt'></i>
+                                        <span>Buscar Historial</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Ilustración médica (representada con iconos) -->
+                            <div class="hidden md:block float-animation">
+                                <div class="relative w-48 h-48">
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <i class='bx bx-plus-medical text-medical-blue text-7xl opacity-10'></i>
+                                    </div>
+                                    <div class="absolute inset-0 flex items-center justify-center">
+                                        <i class='text-5xl bx bx-heart-circle text-medical-blue'></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Accesos rápidos -->
+                    <section class="grid grid-cols-1 gap-6 md:grid-cols-3">
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-blue/10 text-medical-blue group-hover:bg-medical-blue group-hover:text-white">
+                                <i class='text-2xl bx bx-calendar-plus'></i>
+                            </div>
+                            <h3 class="mb-2 font-medium text-gray-800">Agendar Consulta</h3>
+                            <p class="mb-4 text-sm text-gray-500">Programa nuevas citas médicas para tus pacientes.</p>
+                            <a href="#" class="flex items-center text-sm text-medical-blue">
+                                <span>Agendar ahora</span>
+                                <i class='ml-1 bx bx-right-arrow-alt'></i>
+                            </a>
+                        </div>
+                        
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-green/10 text-medical-green group-hover:bg-medical-green group-hover:text-white">
+                                <i class='text-2xl bx bx-file-find'></i>
+                            </div>
+                            <h3 class="mb-2 font-medium text-gray-800">Exámenes Pendientes</h3>
+                            <p class="mb-4 text-sm text-gray-500">Revisa los exámenes pendientes de tus pacientes.</p>
+                            <a href="#" class="flex items-center text-sm text-medical-blue">
+                                <span>Ver exámenes</span>
+                                <i class='ml-1 bx bx-right-arrow-alt'></i>
+                            </a>
+                        </div>
+                        
+                        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
+                            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-orange/10 text-medical-orange group-hover:bg-medical-orange group-hover:text-white">
+                                <i class='text-2xl bx bx-notepad'></i>
+                            </div>
+                            <h3 class="mb-2 font-medium text-gray-800">Recetas Médicas</h3>
+                            <p class="mb-4 text-sm text-gray-500">Genera y administra recetas para tus pacientes.</p>
+                            <a href="#" class="flex items-center text-sm text-medical-blue">
+                                <span>Crear receta</span>
+                                <i class='ml-1 bx bx-right-arrow-alt'></i>
+                            </a>
+                        </div>
+                    </section>
+
+                    <!-- Estadísticas (Solo para admin) con diseño moderno -->
+                    {% if es_admin %}
+                    <section>
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-bold text-gray-800">Estadísticas</h2>
+                            <div class="flex space-x-2">
+                                <button class="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Hoy</button>
+                                <button class="px-4 py-2 text-sm text-white rounded-lg bg-medical-blue">Esta semana</button>
+                                <button class="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Este mes</button>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                            <!-- Tarjeta de estadística 1 -->
+                            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <p class="mb-1 text-sm text-gray-500">Total Pacientes</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">{{numeroPaciente}}</h3>
+                                    </div>
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-blue/10 text-medical-blue">
+                                        <i class='bx bx-user-plus'></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-xs">
+                                    <span class="flex items-center text-medical-green">
+                                        <i class='bx bx-up-arrow-alt'></i>
+                                        <span>12%</span>
+                                    </span>
+                                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                                </div>
+                                
+                                <!-- Gráfico minimalista simulado -->
+                                <div class="flex items-end h-10 mt-4 space-x-1">
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 30%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 50%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 70%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 40%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 60%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue/20" style="height: 80%"></div>
+                                    <div class="w-1/6 rounded-sm bg-medical-blue" style="height: 100%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tarjeta de estadística 2 -->
+                            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <p class="mb-1 text-sm text-gray-500">Pacientes esta semana</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">12</h3>
+                                    </div>
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-green/10 text-medical-green">
+                                        <i class='bx bx-calendar-check'></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-xs">
+                                    <span class="flex items-center text-medical-green">
+                                        <i class='bx bx-up-arrow-alt'></i>
+                                        <span>8%</span>
+                                    </span>
+                                    <span class="ml-2 text-gray-500">vs. semana anterior</span>
+                                </div>
+                                
+                                <!-- Gráfico circular minimalista simulado -->
+                                <div class="flex justify-center mt-4">
+                                    <div class="relative w-16 h-16 border-4 rounded-full border-medical-green/20">
+                                        <div class="absolute inset-0 border-4 rounded-full border-medical-green" style="clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%)"></div>
+                                        <div class="absolute inset-0 flex items-center justify-center text-xs font-medium">
+                                            +8%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tarjeta de estadística 3 -->
+                            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <p class="mb-1 text-sm text-gray-500">Tiempo por consulta</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">25 min</h3>
+                                    </div>
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-red/10 text-medical-red">
+                                        <i class='bx bx-time-five'></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-xs">
+                                    <span class="flex items-center text-medical-red">
+                                        <i class='bx bx-down-arrow-alt'></i>
+                                        <span>3%</span>
+                                    </span>
+                                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                                </div>
+                                
+                                <!-- Indicador de tiempo simulado -->
+                                <div class="h-2 mt-4 overflow-hidden bg-gray-100 rounded-full">
+                                    <div class="h-full bg-medical-red" style="width: 75%"></div>
+                                </div>
+
+                            </div>
+                            
+                            <!-- Tarjeta de estadística 4 -->
+                            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div>
+                                        <p class="mb-1 text-sm text-gray-500">Tiempo de atención</p>
+                                        <h3 class="text-2xl font-bold text-gray-800">{{promedio_formateado}}</h3>
+                                    </div>
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-teal/10 text-medical-teal">
+                                        <i class='bx bx-trending-up'></i>
+                                    </div>
+                                </div>
+                                <div class="flex items-center text-xs">
+                                    <span class="flex items-center text-medical-green">
+                                        <i class='bx bx-up-arrow-alt'></i>
+                                        <span>5%</span>
+                                    </span>
+                                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
+                                </div>
+                                
+                                <!-- Gráfico de línea minimalista simulado -->
+                                <div class="relative h-10 mt-4">
+                                    <svg class="w-full h-full" viewBox="0 0 100 20">
+                                        <path d="M0,10 L10,12 L20,8 L30,14 L40,6 L50,10 L60,7 L70,15 L80,9 L90,5 L100,2" fill="none" stroke="#14b8a6" stroke-width="1.5"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    {% endif %}
+                    
+                   
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay para sidebar móvil -->
+    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlay"></div>
+
+    <script>
+        // Toggle sidebar en móvil
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.add('translate-x-0');
+            sidebar.classList.remove('-translate-x-full');
+            sidebarOverlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        });
+
+        sidebarClose.addEventListener('click', () => {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.remove('translate-x-0');
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        });
+
+        
+
+        
+    </script>
+</body>
+</html>
