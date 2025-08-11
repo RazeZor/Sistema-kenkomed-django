@@ -22,7 +22,7 @@ class Paciente(models.Model):
     apellido = models.CharField(max_length=50,null=False)
     fechaNacimiento = models.DateField(null=True)
     genero = models.CharField(max_length=15,null=True)
-    contacto = models.CharField(max_length=12)
+    contacto = models.CharField(max_length=13)
     cobertura_de_salud = models.CharField(max_length=50)
     trabajo = models.TextField(null=True, blank=True) 
     profesion = models.TextField(null=True,blank=True)
@@ -189,10 +189,77 @@ class CuestionarioEQ_5D(models.Model):
     
     
 
-    
-    
-    
-    
-    
+class CuestionarioBarthel(models.Model):
+    OPCIONES_COMER = [
+        (10, "Totalmente independiente"),
+        (5, "Necesita ayuda para cortar carne, pan, etc."),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_LAVARSE = [
+        (5, "Independiente (entra y sale solo del baño)"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_VESTIRSE = [
+        (10, "Independiente"),
+        (5, "Necesita ayuda"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_ARREGLARSE = [
+        (5, "Independiente"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_DEPOSICIONES = [
+        (10, "Continencia normal"),
+        (5, "Ocasionalmente algún episodio / necesita ayuda"),
+        (0, "Incontinencia"),
+    ]
+    OPCIONES_MICCION = [
+        (10, "Continencia normal o cuida su sonda"),
+        (5, "Máximo 1 episodio diario o necesita ayuda"),
+        (0, "Incontinencia"),
+    ]
+    OPCIONES_RETRETE = [
+        (10, "Independiente"),
+        (5, "Necesita ayuda pero se limpia solo"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_TRASLADARSE = [
+        (15, "Independiente"),
+        (10, "Mínima ayuda o supervisión"),
+        (5, "Gran ayuda pero se mantiene sentado solo"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_DEAMBULAR = [
+        (15, "Independiente, camina solo 50m"),
+        (10, "Necesita ayuda o supervisión para caminar 50m"),
+        (5, "Independiente en silla de ruedas"),
+        (0, "Dependiente"),
+    ]
+    OPCIONES_ESCALONES = [
+        (10, "Independiente"),
+        (5, "Necesita ayuda"),
+        (0, "Dependiente"),
+    ]
 
+    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_barthel')
+    fecha_creacion = models.DateField(auto_now_add=True)
 
+    comer = models.IntegerField(choices=OPCIONES_COMER)
+    lavarse = models.IntegerField(choices=OPCIONES_LAVARSE)
+    vestirse = models.IntegerField(choices=OPCIONES_VESTIRSE)
+    arreglarse = models.IntegerField(choices=OPCIONES_ARREGLARSE)
+    deposiciones = models.IntegerField(choices=OPCIONES_DEPOSICIONES)
+    miccion = models.IntegerField(choices=OPCIONES_MICCION)
+    usar_retrete = models.IntegerField(choices=OPCIONES_RETRETE)
+    trasladarse = models.IntegerField(choices=OPCIONES_TRASLADARSE)
+    deambular = models.IntegerField(choices=OPCIONES_DEAMBULAR)
+    escalones = models.IntegerField(choices=OPCIONES_ESCALONES)
+
+    puntaje_total = models.IntegerField(blank=True, null=True)
+    grado_dependencia = models.CharField(max_length=20, blank=True, null=True)
+
+   
+
+    def __str__(self):
+        return f"Barthel de {self.paciente.nombre} ({self.puntaje_total} pts - {self.grado_dependencia})"

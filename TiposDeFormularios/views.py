@@ -1,10 +1,11 @@
 import json
 from django.shortcuts import render, get_object_or_404,redirect
 from django.urls import reverse
-from Login.models import formularioClinico, Paciente,CuestionarioPSFS,Groc,Clinico,CuestionarioEQ_5D
+from Login.models import formularioClinico, Paciente,CuestionarioPSFS,Groc,Clinico,CuestionarioEQ_5D,CuestionarioBarthel
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
+
 
 def RenderizarGROC(request):
     rut = request.GET.get('rut', '')
@@ -293,7 +294,7 @@ def RenderizarEQ_5D(request):
                     if i < len(evaluacion.vas_score):  # Verificar si hay un puntaje en este índice
                         puntajes_por_sesion.append({
                             'sesion': f'{len(puntajes_por_sesion) // len(historial_evaluaciones) + 1}',
-                            'vas_score': evaluacion.vas_score[i],
+                            'vas_score': evaluacion.vas_score[i], 
                             'movilidad': evaluacion.puntaje_movilidad[i],
                             'cuidado_personal': evaluacion.puntaje_cuidado_personal[i],
                             'actividades_cotidianas': evaluacion.puntaje_actividades_cotidianas[i],
@@ -314,3 +315,161 @@ def RenderizarEQ_5D(request):
         messages.error(request, 'Debe haber un inicio de sesión para acceder a esta página.')
         return redirect('login')
 
+
+
+
+def renderizar_CuestionarioBarthel(request):
+
+    if 'nombre_clinico' not in request.session:
+        messages.error(request, 'Debe haber un inicio de sesión para acceder a esta página.')
+        return redirect('login')
+    
+    nombre_clinico = request.session['nombre_clinico']
+    es_admin = request.session.get('es_admin', False)
+    rut_clinico = request.session.get('rut_clinico')
+    
+    if not rut_clinico:
+        messages.error(request, 'Debe haber un inicio de sesión para estar aquí...')
+        return redirect('login')
+
+    try:
+        clinico = Clinico.objects.get(rut=rut_clinico)
+    except Clinico.DoesNotExist:
+        messages.error(request, 'El clínico no está en el sistema, intenta nuevamente...')
+        return redirect('login')
+
+    # Obtener parámetros
+    rut_paciente = request.GET.get('rut', '') or request.POST.get('paciente', '')
+    paciente = None
+    
+    if rut_paciente:
+        try:
+            paciente = Paciente.objects.get(rut=rut_paciente)
+        except Paciente.DoesNotExist:
+            messages.error(request, 'Paciente no encontrado.')
+            return redirect('bartel')
+
+    if request.method == "POST":
+        # Si no hay paciente seleccionado, obtenerlo del formulario
+        if not paciente:
+            paciente_rut = request.POST.get("paciente")
+            if paciente_rut:
+                try:
+                    paciente = Paciente.objects.get(rut=paciente_rut)
+                except Paciente.DoesNotExist:
+                    messages.error(request, "Paciente no encontrado.")
+                    return redirect('bartel')
+            else:
+                messages.error(request, "Debe seleccionar un paciente.")
+                return redirect('bartel')
+
+        # Campos esperados del cuestionario
+        campos = [
+            "comer", "lavarse", "vestirse", "arreglarse",
+            "deposiciones", "miccion", "usar_retrete",
+            "trasladarse", "deambular", "escalones"
+        ]
+
+        datos = {}
+        for campo in campos:
+            valor = request.POST.get(campo)
+            if valor is None or valor == "":
+                messages.error(request, f"Falta el campo: {campo}")
+                return redirect('bartel')
+            
+            try:
+                v_int = int(valor)
+            except ValueError:
+                messages.error(request, f"Valor inválido en {campo}")
+                return redirect('bartel')
+
+
+            field = CuestionarioBarthel._meta.get_field(campo)
+            allowed = [c[0] for c in field.choices]
+            if v_int not in allowed:
+                messages.error(request, f"Valor no permitido para {campo}: {v_int}")
+                return redirect('bartel')
+
+            datos[campo] = v_int
+
+        total = sum(datos.values())
+        if datos.get("deambular") == 5 and total > 90:
+            total = 90
+        if total < 20:
+            grado = "Total"
+        elif total <= 35:
+            grado = "Grave"
+        elif total <= 55:
+            grado = "Moderado"
+        elif total < 100:
+            grado = "Leve"
+        else:
+            grado = "Independiente"
+            
+
+        try:
+            cuestionario, created = CuestionarioBarthel.objects.update_or_create(
+                paciente=paciente,
+                defaults={
+                    "clinico": clinico,
+                    **datos,
+                    "puntaje_total": total,
+                    "grado_dependencia": grado,
+                    "fecha_creacion": datetime.now().date()
+                }
+            )
+
+            if created:
+                messages.success(request, f"Cuestionario Barthel guardado correctamente para {paciente.nombre}. Puntaje: {total}, Grado: {grado}")
+            else:
+                messages.success(request, f"Cuestionario Barthel actualizado correctamente para {paciente.nombre}. Puntaje: {total}, Grado: {grado}")
+
+            # Redirigir a la misma página con el rut del paciente
+            return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
+
+        except Exception as e:
+            messages.error(request, f"Error al guardar el cuestionario: {str(e)}")
+            return redirect('bartel')
+
+    # GET: renderizar el formulario
+    pacientes = Paciente.objects.all()
+    clinicos = Clinico.objects.all()
+    
+    # Si hay un paciente específico, verificar si ya existe un cuestionario
+    cuestionario_existente = None
+    puntajes_por_sesion = []
+    
+    if paciente:
+        try:
+            cuestionario_existente = CuestionarioBarthel.objects.get(paciente=paciente)
+        except CuestionarioBarthel.DoesNotExist:
+            pass
+        
+        # Obtener historial de evaluaciones para el gráfico y tabla
+        historial_evaluaciones = CuestionarioBarthel.objects.filter(paciente=paciente).order_by('fecha_creacion')
+        
+        for evaluacion in historial_evaluaciones:
+            puntajes_por_sesion.append({
+                'fecha': evaluacion.fecha_creacion.strftime('%d/%m/%Y'),
+                'puntaje_total': evaluacion.puntaje_total,
+                'grado_dependencia': evaluacion.grado_dependencia,
+                'comer': evaluacion.comer,
+                'lavarse': evaluacion.lavarse,
+                'vestirse': evaluacion.vestirse,
+                'arreglarse': evaluacion.arreglarse,
+                'deposiciones': evaluacion.deposiciones,
+                'miccion': evaluacion.miccion,
+                'usar_retrete': evaluacion.usar_retrete,
+                'trasladarse': evaluacion.trasladarse,
+                'deambular': evaluacion.deambular,
+                'escalones': evaluacion.escalones
+            })
+
+    return render(request, "CuestionarioBarthel.html", {
+        "pacientes": pacientes,
+        "clinicos": clinicos,
+        "paciente": paciente,
+        "cuestionario_existente": cuestionario_existente,
+        "clinico_actual": clinico,
+        "puntajes_por_sesion": puntajes_por_sesion
+    })
