@@ -83,7 +83,8 @@
             body * {
                 visibility: hidden;
             }
-            #print-section, #print-section * {
+            #print-section, #print-section *,
+            #print-barthel-table, #print-barthel-table * {
                 visibility: visible;
             }
             #print-section {
@@ -94,9 +95,46 @@
                 padding: 20px;
                 box-sizing: border-box;
             }
-            .no-print {
-                display: none !important;
+            #print-barthel-table {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+                box-sizing: border-box;
             }
+                    .no-print {
+            display: none !important;
+        }
+        
+        /* Estilos específicos para la tabla de impresión del Barthel */
+        #print-barthel-table table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        #print-barthel-table th,
+        #print-barthel-table td {
+            border: 1px solid #d1d5db;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        #print-barthel-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        
+        @media print {
+            #print-barthel-table {
+                font-size: 12px;
+            }
+            
+            #print-barthel-table th,
+            #print-barthel-table td {
+                padding: 6px;
+            }
+        }
         }
     </style>
 </head>
@@ -402,6 +440,26 @@
                             </div>
                         </div>
 
+                        <!-- Campo de Notas -->
+                        <div class="mt-6 border-t border-gray-200 pt-6 no-print">
+                            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-6">
+                                <h3 class="text-lg font-bold text-yellow-800 mb-4 flex items-center">
+                                    <i class="fas fa-sticky-note text-yellow-600 mr-3"></i>
+                                    Notas Adicionales
+                                </h3>
+                                <textarea name="nota_adicional" rows="4" placeholder="Agregue notas importantes sobre la evaluación del paciente..."
+                                    class="w-full px-4 py-3 border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 resize-none"
+                                    >{% if cuestionario_existente %}{{ cuestionario_existente.NotaCuestionarioBarthel|default:"" }}{% endif %}</textarea>
+                                <div class="mt-3">
+                                    <button type="submit" name="action" value="GuardarNota"
+                                            class="px-6 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white rounded-lg hover:from-yellow-700 hover:to-orange-700 text-sm font-semibold shadow-md transition-all duration-200 hover:scale-105 transform">
+                                        <i class="fas fa-save mr-2"></i>
+                                        Guardar Nota
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Botones de Acción -->
                         <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 no-print">
                             {% if not cuestionario_existente %}
@@ -452,22 +510,22 @@
                         </h3>
                     </div>
                     <div class="p-6">
-                        {% if puntajes_por_sesion %}
+                        {% if sesiones %}
                             <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
-                                {% for puntaje in puntajes_por_sesion %}
+                                {% for sesion in sesiones %}
                                 <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow">
                                     <div class="flex justify-between items-center mb-3">
-                                        <span class="text-sm font-medium text-gray-700">{{ puntaje.fecha }}</span>
-                                        <span class="text-2xl font-bold text-blue-600">{{ puntaje.puntaje_total }}</span>
+                                        <span class="text-sm font-medium text-gray-700">Sesión {{ sesion.sesion }} - {{ sesion.fecha }}</span>
+                                        <span class="text-2xl font-bold text-blue-600">{{ sesion.puntaje_total }}</span>
                                     </div>
                                     <div class="text-sm text-gray-600 mb-3">
-                                        Grado: <span class="font-semibold text-blue-700" id="grado-historial-{{ forloop.counter }}" data-score="{{ puntaje.puntaje_total }}"></span>
+                                        Grado: <span class="font-semibold text-blue-700" id="grado-historial-{{ forloop.counter }}" data-score="{{ sesion.puntaje_total }}"></span>
                                     </div>
                                     <div class="grid grid-cols-5 gap-2">
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.comer == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.comer == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.comer == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.comer == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 C
                                             </div>
@@ -475,7 +533,7 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.lavarse == 5 %}bg-green-100 text-green-800
+                                                {% if sesion.lavarse == 5 %}bg-green-100 text-green-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 L
                                             </div>
@@ -483,8 +541,8 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.vestirse == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.vestirse == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.vestirse == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.vestirse == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 V
                                             </div>
@@ -492,7 +550,7 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.arreglarse == 5 %}bg-green-100 text-green-800
+                                                {% if sesion.arreglarse == 5 %}bg-green-100 text-green-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 A
                                             </div>
@@ -500,8 +558,8 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.deposiciones == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.deposiciones == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.deposiciones == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.deposiciones == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 D
                                             </div>
@@ -509,8 +567,8 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.miccion == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.miccion == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.miccion == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.miccion == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 M
                                             </div>
@@ -518,8 +576,8 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.usar_retrete == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.usar_retrete == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.usar_retrete == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.usar_retrete == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 R
                                             </div>
@@ -527,9 +585,9 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.trasladarse == 15 %}bg-green-100 text-green-800
-                                                {% elif puntaje.trasladarse == 10 %}bg-yellow-100 text-yellow-800
-                                                {% elif puntaje.trasladarse == 5 %}bg-orange-100 text-orange-800
+                                                {% if sesion.trasladarse == 15 %}bg-green-100 text-green-800
+                                                {% elif sesion.trasladarse == 10 %}bg-yellow-100 text-yellow-800
+                                                {% elif sesion.trasladarse == 5 %}bg-orange-100 text-orange-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 T
                                             </div>
@@ -537,9 +595,9 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.deambular == 15 %}bg-green-100 text-green-800
-                                                {% elif puntaje.deambular == 10 %}bg-yellow-100 text-yellow-800
-                                                {% elif puntaje.deambular == 5 %}bg-orange-100 text-orange-800
+                                                {% if sesion.deambular == 15 %}bg-green-100 text-green-800
+                                                {% elif sesion.deambular == 10 %}bg-yellow-100 text-yellow-800
+                                                {% elif sesion.deambular == 5 %}bg-orange-100 text-orange-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 D
                                             </div>
@@ -547,8 +605,8 @@
                                         </div>
                                         <div class="text-center">
                                             <div class="w-8 h-8 rounded-full text-xs font-medium flex items-center justify-center mx-auto
-                                                {% if puntaje.escalones == 10 %}bg-green-100 text-green-800
-                                                {% elif puntaje.escalones == 5 %}bg-yellow-100 text-yellow-800
+                                                {% if sesion.escalones == 10 %}bg-green-100 text-green-800
+                                                {% elif sesion.escalones == 5 %}bg-yellow-100 text-yellow-800
                                                 {% else %}bg-red-100 text-red-800{% endif %}">
                                                 E
                                             </div>
@@ -558,6 +616,62 @@
                                 </div>
                                 {% endfor %}
                             </div>
+                            
+                            <!-- Tabla de Sesiones -->
+                            <div class="mt-6 pt-4 border-t border-gray-200 no-print">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="font-semibold text-gray-800 flex items-center">
+                                        <i class="fas fa-table text-blue-600 mr-2"></i>
+                                        Tabla de Sesiones
+                                    </h4>
+                                    <button onclick="printBarthelTable()" 
+                                            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 text-sm font-semibold shadow-md transition-all duration-200 hover:scale-105 transform">
+                                        <i class="fas fa-print mr-2"></i>
+                                        Imprimir Tabla
+                                    </button>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Sesión</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Comer</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Lavarse</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Vestirse</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Arreglarse</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Deposiciones</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Micción</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Retrete</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Trasladarse</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Deambular</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Escalones</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Total</th>
+                                                <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b">Grado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            {% for sesion in sesiones %}
+                                            <tr class="hover:bg-gray-50">
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.sesion }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.comer }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.lavarse }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.vestirse }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.arreglarse }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.deposiciones }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.miccion }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.usar_retrete }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.trasladarse }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.deambular }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.escalones }}</td>
+                                                <td class="px-3 py-2 text-sm font-semibold text-blue-600 border-b">{{ sesion.puntaje_total }}</td>
+                                                <td class="px-3 py-2 text-sm text-gray-900 border-b">{{ sesion.grado_dependencia }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
                             <!-- Leyenda y Niveles -->
                             <div class="mt-6 pt-4 border-t border-gray-200 no-print">
                                 <div class="bg-gray-50 rounded-lg p-4">
@@ -615,6 +729,75 @@
             </div>
         </div>
     </main>
+
+    <!-- Sección para Imprimir Tabla Barthel -->
+    <div id="print-barthel-table" class="hidden">
+        <div class="max-w-6xl mx-auto p-8">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Cuestionario Barthel - Tabla de Sesiones</h1>
+                <p class="text-lg text-gray-600">Evaluación de Actividades de la Vida Diaria</p>
+                <div class="mt-4 text-sm text-gray-600">
+                    <p><strong>Paciente:</strong> {% if paciente %}{{ paciente.nombre }} {{ paciente.apellido }}{% else %}No seleccionado{% endif %}</p>
+                    <p><strong>RUT:</strong> {% if paciente %}{{ paciente.rut }}{% else %}No disponible{% endif %}</p>
+                    <p><strong>Fecha del Reporte:</strong> <span id="barthel-table-date"></span></p>
+                </div>
+            </div>
+
+            <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-gray-100 border-b border-gray-200">
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Sesión</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Comer</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Lavarse</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Vestirse</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Arreglarse</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Deposiciones</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Micción</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Retrete</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Trasladarse</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Deambular</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Escalones</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700 border-r">Total</th>
+                            <th class="py-3 px-4 text-left text-sm font-semibold text-gray-700">Grado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="barthel-table-body">
+                        <!-- Los datos se insertarán aquí por JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Leyenda para impresión -->
+            <div class="mt-8 grid grid-cols-2 gap-8">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-800 mb-3">Leyenda de Dimensiones</h3>
+                    <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+                        <div><strong>C:</strong> Comer</div>
+                        <div><strong>L:</strong> Lavarse</div>
+                        <div><strong>V:</strong> Vestirse</div>
+                        <div><strong>A:</strong> Arreglarse</div>
+                        <div><strong>D:</strong> Deposiciones</div>
+                        <div><strong>M:</strong> Micción</div>
+                        <div><strong>R:</strong> Retrete</div>
+                        <div><strong>T:</strong> Trasladarse</div>
+                        <div><strong>D:</strong> Deambular</div>
+                        <div><strong>E:</strong> Escalones</div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-gray-800 mb-3">Niveles de Dependencia</h3>
+                    <div class="space-y-2 text-sm">
+                        <div><strong>0-20:</strong> Dependencia Total</div>
+                        <div><strong>21-35:</strong> Dependencia Grave</div>
+                        <div><strong>36-55:</strong> Dependencia Moderada</div>
+                        <div><strong>56-99:</strong> Dependencia Leve</div>
+                        <div><strong>100:</strong> Independiente</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Sección para Imprimir -->
     <div id="print-section" class="hidden">
@@ -674,8 +857,8 @@
         </div>
     </div>
 
-    {% if puntajes_por_sesion %}
-        {{ puntajes_por_sesion|json_script:"barthel-data" }}
+    {% if sesiones %}
+        {{ sesiones|json_script:"barthel-data" }}
     {% else %}
         <script id="barthel-data" type="application/json">[]</script>
     {% endif %}
@@ -809,7 +992,7 @@
 
         function renderChart() {
             const ctx = document.getElementById('barthelChart').getContext('2d');
-            const labels = window.barthelHistoryData.map(data => data.fecha);
+            const labels = window.barthelHistoryData.map(data => `Sesión ${data.sesion}`);
             const scores = window.barthelHistoryData.map(data => data.puntaje_total);
 
             // Destroy existing chart if it exists
@@ -900,6 +1083,51 @@
             }
         });
 
+        // --- Print Barthel Table Functionality ---
+        function printBarthelTable() {
+            const printSection = document.getElementById('print-barthel-table');
+            const printTableBody = document.getElementById('barthel-table-body');
+            const reportDate = document.getElementById('barthel-table-date');
+
+            // Set report date
+            reportDate.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
+
+            // Populate the print table
+            printTableBody.innerHTML = ''; // Clear previous content
+            window.barthelHistoryData.forEach(data => {
+                const row = printTableBody.insertRow();
+                row.classList.add('border-b', 'border-gray-200');
+                row.innerHTML = `
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">Sesión ${data.sesion}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.comer}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.lavarse}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.vestirse}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.arreglarse}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.deposiciones}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.miccion}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.usar_retrete}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.trasladarse}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.deambular}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.escalones}</td>
+                    <td class="py-2 px-4 text-sm font-semibold text-blue-600 border-r">${data.puntaje_total}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800">${data.grado_dependencia}</td>
+                `;
+            });
+
+            // Show print section and hide main content
+            document.body.style.overflow = 'hidden';
+            printSection.classList.remove('hidden');
+            
+            // Print
+            window.print();
+            
+            // Hide print section and restore main content
+            setTimeout(() => {
+                printSection.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 100);
+        }
+
         // --- Print Functionality ---
         function printChartAndData() {
             const printSection = document.getElementById('print-section');
@@ -930,9 +1158,9 @@
                 const row = printTableBody.insertRow();
                 row.classList.add('border-b', 'border-gray-100');
                 row.innerHTML = `
-                    <td class="py-2 px-4 text-sm text-gray-800">${new Date(data.fecha).toLocaleDateString('es-ES')}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800">Sesión ${data.sesion}</td>
                     <td class="py-2 px-4 text-sm text-gray-800">${data.puntaje_total}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800">${determinarGrado(data.puntaje_total)}</td>
+                    <td class="py-2 px-4 text-sm text-gray-800">${data.grado_dependencia}</td>
                     <td class="py-2 px-4 text-sm text-gray-800">
                         <div class="flex flex-wrap gap-1">
                             <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.comer == 10 ? 'bg-green-100 text-green-800' : data.comer == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">C</span>

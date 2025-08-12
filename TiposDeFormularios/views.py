@@ -319,7 +319,6 @@ def RenderizarEQ_5D(request):
 
 
 def renderizar_CuestionarioBarthel(request):
-
     if 'nombre_clinico' not in request.session:
         messages.error(request, 'Debe haber un inicio de sesión para acceder a esta página.')
         return redirect('login')
@@ -339,7 +338,7 @@ def renderizar_CuestionarioBarthel(request):
         return redirect('login')
 
     # Obtener parámetros
-    rut_paciente = request.GET.get('rut', '') or request.POST.get('paciente', '')
+    rut_paciente = request.GET.get('rut', '') or request.POST.get('rut', '')
     paciente = None
     
     if rut_paciente:
@@ -363,73 +362,175 @@ def renderizar_CuestionarioBarthel(request):
                 messages.error(request, "Debe seleccionar un paciente.")
                 return redirect('bartel')
 
-        # Campos esperados del cuestionario
-        campos = [
-            "comer", "lavarse", "vestirse", "arreglarse",
-            "deposiciones", "miccion", "usar_retrete",
-            "trasladarse", "deambular", "escalones"
-        ]
+        action = request.POST.get('action', '')
+        notaBarthel = request.POST.get('nota_adicional', '')
 
-        datos = {}
-        for campo in campos:
-            valor = request.POST.get(campo)
-            if valor is None or valor == "":
-                messages.error(request, f"Falta el campo: {campo}")
-                return redirect('bartel')
-            
-            try:
-                v_int = int(valor)
-            except ValueError:
-                messages.error(request, f"Valor inválido en {campo}")
-                return redirect('bartel')
+        if action == 'guardar':
+            # Campos esperados del cuestionario
+            campos = [
+                "comer", "lavarse", "vestirse", "arreglarse",
+                "deposiciones", "miccion", "usar_retrete",
+                "trasladarse", "deambular", "escalones"
+            ]
 
+            datos = {}
+            for campo in campos:
+                valor = request.POST.get(campo)
+                if valor is None or valor == "":
+                    messages.error(request, f"Falta el campo: {campo}")
+                    return redirect('bartel')
+                
+                try:
+                    v_int = int(valor)
+                except ValueError:
+                    messages.error(request, f"Valor inválido en {campo}")
+                    return redirect('bartel')
 
-            field = CuestionarioBarthel._meta.get_field(campo)
-            allowed = [c[0] for c in field.choices]
-            if v_int not in allowed:
-                messages.error(request, f"Valor no permitido para {campo}: {v_int}")
-                return redirect('bartel')
+                datos[campo] = v_int
 
-            datos[campo] = v_int
-
-        total = sum(datos.values())
-        if datos.get("deambular") == 5 and total > 90:
-            total = 90
-        if total < 20:
-            grado = "Total"
-        elif total <= 35:
-            grado = "Grave"
-        elif total <= 55:
-            grado = "Moderado"
-        elif total < 100:
-            grado = "Leve"
-        else:
-            grado = "Independiente"
-            
-
-        try:
-            cuestionario, created = CuestionarioBarthel.objects.update_or_create(
-                paciente=paciente,
-                defaults={
-                    "clinico": clinico,
-                    **datos,
-                    "puntaje_total": total,
-                    "grado_dependencia": grado,
-                    "fecha_creacion": datetime.now().date()
-                }
-            )
-
-            if created:
-                messages.success(request, f"Cuestionario Barthel guardado correctamente para {paciente.nombre}. Puntaje: {total}, Grado: {grado}")
+            total = sum(datos.values())
+            if datos.get("deambular") == 5 and total > 90:
+                total = 90
+            if total < 20:
+                grado = "Total"
+            elif total <= 35:
+                grado = "Grave"
+            elif total <= 55:
+                grado = "Moderado"
+            elif total < 100:
+                grado = "Leve"
             else:
+                grado = "Independiente"
+
+            try:
+                cuestionario = CuestionarioBarthel.objects.create(
+                    paciente=paciente,
+                    clinico=clinico,
+                    fecha_creacion=datetime.now().date(),
+                    comer=json.dumps([datos['comer']]),
+                    lavarse=json.dumps([datos['lavarse']]),
+                    vestirse=json.dumps([datos['vestirse']]),
+                    arreglarse=json.dumps([datos['arreglarse']]),
+                    deposiciones=json.dumps([datos['deposiciones']]),
+                    miccion=json.dumps([datos['miccion']]),
+                    usar_retrete=json.dumps([datos['usar_retrete']]),
+                    trasladarse=json.dumps([datos['trasladarse']]),
+                    deambular=json.dumps([datos['deambular']]),
+                    escalones=json.dumps([datos['escalones']]),
+                    puntaje_total=json.dumps([total]),
+                    grado_dependencia=json.dumps([grado]),
+                    NotaCuestionarioBarthel=notaBarthel
+                )
+                messages.success(request, f"Cuestionario Barthel guardado correctamente para {paciente.nombre}. Puntaje: {total}, Grado: {grado}")
+                return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
+
+            except Exception as e:
+                messages.error(request, f"Error al guardar el cuestionario: {str(e)}")
+                return redirect('bartel')
+
+        elif action == 'actualizar':
+            try:
+                cuestionario = CuestionarioBarthel.objects.get(paciente=paciente)
+                
+                # Campos esperados del cuestionario
+                campos = [
+                    "comer", "lavarse", "vestirse", "arreglarse",
+                    "deposiciones", "miccion", "usar_retrete",
+                    "trasladarse", "deambular", "escalones"
+                ]
+
+                datos = {}
+                for campo in campos:
+                    valor = request.POST.get(campo)
+                    if valor is None or valor == "":
+                        messages.error(request, f"Falta el campo: {campo}")
+                        return redirect('bartel')
+                    
+                    try:
+                        v_int = int(valor)
+                    except ValueError:
+                        messages.error(request, f"Valor inválido en {campo}")
+                        return redirect('bartel')
+
+                    datos[campo] = v_int
+
+                total = sum(datos.values())
+                if datos.get("deambular") == 5 and total > 90:
+                    total = 90
+                if total < 20:
+                    grado = "Total"
+                elif total <= 35:
+                    grado = "Grave"
+                elif total <= 55:
+                    grado = "Moderado"
+                elif total < 100:
+                    grado = "Leve"
+                else:
+                    grado = "Independiente"
+
+                # Obtener valores actuales y agregar nuevos
+                comer_actual = json.loads(cuestionario.comer) if cuestionario.comer else []
+                lavarse_actual = json.loads(cuestionario.lavarse) if cuestionario.lavarse else []
+                vestirse_actual = json.loads(cuestionario.vestirse) if cuestionario.vestirse else []
+                arreglarse_actual = json.loads(cuestionario.arreglarse) if cuestionario.arreglarse else []
+                deposiciones_actual = json.loads(cuestionario.deposiciones) if cuestionario.deposiciones else []
+                miccion_actual = json.loads(cuestionario.miccion) if cuestionario.miccion else []
+                usar_retrete_actual = json.loads(cuestionario.usar_retrete) if cuestionario.usar_retrete else []
+                trasladarse_actual = json.loads(cuestionario.trasladarse) if cuestionario.trasladarse else []
+                deambular_actual = json.loads(cuestionario.deambular) if cuestionario.deambular else []
+                escalones_actual = json.loads(cuestionario.escalones) if cuestionario.escalones else []
+                puntaje_total_actual = json.loads(cuestionario.puntaje_total) if cuestionario.puntaje_total else []
+                grado_dependencia_actual = json.loads(cuestionario.grado_dependencia) if cuestionario.grado_dependencia else []
+
+                # Agregar nuevos valores
+                comer_actual.append(datos['comer'])
+                lavarse_actual.append(datos['lavarse'])
+                vestirse_actual.append(datos['vestirse'])
+                arreglarse_actual.append(datos['arreglarse'])
+                deposiciones_actual.append(datos['deposiciones'])
+                miccion_actual.append(datos['miccion'])
+                usar_retrete_actual.append(datos['usar_retrete'])
+                trasladarse_actual.append(datos['trasladarse'])
+                deambular_actual.append(datos['deambular'])
+                escalones_actual.append(datos['escalones'])
+                puntaje_total_actual.append(total)
+                grado_dependencia_actual.append(grado)
+
+                # Guardar actualización
+                cuestionario.comer = json.dumps(comer_actual)
+                cuestionario.lavarse = json.dumps(lavarse_actual)
+                cuestionario.vestirse = json.dumps(vestirse_actual)
+                cuestionario.arreglarse = json.dumps(arreglarse_actual)
+                cuestionario.deposiciones = json.dumps(deposiciones_actual)
+                cuestionario.miccion = json.dumps(miccion_actual)
+                cuestionario.usar_retrete = json.dumps(usar_retrete_actual)
+                cuestionario.trasladarse = json.dumps(trasladarse_actual)
+                cuestionario.deambular = json.dumps(deambular_actual)
+                cuestionario.escalones = json.dumps(escalones_actual)
+                cuestionario.puntaje_total = json.dumps(puntaje_total_actual)
+                cuestionario.grado_dependencia = json.dumps(grado_dependencia_actual)
+                cuestionario.save()
+
                 messages.success(request, f"Cuestionario Barthel actualizado correctamente para {paciente.nombre}. Puntaje: {total}, Grado: {grado}")
+                return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
 
-            # Redirigir a la misma página con el rut del paciente
-            return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
+            except CuestionarioBarthel.DoesNotExist:
+                messages.error(request, "No se encontró el cuestionario para actualizar.")
+                return redirect('bartel')
+            except Exception as e:
+                messages.error(request, f"Error al actualizar el cuestionario: {str(e)}")
+                return redirect('bartel')
 
-        except Exception as e:
-            messages.error(request, f"Error al guardar el cuestionario: {str(e)}")
-            return redirect('bartel')
+        elif action == 'GuardarNota':
+            try:
+                cuestionario = CuestionarioBarthel.objects.get(paciente=paciente)
+                cuestionario.NotaCuestionarioBarthel = notaBarthel
+                cuestionario.save()
+                messages.success(request, "Nota actualizada correctamente.")
+                return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
+            except CuestionarioBarthel.DoesNotExist:
+                messages.error(request, "No se encontró el cuestionario para actualizar la nota.")
+                return redirect('bartel')
 
     # GET: renderizar el formulario
     pacientes = Paciente.objects.all()
@@ -437,7 +538,7 @@ def renderizar_CuestionarioBarthel(request):
     
     # Si hay un paciente específico, verificar si ya existe un cuestionario
     cuestionario_existente = None
-    puntajes_por_sesion = []
+    sesiones = []
     
     if paciente:
         try:
@@ -445,25 +546,39 @@ def renderizar_CuestionarioBarthel(request):
         except CuestionarioBarthel.DoesNotExist:
             pass
         
-        # Obtener historial de evaluaciones para el gráfico y tabla
-        historial_evaluaciones = CuestionarioBarthel.objects.filter(paciente=paciente).order_by('fecha_creacion')
-        
-        for evaluacion in historial_evaluaciones:
-            puntajes_por_sesion.append({
-                'fecha': evaluacion.fecha_creacion.strftime('%d/%m/%Y'),
-                'puntaje_total': evaluacion.puntaje_total,
-                'grado_dependencia': evaluacion.grado_dependencia,
-                'comer': evaluacion.comer,
-                'lavarse': evaluacion.lavarse,
-                'vestirse': evaluacion.vestirse,
-                'arreglarse': evaluacion.arreglarse,
-                'deposiciones': evaluacion.deposiciones,
-                'miccion': evaluacion.miccion,
-                'usar_retrete': evaluacion.usar_retrete,
-                'trasladarse': evaluacion.trasladarse,
-                'deambular': evaluacion.deambular,
-                'escalones': evaluacion.escalones
-            })
+        if cuestionario_existente:
+            # Obtener datos de todas las sesiones
+            comer = json.loads(cuestionario_existente.comer) if cuestionario_existente.comer else []
+            lavarse = json.loads(cuestionario_existente.lavarse) if cuestionario_existente.lavarse else []
+            vestirse = json.loads(cuestionario_existente.vestirse) if cuestionario_existente.vestirse else []
+            arreglarse = json.loads(cuestionario_existente.arreglarse) if cuestionario_existente.arreglarse else []
+            deposiciones = json.loads(cuestionario_existente.deposiciones) if cuestionario_existente.deposiciones else []
+            miccion = json.loads(cuestionario_existente.miccion) if cuestionario_existente.miccion else []
+            usar_retrete = json.loads(cuestionario_existente.usar_retrete) if cuestionario_existente.usar_retrete else []
+            trasladarse = json.loads(cuestionario_existente.trasladarse) if cuestionario_existente.trasladarse else []
+            deambular = json.loads(cuestionario_existente.deambular) if cuestionario_existente.deambular else []
+            escalones = json.loads(cuestionario_existente.escalones) if cuestionario_existente.escalones else []
+            puntaje_total = json.loads(cuestionario_existente.puntaje_total) if cuestionario_existente.puntaje_total else []
+            grado_dependencia = json.loads(cuestionario_existente.grado_dependencia) if cuestionario_existente.grado_dependencia else []
+            
+            # Crear sesiones para la tabla
+            for i in range(len(comer)):
+                sesiones.append({
+                    'sesion': i + 1,
+                    'fecha': cuestionario_existente.fecha_creacion.strftime('%d/%m/%Y'),
+                    'comer': comer[i] if i < len(comer) else "-",
+                    'lavarse': lavarse[i] if i < len(lavarse) else "-",
+                    'vestirse': vestirse[i] if i < len(vestirse) else "-",
+                    'arreglarse': arreglarse[i] if i < len(arreglarse) else "-",
+                    'deposiciones': deposiciones[i] if i < len(deposiciones) else "-",
+                    'miccion': miccion[i] if i < len(miccion) else "-",
+                    'usar_retrete': usar_retrete[i] if i < len(usar_retrete) else "-",
+                    'trasladarse': trasladarse[i] if i < len(trasladarse) else "-",
+                    'deambular': deambular[i] if i < len(deambular) else "-",
+                    'escalones': escalones[i] if i < len(escalones) else "-",
+                    'puntaje_total': puntaje_total[i] if i < len(puntaje_total) else "-",
+                    'grado_dependencia': grado_dependencia[i] if i < len(grado_dependencia) else "-"
+                })
 
     return render(request, "CuestionarioBarthel.html", {
         "pacientes": pacientes,
@@ -471,5 +586,5 @@ def renderizar_CuestionarioBarthel(request):
         "paciente": paciente,
         "cuestionario_existente": cuestionario_existente,
         "clinico_actual": clinico,
-        "puntajes_por_sesion": puntajes_por_sesion
+        "sesiones": sesiones
     })

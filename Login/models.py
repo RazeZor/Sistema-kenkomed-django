@@ -245,21 +245,24 @@ class CuestionarioBarthel(models.Model):
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_barthel')
     fecha_creacion = models.DateField(auto_now_add=True)
 
-    comer = models.IntegerField(choices=OPCIONES_COMER)
-    lavarse = models.IntegerField(choices=OPCIONES_LAVARSE)
-    vestirse = models.IntegerField(choices=OPCIONES_VESTIRSE)
-    arreglarse = models.IntegerField(choices=OPCIONES_ARREGLARSE)
-    deposiciones = models.IntegerField(choices=OPCIONES_DEPOSICIONES)
-    miccion = models.IntegerField(choices=OPCIONES_MICCION)
-    usar_retrete = models.IntegerField(choices=OPCIONES_RETRETE)
-    trasladarse = models.IntegerField(choices=OPCIONES_TRASLADARSE)
-    deambular = models.IntegerField(choices=OPCIONES_DEAMBULAR)
-    escalones = models.IntegerField(choices=OPCIONES_ESCALONES)
+    # Campos JSON para múltiples sesiones
+    comer = models.JSONField(null=True, blank=True)
+    lavarse = models.JSONField(null=True, blank=True)
+    vestirse = models.JSONField(null=True, blank=True)
+    arreglarse = models.JSONField(null=True, blank=True)
+    deposiciones = models.JSONField(null=True, blank=True)
+    miccion = models.JSONField(null=True, blank=True)
+    usar_retrete = models.JSONField(null=True, blank=True)
+    trasladarse = models.JSONField(null=True, blank=True)
+    deambular = models.JSONField(null=True, blank=True)
+    escalones = models.JSONField(null=True, blank=True)
 
-    puntaje_total = models.IntegerField(blank=True, null=True)
-    grado_dependencia = models.CharField(max_length=20, blank=True, null=True)
-
-   
+    # Puntajes totales y grados por sesión
+    puntaje_total = models.JSONField(null=True, blank=True)
+    grado_dependencia = models.JSONField(null=True, blank=True)
+    
+    # Nota del cuestionario
+    NotaCuestionarioBarthel = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Barthel de {self.paciente.nombre} ({self.puntaje_total} pts - {self.grado_dependencia})"
+        return f"Barthel de {self.paciente.nombre}"

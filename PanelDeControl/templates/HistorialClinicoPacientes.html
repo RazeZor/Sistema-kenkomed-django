@@ -136,9 +136,9 @@
                                 </select>
                             </div>
                             
-                            <button type="button" class="btn-primary" id="agregarFormulario">
+                            <a href="#" class="btn-primary" id="agregarFormulario" target="_blank">
                                 <i class="fas fa-plus"></i> Agregar Formulario
-                            </button>
+                            </a>
                             <!-- Botón de informe -->
                             <a href="{% url 'informe' %}?rut={{ paciente.rut }}" id="informe-button" class="report-button" target="_blank">
                                 <i class="fas fa-file-medical-alt"></i>
@@ -267,14 +267,30 @@
                 }
             }
             
-            // Agregar formulario seleccionado
-            document.getElementById('agregarFormulario').addEventListener('click', function() {
+            // Actualizar enlace del formulario cuando se seleccione uno
+            document.getElementById('formulario').addEventListener('change', function() {
+                const formulario = this.value;
+                const rut = document.getElementById('rut').textContent;
+                const agregarFormularioLink = document.getElementById('agregarFormulario');
+                
+                if (formulario && rut) {
+                    agregarFormularioLink.href = formulario + "?rut=" + encodeURIComponent(rut);
+                    agregarFormularioLink.style.pointerEvents = 'auto';
+                    agregarFormularioLink.style.opacity = '1';
+                } else {
+                    agregarFormularioLink.href = "#";
+                    agregarFormularioLink.style.pointerEvents = 'none';
+                    agregarFormularioLink.style.opacity = '0.6';
+                }
+            });
+            
+            // Validar antes de abrir el formulario
+            document.getElementById('agregarFormulario').addEventListener('click', function(e) {
                 const formulario = document.getElementById('formulario').value;
                 const rut = document.getElementById('rut').textContent;
                 
-                if (formulario && rut) {
-                    window.location.href = formulario + "?rut=" + encodeURIComponent(rut);
-                } else {
+                if (!formulario || !rut) {
+                    e.preventDefault();
                     mostrarAlerta('Seleccione un formulario y asegúrese de que el paciente tenga un RUT válido.');
                 }
             });
@@ -298,6 +314,12 @@
             
 
             actualizarVisibilidad();
+            
+            // Inicializar el enlace del formulario
+            const formularioSelect = document.getElementById('formulario');
+            if (formularioSelect.value) {
+                formularioSelect.dispatchEvent(new Event('change'));
+            }
         });
     </script>
 </body>
