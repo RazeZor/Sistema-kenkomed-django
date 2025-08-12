@@ -111,30 +111,59 @@
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+        
+        /* Print styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- Header Minimalista -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-heart text-blue-600"></i>
-                <h1 class="text-lg font-semibold text-gray-900">EQ-5D - Calidad de Vida</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right">
-                    <div class="text-xs text-gray-500">Paciente</div>
-                    <div class="text-sm font-medium">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+    <!-- Header Moderno y Atractivo -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white sticky top-0 z-50 shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <!-- Logo y Título -->
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-heart text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">EQ-5D - Calidad de Vida</h1>
+                        <p class="text-blue-100 text-sm">Cuestionario de Calidad de Vida</p>
+                    </div>
                 </div>
-                <button onclick="window.history.back();" class="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Volver</span>
-                </button>
+                <!-- Información del Paciente y Botón Volver -->
+                <div class="flex items-center space-x-6">
+                    {% if paciente %}
+                    <div class="text-right bg-white bg-opacity-10 px-4 py-2 rounded-lg">
+                        <div class="text-blue-100 text-xs font-medium">PACIENTE ACTUAL</div>
+                        <div class="text-white font-semibold">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+                        <div class="text-blue-200 text-xs">{{ paciente.rut|default:"No disponible" }}</div>
+                    </div>
+                    {% endif %}
+
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Breadcrumb y Navegación -->
+        <div class="mb-6 no-print">
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="{% url 'panel' %}" class="hover:text-blue-600 transition-colors">
+                    <i class="fas fa-home"></i> Panel
+                </a>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-blue-600 font-medium">EQ-5D - Calidad de Vida</span>
+            </nav>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <!-- Evaluación EQ-5D -->
             <div class="lg:col-span-3">
@@ -327,102 +356,109 @@
                 </form>
             </div>
 
-            <!-- Panel lateral - Historial -->
-            <div class="dimension-card">
-                <h3 class="font-medium text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-history text-blue-600 mr-2"></i>
-                    Historial
-                </h3>
-                
-                {% if puntajes_por_sesion %}
-                <div class="space-y-3 max-h-96 overflow-y-auto">
-                    {% for puntaje in puntajes_por_sesion %}
-                    <div class="bg-gray-50 p-3 rounded">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-medium">Sesión {{ puntaje.sesion }}</span>
-                            <span class="text-lg font-bold text-blue-600">{{ puntaje.vas_score }}</span>
-                        </div>
-                        <div class="grid grid-cols-5 gap-1">
-                            <div class="text-center">
-                                <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                    {% if puntaje.movilidad == 1 %}bg-green-100 text-green-800
-                                    {% elif puntaje.movilidad == 2 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ puntaje.movilidad }}
-                                </div>
-                                <div class="text-xs text-gray-500">M</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                    {% if puntaje.cuidado_personal == 1 %}bg-green-100 text-green-800
-                                    {% elif puntaje.cuidado_personal == 2 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ puntaje.cuidado_personal }}
-                                </div>
-                                <div class="text-xs text-gray-500">C</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                    {% if puntaje.actividades_cotidianas == 1 %}bg-green-100 text-green-800
-                                    {% elif puntaje.actividades_cotidianas == 2 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ puntaje.actividades_cotidianas }}
-                                </div>
-                                <div class="text-xs text-gray-500">A</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                    {% if puntaje.dolor_malestar == 1 %}bg-green-100 text-green-800
-                                    {% elif puntaje.dolor_malestar == 2 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ puntaje.dolor_malestar }}
-                                </div>
-                                <div class="text-xs text-gray-500">D</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                    {% if puntaje.ansiedad_depresion == 1 %}bg-green-100 text-green-800
-                                    {% elif puntaje.ansiedad_depresion == 2 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ puntaje.ansiedad_depresion }}
-                                </div>
-                                <div class="text-xs text-gray-500">P</div>
-                            </div>
-                        </div>
+            <!-- Panel lateral - Gráficos y Estadísticas -->
+            <div class="space-y-6">
+                <!-- Gráfico de Tendencias -->
+                <!-- Historial -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-gray-200">
+                        <h3 class="text-lg font-bold text-blue-800 flex items-center">
+                            <i class="fas fa-history text-blue-600 mr-3"></i>
+                            Historial
+                        </h3>
                     </div>
-                    {% endfor %}
-                </div>
+                    <div class="p-6">
+                        {% if puntajes_por_sesion %}
+                        <div class="space-y-3 max-h-96 overflow-y-auto">
+                            {% for puntaje in puntajes_por_sesion %}
+                            <div class="bg-gray-50 p-3 rounded">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-sm font-medium">Sesión {{ puntaje.sesion }}</span>
+                                    <span class="text-lg font-bold text-blue-600">{{ puntaje.vas_score }}</span>
+                                </div>
+                                <div class="grid grid-cols-5 gap-1">
+                                    <div class="text-center">
+                                        <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                            {% if puntaje.movilidad == 1 %}bg-green-100 text-green-800
+                                            {% elif puntaje.movilidad == 2 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ puntaje.movilidad }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">M</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                            {% if puntaje.cuidado_personal == 1 %}bg-green-100 text-green-800
+                                            {% elif puntaje.cuidado_personal == 2 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ puntaje.cuidado_personal }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">C</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                            {% if puntaje.actividades_cotidianas == 1 %}bg-green-100 text-green-800
+                                            {% elif puntaje.actividades_cotidianas == 2 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ puntaje.actividades_cotidianas }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">A</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                            {% if puntaje.dolor_malestar == 1 %}bg-green-100 text-green-800
+                                            {% elif puntaje.dolor_malestar == 2 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ puntaje.dolor_malestar }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">D</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
+                                            {% if puntaje.ansiedad_depresion == 1 %}bg-green-100 text-green-800
+                                            {% elif puntaje.ansiedad_depresion == 2 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-red-100 text-red-800{% endif %}">
+                                            {{ puntaje.ansiedad_depresion }}
+                                        </div>
+                                        <div class="text-xs text-gray-500">P</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
 
-                <!-- Leyenda -->
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <div class="text-xs text-gray-600 space-y-1">
-                        <div><strong>M:</strong> Movilidad</div>
-                        <div><strong>C:</strong> Cuidado</div>
-                        <div><strong>A:</strong> Actividades</div>
-                        <div><strong>D:</strong> Dolor</div>
-                        <div><strong>P:</strong> Psicológico</div>
-                    </div>
-                    <div class="mt-2 flex space-x-2 text-xs">
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-green-100 rounded mr-1"></div>
-                            <span>1</span>
+                        <!-- Leyenda -->
+                        <div class="mt-4 pt-4 border-t border-gray-200">
+                            <div class="text-xs text-gray-600 space-y-1">
+                                <div><strong>M:</strong> Movilidad</div>
+                                <div><strong>C:</strong> Cuidado</div>
+                                <div><strong>A:</strong> Actividades</div>
+                                <div><strong>D:</strong> Dolor</div>
+                                <div><strong>P:</strong> Psicológico</div>
+                            </div>
+                            <div class="mt-2 flex space-x-2 text-xs">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-green-100 rounded mr-1"></div>
+                                    <span>1</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-yellow-100 rounded mr-1"></div>
+                                    <span>2</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-red-100 rounded mr-1"></div>
+                                    <span>3</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-yellow-100 rounded mr-1"></div>
-                            <span>2</span>
+                        {% else %}
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-heart text-2xl mb-2"></i>
+                            <p class="text-sm">Sin evaluaciones previas</p>
                         </div>
-                        <div class="flex items-center">
-                            <div class="w-3 h-3 bg-red-100 rounded mr-1"></div>
-                            <span>3</span>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
-                {% else %}
-                <div class="text-center py-8 text-gray-500">
-                    <i class="fas fa-heart text-2xl mb-2"></i>
-                    <p class="text-sm">Sin evaluaciones previas</p>
-                </div>
-                {% endif %}
             </div>
         </div>
     </main>
@@ -453,7 +489,56 @@
             const initialValue = vasSlider.value;
             document.getElementById('vasValue').textContent = initialValue;
             document.getElementById('thermometerFill').style.height = initialValue + '%';
+            
+            // Inicializar gráfico y estadísticas
+            if (window.eq5dHistoryData && window.eq5dHistoryData.length > 0) {
+                renderChart();
+                updateStatistics();
+            }
         });
+        
+        // Función para actualizar estadísticas
+        function updateStatistics() {
+            if (window.eq5dHistoryData && window.eq5dHistoryData.length > 0) {
+                const vasScores = window.eq5dHistoryData.map(data => data.vas_score);
+                const promedio = (vasScores.reduce((a, b) => a + b, 0) / vasScores.length).toFixed(1);
+                document.getElementById('avg-vas').textContent = promedio;
+                document.getElementById('total-sessions').textContent = vasScores.length;
+                
+                // Calcular tendencia
+                if (vasScores.length >= 2) {
+                    const ultimo = vasScores[vasScores.length - 1];
+                    const penultimo = vasScores[vasScores.length - 2];
+                    const tendencia = ultimo > penultimo ? "↗" : ultimo < penultimo ? "↘" : "→";
+                    document.getElementById('trend').textContent = tendencia;
+                    
+                    // Cambiar color según la tendencia
+                    const trendElement = document.getElementById('trend');
+                    if (ultimo > penultimo) {
+                        trendElement.className = 'text-2xl font-bold text-green-600';
+                    } else if (ultimo < penultimo) {
+                        trendElement.className = 'text-2xl font-bold text-red-600';
+                    } else {
+                        trendElement.className = 'text-2xl font-bold text-gray-600';
+                    }
+                }
+            }
+        }
+        
+        // Función para renderizar el gráfico
+       
     </script>
+    
+    <!-- Datos del historial para el gráfico -->
+    {% if puntajes_por_sesion %}
+        {{ puntajes_por_sesion|json_script:"eq5d-data" }}
+        <script>
+            window.eq5dHistoryData = JSON.parse(document.getElementById('eq5d-data').textContent);
+        </script>
+    {% else %}
+        <script>
+            window.eq5dHistoryData = [];
+        </script>
+    {% endif %}
 </body>
 </html>

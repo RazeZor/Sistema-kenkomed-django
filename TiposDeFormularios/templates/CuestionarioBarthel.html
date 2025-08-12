@@ -157,16 +157,11 @@
                 <div class="flex items-center space-x-6">
                     {% if paciente %}
                     <div class="text-right bg-white bg-opacity-10 px-4 py-2 rounded-lg">
-                        <div class="text-blue-100 text-xs font-medium">PACIENTE ACTUAL</div>
+
                         <div class="text-white font-semibold">{{ paciente.nombre }} {{ paciente.apellido }}</div>
                         <div class="text-blue-200 text-xs">{{ paciente.rut }}</div>
                     </div>
                     {% endif %}
-                    <button onclick="window.history.back();"
-                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="font-medium">Volver</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -479,27 +474,6 @@
                 </div>
             </div>
 
-            <!-- Panel Lateral - Análisis y Historial -->
-            <div class="lg:col-span-1 space-y-6">
-                <!-- Gráfico de Tendencias -->
-                <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-bold text-purple-800 flex items-center">
-                            <i class="fas fa-chart-line text-purple-600 mr-3"></i>
-                            Análisis de Tendencias
-                        </h3>
-                    </div>
-                    <div class="p-6">
-                        <div class="relative h-64 mb-4">
-                            <canvas id="barthelChart"></canvas>
-                        </div>
-                        <button onclick="printChartAndData()"
-                                 class="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 text-sm font-semibold shadow-md transition-all duration-200 hover:scale-105 transform no-print">
-                            <i class="fas fa-print mr-2"></i>
-                            Imprimir Gráfico y Datos
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Historial de Evaluaciones -->
                 <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
@@ -990,195 +964,9 @@
         // --- Chart.js Integration ---
         let barthelChart; // Declare chart variable globally
 
-        function renderChart() {
-            const ctx = document.getElementById('barthelChart').getContext('2d');
-            const labels = window.barthelHistoryData.map(data => `Sesión ${data.sesion}`);
-            const scores = window.barthelHistoryData.map(data => data.puntaje_total);
+        
 
-            // Destroy existing chart if it exists
-            if (barthelChart) {
-                barthelChart.destroy();
-            }
 
-            barthelChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Puntaje Barthel',
-                        data: scores,
-                        borderColor: 'rgb(30, 64, 175)', // blue-700
-                        backgroundColor: 'rgba(30, 64, 175, 0.2)',
-                        tension: 0.3,
-                        fill: true,
-                        pointBackgroundColor: scores.map(score => getColorForGrade(determinarGrado(score))),
-                        pointBorderColor: 'white',
-                        pointBorderWidth: 2,
-                        pointRadius: 5,
-                        pointHoverRadius: 7,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: 'Tendencia del Puntaje Barthel a lo largo del tiempo',
-                            font: {
-                                size: 16,
-                                weight: 'bold'
-                            },
-                            color: '#374151'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const score = context.raw;
-                                    const grade = determinarGrado(score);
-                                    return `Puntaje: ${score} (${grade})`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            title: {
-                                display: true,
-                                text: 'Puntaje Total',
-                                color: '#4b5563'
-                            },
-                            ticks: {
-                                stepSize: 10,
-                                color: '#4b5563'
-                            },
-                            grid: {
-                                color: '#e5e7eb'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Fecha de Evaluación',
-                                color: '#4b5563'
-                            },
-                            ticks: {
-                                color: '#4b5563'
-                            },
-                            grid: {
-                                color: '#e5e7eb'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // Render chart on page load if data exists
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.barthelHistoryData && window.barthelHistoryData.length > 0) {
-                renderChart();
-            }
-        });
-
-        // --- Print Barthel Table Functionality ---
-        function printBarthelTable() {
-            const printSection = document.getElementById('print-barthel-table');
-            const printTableBody = document.getElementById('barthel-table-body');
-            const reportDate = document.getElementById('barthel-table-date');
-
-            // Set report date
-            reportDate.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            // Populate the print table
-            printTableBody.innerHTML = ''; // Clear previous content
-            window.barthelHistoryData.forEach(data => {
-                const row = printTableBody.insertRow();
-                row.classList.add('border-b', 'border-gray-200');
-                row.innerHTML = `
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">Sesión ${data.sesion}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.comer}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.lavarse}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.vestirse}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.arreglarse}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.deposiciones}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.miccion}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.usar_retrete}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.trasladarse}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.deambular}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800 border-r">${data.escalones}</td>
-                    <td class="py-2 px-4 text-sm font-semibold text-blue-600 border-r">${data.puntaje_total}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800">${data.grado_dependencia}</td>
-                `;
-            });
-
-            // Show print section and hide main content
-            document.body.style.overflow = 'hidden';
-            printSection.classList.remove('hidden');
-            
-            // Print
-            window.print();
-            
-            // Hide print section and restore main content
-            setTimeout(() => {
-                printSection.classList.add('hidden');
-                document.body.style.overflow = '';
-            }, 100);
-        }
-
-        // --- Print Functionality ---
-        function printChartAndData() {
-            const printSection = document.getElementById('print-section');
-            const printChartCanvas = document.getElementById('printChart');
-            const printTableBody = document.getElementById('print-table-body');
-            const reportDate = document.getElementById('report-date');
-
-            // Set report date
-            reportDate.textContent = new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' });
-
-            // Clone the chart for printing
-            const originalCanvas = document.getElementById('barthelChart');
-            const originalChartDataURL = originalCanvas.toDataURL('image/png');
-
-            // Create a new image element for the print canvas
-            const img = new Image();
-            img.src = originalChartDataURL;
-            img.onload = () => {
-                const printCtx = printChartCanvas.getContext('2d');
-                printChartCanvas.width = originalCanvas.width;
-                printChartCanvas.height = originalCanvas.height;
-                printCtx.drawImage(img, 0, 0);
-            };
-
-            // Populate the print table
-            printTableBody.innerHTML = ''; // Clear previous content
-            window.barthelHistoryData.forEach(data => {
-                const row = printTableBody.insertRow();
-                row.classList.add('border-b', 'border-gray-100');
-                row.innerHTML = `
-                    <td class="py-2 px-4 text-sm text-gray-800">Sesión ${data.sesion}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800">${data.puntaje_total}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800">${data.grado_dependencia}</td>
-                    <td class="py-2 px-4 text-sm text-gray-800">
-                        <div class="flex flex-wrap gap-1">
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.comer == 10 ? 'bg-green-100 text-green-800' : data.comer == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">C</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.lavarse == 5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">L</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.vestirse == 10 ? 'bg-green-100 text-green-800' : data.vestirse == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">V</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.arreglarse == 5 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">A</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.deposiciones == 10 ? 'bg-green-100 text-green-800' : data.deposiciones == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">D</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.miccion == 10 ? 'bg-green-100 text-green-800' : data.miccion == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">M</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.usar_retrete == 10 ? 'bg-green-100 text-green-800' : data.usar_retrete == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">R</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.trasladarse == 15 ? 'bg-green-100 text-green-800' : data.trasladarse == 10 ? 'bg-yellow-100 text-yellow-800' : data.trasladarse == 5 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}">T</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.deambular == 15 ? 'bg-green-100 text-green-800' : data.deambular == 10 ? 'bg-yellow-100 text-yellow-800' : data.deambular == 5 ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800'}">D</span>
-                            <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center ${data.escalones == 10 ? 'bg-green-100 text-green-800' : data.escalones == 5 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}">E</span>
-                        </div>
-                    </td>
-                `;
-            });
-            window.print();
-        }
     </script>
 </body>
 </html>

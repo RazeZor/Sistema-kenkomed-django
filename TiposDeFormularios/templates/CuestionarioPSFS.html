@@ -66,30 +66,60 @@
             font-weight: bold;
             color: white;
         }
+        
+        /* Print styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
-    <!-- Header Minimalista -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-tasks text-blue-600"></i>
-                <h1 class="text-lg font-semibold text-gray-900">PSFS - Escala Funcional</h1>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right">
-                    <div class="text-xs text-gray-500">Paciente</div>
-                    <div class="text-sm font-medium">{{ rut }}</div>
+    <!-- Header Moderno y Atractivo -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white sticky top-0 z-50 shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <!-- Logo y Título -->
+                <div class="flex items-center space-x-4">
+                    <div class="bg-white bg-opacity-20 p-3 rounded-full">
+                        <i class="fas fa-tasks text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">PSFS - Escala Funcional</h1>
+                        <p class="text-blue-100 text-sm">Escala Funcional Específica del Paciente</p>
+                    </div>
                 </div>
-                <button onclick="window.history.back();" class="text-gray-600 hover:text-gray-900 flex items-center space-x-1">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Volver</span>
-                </button>
+                <!-- Información del Paciente y Botón Volver -->
+                <div class="flex items-center space-x-6">
+                    <div class="text-right bg-white bg-opacity-10 px-4 py-2 rounded-lg">
+                        <div class="text-blue-100 text-xs font-medium">PACIENTE ACTUAL</div>
+                        <div class="text-white font-semibold">RUT: {{ rut }}</div>
+                    </div>
+                    <button onclick="window.history.back();"
+                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-arrow-left"></i>
+                        <span class="font-medium">Volver</span>
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-6">
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Breadcrumb y Navegación -->
+        <div class="mb-6 no-print">
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="{% url 'panel' %}" class="hover:text-blue-600 transition-colors">
+                    <i class="fas fa-home"></i> Panel
+                </a>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+                <span class="text-blue-600 font-medium">PSFS - Escala Funcional</span>
+            </nav>
+        </div>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Evaluación PSFS -->
             <div class="lg:col-span-2">
