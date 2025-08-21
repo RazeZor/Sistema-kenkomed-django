@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escala de Intensidad del Dolor - ENA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #1e40af; /* blue-700 */
+            --secondary: #64748b; /* slate-600 */
+            --success: #059669; /* emerald-600 */
+            --warning: #d97706; /* amber-600 */
+            --danger: #dc2626; /* red-600 */
+        }
+
+        .face-button {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .face-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .face-button.selected {
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+            border: 3px solid #ffffff;
+        }
+
+        .scale-container {
+            background: linear-gradient(90deg, 
+                #60a5fa 0%,    /* blue-400 - No dolor */
+                #60a5fa 10%,   /* blue-400 */
+                #3b82f6 20%,   /* blue-500 */
+                #22c55e 30%,   /* green-500 - Leve */
+                #84cc16 40%,   /* lime-500 */
+                #eab308 50%,   /* yellow-500 - Moderado */
+                #f59e0b 60%,   /* amber-500 */
+                #f97316 70%,   /* orange-500 - Severo */
+                #ef4444 80%,   /* red-500 */
+                #dc2626 90%,   /* red-600 */
+                #b91c1c 100%   /* red-700 - Insoportable */
+            );
+            border-radius: 50px;
+            padding: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .pain-level-0 { background-color: #dbeafe; color: #1e40af; } /* blue-100/blue-700 */
+        .pain-level-1 { background-color: #dbeafe; color: #1e40af; }
+        .pain-level-2 { background-color: #bfdbfe; color: #1d4ed8; }
+        .pain-level-3 { background-color: #dcfce7; color: #15803d; } /* green-100/green-700 */
+        .pain-level-4 { background-color: #dcfce7; color: #15803d; }
+        .pain-level-5 { background-color: #fef3c7; color: #d97706; } /* yellow-100/amber-600 */
+        .pain-level-6 { background-color: #fed7aa; color: #ea580c; } /* orange-100/orange-600 */
+        .pain-level-7 { background-color: #fed7aa; color: #ea580c; }
+        .pain-level-8 { background-color: #fecaca; color: #dc2626; } /* red-100/red-600 */
+        .pain-level-9 { background-color: #fecaca; color: #dc2626; }
+        .pain-level-10 { background-color: #fecaca; color: #b91c1c; } /* red-100/red-700 */
+
+        .result-display {
+            min-height: 120px;
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
+        <div class="max-w-4xl mx-auto px-6 py-6">
+            <div class="text-center">
+                <h1 class="text-2xl md:text-3xl font-bold mb-2">Escala de Intensidad del Dolor</h1>
+                <p class="text-blue-100 text-sm md:text-base">Escala Numérica Analógica (ENA)</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        <!-- Instrucciones -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
+            <div class="text-center">
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">¿Cuál es su nivel de dolor actual?</h2>
+                <p class="text-gray-600">Seleccione el número que mejor represente la intensidad de su dolor en este momento</p>
+            </div>
+        </div>
+
+        <!-- Escala Visual -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
+            <!-- Escala de Caritas y Números -->
+            <div class="scale-container mb-8">
+                <div class="grid grid-cols-11 gap-1 md:gap-2">
+                    <!-- Nivel 0 - No dolor -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="0" onclick="selectPainLevel(0)">
+                            😊
+                        </button>
+                        <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            0
+                        </div>
+                    </div>
+
+                    <!-- Nivel 1 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="1" onclick="selectPainLevel(1)">
+                            🙂
+                        </button>
+                        <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            1
+                        </div>
+                    </div>
+
+                    <!-- Nivel 2 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="2" onclick="selectPainLevel(2)">
+                            😐
+                        </button>
+                        <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            2
+                        </div>
+                    </div>
+
+                    <!-- Nivel 3 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-green-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="3" onclick="selectPainLevel(3)">
+                            😕
+                        </button>
+                        <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            3
+                        </div>
+                    </div>
+
+                    <!-- Nivel 4 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-green-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="4" onclick="selectPainLevel(4)">
+                            😟
+                        </button>
+                        <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            4
+                        </div>
+                    </div>
+
+                    <!-- Nivel 5 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-yellow-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="5" onclick="selectPainLevel(5)">
+                            😣
+                        </button>
+                        <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            5
+                        </div>
+                    </div>
+
+                    <!-- Nivel 6 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-yellow-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="6" onclick="selectPainLevel(6)">
+                            😖
+                        </button>
+                        <div class="bg-amber-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            6
+                        </div>
+                    </div>
+
+                    <!-- Nivel 7 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="7" onclick="selectPainLevel(7)">
+                            😫
+                        </button>
+                        <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            7
+                        </div>
+                    </div>
+
+                    <!-- Nivel 8 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="8" onclick="selectPainLevel(8)">
+                            😰
+                        </button>
+                        <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            8
+                        </div>
+                    </div>
+
+                    <!-- Nivel 9 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="9" onclick="selectPainLevel(9)">
+                            😭
+                        </button>
+                        <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            9
+                        </div>
+                    </div>
+
+                    <!-- Nivel 10 -->
+                    <div class="text-center">
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-400 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                                data-level="10" onclick="selectPainLevel(10)">
+                            😵
+                        </button>
+                        <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
+                            10
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Etiquetas descriptivas -->
+            <div class="grid grid-cols-4 gap-4 text-center text-xs md:text-sm font-medium mb-6">
+                <div class="text-blue-700">
+                    <div class="font-bold">No dolor</div>
+                </div>
+                <div class="text-green-700">
+                    <div class="font-bold">Leve</div>
+                </div>
+                <div class="text-yellow-700">
+                    <div class="font-bold">Moderado</div>
+                </div>
+                <div class="text-red-700">
+                    <div class="font-bold">Severo</div>
+                </div>
+            </div>
+
+            <!-- Resultado -->
+            <div id="result-display" class="result-display bg-gray-100 rounded-lg p-6 text-center">
+                <div class="text-gray-500">
+                    <div class="text-4xl mb-2">🤔</div>
+                    <div class="text-lg font-medium">Seleccione su nivel de dolor</div>
+                    <div class="text-sm">Haga clic en la carita que mejor represente cómo se siente</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Descripción de los Niveles</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <span class="w-6 h-6 bg-blue-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">0-2</span>
+                        <span><strong>Sin dolor o muy leve:</strong> No interfiere con las actividades</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-6 h-6 bg-green-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">3-4</span>
+                        <span><strong>Dolor leve:</strong> Molesta pero no impide actividades</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-6 h-6 bg-yellow-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">5-6</span>
+                        <span><strong>Dolor moderado:</strong> Interfiere con algunas actividades</span>
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="flex items-center">
+                        <span class="w-6 h-6 bg-orange-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">7-8</span>
+                        <span><strong>Dolor severo:</strong> Dificulta la mayoría de actividades</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-6 h-6 bg-red-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">9-10</span>
+                        <span><strong>Dolor insoportable:</strong> Impide realizar cualquier actividad</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <button id="save-btn" onclick="savePainLevel()" disabled 
+                    class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200">
+                Guardar Evaluación
+            </button>
+            <button onclick="resetScale()" 
+                    class="px-8 py-3 bg-gray-600 text-white rounded-lg font-semibold shadow-lg hover:bg-gray-700 transition-all duration-200">
+                Limpiar Selección
+            </button>
+        </div>
+    </main>
+
+    <script>
+        let selectedLevel = null;
+
+        const painDescriptions = {
+            0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0" },
+            1: { text: "Dolor muy leve", description: "Apenas perceptible", emoji: "🙂", class: "pain-level-1" },
+            2: { text: "Dolor leve", description: "Molestia menor", emoji: "😐", class: "pain-level-2" },
+            3: { text: "Dolor leve-moderado", description: "Molestia notable pero tolerable", emoji: "😕", class: "pain-level-3" },
+            4: { text: "Dolor moderado", description: "Molestia que requiere atención", emoji: "😟", class: "pain-level-4" },
+            5: { text: "Dolor moderado", description: "Interfiere con algunas actividades", emoji: "😣", class: "pain-level-5" },
+            6: { text: "Dolor moderado-severo", description: "Dificulta las actividades normales", emoji: "😖", class: "pain-level-6" },
+            7: { text: "Dolor severo", description: "Interfiere significativamente", emoji: "😫", class: "pain-level-7" },
+            8: { text: "Dolor muy severo", description: "Dificulta la mayoría de actividades", emoji: "😰", class: "pain-level-8" },
+            9: { text: "Dolor extremo", description: "Casi insoportable", emoji: "😭", class: "pain-level-9" },
+            10: { text: "Dolor insoportable", description: "El peor dolor imaginable", emoji: "😵", class: "pain-level-10" }
+        };
+
+        function selectPainLevel(level) {
+            // Remover selección anterior
+            document.querySelectorAll('.face-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Seleccionar nuevo nivel
+            const selectedButton = document.querySelector(`[data-level="${level}"]`);
+            selectedButton.classList.add('selected');
+            
+            selectedLevel = level;
+            updateResultDisplay(level);
+            
+            // Habilitar botón de guardar
+            document.getElementById('save-btn').disabled = false;
+        }
+
+        function updateResultDisplay(level) {
+            const resultDiv = document.getElementById('result-display');
+            const pain = painDescriptions[level];
+            
+            resultDiv.className = `result-display rounded-lg p-6 text-center ${pain.class}`;
+            resultDiv.innerHTML = `
+                <div class="text-6xl mb-4">${pain.emoji}</div>
+                <div class="text-3xl font-bold mb-2">Nivel ${level}</div>
+                <div class="text-xl font-semibold mb-2">${pain.text}</div>
+                <div class="text-base opacity-80">${pain.description}</div>
+            `;
+        }
+
+        function resetScale() {
+            document.querySelectorAll('.face-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            selectedLevel = null;
+            document.getElementById('save-btn').disabled = true;
+            
+            const resultDiv = document.getElementById('result-display');
+            resultDiv.className = 'result-display bg-gray-100 rounded-lg p-6 text-center';
+            resultDiv.innerHTML = `
+                <div class="text-gray-500">
+                    <div class="text-4xl mb-2">🤔</div>
+                    <div class="text-lg font-medium">Seleccione su nivel de dolor</div>
+                    <div class="text-sm">Haga clic en la carita que mejor represente cómo se siente</div>
+                </div>
+            `;
+        }
+
+        function savePainLevel() {
+            if (selectedLevel !== null) {
+                const pain = painDescriptions[selectedLevel];
+                const timestamp = new Date().toLocaleString('es-ES');
+                
+                alert(`Evaluación guardada exitosamente:\n\nNivel de dolor: ${selectedLevel}\nDescripción: ${pain.text}\nFecha y hora: ${timestamp}`);
+                
+                // Aquí puedes agregar la lógica para enviar los datos a tu backend Django
+                console.log('Datos para enviar:', {
+                    nivel: selectedLevel,
+                    descripcion: pain.text,
+                    timestamp: timestamp
+                });
+            }
+        }
+
+        // Inicializar la escala
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Escala ENA del dolor inicializada');
+        });
+    </script>
+</body>
+</html>

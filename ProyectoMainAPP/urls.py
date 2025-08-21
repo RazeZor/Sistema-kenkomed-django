@@ -48,7 +48,7 @@ urlpatterns = [
     path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
     path('menu/',m.sidebar,name='menu'),
     path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
-
+    path('CuestionarioENA/', tiposFormularios.renderizar_CuestionarioENA, name='ENA'),
     
 
 

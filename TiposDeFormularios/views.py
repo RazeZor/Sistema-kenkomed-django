@@ -588,3 +588,7 @@ def renderizar_CuestionarioBarthel(request):
         "clinico_actual": clinico,
         "sesiones": sesiones
     })
+
+
+def renderizar_CuestionarioENA(request):
+    return render(request,"CuestionarioENA.html")
