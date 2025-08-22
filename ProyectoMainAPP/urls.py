@@ -31,24 +31,32 @@ urlpatterns = [
     path('',s.VerServicios),
     path('login/', l.validarLogin,name='login'),  # Asocia la URL / con la vista Login.validarLogin.
     path('panel/', v.panel, name="panel"),  # Asocia la URL /panel/ con la vista PanelDeControl.),
-    path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
     path('Ver/', vistaClinico.VerClinicos,name='ver'),
     path('panel/FormularioInicial/', vistaClinicos.FormularioInicial,name='formularioInicial'),
     path('Cerrar/',v.cerrar_sesion,name='cerrarSesion'),
     path('cuerpoHumano/',vistaClinicos.CuerpoHumano),
-    path('panel/fichaPacientes/',v.VerInformePacientes,name='ficha'),
-    path('panel/historialClinico/', v.HistorialClinico, name='historialClinico'),
+    
     path('informe/',vistaInforme.RenderInforme,name='informe'),
-    path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
+
     path('editar/', vistaClinico.EditarClinicos, name='editar'),
     path('eliminar_paciente/', lista.EliminarPaciente, name='eliminar'),
+
+    path('menu/',m.sidebar,name='menu'),
+    #vistas derivadas del panel
+    path('panel/fichaPacientes/',v.VerInformePacientes,name='ficha'),
+    path('panel/historialClinico/', v.HistorialClinico, name='historialClinico'),
+    path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
+    path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
+    path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
+
+    #renderizacion de cuestionarios
     path('CuestionarioGROC/',tiposFormularios.RenderizarGROC,name='GROK'),
     path('CuestionarioPSFS/',tiposFormularios.gestionar_psfs, name='gestionar_psfs'),
     path('CuestionarioEQ_5D/',tiposFormularios.RenderizarEQ_5D,name='EQ_5D'),
-    path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
-    path('menu/',m.sidebar,name='menu'),
     path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
     path('CuestionarioENA/', tiposFormularios.renderizar_CuestionarioENA, name='ENA'),
+    path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning")
+
     
 
 

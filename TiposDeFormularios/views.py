@@ -592,3 +592,6 @@ def renderizar_CuestionarioBarthel(request):
 
 def renderizar_CuestionarioENA(request):
     return render(request,"CuestionarioENA.html")
+
+def renderizar_cuestionarioScrening(request):
+    return render(request,"CuestionarioScrenning.html")

@@ -139,12 +139,6 @@ def FormularioInicial(request):
         opinionCuraDolor=request.POST.get('cure'),
         #pagina 5
         TiposDeEnfermedades=json.dumps(request.POST.getlist('TiposDeEnfermedades')),
-
-        #pagina 6
-        IntensidadDolor=request.POST.get('IntensidadDolor'),
-        preguntas1=json.dumps(request.POST.getlist('preguntas1')),
-        
-        nesesidadDeApoyo=request.POST.get('support'),
         #pagina 7
         actividades_afectadas = json.dumps(request.POST.getlist('actividades_afectadas')),
         parametros = json.dumps(request.POST.getlist('parametros')),
@@ -206,5 +200,3 @@ def FormularioInicial(request):
         return render(request, 'FormularioInicial.html')
     else:
         return redirect('login')
-def CuerpoHumano(request):
-    return render(request, 'CuerpoHumano.html')

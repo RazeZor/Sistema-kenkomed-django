@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Ejemplo Semántico</title>
+</head>
+<body>
+  <header>
+    <h1>Mi Blog</h1>
+    <nav>
+      <ul>
+        <li><a href="#inicio">Inicio</a></li>
+        <li><a href="#articulos">Artículos</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="form-group">
+        <label class="form-label"><strong>Detalla a continuación medicamentos para el dolor que usas o has usado. Marque el medicamento que le resulte más efectivo:</strong></label>
+        
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Analgesicos simples" /> 
+        1. Analgésicos simples  (⁠Paracetamol, Dipirona, Ibuprofeno)
+        </label>
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antiinflamatorios no esteroideos" />  
+        2. Antiinflamatorios no esteroideos (Diclofenaco, Naproxeno, Ketoprofeno, Meloxicam)
+        </label>
+        
+        <label class="list-group-item">
+            <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides debiless" />  
+            3. Opioides débiles (Tramadol, Codeína)
+        </label>
+        
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides fuertes" />  
+        4. Opioides fuertes( Morfina, Fentanilo, parches de Bupenorfrina)
+        </label> 
+        <label class="list-group-item">   
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Anticonvulsivantess" />  
+        5. Anticonvulsivantes (Pregabalina, Gabapentina, Carbamazepina)
+        </label> 
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antidepresivos" />  
+        6. Antidepresivos (para el manejo del dolor crónico)•⁠ Amitriptilina, Duloxetina, Venlafaxina
+        </label>
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Relajantes musculares y Benzodiacepinas" />  
+        7. Relajantes musculares (Benzodiacepinas, Diazepam, Clonazepam, Alprazolam, Clotiazepam)
+        </label> 
+        <label class="list-group-item">   
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Inductores del Sueño." />  
+        8. Inductores del Sueño (Zopiclona, Eszopiclona, Melatonina, Zolpide, ketiapina)
+        </label>
+        <label class="list-group-item"> 
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Corticoide" />  
+        9. Corticoides (para inflamación severa) Prednisona, Dexametasona, Betametasona.
+        </label>
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Medicamentos topicos" />  
+        10. Medicamentos tópicos (Capsaicina, Lidocaina en crema o parches, Diclofenaco en gel)
+        </label>
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Terapias biologicas" />  
+        11. Terapias biológicas (si corresponde)⁠  Adalimumab, Etanercept.
+        </label>   
+        </label>
+        <label class="list-group-item">
+        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Cannabis medicinal" />  
+        12. Cannabis Medicinal
+        </label>  
+    </div>
+</div>
+
+<!-- Formulario Screenning  -->
+<div class="step">
+
+    <h3>PARA RESPONDER LAS SIGUIENTES PREGUNTAS, PIENSE SOLO RESPECTO DE LAS ÚLTIMAS 2 SEMANAS</h3>
+    <label class="form-label"><strong>1.- En promedio, ¿Cuán intenso ha sido su dolor?</strong> </label>
+    <div class="form-group">
+        <div class="mb-3">
+
+            <div class="form-check">
+                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad1" autocomplete="off" value="0"/>
+                <label class="form-check-label" for="intensidad1">No he tenido dolor</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad2" autocomplete="off" value="3"/>
+                <label class="form-check-label" for="intensidad2">Dolor leve, que casi no interfiere con mis actividades.</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad3" autocomplete="off" value="6"/>
+                <label class="form-check-label" for="intensidad3">Dolor moderado, que interfiere de forma notable con mis actividades.</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad4" autocomplete="off" value="9"/>
+                <label class="form-check-label" for="intensidad4">Dolor intenso, que limita severamente mis actividades diarias.</label>
+            </div>
+            <div class="form-check">
+                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad5" autocomplete="off" value="10"/>
+                <label class="form-check-label" for="intensidad5">El peor dolor posible, que me resulta insoportable.</label>
+            </div>
+        </div>
+            
+    </div>
+    
+
+
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th colspan="3"><label class="form-label"><strong>Por favor marque una casilla para cada pregunta a continuación</strong></label></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td scope="row">¿Ha experimentado molestias significativas en las articulaciones o músculos en más de una parte de su cuerpo?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" id="pregunta1_si" name="preguntas1"> Sí</label></td> 
+                <td><label><input class="form-check-input" type="checkbox" value="no" id="pregunta1_no" name="preguntas1"> No</label></td>
+            </tr>
+            <tr>
+                <td scope="row">¿Ha tenido dificultades para caminar largas distancias debido a su dolor?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+            </tr>
+            <tr>
+                <td scope="row">¿Ha tenido que vestirse más lentamente de lo habitual debido a su dolor?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+            </tr>
+            <tr>
+                <td scope="row">¿Tiene algún otro problema de salud importante que considere relevante?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+            </tr>
+            <tr>
+                <td scope="row">¿Cree que no es seguro para alguien con su condición realizar actividad física?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
+                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
+            </tr>
+            <tr>
+                <td scope="row">En las últimas dos semanas, ¿ha tenido pensamientos recurrentes o preocupantes sobre su dolor?</td>
+                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td> 
+                <td><label><input class="form-check-input" type='checkbox' value='no' name='preguntas1'> No</label></td>
+            </tr>
+            <tr>
+                <td scope='row'>¿Cree que su condición de dolor persistirá durante mucho tiempo?</td>
+                <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
+                <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
+            </tr>
+            <tr>
+                <td scope='row'>¿Ha dejado de disfrutar actividades que usualmente le gustan debido a su dolor?</td>
+                <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
+                <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
+            </tr>
+            <tr>
+                
+            </tr>  
+        </tbody>  
+    </table>
+
+    
+    <div class="molestia">
+        <label class="form-label"><strong>¿Qué tan molesto ha sido su dolor en las últimas dos semanas?</strong></label>
+        <div class="checkbox-group">
+            <label><input class="form-check-input" type="checkbox" value="nada" name="preguntas1">Nada</label> 
+            <label><input class="form-check-input" type="checkbox" value="leve" name="preguntas1">Leve</label> 
+            <label><input class="form-check-input" type="checkbox" value="moderado" name="preguntas1">Moderado</label> 
+            <label><input class="form-check-input" type="checkbox" value="mucho" name="preguntas1">Mucho</label> 
+            <label><input class="form-check-input" type="checkbox" value="extremo" name="preguntas1">Extremo</label> 
+        </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; 2025 Mi Blog</p>
+  </footer>
+</body>
+</html>

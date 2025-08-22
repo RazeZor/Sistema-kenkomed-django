@@ -75,12 +75,6 @@ class formularioClinico(models.Model):
     #pagina 6
     TiposDeEnfermedades = models.JSONField(null=True, blank=True)
 
-    #pagina 7
-    IntensidadDolor = models.TextField(null=True, blank=True)
-    preguntas1 = models.JSONField(null=True, blank=True)
-    nesesidadDeApoyo = models.CharField(max_length=20,null=True, blank=True)
-    
-    
     #pagina 8
     actividades_afectadas = models.JSONField(null=True,blank=True)
     parametros = models.JSONField(null=True, blank=True)
@@ -266,3 +260,14 @@ class CuestionarioBarthel(models.Model):
 
     def __str__(self):
         return f"Barthel de {self.paciente.nombre}"
+
+class CuestionarioScrenning(models.Model):
+    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_screnning')
+    fecha_creacion = models.DateField(auto_now_add=True)
+    IntensidadDolor = models.TextField(null=True, blank=True)
+    RespuestasTabla1 = models.JSONField(null=True, blank=True)
+    nesesidadDeApoyo = models.CharField(max_length=20,null=True, blank=True)
+    
+    def __str__(self):
+        return f"Screnning de {self.paciente.nombre}"
