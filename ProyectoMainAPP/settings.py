@@ -49,7 +49,6 @@ INSTALLED_APPS = [
     'informe',
     'ListaDePacientes',
     'PerfilClinico',
-    'Servicios',
     'menu',
 ]
 

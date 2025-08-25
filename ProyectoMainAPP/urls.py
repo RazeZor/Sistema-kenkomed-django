@@ -24,17 +24,14 @@ from informe import views as vistaInforme
 from ListaDePacientes import views as lista
 from TiposDeFormularios import views as tiposFormularios
 from PerfilClinico import views as perfil
-from Servicios import views as s
 from menu import views as m
 urlpatterns = [
     path('admin/', admin.site.urls), # Asocia la URL /admin/ con la vista de administración de Django.
-    path('',s.VerServicios),
-    path('login/', l.validarLogin,name='login'),  # Asocia la URL / con la vista Login.validarLogin.
+    path('', l.validarLogin,name='login'),  # Asocia la URL / con la vista Login.validarLogin.
     path('panel/', v.panel, name="panel"),  # Asocia la URL /panel/ con la vista PanelDeControl.),
     path('Ver/', vistaClinico.VerClinicos,name='ver'),
     path('panel/FormularioInicial/', vistaClinicos.FormularioInicial,name='formularioInicial'),
     path('Cerrar/',v.cerrar_sesion,name='cerrarSesion'),
-    path('cuerpoHumano/',vistaClinicos.CuerpoHumano),
     
     path('informe/',vistaInforme.RenderInforme,name='informe'),
 

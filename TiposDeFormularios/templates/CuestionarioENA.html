@@ -1,22 +1,31 @@
+{%load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escala de Intensidad del Dolor - ENA</title>
+    <title>Dashboard ENA - Escala de Intensidad del Dolor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --primary: #1e40af; /* blue-700 */
-            --secondary: #64748b; /* slate-600 */
-            --success: #059669; /* emerald-600 */
-            --warning: #d97706; /* amber-600 */
-            --danger: #dc2626; /* red-600 */
+            --primary: #1e40af;
+            --secondary: #64748b;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+        }
+
+        /* Added emoji background removal and enhanced styles */
+        .face-button img {
+            background: transparent !important;
+            mix-blend-mode: multiply;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
         }
 
         .face-button {
             transition: all 0.3s ease;
             cursor: pointer;
+            background: transparent !important;
         }
 
         .face-button:hover {
@@ -32,201 +41,253 @@
 
         .scale-container {
             background: linear-gradient(90deg, 
-                #60a5fa 0%,    /* blue-400 - No dolor */
-                #60a5fa 10%,   /* blue-400 */
-                #3b82f6 20%,   /* blue-500 */
-                #22c55e 30%,   /* green-500 - Leve */
-                #84cc16 40%,   /* lime-500 */
-                #eab308 50%,   /* yellow-500 - Moderado */
-                #f59e0b 60%,   /* amber-500 */
-                #f97316 70%,   /* orange-500 - Severo */
-                #ef4444 80%,   /* red-500 */
-                #dc2626 90%,   /* red-600 */
-                #b91c1c 100%   /* red-700 - Insoportable */
+                #60a5fa 0%, #60a5fa 10%, #3b82f6 20%, #22c55e 30%, #84cc16 40%,
+                #eab308 50%, #f59e0b 60%, #f97316 70%, #ef4444 80%, #dc2626 90%, #b91c1c 100%
             );
             border-radius: 50px;
             padding: 8px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .pain-level-0 { background-color: #dbeafe; color: #1e40af; } /* blue-100/blue-700 */
+        .pain-level-0 { background-color: #dbeafe; color: #1e40af; }
         .pain-level-1 { background-color: #dbeafe; color: #1e40af; }
         .pain-level-2 { background-color: #bfdbfe; color: #1d4ed8; }
-        .pain-level-3 { background-color: #dcfce7; color: #15803d; } /* green-100/green-700 */
+        .pain-level-3 { background-color: #dcfce7; color: #15803d; }
         .pain-level-4 { background-color: #dcfce7; color: #15803d; }
-        .pain-level-5 { background-color: #fef3c7; color: #d97706; } /* yellow-100/amber-600 */
-        .pain-level-6 { background-color: #fed7aa; color: #ea580c; } /* orange-100/orange-600 */
+        .pain-level-5 { background-color: #fef3c7; color: #d97706; }
+        .pain-level-6 { background-color: #fed7aa; color: #ea580c; }
         .pain-level-7 { background-color: #fed7aa; color: #ea580c; }
-        .pain-level-8 { background-color: #fecaca; color: #dc2626; } /* red-100/red-600 */
+        .pain-level-8 { background-color: #fecaca; color: #dc2626; }
         .pain-level-9 { background-color: #fecaca; color: #dc2626; }
-        .pain-level-10 { background-color: #fecaca; color: #b91c1c; } /* red-100/red-700 */
+        .pain-level-10 { background-color: #fecaca; color: #b91c1c; }
 
         .result-display {
             min-height: 120px;
             transition: all 0.3s ease;
         }
+
+        /* Added print styles */
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; }
+            .bg-gradient-to-r { background: #1e40af !important; }
+        }
+
+        .print-only { display: none; }
+
+        /* Added dashboard card animations */
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        /* Added session indicator styles */
+        .session-active {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
     <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
-        <div class="max-w-4xl mx-auto px-6 py-6">
-            <div class="text-center">
-                <h1 class="text-2xl md:text-3xl font-bold mb-2">Escala de Intensidad del Dolor</h1>
-                <p class="text-blue-100 text-sm md:text-base">Escala Numérica Analógica (ENA)</p>
+    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg no-print">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-center md:text-left mb-4 md:mb-0">
+                    <h1 class="text-2xl md:text-3xl font-bold mb-2">📊 Dashboard ENA - Escala de Dolor</h1>
+                    <p class="text-blue-100 text-sm md:text-base">Sistema de Evaluación y Seguimiento del Dolor</p>
+                </div>
+                <!-- Added session info and controls -->
+                <div class="flex items-center space-x-4">
+                    <div class="text-center">
+                        <div class="text-sm text-blue-100">Sesión Actual</div>
+                        <div id="session-info" class="font-bold text-lg">🔄 Iniciando...</div>
+                    </div>
+                    <button onclick="newSession()" class="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-lg font-semibold transition-colors">
+                        🆕 Nueva Sesión
+                    </button>
+                </div>
             </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-8">
+    <main class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Added comprehensive dashboard with statistics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 no-print">
+            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">📈 Evaluaciones Hoy</p>
+                        <p id="today-count" class="text-2xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="text-3xl">📊</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">📊 Promedio Actual</p>
+                        <p id="average-pain" class="text-2xl font-bold text-orange-600">--</p>
+                    </div>
+                    <div class="text-3xl">📈</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">⏰ Última Evaluación</p>
+                        <p id="last-evaluation" class="text-sm font-semibold text-gray-700">Sin registros</p>
+                    </div>
+                    <div class="text-3xl">🕐</div>
+                </div>
+            </div>
+
+            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">🎯 Estado Actual</p>
+                        <p id="current-status" class="text-sm font-semibold text-green-600">😊 Esperando evaluación</p>
+                    </div>
+                    <div class="text-3xl">🎯</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Instrucciones -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
             <div class="text-center">
-                <h2 class="text-xl font-semibold text-gray-800 mb-3">¿Cuál es su nivel de dolor actual?</h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-3">🤔 ¿Cuál es su nivel de dolor actual?</h2>
                 <p class="text-gray-600">Seleccione el número que mejor represente la intensidad de su dolor en este momento</p>
+                <div class="mt-4 flex justify-center items-center space-x-2 text-sm text-gray-500">
+                    <span>💡 Tip: Use los emojis como guía visual</span>
+                    <span class="session-active">🔴</span>
+                    <span id="session-timer">Sesión activa</span>
+                </div>
             </div>
         </div>
 
         <!-- Escala Visual -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
-            <!-- Escala de Caritas y Números -->
             <div class="scale-container mb-8">
                 <div class="grid grid-cols-11 gap-1 md:gap-2">
-                    <!-- Nivel 0 - No dolor -->
+                    <!-- Enhanced emoji buttons with transparent backgrounds -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-100 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="0" onclick="selectPainLevel(0)">
-                            😊
+                            <img src="{% static 'image/emuyfeliz.gif' %}" alt="😊" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            0
-                        </div>
+                        <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">0</div>
                     </div>
 
-                    <!-- Nivel 1 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="1" onclick="selectPainLevel(1)">
-                            🙂
+                            <img src="{% static 'image/efliz.gif' %}" alt="🙂" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            1
-                        </div>
+                        <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">1</div>
                     </div>
 
-                    <!-- Nivel 2 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-blue-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="2" onclick="selectPainLevel(2)">
-                            😐
+                            <img src="{% static 'image/emasomenos.gif' %}" alt="😐" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            2
-                        </div>
+                        <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">2</div>
                     </div>
 
-                    <!-- Nivel 3 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-green-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="3" onclick="selectPainLevel(3)">
-                            😕
+                            <img src="{% static 'image/emalmasomenos.gif' %}" alt="😕" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            3
-                        </div>
+                        <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">3</div>
                     </div>
 
-                    <!-- Nivel 4 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-green-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="4" onclick="selectPainLevel(4)">
-                            😟
+                            <img src="{% static 'image/emogi4.gif' %}" alt="😟" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            4
-                        </div>
+                        <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">4</div>
                     </div>
 
-                    <!-- Nivel 5 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-yellow-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="5" onclick="selectPainLevel(5)">
-                            😣
+                            <img src="{% static 'image/emogi5.gif' %}" alt="😣" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            5
-                        </div>
+                        <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">5</div>
                     </div>
 
-                    <!-- Nivel 6 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-yellow-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="6" onclick="selectPainLevel(6)">
-                            😖
+                            <img src="{% static 'image/emal.gif' %}" alt="😖" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-amber-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            6
-                        </div>
+                        <div class="bg-amber-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">6</div>
                     </div>
 
-                    <!-- Nivel 7 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-orange-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="7" onclick="selectPainLevel(7)">
-                            😫
+                            <img src="{% static 'image/emal7.gif' %}" alt="😫" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            7
-                        </div>
+                        <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">7</div>
                     </div>
 
-                    <!-- Nivel 8 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-200 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="8" onclick="selectPainLevel(8)">
-                            😰
+                            <img src="{% static 'image/mal8.gif' %}" alt="😰" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            8
-                        </div>
+                        <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">8</div>
                     </div>
 
-                    <!-- Nivel 9 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-300 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="9" onclick="selectPainLevel(9)">
-                            😭
+                            <img src="{% static 'image/emogi.triste.gif' %}" alt="😭" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            9
-                        </div>
+                        <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">9</div>
                     </div>
 
-                    <!-- Nivel 10 -->
                     <div class="text-center">
-                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full bg-red-400 flex items-center justify-center text-2xl md:text-3xl mb-2" 
+                        <button class="face-button w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center text-2xl md:text-3xl mb-2" 
                                 data-level="10" onclick="selectPainLevel(10)">
-                            😵
+                            <img src="{% static 'image/emal10.gif' %}" alt="😵" class="w-full h-full object-contain">
                         </button>
-                        <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">
-                            10
-                        </div>
+                        <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">10</div>
                     </div>
                 </div>
             </div>
 
-            <!-- Etiquetas descriptivas -->
+            <!-- Etiquetas descriptivas con más emojis -->
             <div class="grid grid-cols-4 gap-4 text-center text-xs md:text-sm font-medium mb-6">
                 <div class="text-blue-700">
+                    <div class="text-2xl mb-1">😊</div>
                     <div class="font-bold">No dolor</div>
                 </div>
                 <div class="text-green-700">
+                    <div class="text-2xl mb-1">😐</div>
                     <div class="font-bold">Leve</div>
                 </div>
                 <div class="text-yellow-700">
+                    <div class="text-2xl mb-1">😣</div>
                     <div class="font-bold">Moderado</div>
                 </div>
                 <div class="text-red-700">
+                    <div class="text-2xl mb-1">😰</div>
                     <div class="font-bold">Severo</div>
                 </div>
             </div>
@@ -241,52 +302,104 @@
             </div>
         </div>
 
-        <!-- Información adicional -->
+        <!-- Added comprehensive results table -->
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">📋 Historial de Evaluaciones</h3>
+                <div class="flex space-x-2">
+                    <button onclick="exportData()" class="no-print bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        📊 Exportar Datos
+                    </button>
+                    <button onclick="printTable()" class="no-print bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        🖨️ Imprimir Tabla
+                    </button>
+                    <button onclick="clearHistory()" class="no-print bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        🗑️ Limpiar Historial
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table id="results-table" class="w-full table-auto">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">🕐 Fecha y Hora</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">📊 Nivel</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">😊 Estado</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">📝 Descripción</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">🔄 Sesión</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">⚡ Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody" class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                                <div class="text-4xl mb-2">📊</div>
+                                <div>No hay evaluaciones registradas</div>
+                                <div class="text-sm">Realice su primera evaluación para ver los resultados aquí</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Información adicional con más emojis -->
         <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Descripción de los Niveles</h3>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">📖 Descripción de los Niveles</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div class="space-y-2">
                     <div class="flex items-center">
-                        <span class="w-6 h-6 bg-blue-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">0-2</span>
-                        <span><strong>Sin dolor o muy leve:</strong> No interfiere con las actividades</span>
+                        <span class="w-8 h-8 bg-blue-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😊</span>
+                        <span><strong>0-2 Sin dolor:</strong> No interfiere con las actividades</span>
                     </div>
                     <div class="flex items-center">
-                        <span class="w-6 h-6 bg-green-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">3-4</span>
-                        <span><strong>Dolor leve:</strong> Molesta pero no impide actividades</span>
+                        <span class="w-8 h-8 bg-green-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😐</span>
+                        <span><strong>3-4 Dolor leve:</strong> Molesta pero no impide actividades</span>
                     </div>
                     <div class="flex items-center">
-                        <span class="w-6 h-6 bg-yellow-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">5-6</span>
-                        <span><strong>Dolor moderado:</strong> Interfiere con algunas actividades</span>
+                        <span class="w-8 h-8 bg-yellow-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😣</span>
+                        <span><strong>5-6 Dolor moderado:</strong> Interfiere con algunas actividades</span>
                     </div>
                 </div>
                 <div class="space-y-2">
                     <div class="flex items-center">
-                        <span class="w-6 h-6 bg-orange-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">7-8</span>
-                        <span><strong>Dolor severo:</strong> Dificulta la mayoría de actividades</span>
+                        <span class="w-8 h-8 bg-orange-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😫</span>
+                        <span><strong>7-8 Dolor severo:</strong> Dificulta la mayoría de actividades</span>
                     </div>
                     <div class="flex items-center">
-                        <span class="w-6 h-6 bg-red-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">9-10</span>
-                        <span><strong>Dolor insoportable:</strong> Impide realizar cualquier actividad</span>
+                        <span class="w-8 h-8 bg-red-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😰</span>
+                        <span><strong>9-10 Dolor extremo:</strong> Impide realizar cualquier actividad</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Botones de acción -->
-        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center no-print">
             <button id="save-btn" onclick="savePainLevel()" disabled 
                     class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200">
-                Guardar Evaluación
+                💾 Guardar Evaluación
             </button>
             <button onclick="resetScale()" 
                     class="px-8 py-3 bg-gray-600 text-white rounded-lg font-semibold shadow-lg hover:bg-gray-700 transition-all duration-200">
-                Limpiar Selección
+                🔄 Limpiar Selección
             </button>
         </div>
     </main>
 
+    <!-- Print header for printed version -->
+    <div class="print-only">
+        <h1 class="text-2xl font-bold text-center mb-4">📊 Reporte ENA - Escala de Dolor</h1>
+        <p class="text-center mb-6">Generado el: <span id="print-date"></span></p>
+    </div>
+
     <script>
         let selectedLevel = null;
+        let currentSession = null;
+        let evaluationHistory = JSON.parse(localStorage.getItem('painEvaluations')) || [];
+        let sessionStartTime = null;
 
         const painDescriptions = {
             0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0" },
@@ -302,20 +415,106 @@
             10: { text: "Dolor insoportable", description: "El peor dolor imaginable", emoji: "😵", class: "pain-level-10" }
         };
 
+        function initializeSession() {
+            currentSession = `S${Date.now()}`;
+            sessionStartTime = new Date();
+            updateSessionInfo();
+            updateDashboard();
+        }
+
+        function newSession() {
+            if (confirm('¿Está seguro de que desea iniciar una nueva sesión? 🔄')) {
+                initializeSession();
+            }
+        }
+
+        function updateSessionInfo() {
+            const sessionInfo = document.getElementById('session-info');
+            if (currentSession) {
+                const duration = Math.floor((new Date() - sessionStartTime) / 60000);
+                sessionInfo.innerHTML = `🔴 ${currentSession.slice(-6)} (${duration}min)`;
+            }
+        }
+
+        function updateDashboard() {
+            const today = new Date().toDateString();
+            const todayEvaluations = evaluationHistory.filter(eval => 
+                new Date(eval.timestamp).toDateString() === today
+            );
+
+            document.getElementById('today-count').textContent = todayEvaluations.length;
+
+            if (evaluationHistory.length > 0) {
+                const average = evaluationHistory.reduce((sum, eval) => sum + eval.level, 0) / evaluationHistory.length;
+                document.getElementById('average-pain').textContent = average.toFixed(1);
+
+                const lastEval = evaluationHistory[evaluationHistory.length - 1];
+                document.getElementById('last-evaluation').textContent = 
+                    new Date(lastEval.timestamp).toLocaleString('es-ES');
+
+                const pain = painDescriptions[lastEval.level];
+                document.getElementById('current-status').innerHTML = 
+                    `${pain.emoji} ${pain.text}`;
+            }
+
+            updateResultsTable();
+        }
+
+        function updateResultsTable() {
+            const tbody = document.getElementById('results-tbody');
+            
+            if (evaluationHistory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                            <div class="text-4xl mb-2">📊</div>
+                            <div>No hay evaluaciones registradas</div>
+                            <div class="text-sm">Realice su primera evaluación para ver los resultados aquí</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = evaluationHistory.map((evaluation, index) => {
+                const pain = painDescriptions[evaluation.level];
+                const date = new Date(evaluation.timestamp);
+                return `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${index + 1}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${date.toLocaleString('es-ES')}</td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pain.class}">
+                                ${evaluation.level}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <span class="text-lg mr-2">${pain.emoji}</span>
+                            ${pain.text}
+                        </td>
+                        <td class="px-4 py-4 text-sm text-gray-900">${pain.description}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${evaluation.session}</td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium no-print">
+                            <button onclick="deleteEvaluation(${index})" class="text-red-600 hover:text-red-900">
+                                🗑️ Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
         function selectPainLevel(level) {
-            // Remover selección anterior
             document.querySelectorAll('.face-button').forEach(btn => {
                 btn.classList.remove('selected');
             });
 
-            // Seleccionar nuevo nivel
             const selectedButton = document.querySelector(`[data-level="${level}"]`);
             selectedButton.classList.add('selected');
             
             selectedLevel = level;
             updateResultDisplay(level);
             
-            // Habilitar botón de guardar
             document.getElementById('save-btn').disabled = false;
         }
 
@@ -330,6 +529,32 @@
                 <div class="text-xl font-semibold mb-2">${pain.text}</div>
                 <div class="text-base opacity-80">${pain.description}</div>
             `;
+        }
+
+        function savePainLevel() {
+            if (selectedLevel !== null && currentSession) {
+                const pain = painDescriptions[selectedLevel];
+                const timestamp = new Date().toISOString();
+                
+                const evaluation = {
+                    level: selectedLevel,
+                    text: pain.text,
+                    description: pain.description,
+                    emoji: pain.emoji,
+                    timestamp: timestamp,
+                    session: currentSession
+                };
+
+                evaluationHistory.push(evaluation);
+                localStorage.setItem('painEvaluations', JSON.stringify(evaluationHistory));
+                
+                updateDashboard();
+                
+                // Show success message with emojis
+                alert(`✅ Evaluación guardada exitosamente!\n\n📊 Nivel de dolor: ${selectedLevel}\n${pain.emoji} Descripción: ${pain.text}\n🕐 Fecha y hora: ${new Date(timestamp).toLocaleString('es-ES')}\n🔄 Sesión: ${currentSession}`);
+                
+                resetScale();
+            }
         }
 
         function resetScale() {
@@ -351,25 +576,62 @@
             `;
         }
 
-        function savePainLevel() {
-            if (selectedLevel !== null) {
-                const pain = painDescriptions[selectedLevel];
-                const timestamp = new Date().toLocaleString('es-ES');
-                
-                alert(`Evaluación guardada exitosamente:\n\nNivel de dolor: ${selectedLevel}\nDescripción: ${pain.text}\nFecha y hora: ${timestamp}`);
-                
-                // Aquí puedes agregar la lógica para enviar los datos a tu backend Django
-                console.log('Datos para enviar:', {
-                    nivel: selectedLevel,
-                    descripcion: pain.text,
-                    timestamp: timestamp
-                });
+        function deleteEvaluation(index) {
+            if (confirm('¿Está seguro de que desea eliminar esta evaluación? 🗑️')) {
+                evaluationHistory.splice(index, 1);
+                localStorage.setItem('painEvaluations', JSON.stringify(evaluationHistory));
+                updateDashboard();
             }
         }
 
-        // Inicializar la escala
+        function clearHistory() {
+            if (confirm('¿Está seguro de que desea eliminar todo el historial? ⚠️ Esta acción no se puede deshacer.')) {
+                evaluationHistory = [];
+                localStorage.removeItem('painEvaluations');
+                updateDashboard();
+                alert('🗑️ Historial eliminado correctamente');
+            }
+        }
+
+        function printTable() {
+            document.getElementById('print-date').textContent = new Date().toLocaleString('es-ES');
+            window.print();
+        }
+
+        function exportData() {
+            if (evaluationHistory.length === 0) {
+                alert('📊 No hay datos para exportar');
+                return;
+            }
+
+            const csvContent = [
+                ['Fecha y Hora', 'Nivel', 'Descripción', 'Sesión'],
+                ...evaluationHistory.map(eval => [
+                    new Date(eval.timestamp).toLocaleString('es-ES'),
+                    eval.level,
+                    eval.text,
+                    eval.session
+                ])
+            ].map(row => row.join(',')).join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `evaluaciones_dolor_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            alert('📊 Datos exportados correctamente');
+        }
+
+        // Update session info every minute
+        setInterval(updateSessionInfo, 60000);
+
+        // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Escala ENA del dolor inicializada');
+            console.log('🚀 Dashboard ENA del dolor inicializado');
+            initializeSession();
         });
     </script>
 </body>

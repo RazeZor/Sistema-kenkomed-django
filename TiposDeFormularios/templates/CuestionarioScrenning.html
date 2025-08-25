@@ -1,180 +1,430 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Ejemplo Semántico</title>
+  <title>Screening de Dolor - Sistema Médico</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+      tailwind.config = {
+          darkMode: 'class',
+          theme: {
+              extend: {
+                  colors: {
+                      medical: {
+                          blue: '#0284c7',
+                          'blue-light': '#38bdf8',
+                          'blue-dark': '#0369a1',
+                          green: '#10b981',
+                          red: '#ef4444',
+                          orange: '#f59e0b',
+                          teal: '#14b8a6'
+                      }
+                  },
+                  fontFamily: {
+                      sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                  },
+                  animation: {
+                      'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                      'fade-in': 'fadeIn 0.5s ease-in-out',
+                  },
+                  keyframes: {
+                      fadeIn: {
+                          '0%': { opacity: '0', transform: 'translateY(10px)' },
+                          '100%': { opacity: '1', transform: 'translateY(0)' }
+                      }
+                  }
+              }
+          }
+      }
+  </script>
 </head>
-<body>
-  <header>
-    <h1>Mi Blog</h1>
-    <nav>
-      <ul>
-        <li><a href="#inicio">Inicio</a></li>
-        <li><a href="#articulos">Artículos</a></li>
-      </ul>
-    </nav>
-  </header>
-
-  <main>
-    <div class="form-group">
-        <label class="form-label"><strong>Detalla a continuación medicamentos para el dolor que usas o has usado. Marque el medicamento que le resulte más efectivo:</strong></label>
-        
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Analgesicos simples" /> 
-        1. Analgésicos simples  (⁠Paracetamol, Dipirona, Ibuprofeno)
-        </label>
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antiinflamatorios no esteroideos" />  
-        2. Antiinflamatorios no esteroideos (Diclofenaco, Naproxeno, Ketoprofeno, Meloxicam)
-        </label>
-        
-        <label class="list-group-item">
-            <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides debiless" />  
-            3. Opioides débiles (Tramadol, Codeína)
-        </label>
-        
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Opioides fuertes" />  
-        4. Opioides fuertes( Morfina, Fentanilo, parches de Bupenorfrina)
-        </label> 
-        <label class="list-group-item">   
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Anticonvulsivantess" />  
-        5. Anticonvulsivantes (Pregabalina, Gabapentina, Carbamazepina)
-        </label> 
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Antidepresivos" />  
-        6. Antidepresivos (para el manejo del dolor crónico)•⁠ Amitriptilina, Duloxetina, Venlafaxina
-        </label>
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Relajantes musculares y Benzodiacepinas" />  
-        7. Relajantes musculares (Benzodiacepinas, Diazepam, Clonazepam, Alprazolam, Clotiazepam)
-        </label> 
-        <label class="list-group-item">   
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Inductores del Sueño." />  
-        8. Inductores del Sueño (Zopiclona, Eszopiclona, Melatonina, Zolpide, ketiapina)
-        </label>
-        <label class="list-group-item"> 
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Corticoide" />  
-        9. Corticoides (para inflamación severa) Prednisona, Dexametasona, Betametasona.
-        </label>
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Medicamentos topicos" />  
-        10. Medicamentos tópicos (Capsaicina, Lidocaina en crema o parches, Diclofenaco en gel)
-        </label>
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Terapias biologicas" />  
-        11. Terapias biológicas (si corresponde)⁠  Adalimumab, Etanercept.
-        </label>   
-        </label>
-        <label class="list-group-item">
-        <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Cannabis medicinal" />  
-        12. Cannabis Medicinal
-        </label>  
-    </div>
-</div>
-
-<!-- Formulario Screenning  -->
-<div class="step">
-
-    <h3>PARA RESPONDER LAS SIGUIENTES PREGUNTAS, PIENSE SOLO RESPECTO DE LAS ÚLTIMAS 2 SEMANAS</h3>
-    <label class="form-label"><strong>1.- En promedio, ¿Cuán intenso ha sido su dolor?</strong> </label>
-    <div class="form-group">
-        <div class="mb-3">
-
-            <div class="form-check">
-                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad1" autocomplete="off" value="0"/>
-                <label class="form-check-label" for="intensidad1">No he tenido dolor</label>
-            </div>
-            <div class="form-check">
-                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad2" autocomplete="off" value="3"/>
-                <label class="form-check-label" for="intensidad2">Dolor leve, que casi no interfiere con mis actividades.</label>
-            </div>
-            <div class="form-check">
-                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad3" autocomplete="off" value="6"/>
-                <label class="form-check-label" for="intensidad3">Dolor moderado, que interfiere de forma notable con mis actividades.</label>
-            </div>
-            <div class="form-check">
-                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad4" autocomplete="off" value="9"/>
-                <label class="form-check-label" for="intensidad4">Dolor intenso, que limita severamente mis actividades diarias.</label>
-            </div>
-            <div class="form-check">
-                <input type="radio" class="form-check-input" name="IntensidadDolor" id="intensidad5" autocomplete="off" value="10"/>
-                <label class="form-check-label" for="intensidad5">El peor dolor posible, que me resulta insoportable.</label>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Improved header with better styling and responsive design -->
+    <header class="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white shadow-xl no-print">
+        <div class="max-w-6xl mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="text-center md:text-left mb-6 md:mb-0">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-3 flex items-center justify-center md:justify-start">
+                        <i class='bx bx-health text-4xl mr-3'></i>
+                        Screening de Dolor
+                    </h1>
+                    <p class="text-blue-100 text-lg">Sistema de Evaluación Médica Especializada</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="newSession()" class="bg-white text-medical-blue hover:bg-blue-50 px-6 py-3 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl flex items-center">
+                        <i class='bx bx-plus-circle mr-2'></i>
+                        Nueva Sesión
+                    </button>
+                </div>
             </div>
         </div>
-            
-    </div>
-    
+    </header>
 
+    <!-- Added main container with better spacing and card-based design -->
+    <main class="max-w-5xl mx-auto px-6 py-8">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+            <!-- Added progress indicator and form header -->
+            <div class="bg-gradient-to-r from-medical-teal to-medical-green p-6">
+                <h2 class="text-2xl font-bold text-white mb-2">Evaluación de Dolor Crónico</h2>
+                <p class="text-green-100">Complete todas las secciones para una evaluación completa</p>
+            </div>
 
-    <table class="tabla">
-        <thead>
-            <tr>
-                <th colspan="3"><label class="form-label"><strong>Por favor marque una casilla para cada pregunta a continuación</strong></label></th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td scope="row">¿Ha experimentado molestias significativas en las articulaciones o músculos en más de una parte de su cuerpo?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" id="pregunta1_si" name="preguntas1"> Sí</label></td> 
-                <td><label><input class="form-check-input" type="checkbox" value="no" id="pregunta1_no" name="preguntas1"> No</label></td>
-            </tr>
-            <tr>
-                <td scope="row">¿Ha tenido dificultades para caminar largas distancias debido a su dolor?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
-                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
-            </tr>
-            <tr>
-                <td scope="row">¿Ha tenido que vestirse más lentamente de lo habitual debido a su dolor?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
-                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
-            </tr>
-            <tr>
-                <td scope="row">¿Tiene algún otro problema de salud importante que considere relevante?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
-                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
-            </tr>
-            <tr>
-                <td scope="row">¿Cree que no es seguro para alguien con su condición realizar actividad física?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td>
-                <td><label><input class="form-check-input" type="checkbox" value="no" name="preguntas1"> No</label></td>
-            </tr>
-            <tr>
-                <td scope="row">En las últimas dos semanas, ¿ha tenido pensamientos recurrentes o preocupantes sobre su dolor?</td>
-                <td><label><input class="form-check-input" type="checkbox" value="si" name="preguntas1"> Sí</label></td> 
-                <td><label><input class="form-check-input" type='checkbox' value='no' name='preguntas1'> No</label></td>
-            </tr>
-            <tr>
-                <td scope='row'>¿Cree que su condición de dolor persistirá durante mucho tiempo?</td>
-                <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
-                <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
-            </tr>
-            <tr>
-                <td scope='row'>¿Ha dejado de disfrutar actividades que usualmente le gustan debido a su dolor?</td>
-                <td><label><input class='form-check-input' type='checkbox' value='si' name='preguntas1'> Sí</label></td>
-                <td><label><input class='form-check-input' type='checkbox' value='no' name='preguntas1'> No</label></td>
-            </tr>
-            <tr>
+            <form action="" method="POST" class="p-8">
+                {% csrf_token %}
                 
-            </tr>  
-        </tbody>  
-    </table>
+                <!-- Improved instructions section with better typography -->
+                <div class="mb-10 p-6 bg-blue-50 rounded-xl border-l-4 border-medical-blue">
+                    <div class="flex items-start">
+                        <i class='bx bx-info-circle text-medical-blue text-2xl mr-3 mt-1'></i>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 mb-2">Instrucciones Importantes</h3>
+                            <p class="text-gray-700 leading-relaxed">
+                                Para responder las siguientes preguntas, piense <strong>solo respecto de las últimas 2 semanas</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
-    
-    <div class="molestia">
-        <label class="form-label"><strong>¿Qué tan molesto ha sido su dolor en las últimas dos semanas?</strong></label>
-        <div class="checkbox-group">
-            <label><input class="form-check-input" type="checkbox" value="nada" name="preguntas1">Nada</label> 
-            <label><input class="form-check-input" type="checkbox" value="leve" name="preguntas1">Leve</label> 
-            <label><input class="form-check-input" type="checkbox" value="moderado" name="preguntas1">Moderado</label> 
-            <label><input class="form-check-input" type="checkbox" value="mucho" name="preguntas1">Mucho</label> 
-            <label><input class="form-check-input" type="checkbox" value="extremo" name="preguntas1">Extremo</label> 
+                <!-- Redesigned pain intensity section with better visual hierarchy -->
+                <div class="mb-12">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-medical-red text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">1</div>
+                        <h3 class="text-xl font-semibold text-gray-800">Intensidad del Dolor</h3>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-6 text-lg">En promedio, ¿cuán intenso ha sido su dolor?</p>
+                    
+                    <div class="space-y-4">
+                        <label class="flex items-start p-4 border-2 border-gray-200 rounded-xl hover:border-medical-blue hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+                            <input type="radio" name="IntensidadDolor" value="0" class="mt-1 mr-4 text-medical-blue focus:ring-medical-blue">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-2xl mr-2">😊</span>
+                                    <span class="font-medium text-gray-800 group-hover:text-medical-blue">No he tenido dolor</span>
+                                </div>
+                                <span class="text-sm text-gray-600">Nivel 0 - Sin molestias</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-4 border-2 border-gray-200 rounded-xl hover:border-medical-blue hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+                            <input type="radio" name="IntensidadDolor" value="3" class="mt-1 mr-4 text-medical-blue focus:ring-medical-blue">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-2xl mr-2">🙂</span>
+                                    <span class="font-medium text-gray-800 group-hover:text-medical-blue">Dolor leve, que casi no interfiere con mis actividades</span>
+                                </div>
+                                <span class="text-sm text-gray-600">Nivel 3 - Molestia mínima</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-4 border-2 border-gray-200 rounded-xl hover:border-medical-orange hover:bg-orange-50 transition-all duration-200 cursor-pointer group">
+                            <input type="radio" name="IntensidadDolor" value="6" class="mt-1 mr-4 text-medical-orange focus:ring-medical-orange">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-2xl mr-2">😐</span>
+                                    <span class="font-medium text-gray-800 group-hover:text-medical-orange">Dolor moderado, que interfiere de forma notable con mis actividades</span>
+                                </div>
+                                <span class="text-sm text-gray-600">Nivel 6 - Interferencia significativa</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-4 border-2 border-gray-200 rounded-xl hover:border-medical-red hover:bg-red-50 transition-all duration-200 cursor-pointer group">
+                            <input type="radio" name="IntensidadDolor" value="9" class="mt-1 mr-4 text-medical-red focus:ring-medical-red">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-2xl mr-2">😣</span>
+                                    <span class="font-medium text-gray-800 group-hover:text-medical-red">Dolor intenso, que limita severamente mis actividades diarias</span>
+                                </div>
+                                <span class="text-sm text-gray-600">Nivel 9 - Limitación severa</span>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start p-4 border-2 border-gray-200 rounded-xl hover:border-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer group">
+                            <input type="radio" name="IntensidadDolor" value="10" class="mt-1 mr-4 text-red-600 focus:ring-red-600">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-1">
+                                    <span class="text-2xl mr-2">😱</span>
+                                    <span class="font-medium text-gray-800 group-hover:text-red-600">El peor dolor posible, que me resulta insoportable</span>
+                                </div>
+                                <span class="text-sm text-gray-600">Nivel 10 - Dolor máximo</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Redesigned questions table with modern card-based layout -->
+                <div class="mb-12">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-medical-green text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">2</div>
+                        <h3 class="text-xl font-semibold text-gray-800">Evaluación Funcional</h3>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-6">Por favor marque una opción para cada pregunta a continuación:</p>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Ha experimentado molestias significativas en las articulaciones o músculos en más de una parte de su cuerpo?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Ha tenido dificultades para caminar largas distancias debido a su dolor?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Ha tenido que vestirse más lentamente de lo habitual debido a su dolor?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Tiene algún otro problema de salud importante que considere relevante?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Cree que no es seguro para alguien con su condición realizar actividad física?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">En las últimas dos semanas, ¿ha tenido pensamientos recurrentes o preocupantes sobre su dolor?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Cree que su condición de dolor persistirá durante mucho tiempo?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                            <p class="font-medium text-gray-800 mb-4">¿Ha dejado de disfrutar actividades que usualmente le gustan debido a su dolor?</p>
+                            <div class="flex space-x-6">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
+                                    <span class="text-gray-700">Sí</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
+                                    <span class="text-gray-700">No</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Improved molestia section with better visual design -->
+                <div class="mb-12">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-medical-orange text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">3</div>
+                        <h3 class="text-xl font-semibold text-gray-800">Nivel de Molestia</h3>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-6 text-lg">¿Qué tan molesto ha sido su dolor en las últimas dos semanas?</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <label class="flex flex-col items-center p-4 border-2 border-gray-200 rounded-xl hover:border-medical-green hover:bg-green-50 transition-all duration-200 cursor-pointer group">
+                            <input type="checkbox" value="nada" name="preguntas1" class="mb-2 text-medical-green focus:ring-medical-green">
+                            <span class="text-2xl mb-2">😌</span>
+                            <span class="font-medium text-gray-800 group-hover:text-medical-green">Nada</span>
+                        </label>
+                        
+                        <label class="flex flex-col items-center p-4 border-2 border-gray-200 rounded-xl hover:border-medical-blue hover:bg-blue-50 transition-all duration-200 cursor-pointer group">
+                            <input type="checkbox" value="leve" name="preguntas1" class="mb-2 text-medical-blue focus:ring-medical-blue">
+                            <span class="text-2xl mb-2">🙂</span>
+                            <span class="font-medium text-gray-800 group-hover:text-medical-blue">Leve</span>
+                        </label>
+                        
+                        <label class="flex flex-col items-center p-4 border-2 border-gray-200 rounded-xl hover:border-medical-orange hover:bg-orange-50 transition-all duration-200 cursor-pointer group">
+                            <input type="checkbox" value="moderado" name="preguntas1" class="mb-2 text-medical-orange focus:ring-medical-orange">
+                            <span class="text-2xl mb-2">😐</span>
+                            <span class="font-medium text-gray-800 group-hover:text-medical-orange">Moderado</span>
+                        </label>
+                        
+                        <label class="flex flex-col items-center p-4 border-2 border-gray-200 rounded-xl hover:border-medical-red hover:bg-red-50 transition-all duration-200 cursor-pointer group">
+                            <input type="checkbox" value="mucho" name="preguntas1" class="mb-2 text-medical-red focus:ring-medical-red">
+                            <span class="text-2xl mb-2">😣</span>
+                            <span class="font-medium text-gray-800 group-hover:text-medical-red">Mucho</span>
+                        </label>
+                        
+                        <label class="flex flex-col items-center p-4 border-2 border-gray-200 rounded-xl hover:border-red-600 hover:bg-red-50 transition-all duration-200 cursor-pointer group">
+                            <input type="checkbox" value="extremo" name="preguntas1" class="mb-2 text-red-600 focus:ring-red-600">
+                            <span class="text-2xl mb-2">😱</span>
+                            <span class="font-medium text-gray-800 group-hover:text-red-600">Extremo</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Redesigned support section with better visual hierarchy -->
+                <div class="mb-8">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-medical-teal text-white rounded-full w-8 h-8 flex items-center justify-center font-bold mr-3">4</div>
+                        <h3 class="text-xl font-semibold text-gray-800">Apoyo Psicológico</h3>
+                    </div>
+                    
+                    <div class="bg-blue-50 border-l-4 border-medical-blue p-6 rounded-r-xl mb-6">
+                        <div class="flex items-start">
+                            <i class='bx bx-heart text-medical-blue text-2xl mr-3 mt-1'></i>
+                            <div>
+                                <p class="text-gray-700 leading-relaxed mb-4">
+                                    Las personas con dolor crónico frecuentemente también padecen ansiedad o depresión. 
+                                    Un mejor manejo de la ansiedad y la depresión a menudo conduce a un mejor manejo del dolor. 
+                                    Hable con su médico de familia o enfermero especializado para una evaluación de la ansiedad 
+                                    y la depresión si cree que esto se aplica a usted.
+                                </p>
+                                <p class="font-semibold text-gray-800 text-lg">¿Desea usted apoyo en esta situación?</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4">
+                        <label class="flex items-center px-8 py-4 border-2 border-medical-green text-medical-green rounded-xl hover:bg-medical-green hover:text-white transition-all duration-200 cursor-pointer font-semibold">
+                            <input type="radio" name="support" value="si" class="mr-3">
+                            <i class='bx bx-check-circle mr-2'></i>
+                            Sí, deseo apoyo
+                        </label>
+                        
+                        <label class="flex items-center px-8 py-4 border-2 border-gray-400 text-gray-600 rounded-xl hover:bg-gray-400 hover:text-white transition-all duration-200 cursor-pointer font-semibold">
+                            <input type="radio" name="support" value="no" class="mr-3">
+                            <i class='bx bx-x-circle mr-2'></i>
+                            No, gracias
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Added submit button with better styling -->
+                <div class="flex justify-center pt-8 border-t border-gray-200">
+                    <button type="submit" class="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white px-12 py-4 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-200 flex items-center">
+                        <i class='bx bx-send mr-3'></i>
+                        Enviar Evaluación
+                    </button>
+                </div>
+            </form>
         </div>
-    </div>
-  </main>
+    </main>
 
-  <footer>
-    <p>&copy; 2025 Mi Blog</p>
-  </footer>
+    <!-- Improved footer with better styling -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <p class="text-gray-300">&copy; 2025 Sistema Médico de Evaluación - Todos los derechos reservados</p>
+        </div>
+    </footer>
+
+    <script>
+        function newSession() {
+            if (confirm('¿Está seguro de que desea iniciar una nueva sesión? Se perderán los datos no guardados.')) {
+                location.reload();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Prevent multiple checkbox selection for single-choice questions
+            const checkboxGroups = document.querySelectorAll('input[type="checkbox"][name="preguntas1"]');
+            checkboxGroups.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        // Find other checkboxes in the same question group
+                        const parent = this.closest('.bg-white, .grid > label');
+                        if (parent) {
+                            const siblings = parent.parentElement.querySelectorAll('input[type="checkbox"][name="preguntas1"]');
+                            siblings.forEach(sibling => {
+                                if (sibling !== this) {
+                                    sibling.checked = false;
+                                }
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Add smooth scrolling for better UX
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('input[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.checked && field.type === 'radio') {
+                        const radioGroup = form.querySelectorAll(`input[name="${field.name}"]`);
+                        const isGroupChecked = Array.from(radioGroup).some(radio => radio.checked);
+                        if (!isGroupChecked) {
+                            isValid = false;
+                        }
+                    }
+                });
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Por favor complete todos los campos requeridos.');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

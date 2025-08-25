@@ -594,4 +594,28 @@ def renderizar_CuestionarioENA(request):
     return render(request,"CuestionarioENA.html")
 
 def renderizar_cuestionarioScrening(request):
-    return render(request,"CuestionarioScrenning.html")
+
+    try:
+        rut_clinico = request.session.get('rut_clinico')
+        nombre_clinico = request.session['nombre_clinico']
+        es_admin = request.session.get('es_admin', False)
+
+        
+        if not es_admin:
+            return redirect('login')
+        if not nombre_clinico:
+            return redirect('login')
+        
+        
+        if request.method == "POST":
+            clinico = Clinico.objects.get(rut=rut_clinico)
+            fecha_creacion = datetime.now().date()
+            IntensidadDolor = request.POST.get('IntensidadDolor')
+            RespuestasTabla1 = request.POST.get('preguntas1')
+            nesesidadDeApoyo = request.POST.get('nesesidadDeApoyo')
+            pass
+        return render(request,"CuestionarioScrenning.html")
+
+    except Exception as e:
+        messages.error(request, f"Error al renderizar el cuestionario: {str(e)}")
+        return redirect('panel')
