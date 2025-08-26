@@ -593,6 +593,8 @@ def renderizar_cuestionarioScrening(request):
     # Verificar si ya existe una evaluación
     evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente).exists()
     cuestionario_actual = None
+
+    sesiones = CuestionarioScrenning.objects.filter(paciente=paciente)
     
     if evaluacion_existente:
         cuestionario_actual = CuestionarioScrenning.objects.get(paciente=paciente)
@@ -604,7 +606,8 @@ def renderizar_cuestionarioScrening(request):
         'rut': paciente.rut,
         'paciente': paciente,
         'evaluacion_existente': evaluacion_existente,
-        'cuestionario': cuestionario_actual
+        'cuestionario': cuestionario_actual,
+        'sesiones': sesiones
     })
 
 
