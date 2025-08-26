@@ -48,10 +48,10 @@ urlpatterns = [
 
     #renderizacion de cuestionarios
     path('CuestionarioGROC/',tiposFormularios.RenderizarGROC,name='GROK'),
+    path('CuestionarioENA/', tiposFormularios.renderizar_CuestionarioENA, name='ENA'),
     path('CuestionarioPSFS/',tiposFormularios.gestionar_psfs, name='gestionar_psfs'),
     path('CuestionarioEQ_5D/',tiposFormularios.RenderizarEQ_5D,name='EQ_5D'),
     path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
-    path('CuestionarioENA/', tiposFormularios.renderizar_CuestionarioENA, name='ENA'),
     path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning")
 
     

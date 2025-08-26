@@ -272,3 +272,13 @@ class CuestionarioScrenning(models.Model):
     def __str__(self):
         return f"Screnning de {self.paciente.nombre}"
 
+class CuestionarioEvaluacionENA(models.Model):
+    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_evaluacion_ena')
+    fecha_creacion = models.DateField(auto_now_add=True)
+    estado_por_sesion = models.JSONField(null=True,blank=True)
+    NotaCuestionarioEvaluacionENA = models.TextField(null=True,blank=True)
+    
+    def __str__(self):
+        return f"Evaluacion ENA de {self.paciente.nombre}"
+
