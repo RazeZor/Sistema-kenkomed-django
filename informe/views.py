@@ -13,12 +13,7 @@ def RenderInforme(request):
     try:
         formulario = formularioClinico.objects.get(paciente=paciente)
         
-        # Escala Semáforo
-        semaforo = json.loads(formulario.preguntas1)
-        mensajeSemaforo = EscalaSemaforo(semaforo)
-        
         opinionproblemaEnfermead = CreenciaDolor(formulario.opinionProblemaEnfermeda)
-        mensajeApoyo = evaluar_necesidad_apoyo(formulario.nesesidadDeApoyo)
         
         caracteristicasDolor = json.loads(formulario.caracteristicasDeDolor)
         MensajecaracteristicasDolor = Neuropaticas(caracteristicasDolor)
@@ -49,9 +44,7 @@ def RenderInforme(request):
         context = {
             'paciente': paciente,
             'formulario': formulario,
-            'mensajeApoyo': mensajeApoyo,
             'ubicacion_intensidad': ubicacion_intensidad_list,
-            'mensajeSemaforo': mensajeSemaforo,
             'MensajecaracteristicasDolor': MensajecaracteristicasDolor,
             'MensajeCondicionesSalud': MensajeCondicionesSalud,
             'opinionproblemaEnfermead': opinionproblemaEnfermead,
@@ -73,47 +66,7 @@ def RenderInforme(request):
 
 # funciones y algoritmo para las Respuesta de el informe 
 
-def evaluar_necesidad_apoyo(apoyo):
-    if apoyo == 'si':
-        return (
-            '<div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb;">'
-            '<h6>El paciente pide apoyo para ansiedad o depresión. Se sugiere derivar a un especialista (psicólogo, psiquiatra), se Recomienda al Clinico Usar Formulario PHQ-9</h6>'
-            '</div>'
-        )
-    return ('')
 
-def EscalaSemaforo(preguntas1):
-    score = 0
-    RESPUESTA = 'si'
-    MODERADO = 'moderado'
-    MUCHO = 'mucho'
-    EXTREMO = 'extremo'
-    
-    for preguntas in preguntas1:
-        if preguntas == RESPUESTA:
-            score += 1
-        if preguntas.strip().lower() in [MODERADO, MUCHO, EXTREMO]:
-            score += 1
-
-    if score <= 3:
-        return (
-            '<div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-            '<label>Dentro del Diagnostico de la Escala Screnning Semaforo, El paciente tiene un riesgo bajo, se recomienda educar y tranquilizar al paciente, diciendo que el diagnóstico es bueno.</label>'
-            '</div>'
-        )
-    elif score >= 4 and score <= 7:
-        return (
-            '<div style="background-color: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba;">'
-            '<label>Dentro del Diagnostico de la Escala Screnning Semaforo, El paciente tiene un riesgo medio , evaluar si necesitará ayuda de otro profesional.</label>'
-            '</div>'
-        )
-    elif score >= 8:
-        return (
-            '<div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; border: 1px solid #f5c6cb;">'
-            '<p>Dentro del Diagnostico de la Escala Screnning Semaforo, El paciente tiene un riesgo alto, se recomienda tratamiento interdisciplinario.</p>'
-            '</div>'
-        )
-        
 def Neuropaticas(caracteristicasDolor):
     for caracteristicas in caracteristicasDolor:
         if caracteristicas == "ardiente" or caracteristicas == "corriente" or caracteristicas == "adormecimiento" or caracteristicas == "Hormigueo":

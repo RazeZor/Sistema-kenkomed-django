@@ -72,7 +72,7 @@
                 <p class="text-green-100">Complete todas las secciones para una evaluación completa</p>
             </div>
 
-            <form action="" method="POST" class="p-8">
+            <form id="screeningForm" action="" method="POST" class="p-8">
                 {% csrf_token %}
                 
                 <!-- Improved instructions section with better typography -->
@@ -164,20 +164,20 @@
                     
                     <p class="text-gray-700 mb-6">Por favor marque una opción para cada pregunta a continuación:</p>
                     
-                    <div class="space-y-4">
-                        <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
-                            <p class="font-medium text-gray-800 mb-4">¿Ha experimentado molestias significativas en las articulaciones o músculos en más de una parte de su cuerpo?</p>
-                            <div class="flex space-x-6">
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" value="si" name="preguntas1" class="mr-2 text-medical-green focus:ring-medical-green">
-                                    <span class="text-gray-700">Sí</span>
-                                </label>
-                                <label class="flex items-center cursor-pointer">
-                                    <input type="checkbox" value="no" name="preguntas1" class="mr-2 text-gray-500 focus:ring-gray-500">
-                                    <span class="text-gray-700">No</span>
-                                </label>
-                            </div>
+                    <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
+                        <p class="font-medium text-gray-800 mb-4">¿Ha experimentado molestias significativas en las articulaciones o músculos?</p>
+                        <div class="flex space-x-6">
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green focus:ring-medical-green">
+                                <span class="text-gray-700">Sí</span>
+                            </label>
+                            <label class="flex items-center cursor-pointer">
+                                <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-medical-green focus:ring-medical-green">
+                                <span class="text-gray-700">No</span>
+                            </label>
                         </div>
+                    </div>
+                    
 
                         <div class="bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow duration-200">
                             <p class="font-medium text-gray-800 mb-4">¿Ha tenido dificultades para caminar largas distancias debido a su dolor?</p>
@@ -345,13 +345,13 @@
                     
                     <div class="flex justify-center space-x-4">
                         <label class="flex items-center px-8 py-4 border-2 border-medical-green text-medical-green rounded-xl hover:bg-medical-green hover:text-white transition-all duration-200 cursor-pointer font-semibold">
-                            <input type="radio" name="support" value="si" class="mr-3">
+                            <input type="radio" name="nesesidadDeApoyo" value="si" class="mr-3">
                             <i class='bx bx-check-circle mr-2'></i>
                             Sí, deseo apoyo
                         </label>
                         
                         <label class="flex items-center px-8 py-4 border-2 border-gray-400 text-gray-600 rounded-xl hover:bg-gray-400 hover:text-white transition-all duration-200 cursor-pointer font-semibold">
-                            <input type="radio" name="support" value="no" class="mr-3">
+                            <input type="radio" name="nesesidadDeApoyo" value="no" class="mr-3">
                             <i class='bx bx-x-circle mr-2'></i>
                             No, gracias
                         </label>
@@ -359,12 +359,17 @@
                 </div>
 
                 <!-- Added submit button with better styling -->
-                <div class="flex justify-center pt-8 border-t border-gray-200">
-                    <button type="submit" class="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white px-12 py-4 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-200 flex items-center">
-                        <i class='bx bx-send mr-3'></i>
-                        Enviar Evaluación
+                <div class="flex justify-center space-x-4 pt-8 border-t border-gray-200">
+                    <button type="submit" name="action" value="guardar" class="bg-gradient-to-r from-medical-green to-medical-teal text-white px-8 py-3 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-200 flex items-center">
+                        <i class='bx bx-save mr-2'></i>
+                        Guardar Evaluación
+                    </button>
+                    <button type="submit" name="action" value="actualizar" class="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white px-8 py-3 rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-200 flex items-center">
+                        <i class='bx bx-refresh mr-2'></i>
+                        Actualizar Evaluación
                     </button>
                 </div>
+                <input type="hidden" name="RespuestasTabla1" id="respuestasJson">
             </form>
         </div>
     </main>
@@ -377,28 +382,123 @@
     </footer>
 
     <script>
-        function newSession() {
-            if (confirm('¿Está seguro de que desea iniciar una nueva sesión? Se perderán los datos no guardados.')) {
-                location.reload();
-            }
-        }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Prevent multiple checkbox selection for single-choice questions
-            const checkboxGroups = document.querySelectorAll('input[type="checkbox"][name="preguntas1"]');
-            checkboxGroups.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    if (this.checked) {
-                        // Find other checkboxes in the same question group
-                        const parent = this.closest('.bg-white, .grid > label');
-                        if (parent) {
-                            const siblings = parent.parentElement.querySelectorAll('input[type="checkbox"][name="preguntas1"]');
-                            siblings.forEach(sibling => {
-                                if (sibling !== this) {
-                                    sibling.checked = false;
-                                }
+            // Form submission handler
+            const form = document.getElementById('screeningForm');
+            
+            // Function to collect all form data
+            function collectFormData() {
+                const formData = new FormData(form);
+                const data = {};
+                
+                // Collect all form fields
+                formData.forEach((value, key) => {
+                    // Handle checkboxes (multiple values)
+                    if (key.endsWith('[]')) {
+                        const baseKey = key.slice(0, -2);
+                        if (!data[baseKey]) {
+                            data[baseKey] = [];
+                        }
+                        data[baseKey].push(value);
+                    } 
+                    // Handle radio buttons and other single-value fields
+                    else if (!(key in data)) {
+                        data[key] = value;
+                    } else if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                });
+                
+                return data;
+            }
+            
+            // Add event listener for form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get the action from the clicked button
+                const action = e.submitter?.name === 'action' ? e.submitter.value : 'guardar';
+                
+                // Create hidden input for action if it doesn't exist
+                let actionInput = form.querySelector('input[name="action"]');
+                if (!actionInput) {
+                    actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'action';
+                    form.appendChild(actionInput);
+                }
+                actionInput.value = action;
+                
+                // Create response object for RespuestasTabla1 (JSONField)
+                const respuestasTabla1 = [];
+                
+                // 1. Add pain intensity (directly to form data)
+                const intensidadDolor = document.querySelector('input[name="IntensidadDolor"]:checked');
+                if (intensidadDolor) {
+                    const intensidadInput = document.createElement('input');
+                    intensidadInput.type = 'hidden';
+                    intensidadInput.name = 'IntensidadDolor';
+                    intensidadInput.value = intensidadDolor.value;
+                    form.appendChild(intensidadInput);
+                }
+                
+                // 2. Process all questions for RespuestasTabla1
+                const questionContainers = document.querySelectorAll('.bg-white.border.rounded-xl');
+                questionContainers.forEach((container, index) => {
+                    const questionText = container.querySelector('p.font-medium')?.textContent?.trim() || `Pregunta ${index + 1}`;
+                    const questionObj = {
+                        pregunta: questionText,
+                        respuestas: []
+                    };
+                    
+                    // Get all checkboxes and radio buttons in this container
+                    const inputs = container.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+                    
+                    inputs.forEach(input => {
+                        if ((input.checked || input.type === 'hidden') && input.name === 'preguntas1[]') {
+                            questionObj.respuestas.push({
+                                valor: input.value,
+                                texto: input.nextElementSibling?.textContent?.trim() || input.value
                             });
                         }
+                    });
+                    
+                    if (questionObj.respuestas.length > 0) {
+                        respuestasTabla1.push(questionObj);
+                    }
+                });
+                
+                // 3. Add psychological support (directly to form data as nesesidadDeApoyo)
+                const supportOption = document.querySelector('input[name="support"]:checked');
+                if (supportOption) {
+                    const apoyoInput = document.createElement('input');
+                    apoyoInput.type = 'hidden';
+                    apoyoInput.name = 'nesesidadDeApoyo';
+                    apoyoInput.value = supportOption.value;
+                    form.appendChild(apoyoInput);
+                }
+                
+                // Set the JSON data to the hidden input
+                document.getElementById('respuestasJson').value = JSON.stringify(respuestasTabla1);
+                
+                // Submit the form
+                form.submit();
+            });
+            
+            // Handle checkbox groups to ensure single selection within each question
+            document.querySelectorAll('.bg-white.border.rounded-xl').forEach(group => {
+                group.addEventListener('change', function(e) {
+                    if (e.target.checked) {
+                        // Find other checkboxes in the same question group
+                        const siblings = group.querySelectorAll('input[type="checkbox"]');
+                        siblings.forEach(sibling => {
+                            if (sibling !== e.target) {
+                                sibling.checked = false;
+                            }
+                        });
                     }
                 });
             });
@@ -423,6 +523,17 @@
                     e.preventDefault();
                     alert('Por favor complete todos los campos requeridos.');
                 }
+            });
+        });
+        // Seleccionamos todos los contenedores de pregunta
+        // Asegura que los checkboxes se manejen correctamente
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            const questionGroup = checkbox.closest('.bg-white.border.rounded-xl');
+            if (questionGroup) {
+                const checkboxes = questionGroup.querySelectorAll('input[type="checkbox"]');
+                checkboxes.forEach(cb => {
+                // Opcional: Agregar lógica adicional si es necesario
+                // Por ejemplo, para validaciones o comportamiento personalizado
             });
         });
     </script>

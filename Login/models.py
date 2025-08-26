@@ -271,3 +271,4 @@ class CuestionarioScrenning(models.Model):
     
     def __str__(self):
         return f"Screnning de {self.paciente.nombre}"
+
