@@ -125,8 +125,7 @@
                         <tbody>
                             {% for sesion in sesiones %}
                             <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="p-3">{{ forloop.counter }}</td>
-                                <td class="p-3">
+                                <td class="p-3">{{ forloop.counter }}</td>                        <td class="p-3">
                                     <span class="px-2 py-1 rounded-full text-xs font-medium
                                         {% if sesion.IntensidadDolor <= 3 %}bg-green-100 text-green-800
                                         {% elif sesion.IntensidadDolor <= 6 %}bg-yellow-100 text-yellow-800
@@ -134,10 +133,13 @@
                                         {{ sesion.IntensidadDolor }}/10
                                     </span>
                                 </td>
-                                <td class="p-3 text-gray-600">{{ sesion.nesesidadDeApoyo|default:"-" }}</td>
+                                          <td class="p-3 text-gray-600">{{ sesion.nesesidadDeApoyo|default:"-" }}</td>gray-600">{{ sesion.nesesidadDeApoyo|default:"-" }}</td>
                             </tr>
                             {% endfor %}
                         </tbody>
+                        <script>
+                            
+                            </script
                     </table>
                 </div>
             </div>
