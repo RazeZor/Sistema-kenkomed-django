@@ -655,4 +655,6 @@ def _procesar_screening_post(request, paciente, clinico):
 
 
 def renderizar_CuestionarioENA(request):
+    if request.method == "GET":
+        pass
     return render(request, "CuestionarioENA.html")

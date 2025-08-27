@@ -265,7 +265,7 @@ class CuestionarioScrenning(models.Model):
     paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_screnning')
     fecha_creacion = models.DateField(auto_now_add=True)
-    IntensidadDolor = models.TextField(null=True, blank=True)
+    IntensidadDolor = models.JSONField(null=True, blank=True)
     RespuestasTabla1 = models.JSONField(null=True, blank=True)
     nesesidadDeApoyo = models.CharField(max_length=20,null=True, blank=True)
     
