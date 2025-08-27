@@ -27,8 +27,12 @@ def AgregarClinico(request):
                     nombre=nombre,
                     apellido=apellido,
                     profesion=profesion,
-                    contraseña=contraseña
                 )
+                # Usar set_password si está disponible en el modelo
+                if hasattr(clinico, 'set_password'):
+                    clinico.set_password(contraseña)
+                else:
+                    clinico.contraseña = contraseña
                 clinico.save()
                 messages.success(request, 'Clínico agregado exitosamente.')
                 return redirect('ver')

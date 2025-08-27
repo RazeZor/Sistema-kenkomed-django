@@ -10,9 +10,8 @@ def validarLogin(request):
         try:
             clinico = Clinico.objects.get(rut=rut)
             print(f"Clínico encontrado: {clinico}")
-            print(f"Contraseña almacenada: {clinico.contraseña}")
-            
-            if clinico.contraseña == password:
+            # Use método seguro de comprobación de contraseña
+            if hasattr(clinico, 'check_password') and clinico.check_password(password):
                 request.session['rut_clinico'] = clinico.rut
                 request.session['nombre_clinico'] = f"{clinico.nombre} {clinico.apellido}"
                 if clinico.EsAdmin:
@@ -26,7 +25,6 @@ def validarLogin(request):
                     return redirect('panel')
             else:
                 messages.error(request, 'La contraseña ingresada es incorrecta.')
-                print("Contraseña incorrecta")
         except Clinico.DoesNotExist:
             messages.error(request, 'El RUT ingresado no está registrado.')
             print("Clínico no encontrado")

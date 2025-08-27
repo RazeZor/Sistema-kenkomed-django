@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
 
 
 
@@ -8,11 +9,25 @@ class Clinico(models.Model):
     nombre = models.CharField(max_length=50)
     apellido = models.CharField(max_length=50)
     profesion = models.CharField(max_length=50, default='default_profession')
-    contraseña = models.CharField(max_length=50, default='default_password')
+    # Aumentamos el tamaño para almacenar hashes y añadimos métodos para set/check
+    contraseña = models.CharField(max_length=128, default='default_password')
     pacientes = models.ManyToManyField('Paciente', related_name='clinicos')
     EsAdmin = models.BooleanField(default=False)
     def __str__(self):
         return f'{self.nombre} {self.apellido} ({self.rut})'
+
+    # Helper para establecer la contraseña en claro -> hash
+    def set_password(self, raw_password):
+        if raw_password is None:
+            self.contraseña = None
+        else:
+            self.contraseña = make_password(raw_password)
+
+    # Helper para comprobar contraseña
+    def check_password(self, raw_password):
+        if not self.contraseña:
+            return False
+        return check_password(raw_password, self.contraseña)
 
 
 # Modelo Paciente: Representa a un paciente en el sistema.
