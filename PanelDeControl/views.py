@@ -49,8 +49,25 @@ def panel(request):
 def cerrar_sesion(request):
     # Elimina todos los datos de la sesión
     request.session.flush()
-    
-    return redirect('login')  # Redirige a la página de login
+
+    # Borrar la cookie de sesión en el navegador (si existe nombre de cookie por defecto)
+    response = redirect('login')
+    session_cookie_name = None
+    try:
+        # Django por defecto usa settings.SESSION_COOKIE_NAME, pero importarlo aquí causaría ciclo.
+        session_cookie_name = request.session.cookie_name
+    except Exception:
+        # fallback al nombre por defecto
+        session_cookie_name = 'sessionid'
+
+    response.delete_cookie(session_cookie_name)
+
+    # Asegurar cabeceras no-cache también en esta respuesta
+    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+
+    return response
 
 
 @requiere_clinico
