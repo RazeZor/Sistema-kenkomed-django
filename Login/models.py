@@ -11,7 +11,6 @@ class Clinico(models.Model):
     profesion = models.CharField(max_length=50, default='default_profession')
     # Aumentamos el tamaño para almacenar hashes y añadimos métodos para set/check
     contraseña = models.CharField(max_length=128, default='default_password')
-    pacientes = models.ManyToManyField('Paciente', related_name='clinicos')
     EsAdmin = models.BooleanField(default=False)
     def __str__(self):
         return f'{self.nombre} {self.apellido} ({self.rut})'
@@ -33,8 +32,9 @@ class Clinico(models.Model):
 # Modelo Paciente: Representa a un paciente en el sistema.
 class Paciente(models.Model):
     rut = models.CharField(max_length=12, primary_key=True, unique=True)  # Clave primaria única
-    nombre = models.CharField(max_length=50)
-    apellido = models.CharField(max_length=50,null=False)
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='pacientes_asignados', null=True, blank=True)
+    nombre = models.CharField(max_length=50,null=True,blank=True)
+    apellido = models.CharField(max_length=50)
     fechaNacimiento = models.DateField(null=True)
     genero = models.CharField(max_length=15,null=True)
     contacto = models.CharField(max_length=13)
