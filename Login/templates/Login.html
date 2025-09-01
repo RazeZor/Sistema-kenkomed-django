@@ -4,75 +4,189 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KenkoMed - Iniciar Sesión</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'kenko-blue': '#0284c7',
-                        'kenko-blue-dark': '#0369a1',
-                        'kenko-blue-light': '#0ea5e9'
-                    },
-                    fontFamily: {
-                        'inter': ['Inter', 'sans-serif'],
-                    }
-                }
+    <title>DSS - Sistema Clínico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .logo-section {
+            flex: 1.2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: #ffffff;
+        }
+
+        .logo {
+            text-align: center;
+            color: #2c5aa0;
+        }
+
+        .logo h1 {
+            font-size: 4.5rem;
+            font-weight: 300;
+            letter-spacing: 8px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(44, 90, 160, 0.1);
+        }
+
+        .logo p {
+            font-size: 1.1rem;
+            font-weight: 300;
+            letter-spacing: 2px;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+
+        .login-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .login-form {
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .form-title {
+            font-size: 1.8rem;
+            color: #2c5aa0;
+            margin-bottom: 40px;
+            font-weight: 300;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px 0;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            background: transparent;
+            font-size: 1rem;
+            color: #333;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-bottom: 2px solid #2c5aa0;
+        }
+
+        .input-field:focus + .input-label,
+        .input-field:not(:placeholder-shown) + .input-label {
+            transform: translateY(-20px);
+            font-size: 0.8rem;
+            color: #2c5aa0;
+        }
+
+        .input-label {
+            position: absolute;
+            left: 0;
+            top: 15px;
+            color: #999;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c5aa0, #4a7bc8);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        .login-btn:hover {
+            background: linear-gradient(135deg, #1e3f73, #2c5aa0);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .forgot-password {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .forgot-password a {
+            color: #2c5aa0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .logo-section {
+                flex: 0.4;
+                padding: 20px;
+            }
+            
+            .logo h1 {
+                font-size: 3rem;
+                letter-spacing: 4px;
+            }
+            
+            .login-section {
+                flex: 0.6;
+                padding: 20px;
             }
         }
-    </script>
-    <style>
-        body {
-            background-image: linear-gradient(rgba(0,0,0,0.9), rgba(0,0,0,0.6)), url('../static/image/fondo_login2.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
 
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
         }
-        .bg-medical {
-            background-image: linear-gradient(135deg, rgba(2, 132, 199, 0.1) 0%, rgba(255, 255, 255, 0.9) 50%, rgba(2, 132, 199, 0.05) 100%),
-                              url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="medical" patternUnits="userSpaceOnUse" width="100" height="100"><circle cx="20" cy="20" r="2" fill="%230284c7" opacity="0.1"/><circle cx="80" cy="80" r="1.5" fill="%230284c7" opacity="0.08"/><rect x="45" y="10" width="10" height="4" fill="%230284c7" opacity="0.06"/><rect x="47" y="8" width="6" height="8" fill="%230284c7" opacity="0.06"/></pattern></defs><rect width="100%25" height="100%25" fill="url(%23medical)"/></svg>');
-            background-size: cover, 200px 200px;
-            background-position: center, 0 0;
-            background-repeat: no-repeat, repeat;
-        }
-        
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(2, 132, 199, 0.1);
-        }
-        
-        .input-focus {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.15);
-        }
-        
-        .btn-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.3);
-        }
-        
-        .logo-animation {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
-        
-        .fade-in-up {
-            animation: fadeInUp 0.6s ease-out;
-        }
-        
-        @keyframes fadeInUp {
+
+        @keyframes fadeIn {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -81,159 +195,72 @@
         }
     </style>
 </head>
-<body class="min-h-screen ">
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md fade-in-up">
-            <!-- Header con logo -->
-            <div class="text-center mb-8">
-                <div class="flex items-center justify-center w-40 h-40 mx-auto mb-4 ">
-                    <img src="{% static 'image/logo.png' %}" alt="Logo" class="w-full h-full object-cover text-white">
-                  </div>
+<body>
+    <div class="container">
+        <div class="logo-section">
+            <div class="logo fade-in">
+                <img src="{% static 'image/LogoGrande.png' %}" alt="Logo" style="width:300px; height:auto; margin-bottom:20px;">
             </div>
-            <!-- Formulario de login -->
-            <div class="glass-effect rounded-2xl p-8 shadow-2xl">
-                <div class="text-center mb-8">
-                    <h2 class="text-2xl font-semibold text-gray-800 mb-2">Iniciar Sesión</h2>
-                    <p class="text-gray-600 text-sm">Accede a tu cuenta profesional</p>
-                </div>
-                
-                <form action="" method="post" class="space-y-6">
-                    {% csrf_token %}
-                    
-                    <!-- Campo RUT -->
-                    <div class="space-y-2">
-                        <label for="rut" class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-id-card mr-2 text-kenko-blue"></i>RUT
-                        </label>
-                        <input 
-                            type="text" 
-                            id="rut" 
-                            name="rut" 
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-kenko-blue focus:border-kenko-blue transition-all duration-300 bg-white/80" 
-                            placeholder="12.345.678-9" 
-                            required
-                        >
+        </div>
+        
+        <div class="login-section">
+            <form class="login-form fade-in" id="loginForm" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <h2 class="form-title">Iniciar Sesión</h2>
+
+                {% if messages %}
+                    <div style="margin-bottom:16px">
+                        {% for message in messages %}
+                            <div style="color:#9b1111; font-weight:600;">{{ message }}</div>
+                        {% endfor %}
                     </div>
-                    
-                    <!-- Campo Contraseña -->
-                    <div class="space-y-2">
-                        <label for="password" class="block text-sm font-medium text-gray-700">
-                            <i class="fas fa-lock mr-2 text-kenko-blue"></i>Contraseña
-                        </label>
-                        <div class="relative">
-                            <input 
-                                type="password" 
-                                id="password" 
-                                name="password" 
-                                class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-kenko-blue focus:border-kenko-blue transition-all duration-300 bg-white/80" 
-                                placeholder="••••••••" 
-                                required
-                            >
-                            <button 
-                                type="button" 
-                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-500 hover:text-kenko-blue transition-colors duration-200"
-                                id="togglePassword"
-                            >
-                                <i class="fas fa-eye" id="eyeIcon"></i>
-                            </button>
-                        </div>
-                        <div class="flex justify-end">
-                            <a href="#" class="text-sm text-kenko-blue hover:text-kenko-blue-dark transition-colors duration-200">
-                                ¿Olvidaste tu contraseña?
-                            </a>
-                        </div>
-                    </div>
-                    
-                    <!-- Botón de login -->
-                    <button 
-                        type="submit" 
-                        class="w-full bg-kenko-blue hover:bg-kenko-blue-dark text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 btn-hover"
-                    >
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        Iniciar Sesión
-                    </button>
-                </form>
+                {% endif %}
                 
-                <!-- Divider -->
-                <div class="my-6 flex items-center">
-                    <div class="flex-1 border-t border-gray-300"></div>
-                    <span class="px-4 text-sm text-gray-500">O continúa con</span>
-                    <div class="flex-1 border-t border-gray-300"></div>
+                <div class="input-group">
+                    <input type="text" id="rut" name="rut" class="input-field" placeholder=" " required>
+                    <label for="rut" class="input-label">RUT</label>
                 </div>
                 
-                <!-- Botones sociales -->
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <button class="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-kenko-blue transition-all duration-300">
-                        <img src="https://ucarecdn.com/8f25a2ba-bdcf-4ff1-b596-088f330416ef/" alt="Google" class="w-5 h-5">
-                    </button>
-                    <button class="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-kenko-blue transition-all duration-300">
-                        <img src="https://ucarecdn.com/95eebb9c-85cf-4d12-942f-3c40d7044dc6/" alt="LinkedIn" class="w-5 h-5">
-                    </button>
-                    <button class="flex items-center justify-center py-2 px-4 border border-gray-300 rounded-xl hover:bg-gray-50 hover:border-kenko-blue transition-all duration-300">
-                        <img src="../static/image/Logoface.png" alt="Facebook" class="w-5 h-5">
-                    </button>
+                <div class="input-group">
+                    <input type="password" id="password" name="password" class="input-field" placeholder=" " required>
+                    <label for="password" class="input-label">Contraseña</label>
                 </div>
                 
-                <!-- Términos y condiciones -->
-                <div class="mt-6 text-center">
-                    <p class="text-xs text-gray-500">
-                        Al iniciar sesión, aceptas nuestros
-                        <a href="#" class="text-kenko-blue hover:underline">Términos de Servicio</a>
-                        y
-                        <a href="#" class="text-kenko-blue hover:underline">Política de Privacidad</a>
-                    </p>
+                <button type="submit" class="login-btn">Ingresar</button>
+                
+                <div class="forgot-password">
+                    <a href="#" id="forgotPassword">¿Olvidaste tu contraseña?</a>
                 </div>
-            </div>
-            
-            <!-- Footer -->
-            <div class="text-center mt-8">
-                <p class="text-sm text-gray-600">
-                    <i class="fas fa-shield-alt mr-1 text-kenko-blue"></i>
-                    Conexión segura SSL
-                </p>
-            </div>
+            </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle password visibility
-            const togglePassword = document.getElementById('togglePassword');
-            const passwordInput = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
-            
-            togglePassword.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                
-                eyeIcon.classList.toggle('fa-eye');
-                eyeIcon.classList.toggle('fa-eye-slash');
+        // Validación ligera y submit real del formulario
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const rut = document.getElementById('rut').value.trim();
+            const password = document.getElementById('password').value.trim();
+            if (!rut || !password) {
+                e.preventDefault();
+                alert('Por favor, completa todos los campos');
+                return;
+            }
+            // El formulario hará POST al backend (validarLogin)
+        });
+
+        // Manejo de "olvidé mi contraseña" (puedes enlazar a una vista real)
+        document.getElementById('forgotPassword').addEventListener('click', function(e) {
+            e.preventDefault();
+            alert('Funcionalidad de recuperación de contraseña - implementa endpoint en backend.');
+        });
+
+        // Efecto de focus en los inputs
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentNode.style.transform = 'scale(1.02)';
             });
-            
-            // Input focus effects
-            const inputs = document.querySelectorAll('input');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.classList.add('input-focus');
-                });
-                
-                input.addEventListener('blur', function() {
-                    this.parentElement.classList.remove('input-focus');
-                });
-            });
-            
-           
-            
-            // Social buttons hover effect
-            const socialButtons = document.querySelectorAll('.grid button');
-            socialButtons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-2px)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0)';
-                });
+            input.addEventListener('blur', function() {
+                this.parentNode.style.transform = 'scale(1)';
             });
         });
     </script>
