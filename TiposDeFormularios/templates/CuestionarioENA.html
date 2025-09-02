@@ -98,6 +98,10 @@
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- Hidden form to ensure CSRF cookie is set for AJAX requests -->
+    <form id="csrf-form" style="display:none;">
+        {% csrf_token %}
+    </form>
     <!-- Header -->
     <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg no-print">
         <div class="max-w-7xl mx-auto px-6 py-6">
@@ -313,9 +317,6 @@
                     <button onclick="printTable()" class="no-print bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
                         🖨️ Imprimir Tabla
                     </button>
-                    <button onclick="clearHistory()" class="no-print bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                        🗑️ Limpiar Historial
-                    </button>
                 </div>
             </div>
 
@@ -329,7 +330,6 @@
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">😊 Estado</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">📝 Descripción</th>
                             <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">🔄 Sesión</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider no-print">⚡ Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="results-tbody" class="bg-white divide-y divide-gray-200">
@@ -382,10 +382,6 @@
                     class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200">
                 💾 Guardar Evaluación
             </button>
-            <button onclick="resetScale()" 
-                    class="px-8 py-3 bg-gray-600 text-white rounded-lg font-semibold shadow-lg hover:bg-gray-700 transition-all duration-200">
-                🔄 Limpiar Selección
-            </button>
         </div>
     </main>
 
@@ -396,10 +392,19 @@
     </div>
 
     <script>
+        // Data injected from server
         let selectedLevel = null;
         let currentSession = null;
-        let evaluationHistory = JSON.parse(localStorage.getItem('painEvaluations')) || [];
+        let evaluationHistory = {{ evaluations_json|safe }} || [];
         let sessionStartTime = null;
+
+        // CSRF token helper
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        const csrftoken = getCookie('csrftoken');
 
         const painDescriptions = {
             0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0" },
@@ -495,9 +500,7 @@
                         <td class="px-4 py-4 text-sm text-gray-900">${pain.description}</td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${evaluation.session}</td>
                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium no-print">
-                            <button onclick="deleteEvaluation(${index})" class="text-red-600 hover:text-red-900">
-                                🗑️ Eliminar
-                            </button>
+
                         </td>
                     </tr>
                 `;
@@ -531,29 +534,30 @@
             `;
         }
 
-        function savePainLevel() {
+        async function savePainLevel() {
             if (selectedLevel !== null && currentSession) {
                 const pain = painDescriptions[selectedLevel];
                 const timestamp = new Date().toISOString();
-                
-                const evaluation = {
-                    level: selectedLevel,
-                    text: pain.text,
-                    description: pain.description,
-                    emoji: pain.emoji,
-                    timestamp: timestamp,
-                    session: currentSession
-                };
 
-                evaluationHistory.push(evaluation);
-                localStorage.setItem('painEvaluations', JSON.stringify(evaluationHistory));
-                
-                updateDashboard();
-                
-                // Show success message with emojis
-                alert(`✅ Evaluación guardada exitosamente!\n\n📊 Nivel de dolor: ${selectedLevel}\n${pain.emoji} Descripción: ${pain.text}\n🕐 Fecha y hora: ${new Date(timestamp).toLocaleString('es-ES')}\n🔄 Sesión: ${currentSession}`);
-                
-                resetScale();
+                const form = new FormData();
+                form.append('action', 'guardar');
+                form.append('level', selectedLevel);
+                form.append('description', pain.description);
+                form.append('timestamp', timestamp);
+                form.append('session', currentSession);
+
+                const resp = await fetch(window.location.href, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken },
+                    body: form
+                });
+
+                if (resp.ok) {
+                    // recargar la página para obtener datos actualizados desde el servidor
+                    window.location.reload();
+                } else {
+                    alert('Error al guardar la evaluación. Intenta de nuevo.');
+                }
             }
         }
 
@@ -576,21 +580,35 @@
             `;
         }
 
-        function deleteEvaluation(index) {
-            if (confirm('¿Está seguro de que desea eliminar esta evaluación? 🗑️')) {
-                evaluationHistory.splice(index, 1);
-                localStorage.setItem('painEvaluations', JSON.stringify(evaluationHistory));
-                updateDashboard();
-            }
+        async function deleteEvaluation(index) {
+            if (!confirm('¿Está seguro de que desea eliminar esta evaluación? 🗑️')) return;
+            const form = new FormData();
+            form.append('action', 'delete');
+            form.append('index', index);
+
+            const resp = await fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: form
+            });
+
+            if (resp.ok) window.location.reload();
+            else alert('Error al eliminar la evaluación.');
         }
 
-        function clearHistory() {
-            if (confirm('¿Está seguro de que desea eliminar todo el historial? ⚠️ Esta acción no se puede deshacer.')) {
-                evaluationHistory = [];
-                localStorage.removeItem('painEvaluations');
-                updateDashboard();
-                alert('🗑️ Historial eliminado correctamente');
-            }
+        async function clearHistory() {
+            if (!confirm('¿Está seguro de que desea eliminar todo el historial? ⚠️ Esta acción no se puede deshacer.')) return;
+            const form = new FormData();
+            form.append('action', 'clear');
+
+            const resp = await fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: form
+            });
+
+            if (resp.ok) window.location.reload();
+            else alert('Error al limpiar historial.');
         }
 
         function printTable() {
@@ -631,6 +649,12 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 Dashboard ENA del dolor inicializado');
+            // current session default from server or create new
+            if (evaluationHistory.length > 0) {
+                currentSession = evaluationHistory[evaluationHistory.length - 1].session || `S${Date.now()}`;
+            } else {
+                currentSession = `S${Date.now()}`;
+            }
             initializeSession();
         });
     </script>

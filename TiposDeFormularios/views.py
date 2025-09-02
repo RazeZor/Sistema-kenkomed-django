@@ -5,6 +5,7 @@ from Login.models import (
     CuestionarioScrenning, formularioClinico, Paciente, CuestionarioPSFS,
     Groc, Clinico, CuestionarioEQ_5D, CuestionarioBarthel
 )
+from Login.models import CuestionarioEvaluacionENA
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
@@ -655,6 +656,83 @@ def _procesar_screening_post(request, paciente, clinico):
 
 
 def renderizar_CuestionarioENA(request):
-    if request.method == "GET":
-        pass
-    return render(request, "CuestionarioENA.html")
+    handler = BaseEvaluacionHandler(request)
+
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        messages.error(request, 'Paciente no encontrado.')
+        return redirect('panel')
+
+    # Obtener o crear cuestionario ENA asociado al paciente
+    cuestionario = CuestionarioEvaluacionENA.objects.filter(paciente=paciente).first()
+    evaluations = cuestionario.estado_por_sesion if cuestionario and cuestionario.estado_por_sesion else []
+
+    if request.method == 'POST':
+        action = request.POST.get('action', 'guardar')
+        try:
+            if action == 'guardar':
+                # datos mínimos esperados: level, description, timestamp, session
+                level = int(request.POST.get('level'))
+                description = request.POST.get('description', '')
+                timestamp = request.POST.get('timestamp') or datetime.now().isoformat()
+                session_id = request.POST.get('session') or f"S{int(datetime.now().timestamp())}"
+
+                nueva = {
+                    'level': level,
+                    'description': description,
+                    'timestamp': timestamp,
+                    'session': session_id
+                }
+
+                if not cuestionario:
+                    cuestionario = CuestionarioEvaluacionENA.objects.create(
+                        paciente=paciente,
+                        clinico=handler.clinico,
+                        fecha_creacion=datetime.now().date(),
+                        estado_por_sesion=[nueva]
+                    )
+                else:
+                    estado = cuestionario.estado_por_sesion or []
+                    estado.append(nueva)
+                    cuestionario.estado_por_sesion = estado
+                    cuestionario.save()
+
+                messages.success(request, 'Evaluación guardada correctamente.')
+
+            elif action == 'delete':
+                # eliminar por índice
+                index = int(request.POST.get('index', -1))
+                if cuestionario and 0 <= index < len(cuestionario.estado_por_sesion):
+                    estado = cuestionario.estado_por_sesion
+                    estado.pop(index)
+                    cuestionario.estado_por_sesion = estado
+                    cuestionario.save()
+                    messages.success(request, 'Evaluación eliminada.')
+                else:
+                    messages.error(request, 'Índice no válido para eliminar.')
+
+            elif action == 'clear':
+                if cuestionario:
+                    cuestionario.estado_por_sesion = []
+                    cuestionario.save()
+                messages.success(request, 'Historial limpiado.')
+
+        except Exception as e:
+            messages.error(request, f'Error al procesar la petición: {str(e)}')
+
+        return HttpResponseRedirect(request.get_full_path())
+
+    # Render GET: inyectar las evaluaciones (serializadas) en el template
+    import json as _json
+    evaluations_json = _json.dumps(evaluations)
+
+    return render(request, "CuestionarioENA.html", {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluations_json': evaluations_json,
+        'evaluations': evaluations,
+        'clinico_actual': handler.clinico
+    })
