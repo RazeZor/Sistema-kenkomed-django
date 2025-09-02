@@ -122,21 +122,6 @@
                                 <th class="p-3 text-left font-semibold text-gray-700">Apoyo</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {% for sesion in sesiones %}
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="p-3">{{ forloop.counter }}</td>                        <td class="p-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-medium
-                                        {% if sesion.IntensidadDolor <= 3 %}bg-green-100 text-green-800
-                                        {% elif sesion.IntensidadDolor <= 6 %}bg-yellow-100 text-yellow-800
-                                        {% else %}bg-red-100 text-red-800{% endif %}">
-                                        {{ sesion.IntensidadDolor }}/10
-                                    </span>
-                                </td>
-                                          <td class="p-3 text-gray-600">{{ sesion.nesesidadDeApoyo|default:"-" }}</td>gray-600">{{ sesion.nesesidadDeApoyo|default:"-" }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
                         <script>
                             
                             </script
@@ -644,14 +629,7 @@
                 // Por ejemplo, para validaciones o comportamiento personalizado
             });
         });
-        const sesionesData = [
-            {% for sesion in sesiones %}
-                {
-                    fecha: "{{ sesion.fecha|date:'d/m/Y' }}",
-                    intensidad: {{ sesion.IntensidadDolor }},
-                },
-            {% endfor %}
-        ];
+
     
         const labels = sesionesData.map(s => s.fecha);
         const intensidades = sesionesData.map(s => s.intensidad);

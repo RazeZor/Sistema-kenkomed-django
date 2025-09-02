@@ -4,235 +4,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSS - Sistema Clínico</title>
+    <title>KenkoMed - Sistema de Kinesiología</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-        }
-
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100%;
-        }
-
-        .logo-section {
-            flex: 1.2;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            background: #ffffff;
-        }
-
-        .logo {
-            text-align: center;
-            color: #2c5aa0;
-        }
-
-        .logo h1 {
-            font-size: 4.5rem;
-            font-weight: 300;
-            letter-spacing: 8px;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(44, 90, 160, 0.1);
-        }
-
-        .logo p {
-            font-size: 1.1rem;
-            font-weight: 300;
-            letter-spacing: 2px;
-            opacity: 0.8;
-            margin-top: 20px;
-        }
-
-        .login-section {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-        }
-
-        .login-form {
-            width: 100%;
-            max-width: 350px;
-        }
-
-        .form-title {
-            font-size: 1.8rem;
-            color: #2c5aa0;
-            margin-bottom: 40px;
-            font-weight: 300;
-            text-align: center;
-        }
-
-        .input-group {
-            margin-bottom: 30px;
+        .bg-blur {
             position: relative;
         }
-
-        .input-field {
-            width: 100%;
-            padding: 15px 0;
-            border: none;
-            border-bottom: 1px solid #ddd;
-            background: transparent;
-            font-size: 1rem;
-            color: #333;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .input-field:focus {
-            border-bottom: 2px solid #2c5aa0;
-        }
-
-        .input-field:focus + .input-label,
-        .input-field:not(:placeholder-shown) + .input-label {
-            transform: translateY(-20px);
-            font-size: 0.8rem;
-            color: #2c5aa0;
-        }
-
-        .input-label {
+        .bg-blur::before {
+            content: '';
             position: absolute;
+            top: 0;
             left: 0;
-            top: 15px;
-            color: #999;
-            font-size: 1rem;
-            pointer-events: none;
-            transition: all 0.3s ease;
+            right: 0;
+            bottom: 0;
+            background-image: url('{% static 'image/kinesiology-hero.jpg' %}');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px);
+            z-index: -2;
         }
-
-        .login-btn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #2c5aa0, #4a7bc8);
-            color: white;
-            border: none;
-            font-size: 1rem;
-            font-weight: 400;
-            letter-spacing: 1px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 20px;
-            text-transform: uppercase;
-        }
-
-        .login-btn:hover {
-            background: linear-gradient(135deg, #1e3f73, #2c5aa0);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
-        }
-
-        .login-btn:active {
-            transform: translateY(0);
-        }
-
-        .forgot-password {
-            text-align: center;
-            margin-top: 25px;
-        }
-
-        .forgot-password a {
-            color: #2c5aa0;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: opacity 0.3s ease;
-        }
-
-        .forgot-password a:hover {
-            opacity: 0.7;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-            
-            .logo-section {
-                flex: 0.4;
-                padding: 20px;
-            }
-            
-            .logo h1 {
-                font-size: 3rem;
-                letter-spacing: 4px;
-            }
-            
-            .login-section {
-                flex: 0.6;
-                padding: 20px;
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.8s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .bg-blur::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: -1;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="logo-section">
-            <div class="logo fade-in">
-                <img src="{% static 'image/LogoGrande.png' %}" alt="Logo" style="width:500px; height:auto; margin-bottom:20px;">
-            </div>
+<body class="h-screen flex items-center justify-center bg-blur">
+    <div class="max-w-md w-full mx-4">
+        <!-- Logo y título -->
+        <div class="text-center mb-8">
+            <img src="{% static 'image/LogoGrande.png' %}" alt="KineLogin" class="h-12 mx-auto mb-2">
+            <h1 class="text-2xl font-semibold text-gray-900 mb-1">KineLogin</h1>
+            <p class="text-sm text-gray-600">Acceso profesional para kinesiólogos</p>
         </div>
         
-        <div class="login-section">
-            <form class="login-form fade-in" id="loginForm" method="post" action="{% url 'login' %}">
+        <div class="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-8">
+            <form class="space-y-6" id="loginForm" method="post" action="{% url 'login' %}">
                 {% csrf_token %}
-                <h2 class="form-title">Iniciar Sesión</h2>
+                <div class="text-center">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Iniciar Sesión</h2>
+                    <p class="text-sm text-gray-600">Ingresa tus credenciales para acceder al sistema</p>
+                </div>
 
                 {% if messages %}
-                    <div style="margin-bottom:16px">
+                    <div class="mb-4">
                         {% for message in messages %}
-                            <div style="color:#9b1111; font-weight:600;">{{ message }}</div>
+                            <div class="text-red-600 font-semibold">{{ message }}</div>
                         {% endfor %}
                     </div>
                 {% endif %}
                 
-                <div class="input-group">
-                    <input type="text" id="rut" name="rut" class="input-field" placeholder=" " required>
-                    <label for="rut" class="input-label">RUT</label>
-                </div>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </span>
+                             <input type="text" id="rut" name="rut" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Ingresa tu RUT" required>
                 
-                <div class="input-group">
-                    <input type="password" id="password" name="password" class="input-field" placeholder=" " required>
-                    <label for="password" class="input-label">Contraseña</label>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-gray-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                            </span>
+                            <input type="password" id="password" name="password" class="block w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="••••••••" required>
+                        </div>
+                    </div>
                 </div>
-                
-                <button type="submit" class="login-btn">Ingresar</button>
-                
-                <div class="forgot-password">
-                    <a href="#" id="forgotPassword">¿Olvidaste tu contraseña?</a>
+
+                <div class="flex items-center justify-between mt-6">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="remember" name="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
+                        <label for="remember" class="ml-2 text-sm text-gray-600">Recordarme</label>
+                    </div>
                 </div>
+
+                <button type="submit" class="w-full mt-6 px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2">
+                    <span>Iniciar Sesión</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
             </form>
         </div>
+        
+        <p class="text-center mt-8 text-sm text-gray-600">
+            Sistema exclusivo para profesionales de kinesiología
+        </p>
+    </div>
     </div>
 
     <script>
@@ -248,12 +120,6 @@
             // El formulario hará POST al backend (validarLogin)
         });
 
-        // Manejo de "olvidé mi contraseña" (puedes enlazar a una vista real)
-        document.getElementById('forgotPassword').addEventListener('click', function(e) {
-            e.preventDefault();
-            alert('Funcionalidad de recuperación de contraseña - implementa endpoint en backend.');
-        });
-
         // Efecto de focus en los inputs
         document.querySelectorAll('.input-field').forEach(input => {
             input.addEventListener('focus', function() {
@@ -265,4 +131,4 @@
         });
     </script>
 </body>
-</html>
+</html> 
