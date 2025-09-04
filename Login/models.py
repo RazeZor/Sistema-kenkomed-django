@@ -282,7 +282,9 @@ class CuestionarioScrenning(models.Model):
     fecha_creacion = models.DateField(auto_now_add=True)
     IntensidadDolor = models.JSONField(null=True, blank=True)
     RespuestasTabla1 = models.JSONField(null=True, blank=True)
-    nesesidadDeApoyo = models.CharField(max_length=20,null=True, blank=True)
+    NivelMolestia = models.JSONField(null=True, blank=True)
+    Puntaje_Sesion = models.JSONField(null=True, blank=True)
+    Nota_CuestionarioScrenning = models.TextField(null=True, blank=True)
     
     def __str__(self):
         return f"Screnning de {self.paciente.nombre}"

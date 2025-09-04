@@ -37,20 +37,17 @@
 </head>
 <body class="h-screen flex items-center justify-center bg-blur">
     <div class="max-w-md w-full mx-4">
-        <!-- Logo y título -->
-        <div class="text-center mb-8">
-            <img src="{% static 'image/LogoGrande.png' %}" alt="KineLogin" class="h-12 mx-auto mb-2">
-            <h1 class="text-2xl font-semibold text-gray-900 mb-1">KineLogin</h1>
-            <p class="text-sm text-gray-600">Acceso profesional para kinesiólogos</p>
-        </div>
+        
         
         <div class="bg-white/80 backdrop-blur-sm rounded-lg shadow-lg p-8">
+            <!-- Logo y título -->
+        <div class="text-center mb-8">
+            <img src="{% static 'image/LogoGrande.png' %}" alt="KineLogin" class="h-12 mx-auto mb-2">
+            <p class="text-sm text-gray-600">Acceso profesional para kinesiólogos</p>
+            <p class="text-sm text-gray-600">Ingresa tus credenciales para acceder al sistema</p>
+        </div>
             <form class="space-y-6" id="loginForm" method="post" action="{% url 'login' %}">
                 {% csrf_token %}
-                <div class="text-center">
-                    <h2 class="text-2xl font-semibold text-gray-900 mb-2">Iniciar Sesión</h2>
-                    <p class="text-sm text-gray-600">Ingresa tus credenciales para acceder al sistema</p>
-                </div>
 
                 {% if messages %}
                     <div class="mb-4">
@@ -84,26 +81,26 @@
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="flex items-center justify-between mt-6">
                     <div class="flex items-center">
                         <input type="checkbox" id="remember" name="remember" class="h-4 w-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500">
                         <label for="remember" class="ml-2 text-sm text-gray-600">Recordarme</label>
                     </div>
                 </div>
-
+                
                 <button type="submit" class="w-full mt-6 px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2">
                     <span>Iniciar Sesión</span>
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
+                <p class="text-center mt-8 text-sm text-gray-600">
+                    Sistema exclusivo para profesionales de kinesiología
+                </p>
             </form>
         </div>
         
-        <p class="text-center mt-8 text-sm text-gray-600">
-            Sistema exclusivo para profesionales de kinesiología
-        </p>
     </div>
     </div>
 

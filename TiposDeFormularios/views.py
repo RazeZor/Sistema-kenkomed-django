@@ -582,78 +582,141 @@ def _obtener_sesiones_barthel(cuestionario):
 def renderizar_cuestionarioScrening(request):
     """Vista corregida para Cuestionario Screening"""
     handler = BaseEvaluacionHandler(request)
-    
+
     if not handler.validar_sesion(requiere_admin=True):
         return handler.redirect_to_login()
-    
+
     paciente = handler.obtener_paciente()
     if not paciente:
         messages.error(request, 'Paciente no encontrado.')
         return redirect('panel')
-    
+
     # Verificar si ya existe una evaluación
     evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente).exists()
     cuestionario_actual = None
 
-    sesiones = CuestionarioScrenning.objects.filter(paciente=paciente)
-    
     if evaluacion_existente:
         cuestionario_actual = CuestionarioScrenning.objects.get(paciente=paciente)
-    
+
     if request.method == "POST":
         return _procesar_screening_post(request, paciente, handler.clinico)
-    
+
+    # Obtener todas las evaluaciones del paciente
+
+    toda_evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente)
+    # Si existe la evaluación actual, generar alerta
+    alerta = generar_alerta(cuestionario_actual.Puntaje_Sesion) if cuestionario_actual else None
+
     return render(request, "CuestionarioScrenning.html", {
         'rut': paciente.rut,
         'paciente': paciente,
         'evaluacion_existente': evaluacion_existente,
         'cuestionario': cuestionario_actual,
-        'sesiones': sesiones
+        'alerta': alerta,
+        'toda_evaluacion_existente':toda_evaluacion_existente,
     })
 
 
 def _procesar_screening_post(request, paciente, clinico):
     """Procesa las acciones POST para Screening"""
     try:
+        # Obtener datos del formulario
         intensidad_dolor = request.POST.get('IntensidadDolor')
-        respuestas_tabla = request.POST.getlist('preguntas1')  # Cambiar a getlist para multiples respuestas
-        necesidad_apoyo = request.POST.get('nesesidadDeApoyo')
+        respuestas_tabla = request.POST.getlist('preguntas1[]')  # Corregido el nombre del campo
+        nivel_molestia = request.POST.get('NivelMolestia')
+        nota = request.POST.get('nota_adicional', '')
         action = request.POST.get('action', 'guardar')
-        
+
         # Validaciones básicas
         if not intensidad_dolor:
             messages.error(request, "La intensidad del dolor es obligatoria.")
             return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
-        
+
+        if not nivel_molestia:
+            messages.error(request, "El nivel de molestia es obligatorio.")
+            return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
+
+        # Calcular puntaje
+        puntaje_sesion = calcular_puntaje(respuestas_tabla, nivel_molestia)
+
         if action == 'guardar':
             # Verificar si ya existe (OneToOneField)
             if CuestionarioScrenning.objects.filter(paciente=paciente).exists():
-                messages.error(request, "Ya existe una evaluación para este paciente. Use actualizar.")
+                messages.error(request, "Ya existe una evaluación para este paciente. Use 'Actualizar Evaluación'.")
                 return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
-            
+
+            # Crear nuevo cuestionario
             CuestionarioScrenning.objects.create(
                 paciente=paciente,
                 clinico=clinico,
                 IntensidadDolor=intensidad_dolor,
-                RespuestasTabla1=respuestas_tabla,  # Se guarda como JSONField
-                nesesidadDeApoyo=necesidad_apoyo,
+                RespuestasTabla1=respuestas_tabla,
+                NivelMolestia=nivel_molestia,
+                Puntaje_Sesion=puntaje_sesion,
+                Nota_CuestionarioScrenning=nota
             )
             messages.success(request, "Cuestionario de screening guardado correctamente.")
-        
+
         elif action == 'actualizar':
-            cuestionario = get_object_or_404(CuestionarioScrenning, paciente=paciente)
-            cuestionario.IntensidadDolor = intensidad_dolor
-            cuestionario.RespuestasTabla1 = respuestas_tabla
-            cuestionario.nesesidadDeApoyo = necesidad_apoyo
-            cuestionario.save()
-            messages.success(request, "Cuestionario de screening actualizado correctamente.")
-        
-        return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
-        
+            try:
+                cuestionario = CuestionarioScrenning.objects.get(paciente=paciente)
+                cuestionario.IntensidadDolor = intensidad_dolor
+                cuestionario.RespuestasTabla1 = respuestas_tabla
+                cuestionario.NivelMolestia = nivel_molestia
+                cuestionario.Puntaje_Sesion = puntaje_sesion
+                cuestionario.Nota_CuestionarioScrenning = nota
+                cuestionario.save()
+                messages.success(request, "Cuestionario de screening actualizado correctamente.")
+            except CuestionarioScrenning.DoesNotExist:
+                messages.error(request, "No existe una evaluación previa para actualizar.")
+                return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
+
+        return HttpResponseRedirect(request.get_full_path())
+
     except Exception as e:
         messages.error(request, f"Error al procesar el cuestionario de screening: {str(e)}")
         return redirect('panel')
 
+
+
+def calcular_puntaje(respuestas, nivel_molestia):
+    """Calcula el puntaje basado en las respuestas"""
+    if not respuestas:
+        respuestas = []
+
+    if not nivel_molestia:
+        nivel_molestia = ''
+
+    puntaje = 0
+
+    # Contar respuestas afirmativas
+    puntaje += respuestas.count('si')
+
+    # Agregar punto por nivel de molestia alto
+    if nivel_molestia.lower() in ['moderado', 'mucho', 'extremo']:
+        puntaje += 1
+
+    return puntaje
+
+
+def generar_alerta(puntaje):
+    """Genera mensaje de alerta basado en el puntaje"""
+    if puntaje <= 3:
+        color, mensaje = '#d4edda', 'Riesgo bajo: educar y tranquilizar al paciente.'
+        nivel = 'BAJO'
+    elif 4 <= puntaje <= 7:
+        color, mensaje = '#fff3cd', 'Riesgo medio: evaluar si necesitará ayuda de otro profesional.'
+        nivel = 'MEDIO'
+    else:
+        color, mensaje = '#f8d7da', 'Riesgo alto: se recomienda tratamiento interdisciplinario.'
+        nivel = 'ALTO'
+
+    return {
+        'html': f'<div style="background-color: {color}; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb; margin: 10px 0;"><strong>Riesgo {nivel}:</strong> {mensaje}</div>',
+        'nivel': nivel,
+        'puntaje': puntaje,
+        'mensaje': mensaje
+    }
 
 def renderizar_CuestionarioENA(request):
     handler = BaseEvaluacionHandler(request)
