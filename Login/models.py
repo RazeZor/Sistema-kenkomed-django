@@ -60,7 +60,7 @@ class Paciente(models.Model):
 #.BooleanField : recibe respuesta boolean true or false 
 
 class formularioClinico(models.Model):
-    #ejectuo las tablas foraneas el cual 1 formulario es de 1 paciente 
+    #ejecuto las tablas foraneas el cual 1 formulario es de 1 paciente 
     #y asegura que ese clinico realizo ese formulario 
     id= models.AutoField(primary_key=True,unique=True)
     paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, related_name='formulario')

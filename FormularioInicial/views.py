@@ -254,8 +254,9 @@ def FormularioInicial(request):
 
         # Construir y guardar formulario Clínico con todos los campos
         construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
-
-        messages.success(request, 'Formulario guardado exitosamente.')
+        
+        # Guardar mensaje en la sesión
+        request.session['show_success_message'] = 'Paciente guardado exitosamente.'
         return redirect('panel')
 
     return render(request, 'FormularioInicial.html')
