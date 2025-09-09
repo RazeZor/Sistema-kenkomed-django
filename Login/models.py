@@ -159,6 +159,9 @@ class Notas(models.Model):
 class CuestionarioPSFS(models.Model):
     paciente = models.OneToOneField(Paciente, on_delete=models.CASCADE, primary_key=True)
     fecha_creacion = models.DateField()
+    actividad_1 = models.TextField(null=True, blank=True)
+    actividad_2 = models.TextField(null=True, blank=True)
+    actividad_3 = models.TextField(null=True, blank=True)
     puntaje_actividad_1 = models.JSONField(null=True, blank=True)
     puntaje_actividad_2 = models.JSONField(null=True, blank=True)
     puntaje_actividad_3 = models.JSONField(null=True, blank=True)
