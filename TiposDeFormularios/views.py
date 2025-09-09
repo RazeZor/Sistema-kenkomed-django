@@ -361,72 +361,97 @@ def _procesar_eq5d_post(request, paciente, clinico):
 
 def _actualizar_eq5d(request, cuestionario):
     """Actualiza un cuestionario EQ-5D existente"""
-    campos_puntajes = [
-        'puntaje_movilidad', 'puntaje_cuidado_personal', 'puntaje_actividades_cotidianas',
-        'puntaje_dolor_malestar', 'puntaje_ansiedad_depresion', 'vas_score'
-    ]
+    # Get all the scores from the form
+    puntajes = {
+        'puntaje_movilidad': request.POST.get('puntaje_movilidad'),
+        'puntaje_cuidado_personal': request.POST.get('puntaje_cuidado_personal'),
+        'puntaje_actividades_cotidianas': request.POST.get('puntaje_actividades_cotidianas'),
+        'puntaje_dolor_malestar': request.POST.get('puntaje_dolor_malestar'),
+        'puntaje_ansiedad_depresion': request.POST.get('puntaje_ansiedad_depresion'),
+        'vas_score': request.POST.get('vasScore')
+    }
     
-    for campo in campos_puntajes:
-        valor = request.POST.get(campo.replace('puntaje_', '') if campo != 'vas_score' else 'vasScore')
-        valores_actuales = getattr(cuestionario, campo)
-        valores_actuales.append(valor)
-        setattr(cuestionario, campo, valores_actuales)
+    # Update each field, initializing the list if it doesn't exist
+    for campo, valor in puntajes.items():
+        if valor is not None:
+            # Get current values or initialize empty list
+            valores_actuales = getattr(cuestionario, campo, []) or []
+            # Append new value as integer
+            try:
+                valores_actuales.append(int(valor))
+                # Save back to the model
+                setattr(cuestionario, campo, valores_actuales)
+            except (ValueError, TypeError) as e:
+                print(f"Error al convertir el valor para {campo}: {e}")
     
     cuestionario.save()
 
 
 def _crear_eq5d(request, paciente, clinico):
     """Crea un nuevo cuestionario EQ-5D"""
-    campos_lista = ['movilidad', 'cuidadoPersonal', 'actividadesCotidianas', 'dolorMalestar', 'ansiedadDepresion']
-    campos_puntajes = ['puntaje_movilidad', 'puntaje_cuidado_personal', 'puntaje_actividades_cotidianas', 
-                      'puntaje_dolor_malestar', 'puntaje_ansiedad_depresion', 'vasScore']
+    # Get all the data from the form
+    datos = {
+        'movilidad': [request.POST.get('movilidad')],
+        'cuidado_personal': [request.POST.get('cuidadoPersonal')],
+        'actividades_cotidianas': [request.POST.get('actividadesCotidianas')],
+        'dolor_malestar': [request.POST.get('dolorMalestar')],
+        'ansiedad_depresion': [request.POST.get('ansiedadDepresion')],
+        'puntaje_movilidad': [int(request.POST.get('puntaje_movilidad', 0))],
+        'puntaje_cuidado_personal': [int(request.POST.get('puntaje_cuidado_personal', 0))],
+        'puntaje_actividades_cotidianas': [int(request.POST.get('puntaje_actividades_cotidianas', 0))],
+        'puntaje_dolor_malestar': [int(request.POST.get('puntaje_dolor_malestar', 0))],
+        'puntaje_ansiedad_depresion': [int(request.POST.get('puntaje_ansiedad_depresion', 0))],
+        'vas_score': [int(request.POST.get('vasScore', 0))]
+    }
     
-    datos = {}
-    for campo in campos_lista:
-        datos[campo] = request.POST.getlist(campo)
-    
-    for campo in campos_puntajes:
-        datos[campo] = request.POST.getlist(campo, None)
-    
-    CuestionarioEQ_5D.objects.create(
+    # Create the questionnaire
+    cuestionario = CuestionarioEQ_5D.objects.create(
         paciente=paciente,
         clinico=clinico,
-        movilidad=datos['movilidad'],
-        cuidado_personal=datos['cuidadoPersonal'],
-        actividades_cotidianas=datos['actividadesCotidianas'],
-        dolor_malestar=datos['dolorMalestar'],
-        ansiedad_depresion=datos['ansiedadDepresion'],
-        puntaje_movilidad=datos['puntaje_movilidad'],
-        puntaje_cuidado_personal=datos['puntaje_cuidado_personal'],
-        puntaje_actividades_cotidianas=datos['puntaje_actividades_cotidianas'],
-        puntaje_dolor_malestar=datos['puntaje_dolor_malestar'],
-        puntaje_ansiedad_depresion=datos['puntaje_ansiedad_depresion'],
-        vas_score=datos['vasScore']
+        **datos
     )
+    return cuestionario
 
 
 def _obtener_puntajes_eq5d(paciente):
     """Obtiene los puntajes formateados para EQ-5D"""
-    historial_evaluaciones = CuestionarioEQ_5D.objects.filter(paciente=paciente)
-    
-    if not historial_evaluaciones.exists():
+    try:
+        evaluacion = CuestionarioEQ_5D.objects.get(paciente=paciente)
+    except CuestionarioEQ_5D.DoesNotExist:
         return []
     
     puntajes_por_sesion = []
-    max_length = max((len(evaluacion.vas_score) for evaluacion in historial_evaluaciones), default=0)
     
+    # Get the maximum length of any score list
+    max_length = max(
+        len(evaluacion.vas_score or []),
+        len(evaluacion.puntaje_movilidad or []),
+        len(evaluacion.puntaje_cuidado_personal or []),
+        len(evaluacion.puntaje_actividades_cotidianas or []),
+        len(evaluacion.puntaje_dolor_malestar or []),
+        len(evaluacion.puntaje_ansiedad_depresion or [])
+    )
+    
+    if max_length == 0:
+        return []
+    
+    # For each session
     for i in range(max_length):
-        for evaluacion in historial_evaluaciones:
-            if i < len(evaluacion.vas_score):
-                puntajes_por_sesion.append({
-                    'sesion': f'{len(puntajes_por_sesion) // len(historial_evaluaciones) + 1}',
-                    'vas_score': evaluacion.vas_score[i],
-                    'movilidad': evaluacion.puntaje_movilidad[i],
-                    'cuidado_personal': evaluacion.puntaje_cuidado_personal[i],
-                    'actividades_cotidianas': evaluacion.puntaje_actividades_cotidianas[i],
-                    'dolor_malestar': evaluacion.puntaje_dolor_malestar[i],
-                    'ansiedad_depresion': evaluacion.puntaje_ansiedad_depresion[i]
-                })
+        try:
+            puntaje = {
+                'sesion': i + 1,
+                'fecha': f"Sesión {i + 1}",
+                'vas_score': evaluacion.vas_score[i] if evaluacion.vas_score and i < len(evaluacion.vas_score) else None,
+                'movilidad': evaluacion.puntaje_movilidad[i] if evaluacion.puntaje_movilidad and i < len(evaluacion.puntaje_movilidad) else None,
+                'cuidado_personal': evaluacion.puntaje_cuidado_personal[i] if evaluacion.puntaje_cuidado_personal and i < len(evaluacion.puntaje_cuidado_personal) else None,
+                'actividades_cotidianas': evaluacion.puntaje_actividades_cotidianas[i] if evaluacion.puntaje_actividades_cotidianas and i < len(evaluacion.puntaje_actividades_cotidianas) else None,
+                'dolor_malestar': evaluacion.puntaje_dolor_malestar[i] if evaluacion.puntaje_dolor_malestar and i < len(evaluacion.puntaje_dolor_malestar) else None,
+                'ansiedad_depresion': evaluacion.puntaje_ansiedad_depresion[i] if evaluacion.puntaje_ansiedad_depresion and i < len(evaluacion.puntaje_ansiedad_depresion) else None
+            }
+            puntajes_por_sesion.append(puntaje)
+        except (IndexError, TypeError) as e:
+            print(f"Error al procesar los datos de la evaluación: {e}")
+            continue
     
     return puntajes_por_sesion
 
