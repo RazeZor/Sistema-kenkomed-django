@@ -1,19 +1,16 @@
 from datetime import datetime, timedelta
+import re
 from django.shortcuts import render, redirect
 from Login.models import formularioClinico, Clinico, Paciente, tiempo
 from django.contrib import messages
 import json
 
 
-# --------------------------
-# Funciones auxiliares en español
-# --------------------------
-
 
 def obtener_clinico_desde_sesion(request):
     """Obtiene el objeto Clinico desde la sesión.
     Retorna (clinico, es_admin) o (None, False) si hay un problema.
-    Agrega mensajes y no hace redirect aquí (lo hace la view).
+    Agrega mensajes y no hace redirect aqui (lo hace la view).
     """
     if 'nombre_clinico' not in request.session:
         return (None, False)
@@ -57,26 +54,132 @@ def parsear_fecha_campo(fecha_str, campo_nombre, request):
         return None
 
 
+def validar_rut(rut):
+    """Valida un RUT chileno con o sin puntos y con guion."""
+    # Eliminar puntos y guiones, y convertir a mayúsculas
+    rut = str(rut).replace('.', '').replace('-', '').upper()
+    
+    # Verificar longitud mínima
+    if len(rut) < 2:
+        return False
+    
+    # Separar números y dígito verificador
+    cuerpo = rut[:-1]
+    dv = rut[-1]
+    
+    # Validar que el cuerpo sean solo dígitos
+    if not cuerpo.isdigit():
+        return False
+    
+    # Validar dígito verificador
+    suma = 0
+    multiplo = 2
+    
+    # Calcular dígito verificador esperado
+    for c in reversed(cuerpo):
+        suma += int(c) * multiplo
+        multiplo += 1
+        if multiplo == 8:
+            multiplo = 2
+    
+    resto = suma % 11
+    dv_esperado = str(11 - resto)
+    
+    # Casos especiales
+    if dv_esperado == '11':
+        dv_esperado = '0'
+    elif dv_esperado == '10':
+        dv_esperado = 'K'
+    
+    return dv == dv_esperado
+
+def validar_telefono(telefono):
+    """Valida que el teléfono tenga el formato correcto."""
+    if not telefono:
+        return False
+        
+    # Eliminar espacios, paréntesis y guiones
+    telefono_limpio = re.sub(r'[\s()+-]', '', str(telefono))
+    
+    # Validar que solo contenga dígitos
+    if not telefono_limpio.isdigit():
+        return False
+    
+    # Validar longitud (mínimo 8 dígitos, máximo 12 para incluir códigos de país)
+    if len(telefono_limpio) < 8 or len(telefono_limpio) > 12:
+        return False
+    
+    return True
+
 def validar_campos_obligatorios(datos):
-    """Recibe un dict con valores y devuelve una lista de errores por campos vacíos."""
+    """Recibe un dict con valores y devuelve una lista de errores por campos vacíos o inválidos."""
     errores = []
-    required = [
-        ('rut', 'El campo RUT es obligatorio'),
-        ('nombre', 'El campo nombre es obligatorio'),
-        ('apellido', 'El campo apellido es obligatorio'),
-        ('fechaNacimiento', 'El campo fecha de nacimiento es obligatorio.'),
-        ('genero', 'El campo género es obligatorio.'),
-        ('contacto', 'El campo contacto es obligatorio.'),
-        ('cobertura_de_salud', 'El campo cobertura de salud es obligatorio.'),
-        ('trabajo', 'El campo trabajo es obligatorio.'),
-        ('profesion', 'El campo profesión es obligatorio.'),
-        ('LicenciaInicio', 'El campo fecha de inicio de licencia es obligatorio.'),
-        ('LicenciaFin', 'El campo fecha de fin de licencia es obligatorio.'),
-        ('LicenciaDias', 'El campo dias de licencia es obligatorio.'),
-    ]
-    for campo, mensaje in required:
-        if not datos.get(campo):
-            errores.append(mensaje)
+    
+    # Validar RUT
+    rut = datos.get('rut', '')
+    if not rut:
+        errores.append('El campo RUT es obligatorio')
+    elif not validar_rut(rut):
+        errores.append('El RUT ingresado no es válido')
+    elif Paciente.objects.filter(rut=rut).exists():
+        errores.append('El RUT ya existe en el sistema')
+    
+    # Validar nombre y apellido
+    nombre = datos.get('nombre', '').strip()
+    if not nombre:
+        errores.append('El campo nombre es obligatorio')
+    elif not nombre.replace(' ', '').isalpha():
+        errores.append('El nombre solo puede contener letras y espacios')
+    
+    apellido = datos.get('apellido', '').strip()
+    if not apellido:
+        errores.append('El campo apellido es obligatorio')
+    elif not apellido.replace(' ', '').isalpha():
+        errores.append('El apellido solo puede contener letras y espacios')
+    
+    # Validar fecha de nacimiento
+    if not datos.get('fechaNacimiento'):
+        errores.append('El campo fecha de nacimiento es obligatorio')
+    
+    # Validar género
+    if not datos.get('genero'):
+        errores.append('El campo género es obligatorio')
+    
+    # Validar contacto
+    contacto = datos.get('contacto', '')
+    if not contacto:
+        errores.append('El campo contacto es obligatorio')
+    elif not validar_telefono(contacto):
+        errores.append('El número de teléfono no es válido. Debe contener entre 8 y 12 dígitos')
+    
+    # Validar cobertura de salud
+    if not datos.get('cobertura_de_salud'):
+        errores.append('El campo cobertura de salud es obligatorio')
+    
+    # Validar trabajo
+    trabajo = datos.get('trabajo', '').strip()
+    if not trabajo:
+        errores.append('El campo trabajo es obligatorio')
+    
+    # Validar profesión
+    profesion = datos.get('profesion', '').strip()
+    if not profesion:
+        errores.append('El campo profesión es obligatorio')
+    
+    # Validar fechas de licencia
+    if not datos.get('LicenciaInicio'):
+        errores.append('El campo fecha de inicio de licencia es obligatorio')
+    
+    if not datos.get('LicenciaFin'):
+        errores.append('El campo fecha de fin de licencia es obligatorio')
+    
+    # Validar días de licencia
+    dias_licencia = datos.get('LicenciaDias', '')
+    if not dias_licencia:
+        errores.append('El campo días de licencia es obligatorio')
+    elif not str(dias_licencia).isdigit() or int(dias_licencia) <= 0:
+        errores.append('Los días de licencia deben ser un número entero positivo')
+    
     return errores
 
 
@@ -176,87 +279,97 @@ def construir_formulario_desde_post(request, paciente, clinico, tiempo_obj):
 # --------------------------
 # Vista principal
 def FormularioInicial(request):
-    # Verificar si el usuario tiene sesión activa como clínico
-    if 'nombre_clinico' not in request.session:
-        return redirect('login')
 
-    nombre_clinico = request.session['nombre_clinico']
-    clinico, es_admin = obtener_clinico_desde_sesion(request)
-    if not clinico and not es_admin:
-        return redirect('login')
+    try:
+        # Verificar si el usuario tiene sesión activa como clínico
+        if 'nombre_clinico' not in request.session:
+            return redirect('login')
 
-    if request.method == 'POST':
-        # Parsear duración de sesión y crear registro tiempo
-        duracion_sesion_str = request.POST.get('duracion_sesion')
-        nuevo_tiempo = parsear_duracion_sesion(duracion_sesion_str)
-        if duracion_sesion_str and not nuevo_tiempo:
-            messages.error(request, 'Formato de duración de sesión inválido.')
+        nombre_clinico = request.session['nombre_clinico']
+        clinico, es_admin = obtener_clinico_desde_sesion(request)
+        if not clinico and not es_admin:
+            return redirect('login')
 
-        rut = request.POST.get('rut')
-        nombre = request.POST.get('nombre')
-        apellido = request.POST.get('apellido')
-        fechaNacimiento_raw = request.POST.get('fechaNac')
-        genero = request.POST.get('genero')
-        contacto = request.POST.get('contact')
-        trabajo = request.POST.get('trabajo')
-        profesion = request.POST.get('profesion')
-        cobertura_de_salud = request.POST.get('cobertura')
-        LicenciaInicio_raw = request.POST.get('fecha_inicio')
-        LicenciaFin_raw = request.POST.get('fecha_fin')
-        LicenciaDias = request.POST.get('dias_licencia')
+        try:
+            pass
+        except Exception as e:
+            return redirect('login')
+        if request.method == 'POST':
+            # Parsear duración de sesión y crear registro tiempo
+            duracion_sesion_str = request.POST.get('duracion_sesion')
+            nuevo_tiempo = parsear_duracion_sesion(duracion_sesion_str)
+            if duracion_sesion_str and not nuevo_tiempo:
+                messages.error(request, 'Formato de duración de sesión inválido.')
 
-        # Parseo de fechas con mensajes en caso de error
-        fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
-        if fechaNacimiento is None:
-            return render(request, 'FormularioInicial.html')
+            rut = request.POST.get('rut')
+            nombre = request.POST.get('nombre')
+            apellido = request.POST.get('apellido')
+            fechaNacimiento_raw = request.POST.get('fechaNac')
+            genero = request.POST.get('genero')
+            contacto = request.POST.get('contact')
+            trabajo = request.POST.get('trabajo')
+            profesion = request.POST.get('profesion')
+            cobertura_de_salud = request.POST.get('cobertura')
+            LicenciaInicio_raw = request.POST.get('fecha_inicio')
+            LicenciaFin_raw = request.POST.get('fecha_fin')
+            LicenciaDias = request.POST.get('dias_licencia')
 
-        LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request)
-        if LicenciaInicio is None:
-            return render(request, 'FormularioInicial.html')
+            # Parseo de fechas con mensajes en caso de error
+            fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
+            if fechaNacimiento is None:
+                return render(request, 'FormularioInicial.html')
 
-        datos_para_validar = {
-            'rut': rut,
-            'nombre': nombre,
-            'apellido': apellido,
-            'fechaNacimiento': fechaNacimiento,
-            'genero': genero,
-            'contacto': contacto,
-            'cobertura_de_salud': cobertura_de_salud,
-            'trabajo': trabajo,
-            'profesion': profesion,
-            'LicenciaInicio': LicenciaInicio,
-            'LicenciaFin': LicenciaFin_raw,
-            'LicenciaDias': LicenciaDias,
-        }
+            LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request)
+            if LicenciaInicio is None:
+                return render(request, 'FormularioInicial.html')
 
-        errores = validar_campos_obligatorios(datos_para_validar)
-        if errores:
-            for e in errores:
-                messages.error(request, e)
-            return render(request, 'FormularioInicial.html')
+            datos_para_validar = {
+                'rut': rut,
+                'nombre': nombre,
+                'apellido': apellido,
+                'fechaNacimiento': fechaNacimiento,
+                'genero': genero,
+                'contacto': contacto,
+                'cobertura_de_salud': cobertura_de_salud,
+                'trabajo': trabajo,
+                'profesion': profesion,
+                'LicenciaInicio': LicenciaInicio,
+                'LicenciaFin': LicenciaFin_raw,
+                'LicenciaDias': LicenciaDias,
+            }
 
-        # Crear/actualizar paciente
-        defaults = {
-            'nombre': nombre,
-            'apellido': apellido,
-            'fechaNacimiento': fechaNacimiento,
-            'genero': genero,
-            'contacto': contacto,
-            'cobertura_de_salud': cobertura_de_salud,
-            'trabajo': trabajo,
-            'profesion': profesion,
-            'LicenciaInicio': LicenciaInicio,
-            'LicenciaFin': LicenciaFin_raw,
-            'LicenciaDias': LicenciaDias,
-        }
+            errores = validar_campos_obligatorios(datos_para_validar)
+            if errores:
+                for e in errores:
+                    messages.error(request, e)
+                return render(request, 'FormularioInicial.html')
 
-        paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+            # Crear/actualizar paciente
+            defaults = {
+                'nombre': nombre,
+                'apellido': apellido,
+                'fechaNacimiento': fechaNacimiento,
+                'genero': genero,
+                'contacto': contacto,
+                'cobertura_de_salud': cobertura_de_salud,
+                'trabajo': trabajo,
+                'profesion': profesion,
+                'LicenciaInicio': LicenciaInicio,
+                'LicenciaFin': LicenciaFin_raw,
+                'LicenciaDias': LicenciaDias,
+            }
 
-        # Construir y guardar formulario Clínico con todos los campos
-        construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
-        
-        # Guardar mensaje en la sesión
-        request.session['show_success_message'] = 'Paciente guardado exitosamente.'
-        return redirect('panel')
+            paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
 
-    return render(request, 'FormularioInicial.html')
+            # Construir y guardar formulario Clínico con todos los campos
+            construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
+            
+            request.session['show_success_message'] = 'Paciente guardado exitosamente.'
+            return redirect('panel')
+
+        return render(request, 'FormularioInicial.html')
+
+    except Exception as e:
+        messages.error(request, f'Ocurrió un error inesperado: intenta Nuevamente')
+        return render(request, 'FormularioInicial.html')
+    
