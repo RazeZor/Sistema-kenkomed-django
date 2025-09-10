@@ -202,6 +202,8 @@ class CuestionarioEQ_5D(models.Model):
     
 
 class CuestionarioBarthel(models.Model):
+
+    #estos son enum Para que solo se pueda seleccionar una opcion con este tipo de informacion
     OPCIONES_COMER = [
         (10, "Totalmente independiente"),
         (5, "Necesita ayuda para cortar carne, pan, etc."),
