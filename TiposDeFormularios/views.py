@@ -184,7 +184,21 @@ def _procesar_psfs_post(request, paciente, cuestionario):
         messages.error(request, error_msg)
         return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
     
-    # Obtener puntajes
+    # Manejar la acción de guardar nota (tanto para 'GuardarNota' como para cuando solo se envía 'notes')
+    if action == 'GuardarNota' or 'notes' in request.POST:
+        notaPSFS = request.POST.get('notes', '').strip()
+        if not notaPSFS and 'nota_adicional' in request.POST:
+            notaPSFS = request.POST.get('nota_adicional', '').strip()
+            
+        if not notaPSFS:
+            messages.error(request, "No se proporcionó ninguna nota para guardar.")
+        elif _actualizar_nota_psfs(paciente, notaPSFS):
+            messages.success(request, "Nota guardada correctamente.")
+        else:
+            messages.error(request, "Error al guardar la nota. Asegúrese de que el cuestionario existe.")
+        return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
+    
+    # Obtener puntajes solo si no es una acción de guardar nota
     puntajes = {
         'actividad_1': request.POST.getlist('rango1'),
         'actividad_2': request.POST.getlist('rango2'),
@@ -193,7 +207,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
     }
     
     print(f"Puntajes recibidos: {puntajes}")
-    notaPSFS = request.POST.get('notes')
+    notaPSFS = request.POST.get('nota_adicional', '')
     
     try:
         if action == 'guardar':
@@ -208,7 +222,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
                 puntaje_actividad_2=json.dumps(puntajes['actividad_2']),
                 puntaje_actividad_3=json.dumps(puntajes['actividad_3']),
                 puntajeTotal=json.dumps(puntajes['total']),
-                NotaCuestionarioPSFS=notaPSFS or ''
+                NotaCuestionarioPSFS=notaPSFS
             )
             messages.success(request, "Cuestionario guardado correctamente.")
             
@@ -227,7 +241,8 @@ def _procesar_psfs_post(request, paciente, cuestionario):
                 
             _actualizar_puntajes_psfs(cuestionario, puntajes)
             
-            if notaPSFS is not None:
+            # Actualizar la nota si se proporcionó
+            if 'nota_adicional' in request.POST:
                 cuestionario.NotaCuestionarioPSFS = notaPSFS
                 
             cuestionario.save()
@@ -309,8 +324,6 @@ def _actualizar_nota_psfs(paciente, nota):
     except Exception as e:
         print(f"Error al actualizar la nota PSFS: {e}")
         return False
-    cuestionario.NotaCuestionarioPSFS = nota
-    cuestionario.save()
 
 
 def RenderizarEQ_5D(request):
