@@ -5,8 +5,6 @@ from Login.models import formularioClinico, Clinico, Paciente, tiempo
 from django.contrib import messages
 import json
 
-
-
 def obtener_clinico_desde_sesion(request):
     """Obtiene el objeto Clinico desde la sesión.
     Retorna (clinico, es_admin) o (None, False) si hay un problema.
@@ -28,7 +26,6 @@ def obtener_clinico_desde_sesion(request):
         messages.error(request, 'el clinico no esta en el sistema, intenta nuevamente...')
         return (None, es_admin)
 
-
 def parsear_duracion_sesion(duracion_str):
     """Convierte una cadena HH:MM:SS a un objeto tiempo 'tiempo' del modelo.
     Retorna la instancia guardada o None si el formato es inválido.
@@ -44,7 +41,6 @@ def parsear_duracion_sesion(duracion_str):
     except Exception:
         return None
 
-
 def parsear_fecha_campo(fecha_str, campo_nombre, request):
     """Parsea una fecha en formato YYYY-MM-DD. Si falla, agrega mensaje y retorna None."""
     try:
@@ -52,7 +48,6 @@ def parsear_fecha_campo(fecha_str, campo_nombre, request):
     except Exception:
         messages.error(request, f'El campo {campo_nombre} debe tener formato YYYY-MM-DD')
         return None
-
 
 def validar_rut(rut):
     """Valida un RUT chileno con o sin puntos y con guion."""
@@ -182,7 +177,6 @@ def validar_campos_obligatorios(datos):
     
     return errores
 
-
 def crear_o_actualizar_paciente(rut, defaults, clinico=None):
     """Crea o actualiza el paciente. Si se crea, asigna el clínico (si existe el campo)."""
     paciente, created = Paciente.objects.update_or_create(rut=rut, defaults=defaults)
@@ -275,7 +269,6 @@ def construir_formulario_desde_post(request, paciente, clinico, tiempo_obj):
     form.save()
     return form
 
-
 # --------------------------
 # Vista principal
 def FormularioInicial(request):
@@ -290,10 +283,7 @@ def FormularioInicial(request):
         if not clinico and not es_admin:
             return redirect('login')
 
-        try:
-            pass
-        except Exception as e:
-            return redirect('login')
+
         if request.method == 'POST':
             # Parsear duración de sesión y crear registro tiempo
             duracion_sesion_str = request.POST.get('duracion_sesion')

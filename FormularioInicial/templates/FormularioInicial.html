@@ -11,6 +11,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{% static 'formulario.js' %}"></script>
+    
+    <script src="{% static 'js/utils.js' %}"></script>
 </head>
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg fixed-top">
@@ -45,8 +47,8 @@
                 <div class="row">
                     <div class="col-md-6 form-group">
                         <label class="form-label">Rut</label>
-                        <input type="text" class="form-control" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" required/>
-                        <div id="mensaje-error" style="color: red; display: none;">Error en el formato. Por favor, ingrese un RUT válido.</div>
+                        <input type="text" class="form-control rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
+                        <div id="mensaje-error" style="color: red; display: none;">RUT inválido</div>
                     </div>
             
                     <div class="col-md-6 form-group">
@@ -261,7 +263,7 @@
                             </center>
                         </div>
                             <div class="col-md-6">
-                                <table class="tabla-dolor table table-bordered mt-3">
+                                <table class="table mt-3 tabla-dolor table-bordered">
                                     <thead>
                                         <tr>
                                             <th class="columna-header">Parte del Cuerpo</th>
@@ -333,7 +335,7 @@
                         <label class="btn btn-outline-primary" for="diagnosis3">No lo sé</label>
                     </div>
                 </div>
-                <div class="form-group mt-4">
+                <div class="mt-4 form-group">
                     <label class="form-label"><strong>¿Piensa usted que hay cura para su dolor?</strong></label>
                     <div class="btn-group w-100">
                         <input type="radio" class="btn-check" name="cure" id="cure1" autocomplete="off" value="si"/>
@@ -1201,51 +1203,38 @@
 * Formatea un RUT chileno con puntos y guión
 * @param {string} rut - RUT sin formato o parcialmente formateado
 * @return {string} RUT formateado
-*/
-function formatearRut(rut) {
-// Eliminar caracteres no numéricos ni el guion
-rut = rut.replace(/[^\dKk-]/g, "")
-
-// Formatear con puntos y guion: 12.345.678-9 o 7.654.678-5
-if (rut.length >= 7) {
-rut = rut.replace(/^(\d{1,2})(\d{3})(\d{3})([\dkK])$/, "$1.$2.$3-$4")
-rut = rut.replace(/^(\d{1})(\d{3})(\d{3})([\dkK])$/, "$1.$2.$3-$4")
-rut = rut.replace(/^(\d{7})([\dkK])$/, "$1-$2") // Para 7 dígitos
-}
-return rut
-}
-
+*
 /**
 * Valida un RUT chileno verificando su dígito verificador
 * @param {string} rut - RUT a validar
 * @return {boolean} true si el RUT es válido, false en caso contrario
 */
-function validarRut(rut) {
-var rutLimpio = rut.replace(/[^\dKk]/g, "") // Eliminar caracteres no numéricos ni K/k
+// function validarRut(rut) {
+// var rutLimpio = rut.replace(/[^\dKk]/g, "") // Eliminar caracteres no numéricos ni K/k
 
-// Validar longitud: debe ser entre 7 y 9 dígitos sin contar el guion
-if (rutLimpio.length < 7 || rutLimpio.length > 9) {
-return false // El RUT no tiene la longitud correcta
-}
+// // Validar longitud: debe ser entre 7 y 9 dígitos sin contar el guion
+// if (rutLimpio.length < 7 || rutLimpio.length > 9) {
+// return false // El RUT no tiene la longitud correcta
+// }
 
-var dv = rutLimpio.charAt(rutLimpio.length - 1).toUpperCase() // Último carácter es el DV
-var cuerpo = rutLimpio.slice(0, -1) // El resto es el número del RUT
-var suma = 0
-var multiplo = 2
+// var dv = rutLimpio.charAt(rutLimpio.length - 1).toUpperCase() // Último carácter es el DV
+// var cuerpo = rutLimpio.slice(0, -1) // El resto es el número del RUT
+// var suma = 0
+// var multiplo = 2
 
-// Algoritmo para calcular dígito verificador
-for (var i = cuerpo.length - 1; i >= 0; i--) {
-suma += cuerpo.charAt(i) * multiplo
-multiplo = multiplo === 7 ? 2 : multiplo + 1
-}
+// // Algoritmo para calcular dígito verificador
+// for (var i = cuerpo.length - 1; i >= 0; i--) {
+// suma += cuerpo.charAt(i) * multiplo
+// multiplo = multiplo === 7 ? 2 : multiplo + 1
+// }
 
-var resto = suma % 11
-var dvCalculado = 11 - resto
-if (dvCalculado === 11) dvCalculado = 0
-if (dvCalculado === 10) dvCalculado = "K"
+// var resto = suma % 11
+// var dvCalculado = 11 - resto
+// if (dvCalculado === 11) dvCalculado = 0
+// if (dvCalculado === 10) dvCalculado = "K"
 
-return dv === dvCalculado || dv === dvCalculado.toString()
-}
+// return dv === dvCalculado || dv === dvCalculado.toString()
+// }
 
 /**
 * Maneja el evento de entrada de texto en el campo RUT
@@ -1865,8 +1854,30 @@ inicializarCamposCondicionales()
 }
 
 // Inicializar todo cuando el DOM esté completamente cargado
-document.addEventListener("DOMContentLoaded", inicializarFormulario)
+document.addEventListener("DOMContentLoaded", inicializarFormulario);
 
+// Inicializar utilidades globales manualmente por seguridad
+$(document).ready(function() {
+    if (typeof initializeKenkomedUtils === 'function') {
+        initializeKenkomedUtils();
+    }
+    
+    // Configurar RUT para formato solo al salir del campo (onBlur)
+    if (typeof configurarRUT === 'function') {
+        configurarRUT({
+            formatoTiempoReal: true,        // No formatear mientras escribe
+            validacionTiempoReal: true,     // No validar mientras escribe
+            mostrarErrores: true             // Mostrar errores al salir del campo
+        });
+    }
+    
+    // También inicializar después de un pequeño delay para asegurar que todo esté cargado
+    setTimeout(function() {
+        if (typeof inicializarFormatoRUT === 'function') {
+            inicializarFormatoRUT();
+        }
+    }, 100);
+});
 
 </script>
 
