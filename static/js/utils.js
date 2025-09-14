@@ -147,7 +147,7 @@ function limpiarFormatoRUT(input) {
  */
 const RUT_CONFIG = {
     formatoTiempoReal: true,        // Si formatea mientras el usuario escribe
-    validacionTiempoReal: false     // Si valida mientras el usuario escribe
+    validacionTiempoReal: true      // Si valida mientras el usuario escribe
 };
 
 /**
@@ -220,24 +220,20 @@ function validarRutVisualmente(input) {
     if (rutLimpio.length > 1 && !validarRUT(rutLimpio)) {
         // RUT inválido: aplicar estilos de error
         input.classList.add('border-red-500', 'is-invalid');
-        input.style.backgroundImage = 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 12 12\' width=\'12\' height=\'12\' fill=\'none\' stroke=\'%23dc3545\'%3e%3ccircle cx=\'6\' cy=\'6\' r=\'4.5\'/%3e%3cpath stroke-linejoin=\'round\' d=\'M5.8 3.6h.4L6 6.5z\'/%3e%3ccircle cx=\'6\' cy=\'8.2\' r=\'.6\' fill=\'%23dc3545\' stroke=\'none\'/%3e%3c/svg%3e")';
-        input.style.backgroundRepeat = 'no-repeat';
-        input.style.backgroundPosition = 'right calc(.375em + .1875rem) center';
-        input.style.backgroundSize = 'calc(.75em + .375rem) calc(.75em + .375rem)';
-        input.classList.remove('border-gray-300', 'is-valid');
+        input.classList.remove('border-green-500', 'border-gray-300', 'is-valid');
+        // Los estilos de background se aplicarán por CSS
     } else if (rutLimpio.length > 1) {
         // RUT válido: aplicar estilos de éxito
         input.classList.remove('border-red-500', 'is-invalid');
-        input.classList.add('border-gray-300', 'is-valid');
-        input.style.backgroundImage = 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 8 8\'%3e%3cpath fill=\'%23198754\' d=\'M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z\'/%3e%3c/svg%3e")';
-        input.style.backgroundRepeat = 'no-repeat';
-        input.style.backgroundPosition = 'right calc(.375em + .1875rem) center';
-        input.style.backgroundSize = 'calc(.75em + .375rem) calc(.75em + .375rem)';
+        input.classList.add('border-green-500', 'is-valid');
+        input.classList.remove('border-gray-300');
+        // Los estilos de background se aplicarán por CSS
     } else {
         // RUT muy corto: limpiar estilos
-        input.classList.remove('border-red-500', 'is-invalid', 'is-valid');
+        input.classList.remove('border-red-500', 'border-green-500', 'is-invalid', 'is-valid');
         input.classList.add('border-gray-300');
-        input.style.backgroundImage = 'none';
+        // Limpiar background inline que podría interferir
+        input.style.backgroundImage = '';
     }
 }
 

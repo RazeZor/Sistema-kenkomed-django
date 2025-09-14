@@ -16,6 +16,10 @@
     
     <!-- CSS personalizado -->
     <link rel="stylesheet" href="{% static 'css/historial.css' %}">
+    <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
+    
+    <!-- JavaScript utilities -->
+    <script src="{% static 'js/utils.js' %}"></script>
 </head>
 
 <body>
@@ -43,7 +47,7 @@
                             <div class="form-group">
                                 <label for="rutsito">Buscar paciente por RUT</label>
                                 <div class="input-group">
-                                    <input type="text" id="rutsito" name="rutsito" placeholder="Ej: 12345678-9" required>
+                                    <input type="text" id="rutsito" name="rutsito" class="rut-input" maxlength="12" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required>
                                     <button type="submit" class="search-button">
                                         <i class="fas fa-search"></i>
                                     </button>
@@ -322,6 +326,11 @@
             const formularioSelect = document.getElementById('formulario');
             if (formularioSelect.value) {
                 formularioSelect.dispatchEvent(new Event('change'));
+            }
+            
+            // Asegurar que el formateo de RUT esté funcionando
+            if (typeof initializeKenkomedUtils === 'function') {
+                initializeKenkomedUtils();
             }
         });
     </script>

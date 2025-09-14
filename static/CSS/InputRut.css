@@ -4,38 +4,62 @@
     padding: 12px 16px;
     border: 2px solid #d1d5db;
     border-radius: 0.5rem;
-    background-color: #f9fafb;
+    background-color: #f9fafb !important;
     transition: all 0.2s ease-in-out;
-    background-image: none;
+    background-image: none !important;
+    background-repeat: no-repeat !important;
+    background-position: right calc(.375em + .1875rem) center !important;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem) !important;
 }
 
 .rut-input:focus {
     outline: none;
     border-color: #3b82f6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    background-color: white !important;
+}
+
+/* Estado por defecto - borde gris */
+.form-group .rut-input.border-gray-300,
+.input-group .rut-input.border-gray-300,
+.rut-input.border-gray-300 {
+    border-color: #d1d5db !important;
+    background-image: none !important;
 }
 
 /* Estilos de validación con mayor especificidad para sobrescribir otros CSS */
+.form-group .rut-input.border-red-500,
 .input-group .rut-input.border-red-500,
 .rut-input.border-red-500 {
     border-color: #ef4444 !important;
     border-width: 2px !important;
     border-style: solid !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e") !important;
 }
 
+.form-group .rut-input.border-green-500,
 .input-group .rut-input.border-green-500,
 .rut-input.border-green-500 {
     border-color: #10b981 !important;
     border-width: 2px !important;
     border-style: solid !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") !important;
 }
 
 /* Asegurar que el rut-input siempre tenga un border definido */
+.form-group .rut-input,
 .input-group .rut-input,
 .rut-input {
     border: 2px solid #d1d5db !important;
     transition: all 0.2s ease-in-out !important;
 }
+
+/* Estilos adicionales para sobrescribir CSS específico de AgregarClinico */
+.form-group .rut-input {
+    font-size: 16px !important;
+    padding: 12px 40px 12px 16px !important; /* Espacio extra a la derecha para el icono */
+}
+
 #mensaje-error {
     font-size: 0.875rem;
     margin-top: 0.25rem;
