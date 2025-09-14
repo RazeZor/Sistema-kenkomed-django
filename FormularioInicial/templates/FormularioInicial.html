@@ -11,7 +11,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script src="{% static 'formulario.js' %}"></script>
-    
+
+    <!-- JavaScript global del proyecto -->
+    <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
     <script src="{% static 'js/utils.js' %}"></script>
 </head>
 <body class="bg-light">
@@ -47,8 +49,7 @@
                 <div class="row">
                     <div class="col-md-6 form-group">
                         <label class="form-label">Rut</label>
-                        <input type="text" class="form-control rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
-                        <div id="mensaje-error" style="color: red; display: none;">RUT inválido</div>
+                        <input type="text" class=" rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
                     </div>
             
                     <div class="col-md-6 form-group">
@@ -1237,39 +1238,61 @@
 // }
 
 /**
-* Maneja el evento de entrada de texto en el campo RUT
+* Maneja el evento de entrada de texto en el campo RUT (usa funciones globales)
 */
 function manejarRut() {
-var rutInput = document.getElementById("rut")
-var rut = rutInput.value
-var mensajeError = document.getElementById("mensaje-error")
+    if (typeof manejarRutLegacy === 'function') {
+        manejarRutLegacy();
+    } else {
+        // Fallback si no están las funciones globales
+        var rutInput = document.getElementById("rut");
+        var rut = rutInput.value;
+        var mensajeError = document.getElementById("mensaje-error");
 
-// Validar el RUT
-if (validarRut(rut)) {
-// Si es válido, formateamos el RUT y ocultamos el mensaje de error
-rutInput.value = formatearRut(rut)
-mensajeError.style.display = "none" // Ocultar mensaje de error
-} else {
-// Si no es válido, mostramos el mensaje de error
-mensajeError.style.display = "block" // Mostrar mensaje de error
-}
+        // Validar el RUT usando función global
+        if (typeof validarRUT === 'function' && validarRUT(rut)) {
+            // Si es válido, formateamos el RUT y ocultamos el mensaje de error
+            if (typeof formatearRutString === 'function') {
+                rutInput.value = formatearRutString(rut);
+            }
+            mensajeError.style.display = "none";
+            rutInput.classList.remove('border-red-500');
+            rutInput.classList.add('border-green-500');
+        } else {
+            // Si no es válido, mostramos el mensaje de error
+            mensajeError.style.display = "block";
+            rutInput.classList.remove('border-green-500');
+            rutInput.classList.add('border-red-500');
+        }
+    }
 }
 
 /**
-* Maneja el evento de pérdida de foco en el campo RUT
+* Maneja el evento de pérdida de foco en el campo RUT (usa funciones globales)
 */
 function onBlurRut() {
-var rutInput = document.getElementById("rut")
-var rut = rutInput.value
-var mensajeError = document.getElementById("mensaje-error")
+    if (typeof onBlurRutLegacy === 'function') {
+        onBlurRutLegacy();
+    } else {
+        // Fallback si no están las funciones globales
+        var rutInput = document.getElementById("rut");
+        var rut = rutInput.value;
+        var mensajeError = document.getElementById("mensaje-error");
 
-rutInput.value = formatearRut(rut)
+        if (typeof formatearRutString === 'function') {
+            rutInput.value = formatearRutString(rut);
+        }
 
-if (validarRut(rut)) {
-mensajeError.style.display = "none"
-} else {
-mensajeError.style.display = "block"
-}
+        if (typeof validarRUT === 'function' && validarRUT(rut)) {
+            mensajeError.style.display = "none";
+            rutInput.classList.remove('border-red-500');
+            rutInput.classList.add('border-green-500');
+        } else {
+            mensajeError.style.display = "block";
+            rutInput.classList.remove('border-green-500');
+            rutInput.classList.add('border-red-500');
+        }
+    }
 }
 
 /**

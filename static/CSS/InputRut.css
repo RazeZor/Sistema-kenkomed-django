@@ -1,0 +1,42 @@
+/* Estilos para validación de RUT */
+.rut-input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #d1d5db;
+    border-radius: 0.5rem;
+    background-color: #f9fafb;
+    transition: all 0.2s ease-in-out;
+    background-image: none;
+}
+
+.rut-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Estilos de validación con mayor especificidad para sobrescribir otros CSS */
+.input-group .rut-input.border-red-500,
+.rut-input.border-red-500 {
+    border-color: #ef4444 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+}
+
+.input-group .rut-input.border-green-500,
+.rut-input.border-green-500 {
+    border-color: #10b981 !important;
+    border-width: 2px !important;
+    border-style: solid !important;
+}
+
+/* Asegurar que el rut-input siempre tenga un border definido */
+.input-group .rut-input,
+.rut-input {
+    border: 2px solid #d1d5db !important;
+    transition: all 0.2s ease-in-out !important;
+}
+#mensaje-error {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
