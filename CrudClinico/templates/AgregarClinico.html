@@ -7,6 +7,10 @@
     <title>Formulario de Registro Clínico</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/AgregarClinico.css' %}" />
+
+        <!-- JavaScript global del proyecto -->
+    <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
+    <script src="{% static 'js/utils.js' %}"></script>
 </head>
 <body>
     <header class="site-header">
@@ -49,7 +53,7 @@
                         <div class="form-grid">
                             <div class="form-group">
                                 <label for="rut">Rut</label>
-                                <input type="text" id="rut" name="rut" placeholder="12345678-9" required />
+                                <input type="text" class="rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
                             </div>
                             
                             <div class="form-group">
@@ -91,6 +95,11 @@
         mobileToggle.addEventListener('click', function() {
             navMenu.classList.toggle('active');
         });
+        
+        // Inicializar el formateo de RUT
+        if (typeof initializeKenkomedUtils === 'function') {
+            initializeKenkomedUtils();
+        }
     });
     </script>
 </body>

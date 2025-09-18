@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KenkoMed - Sistema de Kinesiología</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- JavaScript global del proyecto -->
+    <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
     <script src="{% static 'js/utils.js' %}"></script>
     <style>
         .bg-blur {
@@ -67,8 +69,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </span>
-                            <input type="text" id="rut" name="rut" required maxlength="12" class="block w-full px-4 py-3 border border-gray-300 rounded-lg rut-input bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="12.345.678-9" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required>
-                            <div class="hidden rut-error"></div>
+                            <input type="text" class="rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
                         </div>
                     </div>
                         
@@ -89,12 +90,6 @@
                                 </button>
                             </div>
                         </div>
-                        <script>
-                            // Inicializar toggle de contraseña usando función global
-                            document.addEventListener('DOMContentLoaded', function() {
-                                setupPasswordToggle('password', 'togglePassword');
-                            });
-                        </script>
                     </div>
                 </div>
                 
@@ -121,6 +116,32 @@
     </div>
 
     <script>
+        // =============================================================================
+        // INICIALIZACIÓN DEL FORMULARIO DE LOGIN
+        // =============================================================================
+
+        // Inicializar validación de RUT cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar validación de RUT usando funciones globales
+            if (typeof inicializarValidacionRutLegacy === 'function') {
+                inicializarValidacionRutLegacy('rut', 'mensaje-error');
+            }
+
+            // Configurar toggle de contraseña
+            if (typeof setupPasswordToggle === 'function') {
+                setupPasswordToggle('password', 'togglePassword');
+            }
+
+            // Configurar RUT usando utilidades globales si están disponibles
+            if (typeof configurarRUT === 'function') {
+                configurarRUT({
+                    formatoTiempoReal: true,        // Formatear mientras escribe
+                    validacionTiempoReal: true,     // Validar mientras escribe
+                    mostrarErrores: true            // Mostrar errores inmediatamente
+                });
+            }
+        });
+
         // Validación ligera y submit real del formulario
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             const rut = document.getElementById('rut').value.trim();
