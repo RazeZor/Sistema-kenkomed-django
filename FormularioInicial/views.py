@@ -297,12 +297,26 @@ def FormularioInicial(request):
             fechaNacimiento_raw = request.POST.get('fechaNac')
             genero = request.POST.get('genero')
             contacto = request.POST.get('contact')
+            contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             trabajo = request.POST.get('trabajo')
             profesion = request.POST.get('profesion')
             cobertura_de_salud = request.POST.get('cobertura')
             LicenciaInicio_raw = request.POST.get('fecha_inicio')
             LicenciaFin_raw = request.POST.get('fecha_fin')
             LicenciaDias = request.POST.get('dias_licencia')
+
+            # Mensaje de diagnóstico con resumen de datos recibidos
+            try:
+                resumen = (
+                    f"POST recibido: rut={rut}, nombre={nombre}, apellido={apellido}, "
+                    f"fechaNac={fechaNacimiento_raw}, genero={genero}, contacto={contacto}, "
+                    f"cobertura={cobertura_de_salud}, trabajo={trabajo}, profesion={profesion}, "
+                    f"lic_inicio={LicenciaInicio_raw}, lic_fin={LicenciaFin_raw}, dias={LicenciaDias}"
+                )
+                messages.info(request, resumen)
+            except Exception:
+                # No interrumpir si algún valor no es serializable
+                pass
 
             # Parseo de fechas con mensajes en caso de error
             fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
@@ -312,6 +326,8 @@ def FormularioInicial(request):
             LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request)
             if LicenciaInicio is None:
                 return render(request, 'FormularioInicial.html')
+
+            messages.info(request, 'Fechas parseadas correctamente.')
 
             datos_para_validar = {
                 'rut': rut,
@@ -349,10 +365,20 @@ def FormularioInicial(request):
                 'LicenciaDias': LicenciaDias,
             }
 
-            paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+            try:
+                paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+                messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
+            except Exception as e:
+                messages.error(request, f'Error al crear/actualizar paciente: {e}')
+                return render(request, 'FormularioInicial.html')
 
             # Construir y guardar formulario Clínico con todos los campos
-            construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
+            try:
+                construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
+                messages.info(request, 'Formulario clínico guardado correctamente.')
+            except Exception as e:
+                messages.error(request, f'Error al guardar formulario clínico: {e}')
+                return render(request, 'FormularioInicial.html')
             
             request.session['show_success_message'] = 'Paciente guardado exitosamente.'
             return redirect('panel')

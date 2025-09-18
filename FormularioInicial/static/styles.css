@@ -244,7 +244,7 @@ h3 {
   border-color: var(--color-primary);
 }
 
-.form-check-input:focus {
+.form-check-input:focus:not([type="radio"]) {
   box-shadow: var(--shadow-focus);
 }
 

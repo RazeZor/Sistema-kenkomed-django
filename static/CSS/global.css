@@ -1,0 +1,143 @@
+:root {
+    --color-primary: #115b9c;
+    --color-primary-50: #115b9c76;
+    --color-terceriary: #b1b1b156;
+}
+
+/* estilos para los inputs de tipo texto */
+    .obligado:has(input:not([type="radio"]):not(#rut):invalid) input:not([type="radio"]):not(#rut):invalid {
+        border: 2px solid lightpink !important;
+    }
+    .obligado:has(input:not([type="radio"]):not(#rut):valid) input:not([type="radio"]):not(#rut):valid {
+        border: 2px solid palegreen !important;
+    }
+    input[type="text"], input[type="date"] {
+        width: 95% !important;
+        padding: 12px 40px 12px 16px !important;
+        font-size: 16px !important;
+        border: 2px solid #d1d5db !important;
+        border-radius: 0.5rem !important;
+        background-color: #f9fafb !important;
+        transition: all 0.2s ease-in-out !important;
+        background-image: none !important;
+        background-repeat: none !important;
+        background-position: none !important;
+        background-size: none !important;
+    }
+
+    input[type="text"]:focus, input[type="date"]:focus {
+        outline: none !important;
+        border-color: var(--color-primary-50) !important;
+        box-shadow: 0 0 0 3px rgba(17, 91, 156, 0.1) !important;
+        background-color: white !important;
+    }
+
+/* estilos para los inputs de tipo radio */
+    input[type="radio"]{
+        appearance: none !important;
+        border: none !important;
+        width: 0px !important;
+        height: 0px !important;
+        transition: all 0.2s ease-in-out !important;
+    }
+    input[type="radio"]:focus, input[type="checkbox"]:focus {
+        box-shadow:none !important;
+    }
+
+    input[type="radio"]:checked + label,
+    label:has(input[type="radio"]:checked) {
+        border: none !important;
+        background-color: var(--color-primary) !important;
+        color: white !important;
+    }
+
+/* estilos para las labels que contienen los inputs de tipo radio */
+    .label {
+        display: inline-block !important;
+        padding: 5px 5px 5px 15px !important;
+        margin: 0px 0px 5px 0px   !important;
+        border: 1px solid var(--color-terceriary) !important;
+        border-radius: 0.5rem !important;
+        background-color: white !important;
+        cursor: pointer !important;
+        width: 100% !important;
+        position: relative !important; /* ancla para ::after del check animado */
+    }
+
+/* estilos para los checkbox */
+    input[type="checkbox"]:checked + label,
+    label:has(input[type="checkbox"]:checked) {
+        border: none !important;
+        background-color: var(--color-primary) !important;
+        color: white !important;
+    }
+    input[type="checkbox"] {
+        appearance: auto !important;
+        border: none !important;
+        width: 20px !important;
+        height: 20px !important;
+        transition: all 0.2s ease-in-out !important;
+        padding-right: 24px !important; /* espacio para el icono */
+    }
+    input[type="checkbox"]:checked{
+        border: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        appearance: none !important;
+        background-color: var(--color-primary) !important;
+        color: white !important;
+    }
+    /* Asegura anclaje del ::after en cualquier label que envuelva un checkbox */
+    label:has(input[type="checkbox"]) {
+        position: relative !important;
+    }
+/* check animado blanco para checkbox */
+    /* Dibuja la marca con bordes y la anima */
+    input[type="checkbox"] + label::after,
+    label:has(input[type="checkbox"])::after {
+        content: "" !important;
+        position: absolute !important;
+        left: 16px !important;
+        top: 50% !important;
+        width: 18px !important;
+        height: 10px !important;
+        border: 3px solid transparent !important;
+        border-left-color: white !important;
+        border-bottom-color: white !important;
+        transform: translateY(-60%) rotate(-45deg) scale(0) !important;
+        transform-origin: left top !important;
+        opacity: 0 !important;
+        transition: transform 0.2s ease, opacity 0.2s ease !important;
+        pointer-events: none !important;
+    }
+
+    /* Estado checked: muestra y anima el check */
+    input[type="checkbox"]:checked + label::after,
+    label:has(input[type="checkbox"]:checked)::after {
+        transform: translateY(-4%) rotate(-50deg) scale(1) !important;
+        opacity: 1 !important;
+    }
+/* estilos para los checkbox label en tablas */
+    .label-table input[type="checkbox"] {
+        appearance: none !important;
+        position: absolute !important;
+        opacity: 0 !important;
+        width: 0 !important;
+        height: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    .label-table {
+        cursor: pointer !important;
+        display: inline-block !important;
+        padding: 5px !important;
+        border-radius: 0.5rem !important;
+        transition: all 0.2s ease-in-out !important;
+        border: 1px solid var(--color-terceriary) !important;
+    }
+    
+    /* Remove the ::after pseudo-elements for table labels */
+    input[type="checkbox"] + .label-table::after,
+    .label-table:has(input[type="checkbox"])::after {
+        content: none !important;
+    }
