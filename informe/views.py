@@ -20,7 +20,14 @@ def RenderInforme(request):
         
         condicionesSalud1 = json.loads(formulario.TiposDeEnfermedades)
         MensajeCondicionesSalud = condicionesSalud(condicionesSalud1)
+
+        ResultadosSueño = ResultSueño(formulario.despertares,formulario.hora_acostarse,formulario.tiempo_dormirse,formulario.hora_despertar,formulario.hora_levantarse)
         
+        # hora_acostarse = models.TextField(null=True,blank=True)
+        #tiempo_dormirse = models.TextField(null=True,blank=True)
+        #hora_despertar = models.TextField(null=True,blank=True)
+        #hora_levantarse = models.TextField(null=True,blank=True)
+        #despertares = models.TextField(null=True,blank=True)
         mensajeEVPER = Respuesta_evitativo_persistente(json.loads(formulario.parametros))
         
         MensajeNicotina = "no tiene" if formulario.nicotinaPreocupacion is None else formulario.nicotinaPreocupacion
@@ -53,6 +60,7 @@ def RenderInforme(request):
             'mensajeAcoholP': mensajeAcoholP,
             'mensajeDrogasP': mensajeDrogasP,
             'mensajeMarihuanaP': mensajeMarihuanaP,
+            'ResultadosSueño': ResultadosSueño,
             'encontrado': True
         }
 
@@ -66,6 +74,68 @@ def RenderInforme(request):
 
 # funciones y algoritmo para las Respuesta de el informe 
 
+def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, hora_levantarse):
+    """
+    Recibe los 5 campos del formulario de sueño como strings.
+    Devuelve un bloque HTML con observaciones para el kinesiólogo.
+    """
+
+    try:
+        mensajes = []
+
+        # --- 1. Hora de acostarse ---
+        if hora_acostarse == "despues_0000":
+            mensajes.append("El paciente se acuesta después de medianoche, lo que puede afectar la calidad del sueño.")
+
+        # --- 2. Tiempo en dormirse ---
+        if tiempo_dormirse in ["30_60", "mas_60"]:
+            mensajes.append("El paciente tarda más de 30 minutos en dormirse, lo que puede indicar insomnio de conciliación.")
+
+        # --- 3. Hora de despertar ---
+        if hora_despertar == "antes_0500":
+            mensajes.append("El paciente se despierta antes de las 05:00 hrs, lo que podría reflejar sueño insuficiente.")
+
+        # --- 4. Tiempo en levantarse ---
+        if hora_levantarse in ["30_60", "mas_60"]:
+            mensajes.append("El paciente permanece mucho tiempo en cama después de despertar, lo que puede reflejar cansancio.")
+
+        # --- 5. Despertares nocturnos ---
+        if despertares == "2_3":
+            mensajes.append("El paciente se despierta 2-3 veces por noche, interrumpiendo el descanso.")
+        elif despertares == "mas_3":
+            mensajes.append("El paciente se despierta más de 3 veces por noche, indicando sueño muy fragmentado.")
+
+        # --- Resultado final ---
+        if not mensajes:
+            return (
+                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #c3e6cb;">'
+                '<label>El paciente no presenta dificultades relevantes para dormir.</label>'
+                '</div>'
+            )
+        else:
+            lista = "".join([f"<li>{m}</li>" for m in mensajes])
+            return (
+                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #ffeeba;">'
+                '<label><strong>Observaciones sobre el sueño:</strong></label>'
+                f'<ul>{lista}</ul>'
+                '</div>'
+            )
+
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al procesar el formulario de sueño: {str(e)}</label>'
+            '</div>'
+        )
+
+
+
+
+
+000
 
 def Neuropaticas(caracteristicasDolor):
     for caracteristicas in caracteristicasDolor:
