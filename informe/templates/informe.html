@@ -145,234 +145,237 @@
                 </div>
             </section>
 
-            <div class="section-divider"></div>
+            <div class="section-divider">
+                <!-- Evaluación del Dolor -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-pain mr-2 text-red-600'></i> 2. EVALUACIÓN DEL DOLOR
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        <div class="data-row">
+            <span class="data-label">Duración del Dolor:</span>
+            <span class="data-value">{{ formulario.duracionDolor|default:"No registrado" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Características:</span>
+            <span class="data-value">{{ formulario.caracteristicasDeDolor|default:"No registrado" }}</span>
+        </div>
+        <div class="col-span-full mt-4">
+            <span class="font-medium text-gray-700 block mb-2">Ubicación e Intensidad:</span>
+            <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                <div class="prose max-w-none text-gray-700">
+                    {{ ubicacion_intensidad|default:"No especificado" }}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <!-- Evaluación del Dolor -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-pain mr-2 text-red-600'></i> 2. EVALUACIÓN DEL DOLOR
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                    <div class="data-row">
-                        <span class="data-label">Duración del Dolor:</span>
-                        <span class="data-value">{{ formulario.duracionDolor }}</span>
+<div class="section-divider"></div>
+
+<!-- Condiciones de Salud -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-plus-medical mr-2 text-teal-600'></i> 3. CONDICIONES DE SALUD
+    </h2>
+    <div>
+        <span class="font-medium text-gray-700 block mb-2">Condiciones Presentes:</span>
+        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+            <div class="prose max-w-none text-gray-700">
+                {{ formulario.TiposDeEnfermedades|default:"No registradas" }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Medicación y Tratamiento -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-capsule mr-2 text-purple-600'></i> 4. MEDICACIÓN Y TRATAMIENTO
+    </h2>
+    <div>
+        <span class="font-medium text-gray-700 block mb-2">Medicamentos Utilizados:</span>
+        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+            <div class="prose max-w-none text-gray-700">
+                {{ formulario.medicamentos|default:"No registrados" }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider print-break"></div>
+
+<!-- Estado Emocional -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-happy-alt mr-2 text-yellow-600'></i> 5. ESTADO EMOCIONAL (Últimas 2 semanas)
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+        <div class="data-row">
+            <span class="data-label">Propósito de vida:</span>
+            <span class="data-value">{{ formulario.proposito|default:"No registrado" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Red de apoyo:</span>
+            <span class="data-value">{{ formulario.red_de_apoyo|default:"No registrada" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Interés en actividades:</span>
+            <span class="data-value">{{ formulario.placer_cosas|default:"No registrado" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Nivel de depresión:</span>
+            <span class="data-value">{{ formulario.deprimido|default:"No registrado" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Nivel de ansiedad:</span>
+            <span class="data-value">{{ formulario.ansioso|default:"No registrado" }}</span>
+        </div>
+        <div class="data-row">
+            <span class="data-label">Nivel de preocupación:</span>
+            <span class="data-value">{{ formulario.preocupacion|default:"No registrado" }}</span>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Hábitos y Estilo de Vida -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-run mr-2 text-blue-500'></i> 6. HÁBITOS Y ESTILO DE VIDA
+    </h2>
+    <!-- Actividad Física -->
+    <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
+        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Actividad Física</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div class="data-row">
+                <span class="data-label">Frecuencia ejercicio:</span>
+                <span class="data-value">{{ formulario.pregunta7_ejercicioDias|default:"No registrado" }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Duración ejercicio:</span>
+                <span class="data-value">{{ formulario.pregunta8_minutosPorEjercicios|default:"No registrado" }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Alimentación -->
+    <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
+        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Alimentación</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div class="data-row">
+                <span class="data-label">Comida rápida:</span>
+                <span class="data-value">{{ formulario.pregunta5_ConsumoComidaRapida|default:"No registrado" }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Consumo frutas:</span>
+                <span class="data-value">{{ formulario.pregunta6_PorcionesDeFrutas|default:"No registrado" }}</span>
+            </div>
+            <div class="data-row">
+                <span class="data-label">Percepción peso:</span>
+                <span class="data-value">{{ formulario.pregunta4_opinion_peso_actual|default:"No registrado" }}</span>
+            </div>
+        </div>
+    </div>
+    <!-- Consumo de Sustancias -->
+    <div class="p-4 bg-gray-50 rounded border border-gray-200">
+        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Consumo de Sustancias</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <div>
+                <span class="font-medium text-gray-700 block mb-2">Consumo Actual:</span>
+                <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
+                    <div class="flex justify-between">
+                        <span>Nicotina:</span>
+                        <span class="font-medium">{{ formulario.NicotinaSiOno|default:"No registrado" }}</span>
                     </div>
-                    <div class="data-row">
-                        <span class="data-label">Características:</span>
-                        <span class="data-value">{{ formulario.caracteristicasDeDolor }}</span>
+                    <div class="flex justify-between">
+                        <span>Alcohol:</span>
+                        <span class="font-medium">{{ formulario.AlcoholSiOno|default:"No registrado" }}</span>
                     </div>
-                    <div class="col-span-full mt-4">
-                        <span class="font-medium text-gray-700 block mb-2">Ubicación e Intensidad:</span>
-                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                            <div class="prose max-w-none text-gray-700">
-                                {{ ubicacion_intensidad|safe }}
-                            </div>
-                        </div>
+                    <div class="flex justify-between">
+                        <span>Drogas:</span>
+                        <span class="font-medium">{{ formulario.drogasSiOno|default:"No registrado" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Marihuana:</span>
+                        <span class="font-medium">{{ formulario.marihuanaSiOno|default:"No registrado" }}</span>
                     </div>
                 </div>
-            </section>
-
-            <div class="section-divider"></div>
-
-            <!-- Condiciones de Salud -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-plus-medical mr-2 text-teal-600'></i> 3. CONDICIONES DE SALUD
-                </h2>
-                <div>
-                    <span class="font-medium text-gray-700 block mb-2">Condiciones Presentes:</span>
-                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                        <div class="prose max-w-none text-gray-700">
-                            {{ formulario.TiposDeEnfermedades }}
-                        </div>
+            </div>
+            <div>
+                <span class="font-medium text-gray-700 block mb-2">Nivel de Preocupación:</span>
+                <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
+                    <div class="flex justify-between">
+                        <span>Nicotina:</span>
+                        <span class="font-medium">{{ MensajeNicotina|default:"No registrado" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Alcohol:</span>
+                        <span class="font-medium">{{ mensajeAcoholP|default:"No registrado" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Drogas:</span>
+                        <span class="font-medium">{{ mensajeDrogasP|default:"No registrado" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Marihuana:</span>
+                        <span class="font-medium">{{ mensajeMarihuanaP|default:"No registrado" }}</span>
                     </div>
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <div class="section-divider"></div>
+<div class="section-divider"></div>
 
-            <!-- Medicación y Tratamiento -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-capsule mr-2 text-purple-600'></i> 4. MEDICACIÓN Y TRATAMIENTO
-                </h2>
-                <div>
-                    <span class="font-medium text-gray-700 block mb-2">Medicamentos Utilizados:</span>
-                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                        <div class="prose max-w-none text-gray-700">
-                            {{ formulario.medicamentos }}
-                        </div>
-                    </div>
+<!-- Relación con el Dolor -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-sad mr-2 text-orange-600'></i> 7. RELACIÓN CON EL DOLOR
+    </h2>
+    <div>
+        <span class="font-medium text-gray-700 block mb-2">Problemas Identificados:</span>
+        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+            <div class="prose max-w-none text-gray-700">
+                {{ formulario.parametros|default:"No registrados" }}
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- Motivación y Áreas de Mejora -->
+<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+        <i class='bx bx-target-lock mr-2 text-indigo-600'></i> 8. MOTIVACIÓN Y ÁREAS DE MEJORA
+    </h2>
+    <div class="space-y-6">
+        <div>
+            <span class="font-medium text-gray-700 block mb-2">Áreas de Motivación:</span>
+            <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                <div class="prose max-w-none text-gray-700">
+                    {{ formulario.AreasMotivacion|default:"No registradas" }}
                 </div>
-            </section>
-
-            <div class="section-divider print-break"></div>
-
-            <!-- Estado Emocional -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-happy-alt mr-2 text-yellow-600'></i> 5. ESTADO EMOCIONAL (Últimas 2 semanas)
-                </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                    <div class="data-row">
-                        <span class="data-label">Propósito de vida:</span>
-                        <span class="data-value">{{ formulario.proposito }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Red de apoyo:</span>
-                        <span class="data-value">{{ formulario.red_de_apoyo }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Interés en actividades:</span>
-                        <span class="data-value">{{ formulario.placer_cosas }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Nivel de depresión:</span>
-                        <span class="data-value">{{ formulario.deprimido }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Nivel de ansiedad:</span>
-                        <span class="data-value">{{ formulario.ansioso }}</span>
-                    </div>
-                    <div class="data-row">
-                        <span class="data-label">Nivel de preocupación:</span>
-                        <span class="data-value">{{ formulario.preocupacion }}</span>
-                    </div>
+            </div>
+        </div>
+        <div>
+            <span class="font-medium text-gray-700 block mb-2">Motivación hacia la Salud:</span>
+            <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                <div class="prose max-w-none text-gray-700">
+                    {{ formulario.motivacion_Salud|default:"No registrada" }}
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
+</section>
 
-            <div class="section-divider"></div>
+            </div>
 
-            <!-- Hábitos y Estilo de Vida -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-run mr-2 text-blue-500'></i> 6. HÁBITOS Y ESTILO DE VIDA
-                </h2>
-                <!-- Actividad Física -->
-                <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Actividad Física</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        <div class="data-row">
-                            <span class="data-label">Frecuencia ejercicio:</span>
-                            <span class="data-value">{{ formulario.pregunta7_ejercicioDias }}</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Duración ejercicio:</span>
-                            <span class="data-value">{{ formulario.pregunta8_minutosPorEjercicios }}</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Alimentación -->
-                <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Alimentación</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        <div class="data-row">
-                            <span class="data-label">Comida rápida:</span>
-                            <span class="data-value">{{ formulario.pregunta5_ConsumoComidaRapida }}</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Consumo frutas:</span>
-                            <span class="data-value">{{ formulario.pregunta6_PorcionesDeFrutas }}</span>
-                        </div>
-                        <div class="data-row">
-                            <span class="data-label">Percepción peso:</span>
-                            <span class="data-value">{{ formulario.pregunta4_opinion_peso_actual }}</span>
-                        </div>
-                    </div>
-                </div>
-                <!-- Consumo de Sustancias -->
-                <div class="p-4 bg-gray-50 rounded border border-gray-200">
-                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Consumo de Sustancias</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                        <div>
-                            <span class="font-medium text-gray-700 block mb-2">Consumo Actual:</span>
-                            <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
-                                <div class="flex justify-between">
-                                    <span>Nicotina:</span>
-                                    <span class="font-medium">{{ formulario.NicotinaSiOno }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Alcohol:</span>
-                                    <span class="font-medium">{{ formulario.AlcoholSiOno }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Drogas:</span>
-                                    <span class="font-medium">{{ formulario.drogasSiOno }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Marihuana:</span>
-                                    <span class="font-medium">{{ formulario.marihuanaSiOno }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                            <span class="font-medium text-gray-700 block mb-2">Nivel de Preocupación:</span>
-                            <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
-                                <div class="flex justify-between">
-                                    <span>Nicotina:</span>
-                                    <span class="font-medium">{{ MensajeNicotina }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Alcohol:</span>
-                                    <span class="font-medium">{{ mensajeAcoholP }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Drogas:</span>
-                                    <span class="font-medium">{{ mensajeDrogasP }}</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Marihuana:</span>
-                                    <span class="font-medium">{{ mensajeMarihuanaP }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <div class="section-divider"></div>
-
-            <!-- Relación con el Dolor -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-sad mr-2 text-orange-600'></i> 7. RELACIÓN CON EL DOLOR
-                </h2>
-                <div>
-                    <span class="font-medium text-gray-700 block mb-2">Problemas Identificados:</span>
-                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                        <div class="prose max-w-none text-gray-700">
-                            {{ formulario.parametros }}
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <div class="section-divider"></div>
-
-            <!-- Motivación y Áreas de Mejora -->
-            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    <i class='bx bx-target-lock mr-2 text-indigo-600'></i> 8. MOTIVACIÓN Y ÁREAS DE MEJORA
-                </h2>
-                <div class="space-y-6">
-                    <div>
-                        <span class="font-medium text-gray-700 block mb-2">Áreas de Motivación:</span>
-                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                            <div class="prose max-w-none text-gray-700">
-                                {{ formulario.AreasMotivacion }}
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <span class="font-medium text-gray-700 block mb-2">Motivación hacia la Salud:</span>
-                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                            <div class="prose max-w-none text-gray-700">
-                                {{ formulario.motivacion_Salud }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            
         </div>
 
         <!-- Botones de acción -->

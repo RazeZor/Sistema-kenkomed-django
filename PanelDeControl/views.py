@@ -84,27 +84,27 @@ def HistorialClinico(request):
 
         if request.method == 'POST':
             rut = request.POST.get('rutsito')
-            nota_texto = request.POST.get('nota')  # Obtener la nota del formulario
+            nota_texto = request.POST.get('nota')
 
             try:
-                # Buscar al paciente por su RUT
-                paciente = Paciente.objects.get(rut=rut)
-                # Obtener o crear la nota existente
+                # Filtrar según el tipo de usuario
+                if es_admin:
+                    paciente = Paciente.objects.get(rut=rut)
+                else:
+                    paciente = Paciente.objects.get(rut=rut, clinico__nombre=nombre_clinico)
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
-                if nota_texto:  
-                    # Actualizar la nota si se ha proporcionado texto
+                if nota_texto:
                     nota_existente.notas = nota_texto
                     nota_existente.save()
 
             except Paciente.DoesNotExist:
-                error = "No se encontró ningún paciente con ese RUT."
+                error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
 
-        # Renderizar la plantilla con los datos del paciente y la nota
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,
             'error': error,
-            'nota': nota_existente.notas if nota_existente else ''  # Cambiamos None por ''
+            'nota': nota_existente.notas if nota_existente else ''
         })
     else:
         return redirect('login')
