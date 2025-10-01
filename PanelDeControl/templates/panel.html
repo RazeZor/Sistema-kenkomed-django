@@ -204,7 +204,7 @@
                             </div>
                             <h3 class="mb-2 font-medium text-gray-800">Agendar Consulta</h3>
                             <p class="mb-4 text-sm text-gray-500">Programa nuevas citas médicas para tus pacientes.</p>
-                            <a href="#" class="flex items-center text-sm text-medical-blue">
+                            <a href="#" onclick="showDevModal(event)" class="flex items-center text-sm text-medical-blue">
                                 <span>Agendar ahora</span>
                                 <i class='ml-1 bx bx-right-arrow-alt'></i>
                             </a>
@@ -216,7 +216,7 @@
                             </div>
                             <h3 class="mb-2 font-medium text-gray-800">Exámenes Pendientes</h3>
                             <p class="mb-4 text-sm text-gray-500">Revisa los exámenes pendientes de tus pacientes.</p>
-                            <a href="#" class="flex items-center text-sm text-medical-blue">
+                            <a href="#" onclick="showDevModal(event)" class="flex items-center text-sm text-medical-blue">
                                 <span>Ver exámenes</span>
                                 <i class='ml-1 bx bx-right-arrow-alt'></i>
                             </a>
@@ -402,9 +402,21 @@
             document.body.classList.remove('overflow-hidden');
         });
 
-        
-
-        
+        // Modal para funcionalidades en desarrollo
+        function showDevModal(e) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Funcionalidad en desarrollo',
+                text: 'Esta funcionalidad estará disponible próximamente.',
+                background: 'white',
+                color: '#1f2937',
+                iconColor: '#0284c7',
+                customClass: {
+                    popup: 'shadow-lg rounded-lg'
+                }
+            });
+        }
     </script>
 </body>
 </html>

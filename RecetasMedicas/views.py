@@ -31,48 +31,46 @@ def renderizar_html_receta(request):
 
         try:
             # Buscar paciente por RUT
-            paciente = Paciente.objects.get(rut=rut)
-            
-            # Validar que el paciente pertenece al clínico logueado si no es admin
-            if not es_admin and paciente.clinico != clinico:
-                raise Paciente.DoesNotExist()
-
-            # Obtener receta existente
-            receta = RecetaMedica.objects.filter(paciente=paciente).first()
-
-            if accion == 'crear':
-                if receta:
-                    mensaje = "El paciente ya tiene una receta registrada."
-                else:
-                    RecetaMedica.objects.create(
-                        paciente=paciente,
-                        clinico=clinico,
-                        medicamentos=request.POST.get('medicamentos', '').strip(),
-                        indicaciones=request.POST.get('indicaciones', '').strip(),
-                        NotaRecetaMedica=request.POST.get('notas', '').strip()
-                    )
-                    mensaje = "Receta médica creada exitosamente."
-                    receta = RecetaMedica.objects.get(paciente=paciente)
-
-            elif accion == 'editar':
-                if receta:
-                    receta.medicamentos = request.POST.get('medicamentos', '').strip()
-                    receta.indicaciones = request.POST.get('indicaciones', '').strip()
-                    receta.NotaRecetaMedica = request.POST.get('notas', '').strip()
-                    receta.save()
-                    mensaje = "Receta médica actualizada correctamente."
-                else:
-                    error = "No existe una receta para editar."
-
-            elif accion == 'eliminar':
-                if receta:
-                    receta.delete()
-                    mensaje = "Receta médica eliminada correctamente."
-                    receta = None
-                else:
-                    error = "No existe receta para eliminar."
-
+            paciente_encontrado = Paciente.objects.get(rut=rut)
+            if not es_admin and paciente_encontrado.clinico != clinico:
+                paciente = None
+                receta = None
+                error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+            else:
+                paciente = paciente_encontrado
+                receta = RecetaMedica.objects.filter(paciente=paciente).first()
+                if accion == 'crear':
+                    if receta:
+                        mensaje = "El paciente ya tiene una receta registrada."
+                    else:
+                        RecetaMedica.objects.create(
+                            paciente=paciente,
+                            clinico=clinico,
+                            medicamentos=request.POST.get('medicamentos', '').strip(),
+                            indicaciones=request.POST.get('indicaciones', '').strip(),
+                            NotaRecetaMedica=request.POST.get('notas', '').strip()
+                        )
+                        mensaje = "Receta médica creada exitosamente."
+                        receta = RecetaMedica.objects.get(paciente=paciente)
+                elif accion == 'editar':
+                    if receta:
+                        receta.medicamentos = request.POST.get('medicamentos', '').strip()
+                        receta.indicaciones = request.POST.get('indicaciones', '').strip()
+                        receta.NotaRecetaMedica = request.POST.get('notas', '').strip()
+                        receta.save()
+                        mensaje = "Receta médica actualizada correctamente."
+                    else:
+                        error = "No existe una receta para editar."
+                elif accion == 'eliminar':
+                    if receta:
+                        receta.delete()
+                        mensaje = "Receta médica eliminada correctamente."
+                        receta = None
+                    else:
+                        error = "No existe receta para eliminar."
         except Paciente.DoesNotExist:
+            paciente = None
+            receta = None
             error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
 
     # --- Manejo de GET ---
@@ -82,16 +80,19 @@ def renderizar_html_receta(request):
 
         if rut:
             try:
-                paciente = Paciente.objects.get(rut=rut)
-                if not es_admin and paciente.clinico != clinico:
-                    raise Paciente.DoesNotExist()
-                
-                receta = RecetaMedica.objects.filter(paciente=paciente).first()
-
-                if accion in ['nueva', 'editar']:
-                    mostrar_formulario = True
-
+                paciente_encontrado = Paciente.objects.get(rut=rut)
+                if not es_admin and paciente_encontrado.clinico != clinico:
+                    paciente = None
+                    receta = None
+                    error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+                else:
+                    paciente = paciente_encontrado
+                    receta = RecetaMedica.objects.filter(paciente=paciente).first()
+                    if accion in ['nueva', 'editar']:
+                        mostrar_formulario = True
             except Paciente.DoesNotExist:
+                paciente = None
+                receta = None
                 error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
 
     return render(request, 'agregar_receta.html', {
@@ -99,5 +100,6 @@ def renderizar_html_receta(request):
         'receta': receta,
         'error': error,
         'mensaje': mensaje,
-        'mostrar_formulario': mostrar_formulario,
+        'mostrar_formulario': mostrar_formulario
     })
+                                    
