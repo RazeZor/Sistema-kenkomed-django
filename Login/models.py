@@ -305,3 +305,16 @@ class CuestionarioEvaluacionENA(models.Model):
     def __str__(self):
         return f"Evaluacion ENA de {self.paciente.nombre}"
 
+
+
+class RecetaMedica(models.Model):
+    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='recetas_medicas')
+    fecha_creacion = models.DateField(auto_now_add=True)
+    medicamentos = models.TextField(null=True, blank=True)
+    indicaciones = models.TextField(null=True, blank=True) # dejamos estos campos para que quede a disposicion del clinico
+    NotaRecetaMedica = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"receta medica de {self.paciente.nombre}"
+

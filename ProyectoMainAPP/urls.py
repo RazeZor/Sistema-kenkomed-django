@@ -25,6 +25,7 @@ from ListaDePacientes import views as lista
 from TiposDeFormularios import views as tiposFormularios
 from PerfilClinico import views as perfil
 from menu import views as m
+from RecetasMedicas import views as recetaViews  # Importar las vistas de la aplicación RecetasMedicas
 urlpatterns = [
     path('adminlfhjghjghgfnfgnhgfnhngf/', admin.site.urls), # Asocia la URL /admin/ con la vista de administración de Django.
     path('', l.validarLogin,name='login'),  # Asocia la URL / con la vista Login.validarLogin.
@@ -55,12 +56,9 @@ urlpatterns = [
     path('CuestionarioPSFS/', tiposFormularios.gestionar_psfs, name='gestionar_psfs'),
     path('CuestionarioEQ_5D/',tiposFormularios.RenderizarEQ_5D,name='EQ_5D'),
     path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
-    path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning")
+    path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning"),
+    path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  # Incluir las URLs de la aplicación RecetasMedicas
 
-    
 
-
-    
-    
     
 ]

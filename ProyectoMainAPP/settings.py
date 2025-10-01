@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'ListaDePacientes',
     'PerfilClinico',
     'menu',
+    'RecetasMedicas',
 ]
 
 MIDDLEWARE = [
