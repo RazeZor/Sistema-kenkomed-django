@@ -4,29 +4,56 @@ from django.contrib.auth.hashers import make_password, check_password
 
 
 # Modelo Clínico: Representa un clínico en el sistema.
+from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
+
+from django.db import models
+from django.contrib.auth.hashers import make_password, check_password
+
 class Clinico(models.Model):
-    rut = models.CharField(max_length=12, primary_key=True, unique=True)  # Clave primaria única
-    nombre = models.CharField(max_length=50)
-    apellido = models.CharField(max_length=50)
-    profesion = models.CharField(max_length=50, default='default_profession')
-    # Aumentamos el tamaño para almacenar hashes y añadimos métodos para set/check
-    contraseña = models.CharField(max_length=128, default='default_password')
-    EsAdmin = models.BooleanField(default=False)
+    # --- Identificación principal ---
+    rut = models.CharField(max_length=12, primary_key=True, unique=True, verbose_name="RUT")
+    nombre = models.CharField(max_length=50, verbose_name="Nombre")
+    apellido = models.CharField(max_length=50, verbose_name="Apellido")
+    
+    # --- Datos profesionales ---
+    profesion = models.CharField(max_length=100, verbose_name="Profesión / Cargo")
+    especialidad = models.CharField(max_length=100, blank=True, null=True, verbose_name="Especialidad")
+    numero_registro = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número de registro profesional")
+    centro_trabajo = models.CharField(max_length=100, blank=True, null=True, verbose_name="Centro o institución de trabajo")
+    ciudad = models.CharField(max_length=50, blank=True, null=True, verbose_name="Ciudad o Región")
+    experiencia = models.PositiveIntegerField(blank=True, null=True, verbose_name="Años de experiencia")
+    descripcion = models.TextField(blank=True, null=True, verbose_name="Biografía o descripción profesional")
+
+    # --- Datos de contacto ---
+    correo = models.EmailField(unique=True, verbose_name="Correo electrónico", null=True, blank=True)
+    telefono = models.CharField(max_length=20, blank=True, null=True, verbose_name="Teléfono profesional")
+    
+    # --- Datos de acceso ---
+    contraseña = models.CharField(max_length=128, verbose_name="Contraseña")
+    EsAdmin = models.BooleanField(default=False, verbose_name="Es administrador del sistema")
+
+    # --- Datos administrativos ---
+    fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de registro", null=True)
+    ultima_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
+    activo = models.BooleanField(default=True, verbose_name="Cuenta activa")
+    
+    class Meta:
+        verbose_name = "Clínico"
+        verbose_name_plural = "Clínicos"
+        ordering = ['apellido', 'nombre']
+
     def __str__(self):
-        return f'{self.nombre} {self.apellido} ({self.rut})'
+        return f"{self.nombre} {self.apellido} - {self.profesion}"
 
-    # Helper para establecer la contraseña en claro -> hash
+    # --- Métodos de seguridad ---
     def set_password(self, raw_password):
-        if raw_password is None:
-            self.contraseña = None
-        else:
-            self.contraseña = make_password(raw_password)
+        """Guarda la contraseña hasheada."""
+        self.contraseña = make_password(raw_password) if raw_password else None
 
-    # Helper para comprobar contraseña
     def check_password(self, raw_password):
-        if not self.contraseña:
-            return False
-        return check_password(raw_password, self.contraseña)
+        """Verifica una contraseña ingresada."""
+        return check_password(raw_password, self.contraseña) if self.contraseña else False
 
 
 # Modelo Paciente: Representa a un paciente en el sistema.
