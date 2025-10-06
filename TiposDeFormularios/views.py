@@ -708,13 +708,48 @@ def _procesar_screening_post(request, paciente, clinico):
         action = request.POST.get('action', 'guardar')
 
         # Validaciones básicas
-        if not intensidad_dolor:
-            messages.error(request, "La intensidad del dolor es obligatoria.")
-            return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
+        missing = []
 
-        if not nivel_molestia:
-            messages.error(request, "El nivel de molestia es obligatorio.")
-            return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
+        # Requerimos Intensidad y Nivel de Molestia para guardar o actualizar
+        if action in ['guardar', 'actualizar']:
+            if not intensidad_dolor:
+                missing.append('Intensidad del dolor')
+            if not nivel_molestia:
+                missing.append('Nivel de molestia')
+
+            # Validar que todas las preguntas funcionales tengan respuesta.
+            # En la plantilla hay 8 preguntas funcionales (cada una con un par Sí/No). Ajusta este número si cambias la plantilla.
+            EXPECTED_FUNC_QUESTIONS = 8
+            if not respuestas_tabla or len(respuestas_tabla) < EXPECTED_FUNC_QUESTIONS:
+                missing.append('Todas las preguntas funcionales (marcar Sí o No en cada una)')
+
+            if missing:
+                # En lugar de redirigir al panel, renderizamos la misma plantilla con información
+                # sobre los campos faltantes y los valores enviados para que el clínico corrija.
+                evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente).exists()
+                cuestionario_actual = None
+                if evaluacion_existente:
+                    cuestionario_actual = CuestionarioScrenning.objects.get(paciente=paciente)
+                toda_evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente)
+                alerta = generar_alerta(cuestionario_actual.Puntaje_Sesion) if cuestionario_actual else None
+
+                context = {
+                    'rut': paciente.rut,
+                    'paciente': paciente,
+                    'evaluacion_existente': evaluacion_existente,
+                    'cuestionario': cuestionario_actual,
+                    'alerta': alerta,
+                    'toda_evaluacion_existente': toda_evaluacion_existente,
+                    'missing_fields': missing,
+                    'posted_intensidad': intensidad_dolor,
+                    'posted_nivel': nivel_molestia,
+                    'posted_respuestas': respuestas_tabla,
+                }
+
+                # Señalamos si faltan respuestas de la sección funcional para resaltarla en la plantilla
+                context['missing_checks'] = any('preguntas funcionales' in m.lower() for m in missing)
+
+                return render(request, 'CuestionarioScrenning.html', context)
 
         # Calcular puntaje
         puntaje_sesion = calcular_puntaje(respuestas_tabla, nivel_molestia)

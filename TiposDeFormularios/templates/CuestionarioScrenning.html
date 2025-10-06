@@ -101,6 +101,13 @@
                             </div>
                         </div>
 
+                        {% if missing_fields %}
+                        <div class="mb-4 rounded-lg p-3 bg-red-50 border border-red-100 text-red-700 flex items-center gap-3">
+                            <i class='bx bx-error-circle text-red-600 text-lg'></i>
+                            <div class="text-sm">Faltan campos obligatorios: <strong>{{ missing_fields|join:", " }}</strong></div>
+                        </div>
+                        {% endif %}
+
                         <div class="mb-6" id="section-intensity">
                             <div class="flex items-center mb-3">
                                 <div class="bg-medical-red text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3 text-sm">1</div>
@@ -112,7 +119,7 @@
 
                             <div class="space-y-2">
                                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="sin molestias" class="mr-3 text-medical-blue">
+                                    <input type="radio" name="IntensidadDolor" value="sin molestias" class="mr-3 text-medical-blue" required {% if posted_intensidad == 'sin molestias' %}checked{% endif %}>
                                     <span class="text-lg mr-2">😊</span>
                                     <div class="flex-1">
                                         <span class="text-sm font-medium text-gray-800">No he tenido dolor</span>
@@ -121,7 +128,7 @@
                                 </label>
 
                                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="molestia minima" class="mr-3 text-medical-blue">
+                                    <input type="radio" name="IntensidadDolor" value="molestia minima" class="mr-3 text-medical-blue" {% if posted_intensidad == 'molestia minima' %}checked{% endif %}>
                                     <span class="text-lg mr-2">🙂</span>
                                     <div class="flex-1">
                                         <span class="text-sm font-medium text-gray-800">Dolor leve, casi no interfiere</span>
@@ -130,7 +137,7 @@
                                 </label>
 
                                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-orange hover:bg-orange-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="interferencia significativa" class="mr-3 text-medical-orange">
+                                    <input type="radio" name="IntensidadDolor" value="interferencia significativa" class="mr-3 text-medical-orange" {% if posted_intensidad == 'interferencia significativa' %}checked{% endif %}>
                                     <span class="text-lg mr-2">😐</span>
                                     <div class="flex-1">
                                         <span class="text-sm font-medium text-gray-800">Dolor moderado, interfiere notablemente</span>
@@ -139,7 +146,7 @@
                                 </label>
 
                                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-red hover:bg-red-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="Limitacion severa" class="mr-3 text-medical-red">
+                                    <input type="radio" name="IntensidadDolor" value="Limitacion severa" class="mr-3 text-medical-red" {% if posted_intensidad == 'Limitacion severa' %}checked{% endif %}>
                                     <span class="text-lg mr-2">😣</span>
                                     <div class="flex-1">
                                         <span class="text-sm font-medium text-gray-800">Dolor intenso, limita severamente</span>
@@ -148,7 +155,7 @@
                                 </label>
 
                                 <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="dolor maximo" class="mr-3 text-red-600">
+                                    <input type="radio" name="IntensidadDolor" value="dolor maximo" class="mr-3 text-red-600" {% if posted_intensidad == 'dolor maximo' %}checked{% endif %}>
                                     <span class="text-lg mr-2">😱</span>
                                     <div class="flex-1">
                                         <span class="text-sm font-medium text-gray-800">El peor dolor posible</span>
@@ -168,7 +175,7 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 {% if missing_checks %}ring-2 ring-red-200 ring-offset-2{% endif %}">
                                 <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
                                     <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
                                         <i class='bx bx-body text-medical-green mr-1 text-sm'></i>
@@ -176,11 +183,11 @@
                                     </p>
                                     <div class="flex space-x-4">
                                         <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
+                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm" {% if posted_respuestas and 'si' in posted_respuestas %}checked{% endif %}>
                                             <span class="text-xs">Sí</span>
                                         </label>
                                         <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
+                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm" {% if posted_respuestas and 'no' in posted_respuestas %}checked{% endif %}>
                                             <span class="text-xs">No</span>
                                         </label>
                                     </div>
@@ -318,31 +325,31 @@
 
                             <div class="grid grid-cols-5 gap-2">
                                 <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-green hover:bg-green-50 transition-all cursor-pointer">
-                                    <input type="radio" value="nada" name="NivelMolestia" class="mb-1 text-medical-green">
+                                    <input type="radio" value="nada" name="NivelMolestia" class="mb-1 text-medical-green" required {% if posted_nivel == 'nada' %}checked{% endif %}>
                                     <span class="text-lg mb-1">😌</span>
                                     <span class="text-xs font-medium text-gray-800">Nada</span>
                                 </label>
 
                                 <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer">
-                                    <input type="radio" value="leve" name="NivelMolestia" class="mb-1 text-medical-blue">
+                                    <input type="radio" value="leve" name="NivelMolestia" class="mb-1 text-medical-blue" {% if posted_nivel == 'leve' %}checked{% endif %}>
                                     <span class="text-lg mb-1">🙂</span>
                                     <span class="text-xs font-medium text-gray-800">Leve</span>
                                 </label>
 
                                 <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-orange hover:bg-orange-50 transition-all cursor-pointer">
-                                    <input type="radio" value="moderado" name="NivelMolestia" class="mb-1 text-medical-orange">
+                                    <input type="radio" value="moderado" name="NivelMolestia" class="mb-1 text-medical-orange" {% if posted_nivel == 'moderado' %}checked{% endif %}>
                                     <span class="text-lg mb-1">😐</span>
                                     <span class="text-xs font-medium text-gray-800">Moderado</span>
                                 </label>
 
                                 <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-red hover:bg-red-50 transition-all cursor-pointer">
-                                    <input type="radio" value="mucho" name="NivelMolestia" class="mb-1 text-medical-red">
+                                    <input type="radio" value="mucho" name="NivelMolestia" class="mb-1 text-medical-red" {% if posted_nivel == 'mucho' %}checked{% endif %}>
                                     <span class="text-lg mb-1">😣</span>
                                     <span class="text-xs font-medium text-gray-800">Mucho</span>
                                 </label>
 
                                 <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-all cursor-pointer">
-                                    <input type="radio" value="extremo" name="NivelMolestia" class="mb-1 text-red-600">
+                                    <input type="radio" value="extremo" name="NivelMolestia" class="mb-1 text-red-600" {% if posted_nivel == 'extremo' %}checked{% endif %}>
                                     <span class="text-lg mb-1">😱</span>
                                     <span class="text-xs font-medium text-gray-800">Extremo</span>
                                 </label>
@@ -351,15 +358,30 @@
 
 
                         <div class="bg-gray-50 -mx-4 px-4 py-4 mt-6">
+                            {% if evaluacion_existente %}
+                            <div class="mb-3 rounded-lg p-3 bg-yellow-50 border border-yellow-100 text-yellow-800 flex items-center gap-3">
+                                <i class='bx bx-info-circle text-yellow-600 text-lg'></i>
+                                <div class="text-sm">Ya existe una evaluación para este paciente. Utiliza <strong>Actualizar Evaluación</strong> para modificarla.</div>
+                            </div>
+                            {% else %}
+                            <div class="mb-3 rounded-lg p-3 bg-blue-50 border border-blue-100 text-blue-800 flex items-center gap-3">
+                                <i class='bx bx-info-circle text-blue-600 text-lg'></i>
+                                <div class="text-sm">No existe una evaluación. Pulsa <strong>Guardar Evaluación</strong> para registrar una nueva.</div>
+                            </div>
+                            {% endif %}
+
                             <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                                <button type="submit" name="action" value="guardar" class="w-full sm:w-auto bg-gradient-to-r from-medical-green to-medical-teal text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center">
-                                    <i class='bx bx-save mr-1'></i>
-                                    Guardar Evaluación
-                                </button>
+                                {% if evaluacion_existente %}
                                 <button type="submit" name="action" value="actualizar" class="w-full sm:w-auto bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center">
                                     <i class='bx bx-refresh mr-1'></i>
                                     Actualizar Evaluación
                                 </button>
+                                {% else %}
+                                <button type="submit" name="action" value="guardar" class="w-full sm:w-auto bg-gradient-to-r from-medical-green to-medical-teal text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center">
+                                    <i class='bx bx-save mr-1'></i>
+                                    Guardar Evaluación
+                                </button>
+                                {% endif %}
                             </div>
                             <p class="text-center text-gray-600 text-xs mt-2">
                                 <i class='bx bx-shield-check mr-1'></i>
