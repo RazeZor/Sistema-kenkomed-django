@@ -77,10 +77,16 @@ def cerrar_sesion(request):
 def HistorialClinico(request):
     if 'nombre_clinico' in request.session:
         nombre_clinico = request.session['nombre_clinico']
+        rut_clinico = request.session.get('rut_clinico')
         es_admin = request.session.get('es_admin', False)
         paciente = None
         error = None
         nota_existente = None
+
+        # Intentar obtener el objeto Clinico desde la sesión (si existe)
+        clinico_obj = None
+        if rut_clinico:
+            clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
 
         if request.method == 'POST':
             rut = request.POST.get('rutsito')
@@ -91,7 +97,12 @@ def HistorialClinico(request):
                 if es_admin:
                     paciente = Paciente.objects.get(rut=rut)
                 else:
-                    paciente = Paciente.objects.get(rut=rut, clinico__nombre=nombre_clinico)
+                    if not clinico_obj:
+                        # Si por algún motivo no existe el clínico en sesión, no permitimos la búsqueda
+                        error = 'No se encontró el clínico en sesión. Inicia sesión nuevamente.'
+                        raise Paciente.DoesNotExist()
+                    paciente = Paciente.objects.get(rut=rut, clinico=clinico_obj)
+
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
                 if nota_texto:
@@ -99,7 +110,9 @@ def HistorialClinico(request):
                     nota_existente.save()
 
             except Paciente.DoesNotExist:
-                error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+                if not error:
+                    error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+          
 
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,
