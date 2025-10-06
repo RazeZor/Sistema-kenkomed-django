@@ -9,47 +9,165 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        @media print {
-            .no-print { display: none !important; }
-            .print-break { page-break-before: always; }
-            body { font-size: 12px; line-height: 1.4; }
-            .container { max-width: none; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Inter', sans-serif;
         }
-        body { font-family: 'Inter', sans-serif; }
-        .report-header { border-bottom: 2px solid #e5e7eb; }
-        .section-divider { border-top: 1px solid #e5e7eb; margin: 2rem 0; }
+        
+        @media print {
+            /* Ocultar elementos no imprimibles */
+            .no-print { 
+                display: none !important; 
+            }
+            
+            /* Configuración de página */
+            @page {
+                size: A4;
+                margin: 1.5cm 2cm;
+            }
+            
+            /* Ajustes generales */
+            body { 
+                font-size: 11pt;
+                line-height: 1.4;
+                color: #000;
+                background: white;
+            }
+            
+            /* Contenedor principal */
+            .max-w-4xl {
+                max-width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            
+            /* Eliminar sombras y bordes innecesarios */
+            .shadow-sm,
+            .shadow-md {
+                box-shadow: none !important;
+            }
+            
+            .border-gray-100,
+            .border-gray-200 {
+                border-color: #d1d5db !important;
+            }
+            
+            /* Evitar quiebres de página dentro de secciones */
+            section {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            
+            /* Forzar quiebre antes de ciertas secciones */
+            .print-break {
+                page-break-before: always;
+            }
+            
+            /* Ajustar espaciado para impresión */
+            .section-divider {
+                margin: 1rem 0;
+                border-color: #d1d5db;
+            }
+            
+            /* Header del informe */
+            .report-header {
+                border-bottom: 2px solid #333;
+                margin-bottom: 1rem;
+            }
+            
+            /* Títulos de sección */
+            h2 {
+                color: #000 !important;
+                font-size: 14pt;
+                margin-top: 1rem;
+                margin-bottom: 0.5rem;
+            }
+            
+            h3 {
+                color: #000 !important;
+                font-size: 12pt;
+            }
+            
+            /* Fondos grises a blanco para ahorrar tinta */
+            .bg-gray-50 {
+                background-color: white !important;
+            }
+            
+            /* Mantener bordes para estructura */
+            .rounded,
+            .rounded-lg {
+                border: 1px solid #d1d5db !important;
+            }
+            
+            /* Footer */
+            footer {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                text-align: center;
+                font-size: 9pt;
+                color: #666;
+                padding: 0.5cm 0;
+                border-top: 1px solid #ccc;
+            }
+            
+            /* Ajustar grid para impresión */
+            .grid {
+                display: block !important;
+            }
+            
+            .grid > div {
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        /* Estilos normales */
+        .report-header { 
+            border-bottom: 2px solid #e5e7eb; 
+        }
+        
+        .section-divider { 
+            border-top: 1px solid #e5e7eb; 
+            margin: 2rem 0; 
+        }
+        
         .data-row {
             display: grid;
-            grid-template-columns: 120px 1fr; /* Fixed width for label, rest for value */
+            grid-template-columns: 140px 1fr;
             gap: 0.5rem;
             padding: 0.5rem 0;
-            border-bottom: 1px dashed #e5e7eb; /* Subtle separator */
+            border-bottom: 1px dashed #e5e7eb;
         }
+        
         .data-row:last-child {
             border-bottom: none;
         }
+        
         .data-label {
-            font-weight: 500; /* font-medium */
-            color: #4b5563; /* gray-700 */
+            font-weight: 500;
+            color: #4b5563;
         }
+        
         .data-value {
-            color: #1f2937; /* gray-900 */
+            color: #1f2937;
         }
+        
         .prose {
-            /* Basic prose styles for dynamic content */
             line-height: 1.6;
-            color: #374151; /* gray-700 */
+            color: #374151;
         }
+        
         .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
             font-weight: bold;
             margin-top: 1.5em;
             margin-bottom: 0.5em;
         }
+        
         .prose p {
             margin-bottom: 1em;
         }
+        
         .prose ul, .prose ol {
             margin-left: 1.5em;
             list-style-type: disc;
@@ -97,7 +215,6 @@
                 {{ opinionproblemaEnfermead|safe }}
                 {{ mensajeEVPER|safe }}
                 {{ResultadosSueño|safe}}
-
             </div>
         </section>
 
@@ -111,7 +228,7 @@
         </div>
 
         <!-- Contenido expandible -->
-        <div id="contenido-expandible" style="display: none;">
+        <div id="contenido-expandible">
             <!-- Datos del Paciente -->
             <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
                 <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
@@ -145,250 +262,242 @@
                 </div>
             </section>
 
-            <div class="section-divider">
-                <!-- Evaluación del Dolor -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-pain mr-2 text-red-600'></i> 2. EVALUACIÓN DEL DOLOR
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-        <div class="data-row">
-            <span class="data-label">Duración del Dolor:</span>
-            <span class="data-value">{{ formulario.duracionDolor|default:"No registrado" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Características:</span>
-            <span class="data-value">{{ formulario.caracteristicasDeDolor|default:"No registrado" }}</span>
-        </div>
-        <div class="col-span-full mt-4">
-            <span class="font-medium text-gray-700 block mb-2">Ubicación e Intensidad:</span>
-            <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                <div class="prose max-w-none text-gray-700">
-                    {{ ubicacion_intensidad|default:"No especificado" }}
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+            <div class="section-divider"></div>
 
-<div class="section-divider"></div>
-
-<!-- Condiciones de Salud -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-plus-medical mr-2 text-teal-600'></i> 3. CONDICIONES DE SALUD
-    </h2>
-    <div>
-        <span class="font-medium text-gray-700 block mb-2">Condiciones Presentes:</span>
-        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-            <div class="prose max-w-none text-gray-700">
-                {{ formulario.TiposDeEnfermedades|default:"No registradas" }}
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="section-divider"></div>
-
-<!-- Medicación y Tratamiento -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-capsule mr-2 text-purple-600'></i> 4. MEDICACIÓN Y TRATAMIENTO
-    </h2>
-    <div>
-        <span class="font-medium text-gray-700 block mb-2">Medicamentos Utilizados:</span>
-        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-            <div class="prose max-w-none text-gray-700">
-                {{ formulario.medicamentos|default:"No registrados" }}
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="section-divider print-break"></div>
-
-<!-- Estado Emocional -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-happy-alt mr-2 text-yellow-600'></i> 5. ESTADO EMOCIONAL (Últimas 2 semanas)
-    </h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-        <div class="data-row">
-            <span class="data-label">Propósito de vida:</span>
-            <span class="data-value">{{ formulario.proposito|default:"No registrado" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Red de apoyo:</span>
-            <span class="data-value">{{ formulario.red_de_apoyo|default:"No registrada" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Interés en actividades:</span>
-            <span class="data-value">{{ formulario.placer_cosas|default:"No registrado" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Nivel de depresión:</span>
-            <span class="data-value">{{ formulario.deprimido|default:"No registrado" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Nivel de ansiedad:</span>
-            <span class="data-value">{{ formulario.ansioso|default:"No registrado" }}</span>
-        </div>
-        <div class="data-row">
-            <span class="data-label">Nivel de preocupación:</span>
-            <span class="data-value">{{ formulario.preocupacion|default:"No registrado" }}</span>
-        </div>
-    </div>
-</section>
-
-<div class="section-divider"></div>
-
-<!-- Hábitos y Estilo de Vida -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-run mr-2 text-blue-500'></i> 6. HÁBITOS Y ESTILO DE VIDA
-    </h2>
-    <!-- Actividad Física -->
-    <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Actividad Física</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div class="data-row">
-                <span class="data-label">Frecuencia ejercicio:</span>
-                <span class="data-value">{{ formulario.pregunta7_ejercicioDias|default:"No registrado" }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Duración ejercicio:</span>
-                <span class="data-value">{{ formulario.pregunta8_minutosPorEjercicios|default:"No registrado" }}</span>
-            </div>
-        </div>
-    </div>
-    <!-- Alimentación -->
-    <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
-        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Alimentación</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div class="data-row">
-                <span class="data-label">Comida rápida:</span>
-                <span class="data-value">{{ formulario.pregunta5_ConsumoComidaRapida|default:"No registrado" }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Consumo frutas:</span>
-                <span class="data-value">{{ formulario.pregunta6_PorcionesDeFrutas|default:"No registrado" }}</span>
-            </div>
-            <div class="data-row">
-                <span class="data-label">Percepción peso:</span>
-                <span class="data-value">{{ formulario.pregunta4_opinion_peso_actual|default:"No registrado" }}</span>
-            </div>
-        </div>
-    </div>
-    <!-- Consumo de Sustancias -->
-    <div class="p-4 bg-gray-50 rounded border border-gray-200">
-        <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Consumo de Sustancias</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-            <div>
-                <span class="font-medium text-gray-700 block mb-2">Consumo Actual:</span>
-                <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
-                    <div class="flex justify-between">
-                        <span>Nicotina:</span>
-                        <span class="font-medium">{{ formulario.NicotinaSiOno|default:"No registrado" }}</span>
+            <!-- Evaluación del Dolor -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-pain mr-2 text-red-600'></i> 2. EVALUACIÓN DEL DOLOR
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div class="data-row">
+                        <span class="data-label">Duración del Dolor:</span>
+                        <span class="data-value">{{ formulario.duracionDolor|default:"No registrado" }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Alcohol:</span>
-                        <span class="font-medium">{{ formulario.AlcoholSiOno|default:"No registrado" }}</span>
+                    <div class="data-row">
+                        <span class="data-label">Características:</span>
+                        <span class="data-value">{{ formulario.caracteristicasDeDolor|default:"No registrado" }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>Drogas:</span>
-                        <span class="font-medium">{{ formulario.drogasSiOno|default:"No registrado" }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Marihuana:</span>
-                        <span class="font-medium">{{ formulario.marihuanaSiOno|default:"No registrado" }}</span>
+                    <div class="col-span-full mt-4">
+                        <span class="font-medium text-gray-700 block mb-2">Ubicación e Intensidad:</span>
+                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                            <div class="prose max-w-none text-gray-700">
+                                {{ ubicacion_intensidad|default:"No especificado" }}
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div>
-                <span class="font-medium text-gray-700 block mb-2">Nivel de Preocupación:</span>
-                <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
-                    <div class="flex justify-between">
-                        <span>Nicotina:</span>
-                        <span class="font-medium">{{ MensajeNicotina|default:"No registrado" }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Alcohol:</span>
-                        <span class="font-medium">{{ mensajeAcoholP|default:"No registrado" }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Drogas:</span>
-                        <span class="font-medium">{{ mensajeDrogasP|default:"No registrado" }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Marihuana:</span>
-                        <span class="font-medium">{{ mensajeMarihuanaP|default:"No registrado" }}</span>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- Condiciones de Salud -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-plus-medical mr-2 text-teal-600'></i> 3. CONDICIONES DE SALUD
+                </h2>
+                <div>
+                    <span class="font-medium text-gray-700 block mb-2">Condiciones Presentes:</span>
+                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                        <div class="prose max-w-none text-gray-700">
+                            {{ formulario.TiposDeEnfermedades|default:"No registradas" }}
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
+            </section>
 
-<div class="section-divider"></div>
+            <div class="section-divider"></div>
 
-<!-- Relación con el Dolor -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-sad mr-2 text-orange-600'></i> 7. RELACIÓN CON EL DOLOR
-    </h2>
-    <div>
-        <span class="font-medium text-gray-700 block mb-2">Problemas Identificados:</span>
-        <div class="bg-gray-50 p-4 rounded border border-gray-200">
-            <div class="prose max-w-none text-gray-700">
-                {{ formulario.parametros|default:"No registrados" }}
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="section-divider"></div>
-
-<!-- Motivación y Áreas de Mejora -->
-<section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
-    <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-        <i class='bx bx-target-lock mr-2 text-indigo-600'></i> 8. MOTIVACIÓN Y ÁREAS DE MEJORA
-    </h2>
-    <div class="space-y-6">
-        <div>
-            <span class="font-medium text-gray-700 block mb-2">Áreas de Motivación:</span>
-            <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                <div class="prose max-w-none text-gray-700">
-                    {{ formulario.AreasMotivacion|default:"No registradas" }}
+            <!-- Medicación y Tratamiento -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-capsule mr-2 text-purple-600'></i> 4. MEDICACIÓN Y TRATAMIENTO
+                </h2>
+                <div>
+                    <span class="font-medium text-gray-700 block mb-2">Medicamentos Utilizados:</span>
+                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                        <div class="prose max-w-none text-gray-700">
+                            {{ formulario.medicamentos|default:"No registrados" }}
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div>
-            <span class="font-medium text-gray-700 block mb-2">Motivación hacia la Salud:</span>
-            <div class="bg-gray-50 p-4 rounded border border-gray-200">
-                <div class="prose max-w-none text-gray-700">
-                    {{ formulario.motivacion_Salud|default:"No registrada" }}
+            </section>
+
+            <div class="section-divider print-break"></div>
+
+            <!-- Estado Emocional -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-happy-alt mr-2 text-yellow-600'></i> 5. ESTADO EMOCIONAL (Últimas 2 semanas)
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div class="data-row">
+                        <span class="data-label">Propósito de vida:</span>
+                        <span class="data-value">{{ formulario.proposito|default:"No registrado" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Red de apoyo:</span>
+                        <span class="data-value">{{ formulario.red_de_apoyo|default:"No registrada" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Interés en actividades:</span>
+                        <span class="data-value">{{ formulario.placer_cosas|default:"No registrado" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Nivel de depresión:</span>
+                        <span class="data-value">{{ formulario.deprimido|default:"No registrado" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Nivel de ansiedad:</span>
+                        <span class="data-value">{{ formulario.ansioso|default:"No registrado" }}</span>
+                    </div>
+                    <div class="data-row">
+                        <span class="data-label">Nivel de preocupación:</span>
+                        <span class="data-value">{{ formulario.preocupacion|default:"No registrado" }}</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
-</section>
+            </section>
 
-            </div>
+            <div class="section-divider"></div>
 
-            
+            <!-- Hábitos y Estilo de Vida -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-run mr-2 text-blue-500'></i> 6. HÁBITOS Y ESTILO DE VIDA
+                </h2>
+                <!-- Actividad Física -->
+                <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
+                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Actividad Física</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div class="data-row">
+                            <span class="data-label">Frecuencia ejercicio:</span>
+                            <span class="data-value">{{ formulario.pregunta7_ejercicioDias|default:"No registrado" }}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Duración ejercicio:</span>
+                            <span class="data-value">{{ formulario.pregunta8_minutosPorEjercicios|default:"No registrado" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Alimentación -->
+                <div class="mb-6 p-4 bg-gray-50 rounded border border-gray-200">
+                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Alimentación</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div class="data-row">
+                            <span class="data-label">Comida rápida:</span>
+                            <span class="data-value">{{ formulario.pregunta5_ConsumoComidaRapida|default:"No registrado" }}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Consumo frutas:</span>
+                            <span class="data-value">{{ formulario.pregunta6_PorcionesDeFrutas|default:"No registrado" }}</span>
+                        </div>
+                        <div class="data-row">
+                            <span class="data-label">Percepción peso:</span>
+                            <span class="data-value">{{ formulario.pregunta4_opinion_peso_actual|default:"No registrado" }}</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Consumo de Sustancias -->
+                <div class="p-4 bg-gray-50 rounded border border-gray-200">
+                    <h3 class="font-semibold text-gray-800 mb-3 border-b border-gray-200 pb-2">Consumo de Sustancias</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div>
+                            <span class="font-medium text-gray-700 block mb-2">Consumo Actual:</span>
+                            <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
+                                <div class="flex justify-between">
+                                    <span>Nicotina:</span>
+                                    <span class="font-medium">{{ formulario.NicotinaSiOno|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Alcohol:</span>
+                                    <span class="font-medium">{{ formulario.AlcoholSiOno|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Drogas:</span>
+                                    <span class="font-medium">{{ formulario.drogasSiOno|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Marihuana:</span>
+                                    <span class="font-medium">{{ formulario.marihuanaSiOno|default:"No registrado" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="font-medium text-gray-700 block mb-2">Nivel de Preocupación:</span>
+                            <div class="space-y-1 text-sm p-2 bg-white rounded border border-gray-100">
+                                <div class="flex justify-between">
+                                    <span>Nicotina:</span>
+                                    <span class="font-medium">{{ MensajeNicotina|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Alcohol:</span>
+                                    <span class="font-medium">{{ mensajeAcoholP|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Drogas:</span>
+                                    <span class="font-medium">{{ mensajeDrogasP|default:"No registrado" }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Marihuana:</span>
+                                    <span class="font-medium">{{ mensajeMarihuanaP|default:"No registrado" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- Relación con el Dolor -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-sad mr-2 text-orange-600'></i> 7. RELACIÓN CON EL DOLOR
+                </h2>
+                <div>
+                    <span class="font-medium text-gray-700 block mb-2">Problemas Identificados:</span>
+                    <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                        <div class="prose max-w-none text-gray-700">
+                            {{ formulario.parametros|default:"No registrados" }}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-divider"></div>
+
+            <!-- Motivación y Áreas de Mejora -->
+            <section class="mb-8 p-6 bg-white rounded-lg border border-gray-100 shadow-sm">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
+                    <i class='bx bx-target-lock mr-2 text-indigo-600'></i> 8. MOTIVACIÓN Y ÁREAS DE MEJORA
+                </h2>
+                <div class="space-y-6">
+                    <div>
+                        <span class="font-medium text-gray-700 block mb-2">Áreas de Motivación:</span>
+                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                            <div class="prose max-w-none text-gray-700">
+                                {{ formulario.AreasMotivacion|default:"No registradas" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-700 block mb-2">Motivación hacia la Salud:</span>
+                        <div class="bg-gray-50 p-4 rounded border border-gray-200">
+                            <div class="prose max-w-none text-gray-700">
+                                {{ formulario.motivacion_Salud|default:"No registrada" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- Botones de acción -->
         <div class="flex justify-center space-x-4 mt-8 no-print">
-            <button onclick="window.print()"
-                    class="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors duration-200 shadow-md">
+            <button onclick="imprimirInforme()"
+                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md font-medium">
                 <i class='bx bx-printer mr-2'></i>
-                Imprimir Informe
-            </button>
-            <button onclick="generatePDF()"
-                    class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md">
-                <i class='bx bx-download mr-2'></i>
-                Descargar PDF
+                Imprimir / Guardar como PDF
             </button>
         </div>
     </div>
@@ -400,6 +509,12 @@
     </footer>
 
     <script>
+        // Mostrar todo el contenido al cargar (para que siempre esté listo para imprimir)
+        document.addEventListener('DOMContentLoaded', function() {
+            const contenido = document.getElementById('contenido-expandible');
+            contenido.style.display = 'block';
+        });
+
         function toggleContent() {
             const contenido = document.getElementById('contenido-expandible');
             const button = document.getElementById('toggleBtn');
@@ -417,24 +532,15 @@
             }
         }
 
-        function generatePDF() {
-            // Mostrar todo el contenido antes de generar PDF
+        function imprimirInforme() {
+            // Asegurarse de que todo el contenido esté visible
             const contenido = document.getElementById('contenido-expandible');
-            const wasHidden = contenido.style.display === 'none';
-
-            if (wasHidden) {
-                contenido.style.display = 'block';
-            }
-
-            // Generar PDF (esto activará el diálogo de impresión del navegador)
-            window.print();
-
-            // Restaurar estado original si estaba oculto después de un breve retraso
-            if (wasHidden) {
-                setTimeout(() => {
-                    contenido.style.display = 'none';
-                }, 1000); // Pequeño retraso para asegurar que el navegador procese la impresión
-            }
+            contenido.style.display = 'block';
+            
+            // Pequeño delay para asegurar que el DOM se actualice
+            setTimeout(() => {
+                window.print();
+            }, 100);
         }
     </script>
 </body>
