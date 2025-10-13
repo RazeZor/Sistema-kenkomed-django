@@ -38,15 +38,18 @@ def RenderInforme(request):
         # Ubicación + Intensidad
         ubicacionDolor = json.loads(formulario.ubicacionDolor)
         intensidadDolor = json.loads(formulario.dolorIntensidad)
-        ubicacion_intensidad_list = ""
+        ubicacion_intensidad_list = "<ul>"
+
         min_len = min(len(ubicacionDolor), len(intensidadDolor))
         for i in range(min_len):
             ubicacion = ubicacionDolor[i]
             intensidad = intensidadDolor[i]
-            ubicacion_intensidad_list += f"<li><strong>{ubicacion}:</strong> {intensidad}</li>\n"
-        if len(ubicacionDolor) != len(intensidadDolor):
-            ubicacion_intensidad_list += "<li><strong>Error:</strong> Las listas no coinciden en longitud</li>\n"
+            ubicacion_intensidad_list += f"<li>{ubicacion} - {intensidad}</li>"
 
+        if len(ubicacionDolor) != len(intensidadDolor):
+            ubicacion_intensidad_list += "<li><strong>Error:</strong> Las listas no coinciden en longitud</li>"
+
+        ubicacion_intensidad_list += "</ul>"
         # INICIALIZA CONTEXT
         context = {
             'paciente': paciente,
