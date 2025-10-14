@@ -745,3 +745,183 @@ def clear_session_message(request):
         del request.session['show_success_message']
         request.session.modified = True
     return JsonResponse({'status': 'success'})
+
+
+@requiere_clinico
+def estadisticas(request):
+    """Vista para mostrar estadísticas y análisis de datos clínicos"""
+    if 'nombre_clinico' not in request.session:
+        return redirect('login')
+    
+    nombre_clinico = request.session['nombre_clinico']
+    es_admin = request.session.get('es_admin', False)
+    
+    # Obtener todos los pacientes y formularios
+    pacientes = Paciente.objects.all()
+    formularios = formularioClinico.objects.all()
+    
+    # === ESTADÍSTICAS GENERALES ===
+    total_pacientes = pacientes.count()
+    total_formularios = formularios.count()
+    
+    # Distribución por género
+    distribucion_genero = {
+        'labels': [],
+        'data': []
+    }
+    generos = pacientes.values('genero').distinct()
+    for genero in generos:
+        if genero['genero']:
+            count = pacientes.filter(genero=genero['genero']).count()
+            distribucion_genero['labels'].append(genero['genero'])
+            distribucion_genero['data'].append(count)
+    
+    # === ANÁLISIS DE DOLOR ===
+    # Ubicaciones de dolor más comunes
+    ubicaciones_dolor = {}
+    for form in formularios:
+        if form.ubicacionDolor:
+            try:
+                ubicaciones = json.loads(form.ubicacionDolor)
+                for ubicacion in ubicaciones:
+                    ubicaciones_dolor[ubicacion] = ubicaciones_dolor.get(ubicacion, 0) + 1
+            except:
+                pass
+    
+    # Top 10 ubicaciones
+    top_ubicaciones = dict(sorted(ubicaciones_dolor.items(), key=lambda x: x[1], reverse=True)[:10])
+    
+    # Intensidad promedio del dolor
+    intensidades = []
+    for form in formularios:
+        if form.dolorIntensidad:
+            try:
+                intensidad_list = json.loads(form.dolorIntensidad)
+                for intensidad in intensidad_list:
+                    try:
+                        intensidades.append(int(intensidad))
+                    except:
+                        pass
+            except:
+                pass
+    
+    intensidad_promedio = sum(intensidades) / len(intensidades) if intensidades else 0
+    
+    # Distribución de intensidad del dolor
+    distribucion_intensidad = {str(i): 0 for i in range(1, 11)}
+    for intensidad in intensidades:
+        if 1 <= intensidad <= 10:
+            distribucion_intensidad[str(intensidad)] += 1
+    
+    # === CONDICIONES DE SALUD ===
+    condiciones_salud = {}
+    for form in formularios:
+        if form.TiposDeEnfermedades:
+            try:
+                condiciones = json.loads(form.TiposDeEnfermedades)
+                for condicion in condiciones:
+                    condiciones_salud[condicion] = condiciones_salud.get(condicion, 0) + 1
+            except:
+                pass
+    
+    # Top 10 condiciones
+    top_condiciones = dict(sorted(condiciones_salud.items(), key=lambda x: x[1], reverse=True)[:10])
+    
+    # === ANÁLISIS DE ESTILO DE VIDA ===
+    # Nivel de salud percibido
+    niveles_salud = {}
+    for form in formularios:
+        if form.pregunta1_nivelDeSalud:
+            # Simplificar las respuestas
+            if "muy afectada" in form.pregunta1_nivelDeSalud.lower():
+                nivel = "Muy malo"
+            elif "muchas molestias" in form.pregunta1_nivelDeSalud.lower():
+                nivel = "Malo"
+            elif "esfuerzo constante" in form.pregunta1_nivelDeSalud.lower():
+                nivel = "Regular"
+            elif "bien la mayor parte" in form.pregunta1_nivelDeSalud.lower():
+                nivel = "Bien"
+            elif "saludable" in form.pregunta1_nivelDeSalud.lower():
+                nivel = "Muy bien"
+            else:
+                nivel = "No especificado"
+            
+            niveles_salud[nivel] = niveles_salud.get(nivel, 0) + 1
+    
+    # Consumo de comida rápida
+    consumo_comida_rapida = {}
+    for form in formularios:
+        if form.pregunta5_ConsumoComidaRapida:
+            consumo_comida_rapida[form.pregunta5_ConsumoComidaRapida] = consumo_comida_rapida.get(form.pregunta5_ConsumoComidaRapida, 0) + 1
+    
+    # === ANÁLISIS DE SUEÑO ===
+    problemas_sueno = {
+        'Hora acostarse tarde': 0,
+        'Dificultad para dormir': 0,
+        'Despertar temprano': 0,
+        'Tiempo en levantarse': 0,
+        'Despertares nocturnos': 0
+    }
+    
+    for form in formularios:
+        if form.hora_acostarse == "despues_0000":
+            problemas_sueno['Hora acostarse tarde'] += 1
+        if form.tiempo_dormirse in ["30_60", "mas_60"]:
+            problemas_sueno['Dificultad para dormir'] += 1
+        if form.hora_despertar == "antes_0500":
+            problemas_sueno['Despertar temprano'] += 1
+        if form.hora_levantarse in ["30_60", "mas_60"]:
+            problemas_sueno['Tiempo en levantarse'] += 1
+        if form.despertares in ["2_3", "mas_3"]:
+            problemas_sueno['Despertares nocturnos'] += 1
+    
+    # === PATRÓN EVITATIVO/PERSISTENTE ===
+    patrones_conducta = {'Evitativo': 0, 'Persistente': 0, 'Equilibrado': 0}
+    for form in formularios:
+        if form.parametros:
+            try:
+                respuestas = json.loads(form.parametros)
+                evitativo = sum(1 for r in respuestas if r.strip().lower() == 'evitativo')
+                persistente = sum(1 for r in respuestas if r.strip().lower() == 'persistente')
+                
+                if evitativo > persistente:
+                    patrones_conducta['Evitativo'] += 1
+                elif persistente > evitativo:
+                    patrones_conducta['Persistente'] += 1
+                else:
+                    patrones_conducta['Equilibrado'] += 1
+            except:
+                pass
+    
+    # === TENDENCIAS TEMPORALES ===
+    # Formularios por mes (últimos 6 meses)
+    hoy = datetime.now()
+    pacientes_por_mes = {}
+    for i in range(6):
+        mes = (hoy - timedelta(days=30*i)).strftime('%B %Y')
+        pacientes_por_mes[mes] = 0
+    
+    for formulario in formularios:
+        if formulario.fechaCreacion:
+            mes = formulario.fechaCreacion.strftime('%B %Y')
+            if mes in pacientes_por_mes:
+                pacientes_por_mes[mes] += 1
+    
+    context = {
+        'nombre_clinico': nombre_clinico,
+        'es_admin': es_admin,
+        'total_pacientes': total_pacientes,
+        'total_formularios': total_formularios,
+        'distribucion_genero': json.dumps(distribucion_genero),
+        'top_ubicaciones': json.dumps({'labels': list(top_ubicaciones.keys()), 'data': list(top_ubicaciones.values())}),
+        'intensidad_promedio': round(intensidad_promedio, 1),
+        'distribucion_intensidad': json.dumps({'labels': list(distribucion_intensidad.keys()), 'data': list(distribucion_intensidad.values())}),
+        'top_condiciones': json.dumps({'labels': list(top_condiciones.keys()), 'data': list(top_condiciones.values())}),
+        'niveles_salud': json.dumps({'labels': list(niveles_salud.keys()), 'data': list(niveles_salud.values())}),
+        'consumo_comida_rapida': json.dumps({'labels': list(consumo_comida_rapida.keys()), 'data': list(consumo_comida_rapida.values())}),
+        'problemas_sueno': json.dumps({'labels': list(problemas_sueno.keys()), 'data': list(problemas_sueno.values())}),
+        'patrones_conducta': json.dumps({'labels': list(patrones_conducta.keys()), 'data': list(patrones_conducta.values())}),
+        'pacientes_por_mes': json.dumps({'labels': list(reversed(list(pacientes_por_mes.keys()))), 'data': list(reversed(list(pacientes_por_mes.values())))}),
+    }
+    
+    return render(request, 'estadisticas.html', context)

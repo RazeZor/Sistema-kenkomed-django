@@ -55,66 +55,149 @@
     </style>
 </head>
 <body>
-            <!-- Sidebar Navigation - Más compacto y moderno -->
-            <aside class="fixed z-50 flex flex-col w-20 h-screen transition-all duration-300 bg-white border-r border-gray-100 lg:w-64 lg:relative" id="sidebar">
+            <!-- Botón hamburguesa para móvil -->
+            <button class="fixed z-50 p-3 text-white transition-all rounded-lg shadow-lg bg-medical-blue top-4 left-4 lg:hidden hover:bg-medical-blue-dark" id="menuToggle">
+                <i class='text-2xl bx bx-menu'></i>
+            </button>
+
+            <!-- Overlay para cerrar el menú en móvil -->
+            <div class="fixed inset-0 z-40 hidden bg-black bg-opacity-50 lg:hidden" id="menuOverlay"></div>
+
+            <!-- Sidebar Navigation - Responsive para todas las pantallas -->
+            <aside class="fixed z-50 flex flex-col h-screen transition-all duration-300 bg-white border-r border-gray-100 -translate-x-full lg:translate-x-0 w-64 lg:w-20 xl:w-64 lg:relative" id="sidebar">
                 <!-- Logo y título -->
-                <div class="flex items-center justify-center h-16 px-4 border-b border-gray-100 lg:justify-start">
+                <div class="flex items-center justify-between h-16 px-4 border-b border-gray-100 lg:justify-center xl:justify-start">
                     <a href="{% url 'panel' %}" class="flex items-center">
-                        <div class="flex items-center justify-center w-20 h-20 text-white">
-                            <img src="{% static 'image/logo.png' %}" alt="Logo" class="w-full h-full">
+                        <div class="flex items-center justify-center w-12 h-12 text-white lg:w-16 lg:h-16">
+                            <img src="{% static 'image/logoKenkoMed.jpeg' %}" alt="Logo" class="w-full h-full">
                         </div>
                     </a>
-                    <button class="absolute text-gray-500 right-4 top-4 lg:hidden" id="sidebarClose">
-                        <i class='text-xl bx bx-x'></i>
+                    <button class="text-gray-500 lg:hidden" id="sidebarClose">
+                        <i class='text-2xl bx bx-x'></i>
                     </button>
                 </div>
     
                 <!-- Navegación principal -->
-                <div class="flex flex-col flex-1 py-6 overflow-y-auto scrollbar-hide">
-                    <!-- Usuario -->
-                    
+                <div class="flex flex-col flex-1 py-4 overflow-y-auto scrollbar-hide lg:py-6">
                     <!-- Enlaces de navegación -->
                     <nav class="px-2 space-y-1">
-                        <a href="{% url 'panel' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
-                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/' %}               text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                                <i class='bx bx-home'></i>
+                        <a href="{% url 'panel' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-home'></i>
                             </div>
-                            <span class="hidden ml-3 lg:block">Inicio</span>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Inicio</span>
                         </a>
-                        <a href="{% url 'pacientes' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
-                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/ListaPacientes' %} text-white rounded-lg bg-medical-blue {% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                                <i class='bx bx-folder-open'></i>
+                        <a href="{% url 'pacientes' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/ListaPacientes' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-folder-open'></i>
                             </div>
-                            <span class="hidden ml-3 lg:block">Pacientes</span>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Pacientes</span>
                         </a>
-                        <a href="{% url 'historialClinico' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
-                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/panel/historialClinico/' %} text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                                <i class='bx bx-file'></i>
+                        <a href="{% url 'historialClinico' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/historialClinico/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-file'></i>
                             </div>
-                            <span class="hidden ml-3 lg:block">Historiales</span>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Historiales</span>
+                        </a>
+                        <a href="{% url 'estadisticas' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/estadisticas/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-bar-chart-alt-2'></i>
+                            </div>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Estadísticas</span>
                         </a>
                         {% if es_admin %}
-                        <a href="{% url 'ver' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50">
-                            <div class="flex items-center justify-center w-8 h-8 {% if request.path == '/Ver/' %} text-white rounded-lg bg-medical-blue{% else %} text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                                <i class='bx bx-group'></i>
+                        <a href="{% url 'ver' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/Ver/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-group'></i>
                             </div>
-                            <span class="hidden ml-3 lg:block">Clínicos</span>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Clínicos</span>
                         </a>
                         {% endif %}
                     </nav>
     
-                    <!-- Separador -->
-                    <div class="hidden px-4 mt-auto lg:block">
-                        <hr class="my-6 border-gray-100">         
+                    <!-- Separador y botón de cerrar sesión -->
+                    <div class="px-4 mt-auto">
+                        <hr class="my-4 border-gray-100 lg:my-6">         
                         <!-- Botón de cerrar sesión -->
-                        <a href="{% url 'cerrarSesion' %}" class="flex items-center w-full p-3 mt-2 text-gray-700 transition-all rounded-xl hover:bg-red-50 hover:text-red-500">
-                            <div class="flex items-center justify-center w-8 h-8 text-gray-600 bg-gray-100 rounded-lg">
-                                <i class='bx bx-log-out'></i>
+                        <a href="{% url 'cerrarSesion' %}" class="flex items-center w-full p-3 text-gray-700 transition-all rounded-xl hover:bg-red-50 hover:text-red-500 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 text-gray-600 bg-gray-100 rounded-lg">
+                                <i class='text-lg bx bx-log-out'></i>
                             </div>
-                            <span class="ml-3">Cerrar Sesión</span>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Cerrar Sesión</span>
                         </a>
                     </div>
                 </div>
-            </aside>    
+            </aside>
+
+            <script>
+                // Elementos del DOM
+                const sidebar = document.getElementById('sidebar');
+                const menuToggle = document.getElementById('menuToggle');
+                const sidebarClose = document.getElementById('sidebarClose');
+                const menuOverlay = document.getElementById('menuOverlay');
+
+                // Función para abrir el menú
+                function openMenu() {
+                    sidebar.classList.remove('-translate-x-full');
+                    menuOverlay.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Prevenir scroll en móvil
+                }
+
+                // Función para cerrar el menú
+                function closeMenu() {
+                    sidebar.classList.add('-translate-x-full');
+                    menuOverlay.classList.add('hidden');
+                    document.body.style.overflow = ''; // Restaurar scroll
+                }
+
+                // Event listeners
+                if (menuToggle) {
+                    menuToggle.addEventListener('click', openMenu);
+                }
+
+                if (sidebarClose) {
+                    sidebarClose.addEventListener('click', closeMenu);
+                }
+
+                if (menuOverlay) {
+                    menuOverlay.addEventListener('click', closeMenu);
+                }
+
+                // Cerrar menú al hacer clic en un enlace (solo en móvil)
+                const navLinks = sidebar.querySelectorAll('nav a');
+                navLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth < 1024) { // lg breakpoint
+                            closeMenu();
+                        }
+                    });
+                });
+
+                // Cerrar menú al cambiar de orientación en móvil
+                window.addEventListener('resize', () => {
+                    if (window.innerWidth >= 1024) {
+                        closeMenu();
+                    }
+                });
+
+                // Prevenir scroll cuando el menú está abierto en móvil
+                let touchStartY = 0;
+                sidebar.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY;
+                }, { passive: true });
+
+                sidebar.addEventListener('touchmove', (e) => {
+                    const touchY = e.touches[0].clientY;
+                    const scrollTop = sidebar.scrollTop;
+                    const scrollHeight = sidebar.scrollHeight;
+                    const clientHeight = sidebar.clientHeight;
+
+                    // Permitir scroll solo dentro del sidebar
+                    if ((scrollTop === 0 && touchY > touchStartY) || 
+                        (scrollTop + clientHeight >= scrollHeight && touchY < touchStartY)) {
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+            </script>
 </body>
 </html>

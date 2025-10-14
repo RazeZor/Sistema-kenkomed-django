@@ -120,6 +120,15 @@
             .grid > div {
                 margin-bottom: 0.5rem;
             }
+            
+            /* Asegurar que el contenido DSS sea visible en impresión */
+            #dss-content {
+                display: block !important;
+            }
+            
+            #dss-loader {
+                display: none !important;
+            }
         }
         
         /* Estilos normales */
@@ -172,6 +181,73 @@
             margin-left: 1.5em;
             list-style-type: disc;
         }
+        
+        /* Estilos para el loader y análisis DSS */
+        .dss-loader-container {
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .pulse-text {
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .analyze-button {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .analyze-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .analyze-button:active {
+            transform: translateY(0);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dss-content-hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -203,18 +279,64 @@
 
     <div class="max-w-4xl mx-auto px-6 pb-12">
         <!-- Resumen Ejecutivo (DSS) -->
-        <section class="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-100">
+        <section id="dss-section" class="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-100">
             <h2 class="text-xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
                 <i class='bx bx-brain mr-2 text-blue-600'></i> Resumen de Apoyo a la Decisión Clínica (DSS)
             </h2>
-            <div class="prose max-w-none text-gray-700">
+            
+            <!-- Loader y botón de análisis -->
+            <div id="dss-loader" class="dss-loader-container">
+                <div class="loader-spinner"></div>
+                <div class="text-center">
+                    <p class="text-lg font-semibold text-gray-700 pulse-text mb-2">
+                        <i class='bx bx-analyse text-blue-600'></i> Analizando datos del paciente...
+                    </p>
+                    <p class="text-sm text-gray-500">Procesando información clínica</p>
+                </div>
+                <button id="analyze-btn" 
+                        onclick="showDSSResults()"
+                        class="analyze-button px-8 py-4 text-white rounded-lg font-semibold text-lg flex items-center gap-3 no-print"
+                        style="display: none;">
+                    <i class='bx bx-brain text-2xl'></i>
+                    <span>Analizar y Entregar Datos de DSS</span>
+                    <i class='bx bx-right-arrow-alt text-2xl'></i>
+                </button>
+            </div>
+            
+            <!-- Contenido DSS (oculto inicialmente) -->
+            <div id="dss-content" class="dss-content-hidden prose max-w-none text-gray-700">
                 {{ mensajeApoyo|safe }}
                 {{ mensajeSemaforo|safe }}
-                {{ MensajecaracteristicasDolor|safe }}
-                {{ MensajeCondicionesSalud|safe }}
-                {{ opinionproblemaEnfermead|safe }}
-                {{ mensajeEVPER|safe }}
-                {{ResultadosSueño|safe}}
+                
+                <!-- Análisis de Determinantes Sociales de Salud -->
+                <div class="mb-4">
+                    {{ mensajeDSS|safe }}
+                </div>
+                
+                <!-- Análisis de características del dolor -->
+                <div class="mb-4">
+                    {{ MensajecaracteristicasDolor|safe }}
+                </div>
+                
+                <!-- Condiciones de salud -->
+                <div class="mb-4">
+                    {{ MensajeCondicionesSalud|safe }}
+                </div>
+                
+                <!-- Creencias sobre el dolor -->
+                <div class="mb-4">
+                    {{ opinionproblemaEnfermead|safe }}
+                </div>
+                
+                <!-- Patrón evitativo/persistente -->
+                <div class="mb-4">
+                    {{ mensajeEVPER|safe }}
+                </div>
+                
+                <!-- Análisis del sueño -->
+                <div class="mb-4">
+                    {{ ResultadosSueño|safe }}
+                </div>
             </div>
         </section>
 
@@ -514,7 +636,47 @@
         document.addEventListener('DOMContentLoaded', function() {
             const contenido = document.getElementById('contenido-expandible');
             contenido.style.display = 'block';
+            
+            // Iniciar la secuencia de análisis DSS
+            initDSSAnalysis();
         });
+        
+        function initDSSAnalysis() {
+            // Simular tiempo de análisis (2 segundos)
+            setTimeout(() => {
+                // Ocultar spinner y mostrar botón de análisis
+                const spinner = document.querySelector('.loader-spinner');
+                const pulseText = document.querySelector('.pulse-text').parentElement;
+                const analyzeBtn = document.getElementById('analyze-btn');
+                
+                spinner.style.display = 'none';
+                pulseText.style.display = 'none';
+                analyzeBtn.style.display = 'flex';
+            }, 2000);
+        }
+        
+        function showDSSResults() {
+            const loader = document.getElementById('dss-loader');
+            const content = document.getElementById('dss-content');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            
+            // Ocultar botón y mostrar loader brevemente
+            analyzeBtn.style.display = 'none';
+            
+            // Mostrar spinner nuevamente
+            const spinner = document.querySelector('.loader-spinner');
+            const pulseText = document.querySelector('.pulse-text').parentElement;
+            spinner.style.display = 'block';
+            pulseText.style.display = 'block';
+            pulseText.querySelector('.pulse-text').innerHTML = '<i class="bx bx-analyse text-blue-600"></i> Generando informe DSS...';
+            
+            // Después de 1.5 segundos, mostrar resultados
+            setTimeout(() => {
+                loader.style.display = 'none';
+                content.classList.remove('dss-content-hidden');
+                content.classList.add('fade-in');
+            }, 1500);
+        }
 
         function toggleContent() {
             const contenido = document.getElementById('contenido-expandible');
@@ -536,7 +698,16 @@
         function imprimirInforme() {
             // Asegurarse de que todo el contenido esté visible
             const contenido = document.getElementById('contenido-expandible');
+            const dssContent = document.getElementById('dss-content');
+            const dssLoader = document.getElementById('dss-loader');
+            
             contenido.style.display = 'block';
+            
+            // Si el DSS no se ha mostrado aún, mostrarlo para la impresión
+            if (dssContent.classList.contains('dss-content-hidden')) {
+                dssContent.classList.remove('dss-content-hidden');
+                dssLoader.style.display = 'none';
+            }
             
             // Pequeño delay para asegurar que el DOM se actualice
             setTimeout(() => {

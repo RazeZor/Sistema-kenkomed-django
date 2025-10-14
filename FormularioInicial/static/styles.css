@@ -178,8 +178,28 @@ body {
 
 .sidebar-footer {
   padding: var(--space-md);
-  border-top: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-border);
   background: var(--color-white);
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.sidebar-footer .btn {
+  font-size: 1rem;
+  padding: var(--space-md);
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: all var(--transition);
+}
+
+.sidebar-footer .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.sidebar-footer .btn:active {
+  transform: translateY(0);
 }
 
 /* ===== ÁREA DE CONTENIDO ===== */

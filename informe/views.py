@@ -23,12 +23,15 @@ def RenderInforme(request):
 
         ResultadosSueño = ResultSueño(formulario.despertares,formulario.hora_acostarse,formulario.tiempo_dormirse,formulario.hora_despertar,formulario.hora_levantarse)
         
-        # hora_acostarse = models.TextField(null=True,blank=True)
-        #tiempo_dormirse = models.TextField(null=True,blank=True)
-        #hora_despertar = models.TextField(null=True,blank=True)
-        #hora_levantarse = models.TextField(null=True,blank=True)
-        #despertares = models.TextField(null=True,blank=True)
         mensajeEVPER = Respuesta_evitativo_persistente(json.loads(formulario.parametros))
+        
+        # Análisis de Determinantes Sociales de Salud (DSS)
+        mensajeDSS = AnalisisDSS(
+            formulario.pregunta1_nivelDeSalud,
+            formulario.pregunta3_frecuencia_De_Suenio,
+            formulario.pregunta4_opinion_peso_actual,
+            formulario.pregunta5_ConsumoComidaRapida
+        )
         
         MensajeNicotina = "no tiene" if formulario.nicotinaPreocupacion is None else formulario.nicotinaPreocupacion
         mensajeAcoholP = "no tiene" if formulario.AlcoholPreocupacion is None else formulario.AlcoholPreocupacion
@@ -59,6 +62,7 @@ def RenderInforme(request):
             'MensajeCondicionesSalud': MensajeCondicionesSalud,
             'opinionproblemaEnfermead': opinionproblemaEnfermead,
             'mensajeEVPER': mensajeEVPER,
+            'mensajeDSS': mensajeDSS,
             'MensajeNicotina': MensajeNicotina,
             'mensajeAcoholP': mensajeAcoholP,
             'mensajeDrogasP': mensajeDrogasP,
@@ -138,75 +142,520 @@ def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, h
 
 
 
-000
+
 
 def Neuropaticas(caracteristicasDolor):
-    for caracteristicas in caracteristicasDolor:
-        if caracteristicas == "ardiente" or caracteristicas == "corriente" or caracteristicas == "adormecimiento" or caracteristicas == "Hormigueo":
+    """
+    Evalúa las características del dolor para detectar posibles componentes neuropáticos.
+    Devuelve un bloque HTML con observaciones detalladas para el kinesiólogo.
+    """
+    try:
+        caracteristicas_neuropaticas = {
+            "ardiente": "sensación de quemazón",
+            "corriente": "sensación de corriente eléctrica o descarga",
+            "adormecimiento": "adormecimiento o entumecimiento",
+            "Hormigueo": "hormigueo o parestesias"
+        }
+        
+        caracteristicas_detectadas = []
+        
+        for caracteristica in caracteristicasDolor:
+            if caracteristica in caracteristicas_neuropaticas:
+                caracteristicas_detectadas.append(
+                    f"<li><strong>{caracteristica.capitalize()}:</strong> {caracteristicas_neuropaticas[caracteristica]}</li>"
+                )
+        
+        if caracteristicas_detectadas:
+            lista_caracteristicas = "".join(caracteristicas_detectadas)
             return (
-                '<div style="background-color: #fff3cd; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>El paciente tiene un dolor neuropático se recomienda al Clinico Usar la Escala DN4 </label>'
+                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #ffeeba;">'
+                '<label><strong>⚠️ Posible componente neuropático del dolor</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;">Se detectaron las siguientes características neuropáticas:</label>'
+                f'<ul style="margin: 8px 0;">{lista_caracteristicas}</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Recomendación:</strong> '
+                'Aplicar la Escala DN4 (Douleur Neuropathique 4) para confirmar el diagnóstico de dolor neuropático. '
+                'Esta escala validada permite diferenciar el dolor neuropático del nociceptivo mediante 10 ítems '
+                '(7 relacionados con síntomas y 3 con el examen físico). Un puntaje ≥4/10 sugiere dolor neuropático.</label>'
                 '</div>'
             )
-    return ('')
+        
+        return (
+            '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #c3e6cb;">'
+            '<label>No se detectaron características de dolor neuropático en las respuestas del paciente.</label>'
+            '</div>'
+        )
+    
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al evaluar características del dolor: {str(e)}</label>'
+            '</div>'
+        )
 
 
 def condicionesSalud(condicionesSalud):
-    mensajes = []
-    
-    recomendaciones = {
-        "Fibromialgia": "El paciente tiene una enfermedad de Fibromialgia, se recomienda uso de formulario para Fibromialgia",
-        "Hormigueos o adormecimiento": "El paciente tiene una enfermedad de Hormigueos o adormecimiento, se recomienda uso de formulario de dolor neuropático",
-        "diabetes": "El paciente tiene una enfermedad de diabetes, se recomienda uso de formulario de dolor neuropático",
-        "Ansiedad": "El paciente tiene una enfermedad de Ansiedad, se recomienda uso de formulario abreviado de Depresión",
-        "Depresion": "El paciente tiene una enfermedad de Depresión, se recomienda uso de formulario abreviado de Depresión"
-    }
-    
-    for condicion in condicionesSalud:
-        if condicion in recomendaciones:
-            mensajes.append(f"<label>{recomendaciones[condicion]}</label>")
-    
-    if mensajes:
-        return (
-            '<div style="background-color: #fff3cd; color: #155724; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #c3e6cb;">' +
-            "<br>".join(mensajes) +
-            "</div>"
-        )
-    
-    return ""
-
-def CreenciaDolor(CreenciaDolor):
-    if (CreenciaDolor == 'si'):
-        return (
-                '<div style="background-color: #fff3cd; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>El paciente cree que tiene un dolor no diagnosticado, Se suguiere uso de Pain Catastrophizing Scale (PCS) </label>'
+    """
+    Analiza las condiciones de salud del paciente y genera recomendaciones
+    de evaluaciones complementarias basadas en la evidencia clínica.
+    """
+    try:
+        recomendaciones_detalladas = {
+            "Fibromialgia": {
+                "titulo": "Fibromialgia",
+                "razon": "La fibromialgia es un síndrome de dolor crónico generalizado que requiere evaluación específica.",
+                "herramienta": "Cuestionario de Impacto de Fibromialgia (FIQ)",
+                "justificacion": "Este instrumento evalúa el impacto funcional, síntomas y calidad de vida específicos de fibromialgia."
+            },
+            "Hormigueos o adormecimiento": {
+                "titulo": "Hormigueos o adormecimiento",
+                "razon": "Los síntomas de parestesias sugieren posible afectación del sistema nervioso periférico.",
+                "herramienta": "Escala DN4 (Douleur Neuropathique 4)",
+                "justificacion": "Permite identificar y cuantificar el componente neuropático del dolor mediante criterios validados."
+            },
+            "diabetes": {
+                "titulo": "Diabetes",
+                "razon": "La diabetes es una causa común de neuropatía periférica (30-50% de pacientes diabéticos).",
+                "herramienta": "Escala DN4 y evaluación de neuropatía diabética",
+                "justificacion": "La neuropatía diabética afecta la sensibilidad y puede causar dolor neuropático crónico que requiere manejo específico."
+            },
+            "Ansiedad": {
+                "titulo": "Ansiedad",
+                "razon": "La ansiedad puede amplificar la percepción del dolor y afectar la adherencia al tratamiento.",
+                "herramienta": "Escala de Ansiedad y Depresión Hospitalaria (HADS) o GAD-7",
+                "justificacion": "Existe una relación bidireccional entre ansiedad y dolor crónico. El tratamiento integral debe abordar ambos aspectos."
+            },
+            "Depresion": {
+                "titulo": "Depresión",
+                "razon": "La depresión está presente en 30-60% de pacientes con dolor crónico y afecta el pronóstico.",
+                "herramienta": "Escala de Ansiedad y Depresión Hospitalaria (HADS) o PHQ-9",
+                "justificacion": "La comorbilidad dolor-depresión requiere abordaje integrado para mejorar resultados terapéuticos."
+            }
+        }
+        
+        condiciones_detectadas = []
+        
+        for condicion in condicionesSalud:
+            if condicion in recomendaciones_detalladas:
+                info = recomendaciones_detalladas[condicion]
+                condiciones_detectadas.append(
+                    f'<li style="margin-bottom: 12px;">'
+                    f'<strong>{info["titulo"]}:</strong><br>'
+                    f'<span style="margin-left: 15px; display: block; margin-top: 4px;">'
+                    f'• <em>Contexto:</em> {info["razon"]}<br>'
+                    f'• <em>Herramienta recomendada:</em> {info["herramienta"]}<br>'
+                    f'• <em>Justificación:</em> {info["justificacion"]}'
+                    f'</span>'
+                    f'</li>'
+                )
+        
+        if condiciones_detectadas:
+            lista_condiciones = "".join(condiciones_detectadas)
+            return (
+                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #ffeeba;">'
+                '<label><strong>📋 Evaluaciones complementarias recomendadas</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;">'
+                f'Se detectaron {len(condiciones_detectadas)} condición(es) de salud que requieren evaluación específica:'
+                '</label>'
+                f'<ul style="margin: 10px 0; list-style-type: none; padding-left: 0;">{lista_condiciones}</ul>'
                 '</div>'
             )
-    return ('')
+        
+        return (
+            '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #c3e6cb;">'
+            '<label>No se detectaron condiciones de salud que requieran evaluaciones complementarias específicas.</label>'
+            '</div>'
+        )
+    
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al evaluar condiciones de salud: {str(e)}</label>'
+            '</div>'
+        )
+
+def CreenciaDolor(CreenciaDolor):
+    """
+    Evalúa la percepción del paciente sobre su dolor y recomienda herramientas
+    para evaluar catastrofización si es necesario.
+    """
+    try:
+        if CreenciaDolor == 'si':
+            return (
+                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #ffeeba;">'
+                '<label><strong>⚠️ Creencia de dolor no diagnosticado</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;">'
+                '<strong>Hallazgo:</strong> El paciente cree que tiene un problema de salud o dolor que no ha sido diagnosticado.'
+                '</label>'
+                '<label style="margin-top: 8px; display: block;">'
+                '<strong>Implicación clínica:</strong> Esta creencia puede indicar catastrofización del dolor, '
+                'un proceso cognitivo-afectivo caracterizado por magnificación de la amenaza del dolor, '
+                'rumiación y sensación de impotencia. La catastrofización se asocia con:'
+                '</label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li>Mayor intensidad del dolor percibido</li>'
+                '<li>Peor respuesta al tratamiento</li>'
+                '<li>Mayor discapacidad funcional</li>'
+                '<li>Riesgo de cronificación del dolor</li>'
+                '</ul>'
+                '<label style="margin-top: 8px; display: block;">'
+                '<strong>Herramienta recomendada:</strong> Pain Catastrophizing Scale (PCS)'
+                '</label>'
+                '<label style="margin-top: 4px; display: block;">'
+                '<strong>Justificación:</strong> La PCS es un cuestionario validado de 13 ítems que evalúa tres dimensiones '
+                'de la catastrofización: rumiación, magnificación e impotencia. Un puntaje ≥30 indica catastrofización clínicamente '
+                'significativa que requiere intervención cognitivo-conductual.'
+                '</label>'
+                '</div>'
+            )
+        else:
+            return (
+                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #c3e6cb;">'
+                '<label>El paciente no manifiesta creencias de dolor no diagnosticado, lo que sugiere una '
+                'percepción más realista de su condición.</label>'
+                '</div>'
+            )
+    
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al evaluar creencias sobre el dolor: {str(e)}</label>'
+            '</div>'
+        )
 
 
 def Respuesta_evitativo_persistente(respuestas):
-    EVITATIVAS = "evitativo"
-    PERSISTENTES = "persistente"
-    evitativo = 0
-    persistente = 0
+    """
+    Analiza las respuestas del paciente para determinar su patrón de conducta
+    frente al dolor: evitativo, persistente o equilibrado.
+    Proporciona análisis detallado con justificación clínica.
+    """
+    try:
+        EVITATIVAS = "evitativo"
+        PERSISTENTES = "persistente"
+        evitativo = 0
+        persistente = 0
 
-    for respuesta in respuestas:
-        if respuesta.strip().lower() == EVITATIVAS:
-            evitativo += 1
-        elif respuesta.strip().lower() == PERSISTENTES:
-            persistente += 1
+        # Contar respuestas
+        for respuesta in respuestas:
+            respuesta_limpia = respuesta.strip().lower()
+            if respuesta_limpia == EVITATIVAS:
+                evitativo += 1
+            elif respuesta_limpia == PERSISTENTES:
+                persistente += 1
 
-    if evitativo > persistente:
-        return ('<div style="background-color: #fff3cd; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>Paciente tiene una conducta de evitacion</label>'
-                '</div>')
-    elif persistente > evitativo:
-        return  ('<div style="background-color: #f8d7da; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>Paciente tiene una conducta de persistencia</label>'
-                '</div>')
-    else:
-        return  ('<div style="background-color: #d4edda; color: #155724; padding: 15px; border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>Paciente tiene una conducta equilibrada</label>'
-                '</div>')
+        total_respuestas = evitativo + persistente
+        
+        # Si no hay respuestas válidas
+        if total_respuestas == 0:
+            return (
+                '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #d6d8db;">'
+                '<label><strong>Sin datos suficientes</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;">'
+                'No se detectaron respuestas válidas para evaluar el patrón de conducta ante el dolor. '
+                'Se recomienda completar el cuestionario de conductas evitativas/persistentes.'
+                '</label>'
+                '</div>'
+            )
+
+        # Calcular porcentajes
+        porcentaje_evitativo = round((evitativo / total_respuestas) * 100, 1)
+        porcentaje_persistente = round((persistente / total_respuestas) * 100, 1)
+
+        # Conducta predominantemente evitativa
+        if evitativo > persistente:
+            diferencia = evitativo - persistente
+            nivel = "marcada" if diferencia >= 3 else "leve"
+            return (
+                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #ffeeba;">'
+                f'<label><strong>⚠️ Conducta predominantemente EVITATIVA ({nivel})</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
+                f'<ul style="margin: 8px 0 8px 20px;">'
+                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
+                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
+                f'<li>Diferencia: {diferencia} respuestas a favor de evitación</li>'
+                f'</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
+                '<label style="margin-top: 4px; display: block;">'
+                'El paciente presenta un patrón de <strong>kinesiofobia</strong> (miedo al movimiento), '
+                'caracterizado por evitación de actividades que podrían causar dolor. Este comportamiento:'
+                '</label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li>Reduce la capacidad funcional progresivamente</li>'
+                '<li>Aumenta el desacondicionamiento físico</li>'
+                '<li>Perpetúa el ciclo miedo-evitación-discapacidad</li>'
+                '<li>Puede llevar a aislamiento social y depresión</li>'
+                '</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li><strong>Exposición gradual:</strong> Programa de reactivación progresiva con jerarquía de actividades temidas</li>'
+                '<li><strong>Educación en neurociencia del dolor:</strong> Explicar mecanismos del dolor para reducir el miedo</li>'
+                '<li><strong>Reestructuración cognitiva:</strong> Modificar creencias catastróficas sobre el movimiento</li>'
+                '<li><strong>Establecer metas funcionales:</strong> Objetivos realistas y medibles de actividad</li>'
+                '<li><strong>Considerar aplicar:</strong> Tampa Scale of Kinesiophobia (TSK) para cuantificar el miedo al movimiento</li>'
+                '</ul>'
+                '</div>'
+            )
+        
+        # Conducta predominantemente persistente
+        elif persistente > evitativo:
+            diferencia = persistente - evitativo
+            nivel = "marcada" if diferencia >= 3 else "leve"
+            return (
+                '<div style="background-color: #f8d7da; color: #721c24; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #f5c6cb;">'
+                f'<label><strong>🔴 Conducta predominantemente PERSISTENTE ({nivel})</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
+                f'<ul style="margin: 8px 0 8px 20px;">'
+                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
+                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
+                f'<li>Diferencia: {diferencia} respuestas a favor de persistencia</li>'
+                f'</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
+                '<label style="margin-top: 4px; display: block;">'
+                'El paciente presenta un patrón de <strong>sobreactividad</strong> o <strong>endurance</strong>, '
+                'caracterizado por ignorar las señales de dolor y continuar con actividades hasta el agotamiento. Este comportamiento:'
+                '</label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li>Genera ciclos de sobreactividad seguidos de colapso ("boom-bust")</li>'
+                '<li>Aumenta la inflamación y el daño tisular</li>'
+                '<li>Prolonga los períodos de recuperación</li>'
+                '<li>Dificulta la percepción de límites corporales</li>'
+                '</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li><strong>Pacing (dosificación de actividades):</strong> Enseñar a distribuir actividades en el tiempo</li>'
+                '<li><strong>Reconocimiento de señales corporales:</strong> Entrenar en identificación temprana de fatiga/dolor</li>'
+                '<li><strong>Establecer límites realistas:</strong> Definir umbrales de actividad sostenibles</li>'
+                '<li><strong>Técnica de los "bloques de tiempo":</strong> Alternar períodos de actividad y descanso programados</li>'
+                '<li><strong>Mindfulness:</strong> Mejorar la conciencia corporal y aceptación de limitaciones</li>'
+                '<li><strong>Prevenir recaídas:</strong> Identificar triggers de sobreexigencia (perfeccionismo, presión social)</li>'
+                '</ul>'
+                '</div>'
+            )
+        
+        # Conducta equilibrada (empate)
+        else:
+            return (
+                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #c3e6cb;">'
+                f'<label><strong>✅ Conducta EQUILIBRADA</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
+                f'<ul style="margin: 8px 0 8px 20px;">'
+                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
+                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
+                f'<li>Distribución: Equilibrio perfecto entre ambos patrones</li>'
+                f'</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
+                '<label style="margin-top: 4px; display: block;">'
+                'El paciente muestra un <strong>patrón adaptativo</strong> de respuesta al dolor, con capacidad para:'
+                '</label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li>Ajustar su nivel de actividad según las señales corporales</li>'
+                '<li>Mantener un balance entre actividad y descanso</li>'
+                '<li>Evitar tanto la kinesiofobia como la sobreexigencia</li>'
+                '<li>Demostrar flexibilidad conductual</li>'
+                '</ul>'
+                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
+                '<ul style="margin: 8px 0 8px 20px;">'
+                '<li><strong>Reforzar estrategias actuales:</strong> El paciente ya utiliza un enfoque adaptativo</li>'
+                '<li><strong>Mantener autorregulación:</strong> Continuar con el automonitoreo de síntomas</li>'
+                '<li><strong>Prevención de recaídas:</strong> Identificar situaciones que puedan alterar este equilibrio</li>'
+                '<li><strong>Optimizar funcionalidad:</strong> Trabajar en incremento gradual de capacidades dentro del equilibrio</li>'
+                '</ul>'
+                '</div>'
+            )
+    
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al evaluar patrón de conducta: {str(e)}</label>'
+            '</div>'
+        )
+
+
+def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapida):
+    """
+    Analiza los Determinantes Sociales de la Salud (DSS) basado en estilo de vida.
+    Evalúa: nivel de salud percibido, calidad del sueño, percepción del peso y hábitos alimenticios.
+    Proporciona recomendaciones basadas en evidencia para el clínico.
+    """
+    try:
+        observaciones = []
+        nivel_riesgo = "bajo"  # bajo, moderado, alto
+        
+        # --- 1. Análisis del nivel de salud percibido ---
+        if nivel_salud:
+            if "muy afectada" in nivel_salud.lower() or "problemas graves" in nivel_salud.lower():
+                observaciones.append({
+                    "categoria": "Salud percibida muy deteriorada",
+                    "hallazgo": "El paciente percibe su salud como muy afectada con problemas graves que dificultan casi todas sus actividades diarias.",
+                    "implicacion": "La autopercepción negativa de salud es un predictor independiente de mortalidad y está asociada con peor pronóstico funcional.",
+                    "recomendacion": "Evaluación integral multidisciplinaria. Considerar derivación a salud mental por posible depresión asociada."
+                })
+                nivel_riesgo = "alto"
+            elif "muchas molestias" in nivel_salud.lower() or "limitaciones" in nivel_salud.lower():
+                observaciones.append({
+                    "categoria": "Salud percibida deteriorada",
+                    "hallazgo": "El paciente reporta muchas molestias o limitaciones que afectan significativamente su vida diaria.",
+                    "implicacion": "Indica impacto funcional importante que puede perpetuar el ciclo de dolor y discapacidad.",
+                    "recomendacion": "Establecer objetivos funcionales específicos y medibles. Implementar programa de rehabilitación gradual."
+                })
+                if nivel_riesgo != "alto":
+                    nivel_riesgo = "moderado"
+            elif "esfuerzo constante" in nivel_salud.lower() or "molestias frecuentes" in nivel_salud.lower():
+                observaciones.append({
+                    "categoria": "Salud percibida regular",
+                    "hallazgo": "El paciente puede realizar actividades pero con esfuerzo constante y molestias frecuentes.",
+                    "implicacion": "Existe capacidad funcional preservada pero con alto costo energético y sintomático.",
+                    "recomendacion": "Optimizar estrategias de conservación de energía y técnicas de pacing para mejorar eficiencia funcional."
+                })
+                if nivel_riesgo == "bajo":
+                    nivel_riesgo = "moderado"
+        
+        # --- 2. Análisis de la calidad del sueño (fatiga diurna) ---
+        if frecuencia_sueno:
+            if frecuencia_sueno.lower() == "siempre":
+                observaciones.append({
+                    "categoria": "Somnolencia diurna excesiva severa",
+                    "hallazgo": "El paciente siempre se siente cansado o tiene dificultad para mantenerse despierto durante tareas rutinarias.",
+                    "implicacion": "La somnolencia diurna excesiva puede indicar trastornos del sueño no diagnosticados (apnea del sueño, síndrome de piernas inquietas) o depresión. Aumenta el riesgo de accidentes y reduce la adherencia al tratamiento.",
+                    "recomendacion": "Derivar a especialista en medicina del sueño. Evaluar Escala de Somnolencia de Epworth. Descartar apnea obstructiva del sueño."
+                })
+                nivel_riesgo = "alto"
+            elif frecuencia_sueno.lower() == "frecuentemente":
+                observaciones.append({
+                    "categoria": "Somnolencia diurna excesiva moderada",
+                    "hallazgo": "El paciente frecuentemente experimenta fatiga o somnolencia durante el día.",
+                    "implicacion": "Sugiere higiene del sueño deficiente o trastorno del sueño subyacente. La fatiga crónica amplifica la percepción del dolor.",
+                    "recomendacion": "Educar en higiene del sueño. Evaluar horas totales de sueño y calidad. Considerar Cuestionario de Calidad del Sueño de Pittsburgh (PSQI)."
+                })
+                if nivel_riesgo != "alto":
+                    nivel_riesgo = "moderado"
+        
+        # --- 3. Análisis de la percepción del peso ---
+        if opinion_peso:
+            if "ganar mucho peso" in opinion_peso.lower():
+                observaciones.append({
+                    "categoria": "Deseo de ganancia significativa de peso",
+                    "hallazgo": "El paciente desea ganar mucho peso.",
+                    "implicacion": "Puede indicar desnutrición, pérdida de masa muscular (sarcopenia) o trastorno de la imagen corporal. La pérdida de peso no intencional en dolor crónico puede reflejar depresión o enfermedad sistémica.",
+                    "recomendacion": "Evaluar IMC, composición corporal y estado nutricional. Descartar causas orgánicas de pérdida de peso. Considerar derivación a nutricionista."
+                })
+                if nivel_riesgo == "bajo":
+                    nivel_riesgo = "moderado"
+            elif "perder mucho peso" in opinion_peso.lower():
+                observaciones.append({
+                    "categoria": "Deseo de pérdida significativa de peso",
+                    "hallazgo": "El paciente desea perder mucho peso.",
+                    "implicacion": "Posible sobrepeso u obesidad. El exceso de peso aumenta la carga articular, inflamación sistémica y puede perpetuar el dolor musculoesquelético. IMC >30 se asocia con peor pronóstico en dolor crónico.",
+                    "recomendacion": "Calcular IMC. Establecer plan de pérdida de peso gradual (0.5-1 kg/semana). Derivar a nutricionista. Programa de ejercicio adaptado de bajo impacto."
+                })
+                if nivel_riesgo == "bajo":
+                    nivel_riesgo = "moderado"
+        
+        # --- 4. Análisis de hábitos alimenticios ---
+        if consumo_comida_rapida:
+            if "casi todos los dias" in consumo_comida_rapida.lower() or "casi todos los días" in consumo_comida_rapida.lower():
+                observaciones.append({
+                    "categoria": "Patrón alimenticio de alto riesgo",
+                    "hallazgo": "El paciente consume comida rápida, bebidas azucaradas o alimentos ultraprocesados casi todos los días.",
+                    "implicacion": "La dieta proinflamatoria (alta en azúcares refinados, grasas trans y sodio) aumenta la inflamación sistémica, empeora el dolor crónico y aumenta el riesgo cardiovascular y metabólico. Asociado con mayor riesgo de diabetes tipo 2 y síndrome metabólico.",
+                    "recomendacion": "Educación nutricional urgente. Promover dieta antiinflamatoria (mediterránea). Derivación a nutricionista. Evaluar factores socioeconómicos que limiten acceso a alimentación saludable."
+                })
+                nivel_riesgo = "alto"
+            elif "mas de la mitad" in consumo_comida_rapida.lower() or "más de la mitad" in consumo_comida_rapida.lower():
+                observaciones.append({
+                    "categoria": "Patrón alimenticio de riesgo moderado",
+                    "hallazgo": "El paciente consume alimentos ultraprocesados más de la mitad de los días.",
+                    "implicacion": "Patrón alimenticio subóptimo que contribuye a inflamación crónica de bajo grado y puede interferir con la recuperación.",
+                    "recomendacion": "Consejería nutricional. Establecer metas graduales de reducción de alimentos procesados. Educar sobre relación dieta-inflamación-dolor."
+                })
+                if nivel_riesgo != "alto":
+                    nivel_riesgo = "moderado"
+        
+        # --- Generar reporte final ---
+        if not observaciones:
+            return (
+                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
+                'border-radius: 5px; border: 1px solid #c3e6cb;">'
+                '<label><strong>✅ Determinantes Sociales de Salud - Perfil favorable</strong></label><br>'
+                '<label style="margin-top: 8px; display: block;">'
+                'El paciente presenta un perfil de estilo de vida favorable sin factores de riesgo significativos identificados '
+                'en las áreas evaluadas (percepción de salud, sueño, peso y alimentación).'
+                '</label>'
+                '<label style="margin-top: 8px; display: block;"><strong>Recomendación:</strong> '
+                'Reforzar hábitos saludables actuales y mantener seguimiento preventivo.'
+                '</label>'
+                '</div>'
+            )
+        
+        # Determinar color según nivel de riesgo
+        if nivel_riesgo == "alto":
+            bg_color = "#f8d7da"
+            border_color = "#f5c6cb"
+            text_color = "#721c24"
+            icono = "🔴"
+            titulo_riesgo = "ALTO RIESGO"
+        elif nivel_riesgo == "moderado":
+            bg_color = "#fff3cd"
+            border_color = "#ffeeba"
+            text_color = "#856404"
+            icono = "⚠️"
+            titulo_riesgo = "RIESGO MODERADO"
+        else:
+            bg_color = "#d1ecf1"
+            border_color = "#bee5eb"
+            text_color = "#0c5460"
+            icono = "ℹ️"
+            titulo_riesgo = "RIESGO BAJO"
+        
+        # Construir lista de observaciones
+        lista_observaciones = ""
+        for obs in observaciones:
+            lista_observaciones += (
+                f'<li style="margin-bottom: 15px; border-left: 3px solid {border_color}; padding-left: 10px;">'
+                f'<strong>{obs["categoria"]}</strong><br>'
+                f'<span style="margin-left: 0px; display: block; margin-top: 6px;">'
+                f'• <em>Hallazgo:</em> {obs["hallazgo"]}<br>'
+                f'• <em>Implicación clínica:</em> {obs["implicacion"]}<br>'
+                f'• <em>Recomendación:</em> {obs["recomendacion"]}'
+                f'</span>'
+                f'</li>'
+            )
+        
+        return (
+            f'<div style="background-color: {bg_color}; color: {text_color}; padding: 15px; '
+            f'border-radius: 5px; border: 1px solid {border_color};">'
+            f'<label><strong>{icono} Análisis de Determinantes Sociales de Salud - {titulo_riesgo}</strong></label><br>'
+            '<label style="margin-top: 8px; display: block;">'
+            f'Se identificaron <strong>{len(observaciones)} área(s) de preocupación</strong> relacionadas con el estilo de vida '
+            'que pueden impactar el pronóstico y la respuesta al tratamiento:'
+            '</label>'
+            f'<ul style="margin: 10px 0; list-style-type: none; padding-left: 0;">{lista_observaciones}</ul>'
+            '<label style="margin-top: 12px; display: block; background-color: rgba(255,255,255,0.3); padding: 10px; border-radius: 3px;">'
+            '<strong>📌 Nota clínica:</strong> Los determinantes sociales de salud (DSS) son factores no médicos que influyen '
+            'significativamente en los resultados de salud. Abordar estos factores mediante intervenciones multidisciplinarias '
+            'puede mejorar sustancialmente el pronóstico del paciente.'
+            '</label>'
+            '</div>'
+        )
+    
+    except Exception as e:
+        return (
+            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
+            'border-radius: 5px; border: 1px solid #d6d8db;">'
+            f'<label>Error al evaluar determinantes sociales de salud: {str(e)}</label>'
+            '</div>'
+        )

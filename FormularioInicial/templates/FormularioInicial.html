@@ -117,10 +117,14 @@
             </button>
             </nav>
             <div class="sidebar-footer">
-            <!-- Botón submit movido dentro del formulario -->
+                <!-- Botón de submit del formulario -->
+                <button type="submit" form="Step" class="btn btn-primary btn-lg w-100">
+                    <i class="fas fa-save me-2"></i>Guardar Formulario
+                </button>
             </div>
         </aside>
-
+        
+        
         <!-- Contenido principal -->
         <div class="content-area">
             <form id="Step" action="{% url 'formularioInicial' %}" method="post">
@@ -1334,12 +1338,6 @@
                         </div>
                     </div>
                 </section>
-
-                <div class="d-flex justify-content-end mt-4">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="fas fa-save me-2"></i>Guardar Formulario
-                    </button>
-                </div>
             </form>
         </div>
     </main>

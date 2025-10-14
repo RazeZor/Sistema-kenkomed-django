@@ -1,0 +1,490 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Estadísticas y Análisis - Sistema Clínico</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6',
+                            purple: '#a855f7',
+                            pink: '#ec4899'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
+    <div class="flex h-screen overflow-hidden">
+        {% include 'menu.html' %}
+
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Header -->
+            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100">
+                <div class="flex items-center">
+                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggle">
+                        <i class='text-2xl bx bx-menu'></i>
+                    </button>
+                    <h1 class="text-lg font-semibold text-gray-800">
+                        <i class='mr-2 bx bx-bar-chart-alt-2 text-medical-blue'></i>
+                        Estadísticas y Análisis
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.print()" class="px-4 py-2 text-sm text-gray-700 transition-colors bg-white border border-gray-200 rounded-lg hover:bg-gray-50 no-print">
+                        <i class='mr-2 bx bx-printer'></i>
+                        Imprimir
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 p-6 overflow-y-auto">
+                <div class="mx-auto space-y-6 max-w-7xl">
+                    <!-- KPIs Principales -->
+                    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Pacientes</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-gray-800">{{ total_pacientes }}</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-medical-blue/10">
+                                    <i class='text-2xl bx bx-user-plus text-medical-blue'></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Formularios Completados</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-gray-800">{{ total_formularios }}</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-medical-green/10">
+                                    <i class='text-2xl bx bx-file-blank text-medical-green'></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Intensidad Promedio Dolor</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-gray-800">{{ intensidad_promedio }}/10</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-medical-red/10">
+                                    <i class='text-2xl bx bx-pain text-medical-red'></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Tasa de Completitud</p>
+                                    <h3 class="mt-2 text-3xl font-bold text-gray-800">{% widthratio total_formularios total_pacientes 100 %}%</h3>
+                                </div>
+                                <div class="flex items-center justify-center w-12 h-12 rounded-full bg-medical-teal/10">
+                                    <i class='text-2xl bx bx-check-circle text-medical-teal'></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gráficos Principales -->
+                    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        <!-- Distribución por Género -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-male-female text-medical-purple'></i>
+                                Distribución por Género
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="generoChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Top Ubicaciones de Dolor -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-body text-medical-red'></i>
+                                Ubicaciones de Dolor Más Comunes
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="ubicacionesChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Distribución Intensidad del Dolor -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-trending-up text-medical-orange'></i>
+                                Distribución de Intensidad del Dolor
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="intensidadChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Top Condiciones de Salud -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-plus-medical text-medical-teal'></i>
+                                Condiciones de Salud Más Frecuentes
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="condicionesChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Nivel de Salud Percibido -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-heart text-medical-pink'></i>
+                                Nivel de Salud Percibido
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="saludPercibidaChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Consumo de Comida Rápida -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-food-menu text-medical-orange'></i>
+                                Frecuencia de Consumo de Comida Rápida
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="comidaRapidaChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Problemas de Sueño -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-moon text-medical-blue'></i>
+                                Problemas de Sueño Detectados
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="suenoChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Patrones de Conducta -->
+                        <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                            <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                                <i class='mr-2 bx bx-brain text-medical-purple'></i>
+                                Patrones de Conducta ante el Dolor
+                            </h3>
+                            <div class="chart-container">
+                                <canvas id="conductaChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tendencia Temporal -->
+                    <div class="p-6 bg-white border border-gray-100 shadow-sm rounded-2xl">
+                        <h3 class="mb-4 text-lg font-semibold text-gray-800">
+                            <i class='mr-2 bx bx-line-chart text-medical-green'></i>
+                            Tendencia de Pacientes (Últimos 6 Meses)
+                        </h3>
+                        <div style="position: relative; height: 350px;">
+                            <canvas id="tendenciaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Configuración global de Chart.js
+        Chart.defaults.font.family = 'Inter, sans-serif';
+        Chart.defaults.color = '#6b7280';
+        
+        const chartColors = {
+            blue: '#0284c7',
+            green: '#10b981',
+            red: '#ef4444',
+            orange: '#f59e0b',
+            teal: '#14b8a6',
+            purple: '#a855f7',
+            pink: '#ec4899',
+            yellow: '#eab308',
+            indigo: '#6366f1',
+            cyan: '#06b6d4'
+        };
+
+        // Datos del backend
+        const distribucionGenero = {{ distribucion_genero|safe }};
+        const topUbicaciones = {{ top_ubicaciones|safe }};
+        const distribucionIntensidad = {{ distribucion_intensidad|safe }};
+        const topCondiciones = {{ top_condiciones|safe }};
+        const nivelesSalud = {{ niveles_salud|safe }};
+        const consumoComidaRapida = {{ consumo_comida_rapida|safe }};
+        const problemasSueno = {{ problemas_sueno|safe }};
+        const patronesConducta = {{ patrones_conducta|safe }};
+        const pacientesPorMes = {{ pacientes_por_mes|safe }};
+
+        // Gráfico de Género (Doughnut)
+        new Chart(document.getElementById('generoChart'), {
+            type: 'doughnut',
+            data: {
+                labels: distribucionGenero.labels,
+                datasets: [{
+                    data: distribucionGenero.data,
+                    backgroundColor: [chartColors.blue, chartColors.pink, chartColors.purple],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Gráfico de Ubicaciones de Dolor (Horizontal Bar)
+        new Chart(document.getElementById('ubicacionesChart'), {
+            type: 'bar',
+            data: {
+                labels: topUbicaciones.labels,
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: topUbicaciones.data,
+                    backgroundColor: chartColors.red,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Gráfico de Intensidad del Dolor (Line)
+        new Chart(document.getElementById('intensidadChart'), {
+            type: 'line',
+            data: {
+                labels: distribucionIntensidad.labels,
+                datasets: [{
+                    label: 'Pacientes',
+                    data: distribucionIntensidad.data,
+                    borderColor: chartColors.orange,
+                    backgroundColor: chartColors.orange + '20',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Gráfico de Condiciones de Salud (Bar)
+        new Chart(document.getElementById('condicionesChart'), {
+            type: 'bar',
+            data: {
+                labels: topCondiciones.labels,
+                datasets: [{
+                    label: 'Pacientes',
+                    data: topCondiciones.data,
+                    backgroundColor: chartColors.teal,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Gráfico de Salud Percibida (Polar Area)
+        new Chart(document.getElementById('saludPercibidaChart'), {
+            type: 'polarArea',
+            data: {
+                labels: nivelesSalud.labels,
+                datasets: [{
+                    data: nivelesSalud.data,
+                    backgroundColor: [
+                        chartColors.red + '80',
+                        chartColors.orange + '80',
+                        chartColors.yellow + '80',
+                        chartColors.green + '80',
+                        chartColors.teal + '80'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Gráfico de Comida Rápida (Pie)
+        new Chart(document.getElementById('comidaRapidaChart'), {
+            type: 'pie',
+            data: {
+                labels: consumoComidaRapida.labels,
+                datasets: [{
+                    data: consumoComidaRapida.data,
+                    backgroundColor: [
+                        chartColors.green,
+                        chartColors.yellow,
+                        chartColors.orange,
+                        chartColors.red
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Gráfico de Problemas de Sueño (Radar)
+        new Chart(document.getElementById('suenoChart'), {
+            type: 'radar',
+            data: {
+                labels: problemasSueno.labels,
+                datasets: [{
+                    label: 'Pacientes Afectados',
+                    data: problemasSueno.data,
+                    backgroundColor: chartColors.blue + '30',
+                    borderColor: chartColors.blue,
+                    pointBackgroundColor: chartColors.blue,
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: chartColors.blue
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    r: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Gráfico de Patrones de Conducta (Doughnut)
+        new Chart(document.getElementById('conductaChart'), {
+            type: 'doughnut',
+            data: {
+                labels: patronesConducta.labels,
+                datasets: [{
+                    data: patronesConducta.data,
+                    backgroundColor: [
+                        chartColors.orange,
+                        chartColors.red,
+                        chartColors.green
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Gráfico de Tendencia Temporal (Line)
+        new Chart(document.getElementById('tendenciaChart'), {
+            type: 'line',
+            data: {
+                labels: pacientesPorMes.labels,
+                datasets: [{
+                    label: 'Nuevos Pacientes',
+                    data: pacientesPorMes.data,
+                    borderColor: chartColors.green,
+                    backgroundColor: chartColors.green + '20',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: chartColors.green,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
