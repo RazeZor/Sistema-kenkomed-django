@@ -23,7 +23,8 @@ def RenderInforme(request):
 
         ResultadosSueño = ResultSueño(formulario.despertares,formulario.hora_acostarse,formulario.tiempo_dormirse,formulario.hora_despertar,formulario.hora_levantarse)
         
-        mensajeEVPER = Respuesta_evitativo_persistente(json.loads(formulario.parametros))
+        mensajeEVPER = Respuesta_evitativo_persistente(formulario.parametros)
+
         
         # Análisis de Determinantes Sociales de Salud (DSS)
         mensajeDSS = AnalisisDSS(

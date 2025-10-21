@@ -629,7 +629,9 @@ function inicializarLimitacionSelecciones() {
  * Inicializa los parámetros dinámicos para actividades afectadas
  */
 function inicializarParametrosActividades() {
+  console.log('🎯 Inicializando parámetros de actividades...');
   const checkboxes = document.querySelectorAll('input[type="checkbox"][name="actividades_afectadas"]')
+  console.log('Checkboxes de actividades encontrados:', checkboxes.length);
   const maxSelecciones = 3
   const seleccionadas = new Set()
 
@@ -974,10 +976,65 @@ document.addEventListener("DOMContentLoaded", function() {
         form.classList.add('was-validated');
         alert('Por favor, completa todos los campos obligatorios correctamente.');
       } else {
+        // Debug: Mostrar actividades seleccionadas
+        const actividadesSeleccionadas = form.querySelectorAll('input[name="actividades_afectadas"]:checked');
+        console.log('📋 Actividades afectadas seleccionadas:', actividadesSeleccionadas.length);
+        actividadesSeleccionadas.forEach((act, i) => {
+          console.log(`  ${i + 1}. ${act.value}`);
+        });
+        
+        // Recopilar todos los parámetros evitativo/persistente antes de enviar
+        recopilarParametrosActividades();
         // Permite el envío normal
         form.classList.remove('was-validated');
       }
     });
+  }
+  
+  /**
+   * Recopila todos los valores de parámetros dinámicos y los agrega como campos ocultos
+   */
+  function recopilarParametrosActividades() {
+    const form = document.getElementById('Step');
+    
+    console.log('🔍 Recopilando parámetros evitativo/persistente...');
+    
+    // Debug: Ver todos los radios con nombre parametros_
+    const todosLosRadios = form.querySelectorAll('input[type="radio"][name^="parametros_"]');
+    console.log('Total de radios con parametros_*:', todosLosRadios.length);
+    
+    // Agrupar por nombre para ver cuántos grupos hay
+    const grupos = new Set();
+    todosLosRadios.forEach(radio => grupos.add(radio.name));
+    console.log('Grupos de parámetros encontrados:', grupos.size);
+    grupos.forEach(nombre => console.log('  - ' + nombre));
+    
+    // Eliminar campos ocultos previos de parámetros (por si se reenvía)
+    const camposOcultosAnteriores = form.querySelectorAll('input[name="parametros"]');
+    camposOcultosAnteriores.forEach(campo => campo.remove());
+    
+    // Buscar todos los inputs de radio que empiecen con "parametros_" y estén seleccionados
+    const radiosParametros = form.querySelectorAll('input[type="radio"][name^="parametros_"]:checked');
+    
+    console.log('Total de parámetros seleccionados:', radiosParametros.length);
+    
+    if (radiosParametros.length === 0) {
+      console.warn('⚠️ No se encontraron parámetros seleccionados. Asegúrate de seleccionar actividades y sus opciones.');
+      return;
+    }
+    
+    // Crear un campo oculto por cada valor seleccionado
+    radiosParametros.forEach((radio, index) => {
+      const inputOculto = document.createElement('input');
+      inputOculto.type = 'hidden';
+      inputOculto.name = 'parametros';
+      inputOculto.value = radio.value; // "evitativo" o "persistente"
+      form.appendChild(inputOculto);
+      
+      console.log(`  ✓ Parámetro ${index + 1}: ${radio.name} = ${radio.value}`);
+    });
+    
+    console.log('✅ Parámetros agregados al formulario correctamente');
   }
 });
 
