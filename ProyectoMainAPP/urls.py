@@ -59,6 +59,10 @@ urlpatterns = [
     path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning"),
     path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  # Incluir las URLs de la aplicación RecetasMedicas
 
-
+    # URLs para sistema de QR
+    path('generar-qr-formulario/', vistaClinicos.generar_token_formulario, name='generar_qr'),
+    path('descargar-qr/<uuid:token_id>/', vistaClinicos.descargar_qr, name='descargar_qr'),
+    path('formulario-publico/<uuid:token_id>/', vistaClinicos.formulario_publico, name='formulario_publico'),
+    path('desactivar-token/<uuid:token_id>/', vistaClinicos.desactivar_token, name='desactivar_token'),
     
 ]

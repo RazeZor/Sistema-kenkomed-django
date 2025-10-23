@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Código QR - Kenkomed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .form-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .tokens-section {
+            margin-top: 40px;
+        }
+        
+        .tokens-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+        
+        .token-card {
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .token-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
+        }
+        
+        .token-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .token-id {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+        
+        .token-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-used {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .token-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .token-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        @media (max-width: 768px) {
+            .token-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .token-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .token-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 Generar Código QR</h1>
+            <p>Cree códigos QR para formularios de salud públicos</p>
+        </div>
+        
+        <div class="content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="form-section">
+                <h2>🆕 Crear Nuevo Token QR</h2>
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="dias_expiracion">Días de Expiración</label>
+                        <select id="dias_expiracion" name="dias_expiracion">
+                            <option value="1">1 día</option>
+                            <option value="3">3 días</option>
+                            <option value="7" selected>7 días</option>
+                            <option value="15">15 días</option>
+                            <option value="30">30 días</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        🎯 Generar Código QR
+                    </button>
+                </form>
+            </div>
+            
+            {% if tokens_activos %}
+                <div class="tokens-section">
+                    <h2>📋 Tokens Activos</h2>
+                    {% for token in tokens_activos %}
+                        <div class="token-card">
+                            <div class="token-header">
+                                <div class="token-id">ID: {{ token.id|truncatechars:8 }}...</div>
+                                <div class="token-status 
+                                    {% if token.is_valid %}status-active
+                                    {% elif token.is_expired %}status-expired
+                                    {% elif token.usado %}status-used
+                                    {% endif %}">
+                                    {% if token.is_valid %}
+                                        ✅ Activo
+                                    {% elif token.is_expired %}
+                                        ⏰ Expirado
+                                    {% elif token.usado %}
+                                        ✅ Usado
+                                    {% else %}
+                                        ❌ Inactivo
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="token-info">
+                                <div class="info-item">
+                                    <div class="info-label">Clínico</div>
+                                    <div class="info-value">{{ token.clinico.nombre }} {{ token.clinico.apellido }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Fecha de Creación</div>
+                                    <div class="info-value">{{ token.fecha_creacion|date:"d/m/Y H:i" }}</div>
+                                </div>
+                                
+                                <div class="info-item">
+                                    <div class="info-label">Fecha de Expiración</div>
+                                    <div class="info-value">{{ token.fecha_expiracion|date:"d/m/Y H:i" }}</div>
+                                </div>
+                                
+                                {% if token.paciente_asociado %}
+                                <div class="info-item">
+                                    <div class="info-label">Paciente Asociado</div>
+                                    <div class="info-value">{{ token.paciente_asociado.nombre }} {{ token.paciente_asociado.apellido }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="token-actions">
+                                {% if token.is_valid %}
+                                    <a href="{% url 'descargar_qr' token.id %}" class="btn btn-primary">
+                                        📥 Descargar QR
+                                    </a>
+                                    <a href="{% url 'formulario_publico' token.id %}" class="btn btn-success" target="_blank">
+                                        🔗 Ver Formulario
+                                    </a>
+                                    <a href="{% url 'desactivar_token' token.id %}" class="btn btn-danger" 
+                                       onclick="return confirm('¿Está seguro de desactivar este token?')">
+                                        🚫 Desactivar
+                                    </a>
+                                {% elif token.usado %}
+                                    <span class="btn btn-success">✅ Completado</span>
+                                {% else %}
+                                    <span class="btn" style="background: #6c757d; color: white;">❌ No disponible</span>
+                                {% endif %}
+                            </div>
+                            
+                            {% if token.is_valid %}
+                            <div class="url-section" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #28a745;">
+                                <h4 style="color: #28a745; margin-bottom: 10px;">🔗 URL del Formulario Público:</h4>
+                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                    <input type="text" id="url-{{ token.id }}" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'formulario_publico' token.id %}" 
+                                           readonly style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 14px;">
+                                    <button onclick="copyUrl('url-{{ token.id }}')" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">
+                                        📋 Copiar
+                                    </button>
+                                    <a href="{% url 'formulario_publico' token.id %}" target="_blank" class="btn btn-success" style="padding: 8px 12px; font-size: 12px;">
+                                        🔗 Abrir
+                                    </a>
+                                </div>
+                                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                                    💡 <strong>Para probar:</strong> Copia esta URL y ábrela en una nueva pestaña o en tu celular
+                                </p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <strong>ℹ️ No hay tokens activos</strong><br>
+                    Genere un nuevo código QR para comenzar a recibir formularios de pacientes.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        function copyUrl(inputId) {
+            const input = document.getElementById(inputId);
+            input.select();
+            input.setSelectionRange(0, 99999); // Para dispositivos móviles
+            
+            try {
+                document.execCommand('copy');
+                // Cambiar el texto del botón temporalmente
+                const button = input.nextElementSibling;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copiado!';
+                button.style.background = '#28a745';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '#667eea';
+                }, 2000);
+            } catch (err) {
+                // Fallback para navegadores que no soportan execCommand
+                navigator.clipboard.writeText(input.value).then(() => {
+                    const button = input.nextElementSibling;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '✅ Copiado!';
+                    button.style.background = '#28a745';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '#667eea';
+                    }, 2000);
+                }).catch(() => {
+                    alert('No se pudo copiar automáticamente. Selecciona el texto y cópialo manualmente.');
+                });
+            }
+        }
+        
+        // Función para obtener la IP local (para pruebas en dispositivos móviles)
+        function getLocalIP() {
+            // Esta función se puede usar para mostrar la IP local en lugar de localhost
+            return window.location.hostname;
+        }
+    </script>
+</body>
+</html>

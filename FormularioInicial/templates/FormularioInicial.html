@@ -127,7 +127,7 @@
         
         <!-- Contenido principal -->
         <div class="content-area">
-            <form id="Step" action="{% url 'formularioInicial' %}" method="post">
+            <form id="Step" action="{% if es_publico %}{% url 'formulario_publico' token.id %}{% else %}{% url 'formularioInicial' %}{% endif %}" method="post">
                 {% csrf_token %}
                 
                 <!-- Mensajes de Errores -->
@@ -185,7 +185,7 @@
                                     <span class="input-group-text">
                                         <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Flag_of_Chile.svg" alt="Chile" width="20">
                                     </span>
-                                    <input type="tel" class="form-control" name="contact" id="contact" value="+56 9 " maxlength="15" pattern="\+56 9 [0-9]{4} [0-9]{4}$" title="Formato: +56 9 XXXX XXXX" placeholder="Ingrese Teléfono de paciente" required />
+                                    <input type="tel" class="form-control" name="contact" id="contact" value="+56 9 " maxlength="14" pattern="\+56 9 [0-9]{4}[0-9]{4}$" title="Formato: +56 9 XXXXXXXX" placeholder="Ingrese Teléfono de paciente" required />
                                 </div>
                             </div>
                             

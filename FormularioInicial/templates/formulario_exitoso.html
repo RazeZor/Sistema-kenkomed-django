@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Enviado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        h1 {
+            color: #28a745;
+            margin-bottom: 20px;
+            font-size: 36px;
+        }
+        
+        p {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .success-box h3 {
+            color: #155724;
+            margin-bottom: 10px;
+        }
+        
+        .success-box ul {
+            margin-left: 20px;
+            color: #155724;
+        }
+        
+        .success-box li {
+            margin-bottom: 8px;
+        }
+        
+        .info-text {
+            font-size: 14px;
+            color: #999;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">✅</div>
+        <h1>¡Formulario Enviado Exitosamente!</h1>
+        <p>{{ mensaje }}</p>
+        
+        {% if clinico %}
+        <div class="success-box">
+            <h3>📋 Información de tu Clínico</h3>
+            <p><strong>Dr(a). {{ clinico.nombre }} {{ clinico.apellido }}</strong></p>
+            <p>{{ clinico.profesion }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="success-box">
+            <h3>¿Qué sigue ahora?</h3>
+            <ul>
+                <li>Tu información ha sido recibida correctamente</li>
+                <li>El equipo médico revisará tus datos</li>
+                <li>Serás contactado próximamente para coordinar tu atención</li>
+                <li>Mantén tu teléfono disponible para recibir llamadas</li>
+            </ul>
+        </div>
+        
+        <p class="info-text">
+            Gracias por confiar en nuestros servicios de salud.<br>
+            Puedes cerrar esta ventana.
+        </p>
+    </div>
+</body>
+</html>

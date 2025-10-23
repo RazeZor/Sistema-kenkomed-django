@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Salud - Kenkomed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group label.required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .token-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .token-info h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .token-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                margin: 10px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Formulario de Salud</h1>
+            <p>Complete sus datos para recibir atención médica</p>
+        </div>
+        
+        <div class="form-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if token %}
+                <div class="token-info">
+                    <h3>📋 Información del Formulario</h3>
+                    <p><strong>Clínico:</strong> {{ token.clinico.nombre }} {{ token.clinico.apellido }}</p>
+                    <p><strong>Profesión:</strong> {{ token.clinico.profesion }}</p>
+                    <p><strong>Fecha de expiración:</strong> {{ token.fecha_expiracion|date:"d/m/Y H:i" }}</p>
+                </div>
+            {% endif %}
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="rut" class="required">RUT</label>
+                        <input type="text" id="rut" name="rut" placeholder="12.345.678-9" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fechaNacimiento" class="required">Fecha de Nacimiento</label>
+                        <input type="date" id="fechaNacimiento" name="fechaNacimiento" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre" class="required">Nombre</label>
+                        <input type="text" id="nombre" name="nombre" placeholder="Su nombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="apellido" class="required">Apellido</label>
+                        <input type="text" id="apellido" name="apellido" placeholder="Su apellido" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="genero" class="required">Género</label>
+                        <select id="genero" name="genero" required>
+                            <option value="">Seleccione una opción</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Femenino">Femenino</option>
+                            <option value="Otro">Otro</option>
+                            <option value="Prefiero no decir">Prefiero no decir</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contacto" class="required">Teléfono de Contacto</label>
+                        <input type="tel" id="contacto" name="contacto" placeholder="+56 9 1234 5678" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cobertura_salud" class="required">Cobertura de Salud</label>
+                    <select id="cobertura_salud" name="cobertura_salud" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="FONASA">FONASA</option>
+                        <option value="ISAPRE">ISAPRE</option>
+                        <option value="Particular">Particular</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trabajo">Trabajo/Actividad</label>
+                        <input type="text" id="trabajo" name="trabajo" placeholder="Su trabajo o actividad principal">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profesion">Profesión</label>
+                        <input type="text" id="profesion" name="profesion" placeholder="Su profesión u oficio">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    📤 Enviar Formulario
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Formatear RUT automáticamente
+        document.getElementById('rut').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9kK]/g, '');
+            if (value.length > 1) {
+                value = value.slice(0, -1) + '-' + value.slice(-1);
+            }
+            if (value.length > 4) {
+                value = value.slice(0, -5) + '.' + value.slice(-5);
+            }
+            if (value.length > 8) {
+                value = value.slice(0, -9) + '.' + value.slice(-9);
+            }
+            e.target.value = value;
+        });
+        
+        // Formatear teléfono automáticamente
+        document.getElementById('contacto').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length > 0) {
+                if (value.startsWith('56')) {
+                    value = '+56 ' + value.slice(2);
+                } else if (value.startsWith('9')) {
+                    value = '+56 ' + value;
+                } else {
+                    value = '+56 ' + value;
+                }
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
