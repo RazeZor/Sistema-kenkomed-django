@@ -1,27 +1,19 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PSFS - Evaluación Funcional</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+
+{% block title %}PSFS - Evaluación Funcional{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
     <style>
-        :root {
-            --primary: #1e40af;
-            --secondary: #64748b;
-            --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
-        }
-        
         .range-slider {
             -webkit-appearance: none;
             appearance: none;
-            height: 6px;
-            border-radius: 3px;
+            height: 8px;
+            border-radius: 4px;
             background: #e5e7eb;
             outline: none;
         }
@@ -29,42 +21,57 @@
         .range-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: var(--primary);
+            background: #1e40af; /* primary */
             cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
         }
         
         .range-slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
-            background: var(--primary);
+            background: #1e40af;
             cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            border: 3px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
         .activity-card {
             background: white;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
         
+        .activity-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
         .score-circle {
-            width: 3rem;
-            height: 3rem;
+            width: 3.5rem;
+            height: 3.5rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 700;
+            font-size: 1.25rem;
             color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.3s ease;
         }
         
         /* Print styles */
@@ -75,411 +82,484 @@
             .no-print {
                 display: none !important;
             }
+            #print-section, #print-section * {
+                visibility: visible;
+            }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
         }
     </style>
-</head>
-<body class="bg-gray-50 font-sans">
-    <!-- Header Moderno y Atractivo -->
-    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white sticky top-0 z-50 shadow-lg no-print">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <!-- Logo y Título -->
-                <div class="flex items-center space-x-4">
-                    <div class="bg-white bg-opacity-20 p-3 rounded-full">
-                        <i class="fas fa-tasks text-2xl text-white"></i>
+{% endblock %}
+
+{% block header_title %}Escala Funcional Específica (PSFS){% endblock %}
+
+{% block header_actions %}
+    <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors no-print">
+        <i class='bx bx-arrow-back'></i> Volver
+    </button>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6" id="print-section">
+
+    <!-- Información del Paciente -->
+    {% if rut %}
+        <div class="bg-gradient-to-r from-medical-blue/5 to-medical-blue/10 border border-medical-blue/20 rounded-xl p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-white p-2 rounded-full shadow-sm">
+                        <i class='bx bx-user text-medical-blue text-xl'></i>
                     </div>
                     <div>
-                        <h1 class="text-xl font-bold">PSFS - Escala Funcional</h1>
-                        <p class="text-blue-100 text-sm">Escala Funcional Específica del Paciente</p>
+                        <h3 class="font-semibold text-gray-800">Paciente Seleccionado</h3>
+                        <p class="text-gray-600">RUT: {{ rut }}</p>
                     </div>
                 </div>
-                <!-- Información del Paciente y Botón Volver -->
-                <div class="flex items-center space-x-6">
-                    <div class="text-right bg-white bg-opacity-10 px-4 py-2 rounded-lg">
-                        <div class="text-blue-100 text-xs font-medium">PACIENTE ACTUAL</div>
-                        <div class="text-white font-semibold">RUT: {{ rut }}</div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Evaluación PSFS -->
+        <div class="lg:col-span-2">
+            <form method="POST" action="{% url 'gestionar_psfs' %}" id="psfsForm" class="space-y-6">
+                <input type="hidden" name="action" value="{% if evaluacion_existente %}actualizar{% else %}guardar{% endif %}">
+                {% csrf_token %}
+                <input type="hidden" name="rut" value="{{ rut }}">
+                
+                <!-- Instrucciones -->
+                <div class="bg-blue-50 border-l-4 border-medical-blue p-4 rounded-r-lg shadow-sm">
+                    <p class="text-sm text-blue-800 flex items-center">
+                        <i class='bx bx-info-circle mr-2 text-xl'></i>
+                        Ingrese 3 actividades que el paciente tiene dificultad para realizar y califique su nivel de limitación (0 = No puede hacerla, 10 = Sin dificultad).
+                    </p>
+                </div>
+
+                <!-- Actividades -->
+                <div>
+                    <!-- Actividad 1 -->
+                    <div class="activity-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-900 flex items-center">
+                                <span class="bg-medical-blue text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2 text-xs">1</span>
+                                Actividad Principal
+                            </h3>
+                            <span class="text-xs px-2.5 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">Prioridad Alta</span>
+                        </div>
+                        <input type="text" name="actividad_1" value="{{ actividad1|default:'' }}" 
+                                class="w-full p-3 text-sm border border-gray-200 bg-gray-50 rounded-lg mb-6 focus:bg-white focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors" 
+                                placeholder="Ej: Subir escaleras, Levantar un peso de 5kg..."
+                                {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
+                        
+                        <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-xs font-semibold text-red-600 uppercase tracking-wider w-16 text-right">0<br><span class="text-[10px]">Incapaz</span></span>
+                            <input type="range" min="0" max="10" value="{% if evaluacion_existente %}{{ rango1|default:5 }}{% else %}5{% endif %}" name="rango1" 
+                                    class="flex-1 range-slider" 
+                                    oninput="updateScore(this, 1); updateTotalScore();">
+                            <span class="text-xs font-semibold text-green-600 uppercase tracking-wider w-16 text-left">10<br><span class="text-[10px]">Capaz</span></span>
+                            <div class="score-circle bg-yellow-500" id="score1">{% if evaluacion_existente %}{{ rango1|default:5 }}{% else %}5{% endif %}</div>
+                        </div>
                     </div>
-                    <button onclick="window.history.back();"
-                            class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-all duration-200 hover:scale-105">
-                        <i class="fas fa-arrow-left"></i>
-                        <span class="font-medium">Volver</span>
+
+                    <!-- Actividad 2 -->
+                    <div class="activity-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-900 flex items-center">
+                                <span class="bg-indigo-500 text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2 text-xs">2</span>
+                                Actividad Secundaria
+                            </h3>
+                        </div>
+                        <input type="text" name="actividad_2" value="{{ actividad2|default:'' }}" 
+                                class="w-full p-3 text-sm border border-gray-200 bg-gray-50 rounded-lg mb-6 focus:bg-white focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors" 
+                                placeholder="Ej: Caminar 100 metros..."
+                                {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
+                        
+                        <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-xs font-semibold text-red-600 uppercase tracking-wider w-16 text-right">0<br><span class="text-[10px]">Incapaz</span></span>
+                            <input type="range" min="0" max="10" value="{% if evaluacion_existente %}{{ rango2|default:5 }}{% else %}5{% endif %}" name="rango2" 
+                                    class="flex-1 range-slider" 
+                                    oninput="updateScore(this, 2); updateTotalScore();">
+                            <span class="text-xs font-semibold text-green-600 uppercase tracking-wider w-16 text-left">10<br><span class="text-[10px]">Capaz</span></span>
+                            <div class="score-circle bg-yellow-500" id="score2">{% if evaluacion_existente %}{{ rango2|default:5 }}{% else %}5{% endif %}</div>
+                        </div>
+                    </div>
+
+                    <!-- Actividad 3 -->
+                    <div class="activity-card">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="font-semibold text-gray-900 flex items-center">
+                                <span class="bg-purple-500 text-white w-6 h-6 rounded-full inline-flex items-center justify-center mr-2 text-xs">3</span>
+                                Actividad Terciaria
+                            </h3>
+                        </div>
+                        <input type="text" name="actividad_3" value="{{ actividad3|default:'' }}" 
+                                class="w-full p-3 text-sm border border-gray-200 bg-gray-50 rounded-lg mb-6 focus:bg-white focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors" 
+                                placeholder="Ej: Levantarse de una silla..."
+                                {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
+                        
+                        <div class="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <span class="text-xs font-semibold text-red-600 uppercase tracking-wider w-16 text-right">0<br><span class="text-[10px]">Incapaz</span></span>
+                            <input type="range" min="0" max="10" value="{% if evaluacion_existente %}{{ rango3|default:5 }}{% else %}5{% endif %}" name="rango3" 
+                                    class="flex-1 range-slider" 
+                                    oninput="updateScore(this, 3); updateTotalScore();">
+                            <span class="text-xs font-semibold text-green-600 uppercase tracking-wider w-16 text-left">10<br><span class="text-[10px]">Capaz</span></span>
+                            <div class="score-circle bg-yellow-500" id="score3">{% if evaluacion_existente %}{{ rango3|default:5 }}{% else %}5{% endif %}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Puntuación Total -->
+                <div class="bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 rounded-xl p-6 shadow-inner">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <i class='bx bx-calculator text-medical-blue'></i> Puntuación Total
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">Promedio de las 3 actividades evaluadas</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-20 h-20 rounded-full bg-yellow-500 flex items-center justify-center shadow-lg border-4 border-white transition-colors" id="totalScoreCircle">
+                                <span id="totalScore" class="text-3xl font-bold text-white">5.0</span>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="total_score" id="totalScoreInput" value="5.0">
+                </div>
+
+                <!-- Botones de acción -->
+                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-100 no-print">
+                    <button type="button" onclick="window.history.back()" 
+                            class="px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
+                        Cancelar
+                    </button>
+                    <button type="submit" id="submitButton"
+                            class="px-5 py-2.5 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark text-sm font-medium transition-colors shadow-sm flex items-center gap-2">
+                        <i class='bx bx-check'></i> {% if evaluacion_existente %}Actualizar{% else %}Guardar{% endif %} Evaluación
                     </button>
                 </div>
+            </form>
+        </div>
+
+        <!-- Panel lateral -->
+        <div class="space-y-6">
+            <!-- Gráfico Evolutivo -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class='bx bx-line-chart text-medical-blue'></i> Evolución Funcional
+                </h3>
+                {% if sesiones %}
+                <div class="h-56">
+                    <canvas id="progressChart"></canvas>
+                </div>
+                <div class="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+                    <div class="bg-red-50 text-red-700 p-2 rounded-lg border border-red-100">
+                        <span class="font-bold block text-sm">0-3</span> Limitado
+                    </div>
+                    <div class="bg-yellow-50 text-yellow-700 p-2 rounded-lg border border-yellow-100">
+                        <span class="font-bold block text-sm">4-6</span> Moderado
+                    </div>
+                    <div class="bg-green-50 text-green-700 p-2 rounded-lg border border-green-100">
+                        <span class="font-bold block text-sm">7-10</span> Funcional
+                    </div>
+                </div>
+                {% else %}
+                <div class="flex flex-col items-center justify-center h-48 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    <i class='bx bx-bar-chart-alt-2 text-4xl mb-2 text-gray-300'></i>
+                    <p class="text-sm font-medium">Gráfico no disponible</p>
+                </div>
+                {% endif %}
             </div>
-        </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Breadcrumb y Navegación -->
-        <div class="mb-6 no-print">
-            <nav class="flex items-center space-x-2 text-sm text-gray-600">
-                <a href="{% url 'panel' %}" class="hover:text-blue-600 transition-colors">
-                    <i class="fas fa-home"></i> Panel
-                </a>
-                <i class="fas fa-chevron-right text-gray-400"></i>
-                <span class="text-blue-600 font-medium">PSFS - Escala Funcional</span>
-            </nav>
-        </div>
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Evaluación PSFS -->
-            <div class="lg:col-span-2">
-                <form method="POST" action="{% url 'gestionar_psfs' %}" id="psfsForm">
-                    <input type="hidden" name="action" value="{% if evaluacion_existente %}actualizar{% else %}guardar{% endif %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="rut" value="{{ rut }}">
-                    
-                    <!-- Instrucciones compactas -->
-                    <div class="bg-blue-50 border-l-4 border-blue-400 p-3 mb-4">
-                        <p class="text-sm text-blue-800">
-                            <i class="fas fa-info-circle mr-1"></i>
-                            Ingrese las 3 actividades que el paciente tiene dificultad para realizar y califique la dificultad (0 = capaz, 10 = incapaz)
-                        </p>
-                    </div>
-
-                    <!-- Actividades -->
-                    <div class="space-y-4">
-                        <!-- Actividad 1 -->
-                        <div class="activity-card">
-                            <div class="flex items-center justify-between mb-3">
-                                <h3 class="font-medium text-gray-900">Actividad 1</h3>
-                                <span class="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">Principal</span>
-                            </div>
-                            <input type="text" name="actividad_1" value="{{ actividad1 }}" 
-                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" 
-                                   placeholder="Ej: Subir escaleras"
-                                   {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
-                            
-                            <div class="flex items-center space-x-3">
-                                <span class="text-xs text-green-600 w-12">Capaz</span>
-                                <input type="range" min="0" max="10" value="5" name="rango1" 
-                                       class="flex-1 range-slider" 
-                                       oninput="updateScore(this, 1); updateTotalScore();">
-                                <span class="text-xs text-red-600 w-12">Incapaz</span>
-                                <div class="score-circle bg-blue-600" id="score1">5</div>
-                            </div>
+            <!-- Historial compacto -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gray-50/50 px-5 py-4 border-b border-gray-100">
+                    <h3 class="font-semibold text-gray-900 flex items-center gap-2">
+                        <i class='bx bx-history text-medical-blue'></i> Sesiones Previas
+                    </h3>
+                </div>
+                
+                {% if sesiones %}
+                <div class="p-4 bg-white border-b border-gray-100">
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <div class="text-2xl font-bold text-medical-blue" id="avg-score">0</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Promedio</div>
                         </div>
-
-                        <!-- Actividad 2 -->
-                        <div class="activity-card">
-                            <h3 class="font-medium text-gray-900 mb-3">Actividad 2</h3>
-                            <input type="text" name="actividad_2" value="{{ actividad2 }}" 
-                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" 
-                                   placeholder="Ej: Caminar 100 metros"
-                                   {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
-                            
-                            <div class="flex items-center space-x-3">
-                                <span class="text-xs text-green-600 w-12">Capaz</span>
-                                <input type="range" min="0" max="10" value="5" name="rango2" 
-                                       class="flex-1 range-slider" 
-                                       oninput="updateScore(this, 2); updateTotalScore();">
-                                <span class="text-xs text-red-600 w-12">Incapaz</span>
-                                <div class="score-circle bg-blue-400" id="score2">5</div>
-                            </div>
-                        </div>
-
-                        <!-- Actividad 3 -->
-                        <div class="activity-card">
-                            <h3 class="font-medium text-gray-900 mb-3">Actividad 3</h3>
-                            <input type="text" name="actividad_3" value="{{ actividad3 }}" 
-                                   class="w-full p-2 text-sm border border-gray-300 rounded mb-3" 
-                                   placeholder="Ej: Levantarse de una silla"
-                                   {% if evaluacion_existente %}readonly{% else %}required{% endif %}>
-                            
-                            <div class="flex items-center space-x-3">
-                                <span class="text-xs text-green-600 w-12">Capaz</span>
-                                <input type="range" min="0" max="10" value="5" name="rango3" 
-                                       class="flex-1 range-slider" 
-                                       oninput="updateScore(this, 3); updateTotalScore();">
-                                <span class="text-xs text-red-600 w-12">Incapaz</span>
-                                <div class="score-circle bg-blue-400" id="score3">5</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Puntuación Total -->
-                    <div class="activity-card mt-4">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-medium text-gray-900">Puntuación Total</h3>
-                                <p class="text-xs text-gray-600">Promedio de las actividades</p>
-                            </div>
-                            <div class="text-center">
-                                <div class="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center">
-                                    <span id="totalScore" class="text-2xl font-bold text-white">5.0</span>
-                                </div>
-                                <p class="text-xs text-gray-600 mt-1">Puntos</p>
-                            </div>
-                        </div>
-                        <input type="hidden" name="total_score" id="totalScoreInput" value="5.0">
-                    </div>
-
-                    <!-- Botones de acción -->
-                    <div class="flex justify-end space-x-3 mt-6">
-                        <button type="button" onclick="window.history.back()" 
-                                class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                            Cancelar
-                        </button>
-                        <button type="submit" 
-                                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                id="submitButton">
-                            {% if evaluacion_existente %}Actualizar{% else %}Guardar{% endif %}
-                        </button>
-                    </div>
-                </form>
-
-                <!-- Gráfico -->
-                <div class="activity-card mt-6">
-                    <h3 class="font-medium text-gray-900 mb-4">Evolución Funcional</h3>
-                    <div class="h-64">
-                        <canvas id="progressChart"></canvas>
-                    </div>
-                    <div class="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                        <div class="bg-green-50 p-1 rounded">
-                            <span class="font-medium">0-3:</span> Funcional
-                        </div>
-                        <div class="bg-yellow-50 p-1 rounded">
-                            <span class="font-medium">4-6:</span> Moderado
-                        </div>
-                        <div class="bg-red-50 p-1 rounded">
-                            <span class="font-medium">7-10:</span> Limitado
+                        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <div class="text-2xl font-bold text-gray-700" id="trend">→</div>
+                            <div class="text-xs text-gray-500 uppercase tracking-wider font-semibold mt-1">Tendencia</div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Panel lateral -->
-            <div class="space-y-6">
-                <!-- Historial compacto -->
-                <div class="activity-card">
-                    <h3 class="font-medium text-gray-900 mb-4">Historial</h3>
-                    
-                    {% if sesiones %}
-                    <div class="space-y-2 max-h-64 overflow-y-auto">
-                        {% for sesion in sesiones %}
-                        <div class="flex items-center justify-between py-2 px-3 bg-gray-50 rounded">
-                            <span class="text-sm text-gray-600">Sesión {{ sesion.sesion }}</span>
-                            <div class="flex items-center space-x-2">
-                                <div class="flex space-x-1">
-                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                        {% if sesion.actividad_1 < 4 %}bg-green-100 text-green-800
-                                        {% elif sesion.actividad_1 < 7 %}bg-yellow-100 text-yellow-800
-                                        {% else %}bg-red-100 text-red-800{% endif %}">
-                                        {{ sesion.actividad_1 }}
-                                    </span>
-                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                        {% if sesion.actividad_2 < 4 %}bg-green-100 text-green-800
-                                        {% elif sesion.actividad_2 < 7 %}bg-yellow-100 text-yellow-800
-                                        {% else %}bg-red-100 text-red-800{% endif %}">
-                                        {{ sesion.actividad_2 }}
-                                    </span>
-                                    <span class="w-6 h-6 rounded-full text-xs font-medium flex items-center justify-center
-                                        {% if sesion.actividad_3 < 4 %}bg-green-100 text-green-800
-                                        {% elif sesion.actividad_3 < 7 %}bg-yellow-100 text-yellow-800
-                                        {% else %}bg-red-100 text-red-800{% endif %}">
-                                        {{ sesion.actividad_3 }}
-                                    </span>
-                                </div>
-                                <span class="w-8 h-8 rounded-full text-xs font-bold flex items-center justify-center
-                                    {% if sesion.total < 4 %}bg-green-100 text-green-800
-                                    {% elif sesion.total < 7 %}bg-yellow-100 text-yellow-800
-                                    {% else %}bg-red-100 text-red-800{% endif %}">
-                                    {{ sesion.total }}
+                <div class="p-2 max-h-64 overflow-y-auto custom-scrollbar">
+                    <div class="space-y-2">
+                    {% for sesion in sesiones %}
+                    <div class="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors border border-transparent hover:border-gray-100 group">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-bold text-gray-700 group-hover:text-medical-blue transition-colors">Sesión {{ sesion.sesion }}</span>
+                            {% if sesion.fecha %}
+                            <span class="text-[10px] text-gray-400 font-medium">{{ sesion.fecha }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="flex space-x-1">
+                                <span title="A1" class="w-6 h-6 outline outline-1 outline-white rounded-full text-[10px] font-bold flex items-center justify-center text-white
+                                    {% if sesion.actividad_1 < 4 %}bg-red-500
+                                    {% elif sesion.actividad_1 < 7 %}bg-yellow-500
+                                    {% else %}bg-green-500{% endif %}">
+                                    {{ sesion.actividad_1 }}
+                                </span>
+                                <span title="A2" class="w-6 h-6 outline outline-1 outline-white rounded-full text-[10px] font-bold flex items-center justify-center text-white -ml-2
+                                    {% if sesion.actividad_2 < 4 %}bg-red-500
+                                    {% elif sesion.actividad_2 < 7 %}bg-yellow-500
+                                    {% else %}bg-green-500{% endif %}">
+                                    {{ sesion.actividad_2 }}
+                                </span>
+                                <span title="A3" class="w-6 h-6 outline outline-1 outline-white rounded-full text-[10px] font-bold flex items-center justify-center text-white -ml-2
+                                    {% if sesion.actividad_3 < 4 %}bg-red-500
+                                    {% elif sesion.actividad_3 < 7 %}bg-yellow-500
+                                    {% else %}bg-green-500{% endif %}">
+                                    {{ sesion.actividad_3 }}
                                 </span>
                             </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-
-                    <!-- Estadísticas -->
-                    <div class="mt-4 pt-4 border-t border-gray-200">
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-gray-900" id="avg-score">0</div>
-                                <div class="text-gray-500">Promedio</div>
-                            </div>
-                            <div class="text-center">
-                                <div class="text-lg font-bold text-gray-900" id="trend">→</div>
-                                <div class="text-gray-500">Tendencia</div>
+                            <div class="w-8 h-8 rounded-lg shadow-sm font-bold flex items-center justify-center text-white ml-2 text-xs
+                                {% if sesion.total < 4 %}bg-red-600
+                                {% elif sesion.total < 7 %}bg-yellow-500
+                                {% else %}bg-green-600{% endif %}">
+                                {{ sesion.total }}
                             </div>
                         </div>
                     </div>
-                    {% else %}
-                    <div class="text-center py-8 text-gray-500">
-                        <i class="fas fa-clipboard-list text-2xl mb-2"></i>
-                        <p class="text-sm">Sin evaluaciones previas</p>
+                    {% endfor %}
                     </div>
-                    {% endif %}
                 </div>
-
-                <!-- Notas clínicas -->
-                <form method="POST" action="{% url 'gestionar_psfs' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="rut" value="{{ rut }}">
-                    <div class="activity-card">
-                        <h3 class="font-medium text-gray-900 mb-3">Notas Clínicas</h3>
-                        <textarea name="notes" rows="4" 
-                                  class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500" 
-                                  placeholder="Observaciones sobre el progreso funcional...">{{ nota }}</textarea>
-                        <div class="mt-3 flex justify-end">
-                            <button type="submit" 
-                                    class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs font-medium">
-                                Guardar Nota
-                            </button>
-                        </div>
-                    </div>
-                </form>
+                {% else %}
+                <div class="p-8 text-center text-gray-400">
+                    <i class='bx bx-file-blank text-3xl mb-2 text-gray-300'></i>
+                    <p class="text-sm">Sin evaluaciones previas</p>
+                </div>
+                {% endif %}
             </div>
+
+            <!-- Notas clínicas -->
+            <form method="POST" action="{% url 'gestionar_psfs' %}">
+                {% csrf_token %}
+                <input type="hidden" name="rut" value="{{ rut }}">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                    <h3 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class='bx bx-notepad text-medical-blue'></i> Notas Clínicas
+                    </h3>
+                    <textarea name="notes" rows="4" 
+                              class="w-full p-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-gray-50 focus:bg-white transition-colors custom-scrollbar" 
+                              placeholder="Observaciones sobre el progreso funcional, factores limitantes...">{{ nota }}</textarea>
+                    <div class="mt-4 flex justify-end">
+                        <button type="submit" 
+                                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center gap-1 transition-colors">
+                            <i class='bx bx-save'></i> Guardar Nota
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
-    </main>
+    </div>
+</div>
 
-    <script>
-        // Validar el formulario antes de enviar
-        document.getElementById('psfsForm').addEventListener('submit', function(e) {
-            const actividad1 = document.getElementsByName('actividad_1')[0].value.trim();
-            const actividad2 = document.getElementsByName('actividad_2')[0].value.trim();
-            const actividad3 = document.getElementsByName('actividad_3')[0].value.trim();
-            
-            if (!actividad1 || !actividad2 || !actividad3) {
-                e.preventDefault();
+{% if sesiones %}
+    {{ sesiones|json_script:"psfs-data" }}
+{% else %}
+    <script id="psfs-data" type="application/json">[]</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validar el formulario antes de enviar
+    document.getElementById('psfsForm')?.addEventListener('submit', function(e) {
+        const a1 = document.getElementsByName('actividad_1')[0];
+        const a2 = document.getElementsByName('actividad_2')[0];
+        const a3 = document.getElementsByName('actividad_3')[0];
+        
+        if (a1 && a2 && a3 && (!a1.value.trim() || !a2.value.trim() || !a3.value.trim())) {
+            e.preventDefault();
+            if(typeof Swal !== 'undefined') {
+                Swal.fire('Atención', 'Por favor ingrese las tres actividades antes de continuar.', 'warning');
+            } else {
                 alert('Por favor ingrese las tres actividades antes de continuar.');
-                return false;
             }
-            
-            // Deshabilitar el botón para evitar múltiples envíos
-            const submitButton = document.getElementById('submitButton');
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Procesando...';
-            
-            return true;
-        });
+            return false;
+        }
+        
+        // Deshabilitar el botón
+        const btn = document.getElementById('submitButton');
+        if(btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin mr-2"></i> Procesando...';
+        }
+        return true;
+    });
 
-        // Actualizar puntuación individual
-        function updateScore(slider, activityNum) {
-            const scoreElement = document.getElementById(`score${activityNum}`);
-            const value = slider.value;
-            scoreElement.textContent = value;
-            
-            // Cambiar color según el valor
-            if (value < 4) {
-                scoreElement.className = 'score-circle bg-green-500';
-            } else if (value < 7) {
-                scoreElement.className = 'score-circle bg-yellow-500';
+    // Actualizar puntuación individual
+    function updateScore(slider, activityNum) {
+        const scoreElement = document.getElementById(`score${activityNum}`);
+        if(!scoreElement) return;
+        
+        const value = parseInt(slider.value);
+        scoreElement.textContent = value;
+        
+        // Colores invertidos o normales? La escala dice: 0 = Incapaz (Malo), 10 = Capaz (Bueno)
+        // Por lo tanto, 0-3 = Rojo, 4-6 = Amarillo, 7-10 = Verde
+        scoreElement.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-400', 'bg-blue-600');
+        if (value < 4) {
+            scoreElement.classList.add('bg-red-500');
+        } else if (value < 7) {
+            scoreElement.classList.add('bg-yellow-500');
+        } else {
+            scoreElement.classList.add('bg-green-500');
+        }
+    }
+
+    // Actualizar puntuación total
+    function updateTotalScore() {
+        const sliders = document.querySelectorAll('input[type="range"]');
+        const totalScoreElement = document.getElementById('totalScore');
+        const totalScoreInput = document.getElementById('totalScoreInput');
+        const totalCircle = document.getElementById('totalScoreCircle');
+        
+        if(sliders.length === 0 || !totalScoreElement) return;
+
+        const values = Array.from(sliders).map(s => parseInt(s.value));
+        const average = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+        
+        totalScoreElement.textContent = average;
+        if(totalScoreInput) totalScoreInput.value = average;
+        
+        if(totalCircle) {
+            totalCircle.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-600');
+            const avgNum = parseFloat(average);
+            if (avgNum < 4) {
+                totalCircle.classList.add('bg-red-500');
+            } else if (avgNum < 7) {
+                totalCircle.classList.add('bg-yellow-500');
             } else {
-                scoreElement.className = 'score-circle bg-red-500';
+                totalCircle.classList.add('bg-green-500');
             }
         }
+    }
 
-        // Actualizar puntuación total
-        function updateTotalScore() {
-            const sliders = document.querySelectorAll('input[type="range"]');
-            const totalScoreElement = document.getElementById('totalScore');
-            const totalScoreInput = document.getElementById('totalScoreInput');
+    // Inicializar al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Init scores
+        const sliders = document.querySelectorAll('input[type="range"]');
+        sliders.forEach((s, idx) => updateScore(s, idx + 1));
+        updateTotalScore();
+        
+        // Obtener datos
+        const dataElement = document.getElementById('psfs-data');
+        let sesiones = dataElement ? JSON.parse(dataElement.textContent) : [];
+        
+        if (sesiones && sesiones.length > 0) {
+            const totales = sesiones.map(s => s.total);
+            const promedio = (totales.reduce((a, b) => a + b, 0) / totales.length).toFixed(1);
             
-            const values = Array.from(sliders).map(slider => parseInt(slider.value));
-            const average = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
+            const avgScoreEl = document.getElementById('avg-score');
+            if(avgScoreEl) avgScoreEl.textContent = promedio;
             
-            totalScoreElement.textContent = average;
-            totalScoreInput.value = average;
-            
-            // Cambiar color del círculo total
-            const totalCircle = totalScoreElement.parentElement;
-            if (average < 4) {
-                totalCircle.className = 'w-16 h-16 rounded-full bg-green-500 flex items-center justify-center';
-            } else if (average < 7) {
-                totalCircle.className = 'w-16 h-16 rounded-full bg-yellow-500 flex items-center justify-center';
-            } else {
-                totalCircle.className = 'w-16 h-16 rounded-full bg-red-500 flex items-center justify-center';
-            }
-        }
-
-        // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTotalScore();
-            
-            // Calcular estadísticas
-            const sesiones = {{ sesiones|safe }};
-            if (sesiones && sesiones.length > 0) {
-                const totales = sesiones.map(s => s.total);
-                const promedio = (totales.reduce((a, b) => a + b, 0) / totales.length).toFixed(1);
-                document.getElementById('avg-score').textContent = promedio;
-                
-                // Calcular tendencia
-                if (totales.length >= 2) {
-                    const ultimo = totales[totales.length - 1];
-                    const penultimo = totales[totales.length - 2];
-                    const tendencia = ultimo < penultimo ? "↗" : ultimo > penultimo ? "↘" : "→";
-                    document.getElementById('trend').textContent = tendencia;
+            const trendEl = document.getElementById('trend');
+            if (trendEl && totales.length >= 2) {
+                const ultimo = totales[totales.length - 1];
+                const penultimo = totales[totales.length - 2];
+                if(ultimo > penultimo) {
+                    trendEl.textContent = "↗";
+                    trendEl.classList.add('text-green-500');
+                    trendEl.classList.remove('text-gray-700');
+                } else if(ultimo < penultimo) {
+                    trendEl.textContent = "↘";
+                    trendEl.classList.add('text-red-500');
+                    trendEl.classList.remove('text-gray-700');
+                } else {
+                    trendEl.textContent = "→";
                 }
             }
-        });
 
-        // Gráfico minimalista
-        const ctx = document.getElementById('progressChart').getContext('2d');
-        const sesiones = {{ sesiones|safe }} || [];
-        const labels = sesiones.map((s, i) => i + 1);
-        const data = sesiones.map(s => s.total);
+            // Gráfico Chart.js
+            const ctx = document.getElementById('progressChart');
+            if(ctx && typeof Chart !== 'undefined') {
+                const labels = sesiones.map((s, i) => `S${s.sesion}`);
+                const data = sesiones.map(s => s.total);
 
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    borderColor: '#1e40af',
-                    backgroundColor: 'rgba(30, 64, 175, 0.05)',
-                    fill: true,
-                    tension: 0.3,
-                    borderWidth: 2,
-                    pointBackgroundColor: '#1e40af',
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBorderWidth: 0,
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        padding: 8,
-                        cornerRadius: 4,
-                        displayColors: false,
-                        callbacks: {
-                            title: function(context) {
-                                return `Sesión ${context[0].label}`;
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total PSFS',
+                            data: data,
+                            borderColor: '#1e40af', // medical-blue
+                            backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#1e40af',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBorderWidth: 2,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                titleColor: '#1f2937',
+                                bodyColor: '#4b5563',
+                                borderColor: '#e5e7eb',
+                                borderWidth: 1,
+                                padding: 12,
+                                displayColors: false,
+                                callbacks: {
+                                    label: function(context) {
+                                        return `Puntuación: ${context.parsed.y}`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 10,
+                                ticks: {
+                                    stepSize: 2,
+                                    color: '#9ca3af',
+                                    font: { family: "'Inter', sans-serif", size: 11 }
+                                },
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)',
+                                    drawBorder: false
+                                }
                             },
-                            label: function(context) {
-                                return `Puntuación: ${context.parsed.y}`;
+                            x: {
+                                ticks: {
+                                    color: '#6b7280',
+                                    font: { family: "'Inter', sans-serif", size: 11 }
+                                },
+                                grid: {
+                                    display: false
+                                }
                             }
                         }
                     }
-                },
-                scales: {
-                    y: {
-                        min: 0,
-                        max: 10,
-                        ticks: {
-                            stepSize: 1,
-                            font: { size: 11 }
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.05)',
-                            drawBorder: false
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            font: { size: 11 }
-                        },
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
+                });
             }
-        });
-    </script>
-</body>
-</html>
+        }
+    });
+</script>
+{% endblock %}

@@ -1,473 +1,440 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Screening de Dolor - Sistema Médico</title>
-  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script>
-      tailwind.config = {
-          darkMode: 'class',
-          theme: {
-              extend: {
-                  colors: {
-                      medical: {
-                          blue: '#0284c7',
-                          'blue-light': '#38bdf8',
-                          'blue-dark': '#0369a1',
-                          green: '#10b981',
-                          red: '#ef4444',
-                          orange: '#f59e0b',
-                          teal: '#14b8a6'
-                      }
-                  },
-                  fontFamily: {
-                      sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-                  }
-              }
-          }
-      }
-  </script>
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <header class="bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center">
-                    <i class='bx bx-health text-2xl mr-2'></i>
-                    <div>
-                        <h1 class="text-lg font-bold">Sistema de Screening Médico</h1>
-                        <p class="text-blue-100 text-xs">Evaluación Integral de Dolor Crónico</p>
+
+{% block title %}Screening de Dolor - Evaluación Integral{% endblock %}
+
+{% block header_title %}Screening de Dolor Crónico{% endblock %}
+
+{% block header_actions %}
+    <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
+        <i class='bx bx-arrow-back'></i> Volver
+    </button>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Principal -->
+        <div class="lg:col-span-2">
+            <!-- Pasos -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-medical-blue text-white rounded-full flex items-center justify-center font-bold shadow-sm">1</div>
+                        <span class="font-medium text-gray-800">Intensidad</span>
+                    </div>
+                    <div class="flex-1 h-px bg-gray-200 mx-4"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-bold shadow-sm">2</div>
+                        <span class="font-medium text-gray-800">Funcional</span>
+                    </div>
+                    <div class="flex-1 h-px bg-gray-200 mx-4"></div>
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold shadow-sm">3</div>
+                        <span class="font-medium text-gray-800">Molestia</span>
                     </div>
                 </div>
-                <button onclick="newSession()" class="bg-white text-medical-blue hover:bg-blue-50 px-3 py-1.5 rounded-lg font-medium transition-all text-sm flex items-center">
-                    <i class='bx bx-plus-circle mr-1'></i>
-                    Nueva Evaluación
-                </button>
             </div>
-        </div>
-    </header>
 
-    <main class="max-w-7xl mx-auto px-4 py-4">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <div class="lg:col-span-2">
-                <div class="bg-white rounded-lg shadow-md p-4 mb-4">
-                    <div class="flex items-center justify-between text-sm">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 bg-medical-blue text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                            <span class="text-xs text-gray-600">Intensidad</span>
+            <!-- Formulario Principal -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-teal-500 to-emerald-500 p-5">
+                    <div class="flex items-center">
+                        <div class="bg-white/20 p-2 rounded-lg mr-4">
+                            <i class='bx bx-clipboard text-white text-2xl'></i>
                         </div>
-                        <div class="w-8 h-0.5 bg-gray-200"></div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                            <span class="text-xs text-gray-600">Funcional</span>
-                        </div>
-                        <div class="w-8 h-0.5 bg-gray-200"></div>
-                        <div class="flex items-center space-x-2">
-                            <div class="w-6 h-6 bg-gray-300 text-gray-600 rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                            <span class="text-xs text-gray-600">Molestia</span>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Evaluación de Dolor Crónico</h2>
+                            <p class="text-emerald-50 text-sm">Complete todas las secciones cuidadosamente</p>
                         </div>
                     </div>
                 </div>
 
+                <form id="screeningForm" action="" method="POST" class="p-6">
+                    {% csrf_token %}
 
-                <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                    <div class="bg-gradient-to-r from-medical-teal to-medical-green p-4">
-                        <div class="flex items-center">
-                            <i class='bx bx-clipboard-check text-white text-xl mr-2'></i>
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-medical-blue text-sm text-blue-800 flex items-start gap-3">
+                        <i class='bx bx-info-circle text-xl leading-none mt-0.5'></i>
+                        <div>
+                            <span class="font-semibold block mb-1">Instrucciones Importantes</span>
+                            Considere sus síntomas y sensaciones <strong>únicamente durante las últimas 2 semanas</strong> al responder las siguientes preguntas.
+                        </div>
+                    </div>
+
+                    {% if missing_fields %}
+                    <div class="mb-6 rounded-lg p-4 bg-red-50 border border-red-100 text-red-700 flex items-start gap-3">
+                        <i class='bx bx-error-circle text-xl leading-none mt-0.5'></i>
+                        <div class="text-sm">
+                            <span class="font-semibold block mb-1">Faltan campos obligatorios:</span>
+                            {{ missing_fields|join:", " }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- SECCIÓN 1: Intensidad -->
+                    <div class="mb-8" id="section-intensity">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-medical-blue text-white rounded-full flex items-center justify-center font-bold mr-3 shadow-sm">1</div>
                             <div>
-                                <h2 class="text-lg font-bold text-white">Evaluación de Dolor Crónico</h2>
-                                <p class="text-green-100 text-sm">Complete todas las secciones</p>
+                                <h3 class="text-lg font-bold text-gray-900">Intensidad del Dolor</h3>
+                                <p class="text-gray-500 text-sm">¿Cuán intenso ha sido su dolor en promedio?</p>
                             </div>
                         </div>
+
+                        <div class="space-y-3">
+                            <label class="flex items-center p-4 border border-gray-200 rounded-xl hover:border-medical-blue hover:bg-blue-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-medical-blue has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-medical-blue">
+                                <input type="radio" name="IntensidadDolor" value="sin molestias" class="mr-4 w-5 h-5 text-medical-blue accent-medical-blue" required {% if posted_intensidad == 'sin molestias' %}checked{% endif %}>
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl mr-3 shadow-inner">😊</div>
+                                <div class="flex-1">
+                                    <span class="text-base font-semibold text-gray-900 block group-hover:text-medical-blue transition-colors">No he tenido dolor</span>
+                                    <span class="text-sm text-gray-500">Nivel 0</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-4 border border-gray-200 rounded-xl hover:border-medical-blue hover:bg-blue-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-medical-blue has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-medical-blue">
+                                <input type="radio" name="IntensidadDolor" value="molestia minima" class="mr-4 w-5 h-5 text-medical-blue accent-medical-blue" {% if posted_intensidad == 'molestia minima' %}checked{% endif %}>
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-xl mr-3 shadow-inner">🙂</div>
+                                <div class="flex-1">
+                                    <span class="text-base font-semibold text-gray-900 block group-hover:text-medical-blue transition-colors">Dolor leve, casi no interfiere</span>
+                                    <span class="text-sm text-gray-500">Nivel 3</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-4 border border-gray-200 rounded-xl hover:border-orange-500 hover:bg-orange-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:ring-1 has-[:checked]:ring-orange-500">
+                                <input type="radio" name="IntensidadDolor" value="interferencia significativa" class="mr-4 w-5 h-5 text-orange-500 accent-orange-500" {% if posted_intensidad == 'interferencia significativa' %}checked{% endif %}>
+                                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-xl mr-3 shadow-inner">😐</div>
+                                <div class="flex-1">
+                                    <span class="text-base font-semibold text-gray-900 block group-hover:text-orange-600 transition-colors">Dolor moderado, interfiere notablemente</span>
+                                    <span class="text-sm text-gray-500">Nivel 6</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-4 border border-gray-200 rounded-xl hover:border-red-500 hover:bg-red-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-red-500 has-[:checked]:bg-red-50 has-[:checked]:ring-1 has-[:checked]:ring-red-500">
+                                <input type="radio" name="IntensidadDolor" value="Limitacion severa" class="mr-4 w-5 h-5 text-red-500 accent-red-500" {% if posted_intensidad == 'Limitacion severa' %}checked{% endif %}>
+                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-xl mr-3 shadow-inner">😣</div>
+                                <div class="flex-1">
+                                    <span class="text-base font-semibold text-gray-900 block group-hover:text-red-600 transition-colors">Dolor intenso, limita severamente</span>
+                                    <span class="text-sm text-gray-500">Nivel 9</span>
+                                </div>
+                            </label>
+
+                            <label class="flex items-center p-4 border border-gray-200 rounded-xl hover:border-red-600 hover:bg-red-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-red-600 has-[:checked]:bg-red-50 has-[:checked]:ring-1 has-[:checked]:ring-red-600">
+                                <input type="radio" name="IntensidadDolor" value="dolor maximo" class="mr-4 w-5 h-5 text-red-600 accent-red-600" {% if posted_intensidad == 'dolor maximo' %}checked{% endif %}>
+                                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center text-xl mr-3 shadow-inner">😱</div>
+                                <div class="flex-1">
+                                    <span class="text-base font-semibold text-gray-900 block group-hover:text-red-700 transition-colors">El peor dolor posible</span>
+                                    <span class="text-sm text-gray-500">Nivel 10</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
-                    <form id="screeningForm" action="" method="POST" class="p-4">
-                        {% csrf_token %}
+                    <div class="w-full h-px bg-gray-100 my-8"></div>
 
+                    <!-- SECCIÓN 2: Funcional -->
+                    <div class="mb-8" id="section-functional">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center font-bold mr-3 shadow-sm">2</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Evaluación Funcional</h3>
+                                <p class="text-gray-500 text-sm">Impacto del dolor en actividades diarias</p>
+                            </div>
+                        </div>
 
-                        <div class="mb-4 p-3 bg-blue-50 rounded-lg border-l-4 border-medical-blue">
-                            <div class="flex items-start">
-                                <i class='bx bx-info-circle text-medical-blue text-lg mr-2 mt-0.5'></i>
-                                <div>
-                                    <h3 class="text-sm font-semibold text-gray-800 mb-1">Instrucciones</h3>
-                                    <p class="text-xs text-gray-700">
-                                        Piense <strong>solo respecto de las últimas 2 semanas</strong>.
-                                    </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 {% if missing_checks %}ring-2 ring-red-200 ring-offset-2 rounded-xl p-1{% endif %}">
+                            <!-- The HTML directly -->
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-body text-lg'></i></span>
+                                    Molestias musculares/articulares
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" {% if posted_respuestas and 'si' in posted_respuestas %}checked{% endif %}>
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded" {% if posted_respuestas and 'no' in posted_respuestas %}checked{% endif %}>
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-walk text-lg'></i></span>
+                                    Dificultades para caminar
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-t-shirt text-lg'></i></span>
+                                    Vestirse más lentamente
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-plus-medical text-lg'></i></span>
+                                    Otros problemas de salud
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-run text-lg'></i></span>
+                                    Actividad física no segura
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-brain text-lg'></i></span>
+                                    Pensamientos preocupantes
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-time-five text-lg'></i></span>
+                                    Dolor persistirá mucho tiempo
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 bg-gray-50 rounded-xl p-4 hover:border-indigo-400 hover:shadow-sm transition-all functional-card">
+                                <p class="text-sm font-semibold text-gray-800 mb-3 flex items-center">
+                                    <span class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3"><i class='bx bx-heart text-lg'></i></span>
+                                    Dejó de disfrutar actividades
+                                </p>
+                                <div class="flex space-x-6 pl-11">
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 w-4 h-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-indigo-600 transition-colors">Sí</span>
+                                    </label>
+                                    <label class="flex items-center cursor-pointer group">
+                                        <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 w-4 h-4 text-gray-500 focus:ring-gray-500 border-gray-300 rounded">
+                                        <span class="text-sm font-medium group-hover:text-gray-700 transition-colors">No</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {% if missing_fields %}
-                        <div class="mb-4 rounded-lg p-3 bg-red-50 border border-red-100 text-red-700 flex items-center gap-3">
-                            <i class='bx bx-error-circle text-red-600 text-lg'></i>
-                            <div class="text-sm">Faltan campos obligatorios: <strong>{{ missing_fields|join:", " }}</strong></div>
+                    <div class="w-full h-px bg-gray-100 my-8"></div>
+
+                    <!-- SECCIÓN 3: Molestia -->
+                    <div class="mb-8" id="section-annoyance">
+                        <div class="flex items-center mb-4">
+                            <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold mr-3 shadow-sm">3</div>
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Nivel de Molestia</h3>
+                                <p class="text-gray-500 text-sm">¿Qué tan molesto ha sido su dolor?</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                            <label class="flex flex-col items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:border-green-500 hover:bg-green-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-green-500 has-[:checked]:bg-green-50 has-[:checked]:ring-1 has-[:checked]:ring-green-500">
+                                <input type="radio" value="nada" name="NivelMolestia" class="hidden text-green-500" required {% if posted_nivel == 'nada' %}checked{% endif %}>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-sm group-hover:scale-110 transition-transform">😌</div>
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-green-600 transition-colors">Nada</span>
+                            </label>
+
+                            <label class="flex flex-col items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:border-blue-500 hover:bg-blue-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50 has-[:checked]:ring-1 has-[:checked]:ring-blue-500">
+                                <input type="radio" value="leve" name="NivelMolestia" class="hidden text-blue-500" {% if posted_nivel == 'leve' %}checked{% endif %}>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-sm group-hover:scale-110 transition-transform">🙂</div>
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-blue-600 transition-colors">Leve</span>
+                            </label>
+
+                            <label class="flex flex-col items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:border-orange-500 hover:bg-orange-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 has-[:checked]:ring-1 has-[:checked]:ring-orange-500">
+                                <input type="radio" value="moderado" name="NivelMolestia" class="hidden text-orange-500" {% if posted_nivel == 'moderado' %}checked{% endif %}>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-sm group-hover:scale-110 transition-transform">😐</div>
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-orange-600 transition-colors">Moderado</span>
+                            </label>
+
+                            <label class="flex flex-col items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:border-red-500 hover:bg-red-50/50 hover:shadow-sm transition-all cursor-pointer group has-[:checked]:border-red-500 has-[:checked]:bg-red-50 has-[:checked]:ring-1 has-[:checked]:ring-red-500">
+                                <input type="radio" value="mucho" name="NivelMolestia" class="hidden text-red-500" {% if posted_nivel == 'mucho' %}checked{% endif %}>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-sm group-hover:scale-110 transition-transform">😣</div>
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-red-600 transition-colors">Mucho</span>
+                            </label>
+
+                            <label class="flex flex-col items-center justify-center p-4 border border-gray-200 bg-gray-50 rounded-xl hover:border-red-600 hover:bg-red-50/50 hover:shadow-sm transition-all cursor-pointer group md:col-span-1 col-span-2 has-[:checked]:border-red-600 has-[:checked]:bg-red-100 has-[:checked]:ring-1 has-[:checked]:ring-red-600">
+                                <input type="radio" value="extremo" name="NivelMolestia" class="hidden text-red-600" {% if posted_nivel == 'extremo' %}checked{% endif %}>
+                                <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-3xl mb-3 shadow-sm group-hover:scale-110 transition-transform">😱</div>
+                                <span class="text-sm font-bold text-gray-700 group-hover:text-red-700 transition-colors">Extremo</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Envíos -->
+                    <div class="bg-gray-50 -mx-6 -mb-6 px-6 py-5 mt-6 border-t border-gray-100">
+                        {% if evaluacion_existente %}
+                        <div class="mb-4 rounded-lg p-3 bg-amber-50 border border-amber-100 text-amber-800 flex items-start gap-3 text-sm">
+                            <i class='bx bx-info-circle text-amber-600 text-xl leading-none mt-0.5'></i>
+                            <div>Ya existe una evaluación. Utilice <strong class="font-semibold text-amber-900">Actualizar Evaluación</strong> para realizar modificaciones.</div>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="submit" name="action" value="actualizar" class="bg-medical-blue text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-medical-blue-dark transition-all flex items-center justify-center shadow-sm w-full sm:w-auto">
+                                <i class='bx bx-refresh mr-2 text-lg'></i> Actualizar Evaluación
+                            </button>
+                        </div>
+                        {% else %}
+                        <div class="mb-4 rounded-lg p-3 bg-blue-50 border border-blue-100 text-blue-800 flex items-start gap-3 text-sm">
+                            <i class='bx bx-info-circle text-blue-600 text-xl leading-none mt-0.5'></i>
+                            <div>No existe una evaluación previa registrada. Pulse <strong class="font-semibold text-blue-900">Guardar Evaluación</strong> para finalizar.</div>
+                        </div>
+                        <div class="flex justify-end gap-3">
+                            <button type="submit" name="action" value="guardar" class="bg-medical-blue text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:bg-medical-blue-dark transition-all flex items-center justify-center shadow-sm w-full sm:w-auto">
+                                <i class='bx bx-save mr-2 text-lg'></i> Guardar Evaluación
+                            </button>
                         </div>
                         {% endif %}
-
-                        <div class="mb-6" id="section-intensity">
-                            <div class="flex items-center mb-3">
-                                <div class="bg-medical-red text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3 text-sm">1</div>
-                                <div>
-                                    <h3 class="text-base font-semibold text-gray-800">Intensidad del Dolor</h3>
-                                    <p class="text-gray-600 text-xs">¿Cuán intenso ha sido su dolor en promedio?</p>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="sin molestias" class="mr-3 text-medical-blue" required {% if posted_intensidad == 'sin molestias' %}checked{% endif %}>
-                                    <span class="text-lg mr-2">😊</span>
-                                    <div class="flex-1">
-                                        <span class="text-sm font-medium text-gray-800">No he tenido dolor</span>
-                                        <span class="text-xs text-gray-500 block">Nivel 0</span>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="molestia minima" class="mr-3 text-medical-blue" {% if posted_intensidad == 'molestia minima' %}checked{% endif %}>
-                                    <span class="text-lg mr-2">🙂</span>
-                                    <div class="flex-1">
-                                        <span class="text-sm font-medium text-gray-800">Dolor leve, casi no interfiere</span>
-                                        <span class="text-xs text-gray-500 block">Nivel 3</span>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-orange hover:bg-orange-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="interferencia significativa" class="mr-3 text-medical-orange" {% if posted_intensidad == 'interferencia significativa' %}checked{% endif %}>
-                                    <span class="text-lg mr-2">😐</span>
-                                    <div class="flex-1">
-                                        <span class="text-sm font-medium text-gray-800">Dolor moderado, interfiere notablemente</span>
-                                        <span class="text-xs text-gray-500 block">Nivel 6</span>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-medical-red hover:bg-red-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="Limitacion severa" class="mr-3 text-medical-red" {% if posted_intensidad == 'Limitacion severa' %}checked{% endif %}>
-                                    <span class="text-lg mr-2">😣</span>
-                                    <div class="flex-1">
-                                        <span class="text-sm font-medium text-gray-800">Dolor intenso, limita severamente</span>
-                                        <span class="text-xs text-gray-500 block">Nivel 9</span>
-                                    </div>
-                                </label>
-
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-all cursor-pointer group">
-                                    <input type="radio" name="IntensidadDolor" value="dolor maximo" class="mr-3 text-red-600" {% if posted_intensidad == 'dolor maximo' %}checked{% endif %}>
-                                    <span class="text-lg mr-2">😱</span>
-                                    <div class="flex-1">
-                                        <span class="text-sm font-medium text-gray-800">El peor dolor posible</span>
-                                        <span class="text-xs text-gray-500 block">Nivel 10</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <div class="mb-6" id="section-functional">
-                            <div class="flex items-center mb-3">
-                                <div class="bg-medical-green text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3 text-sm">2</div>
-                                <div>
-                                    <h3 class="text-base font-semibold text-gray-800">Evaluación Funcional</h3>
-                                    <p class="text-gray-600 text-xs">Impacto del dolor en actividades diarias</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 {% if missing_checks %}ring-2 ring-red-200 ring-offset-2{% endif %}">
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-body text-medical-green mr-1 text-sm'></i>
-                                        Molestias en articulaciones/músculos
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm" {% if posted_respuestas and 'si' in posted_respuestas %}checked{% endif %}>
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm" {% if posted_respuestas and 'no' in posted_respuestas %}checked{% endif %}>
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-walk text-medical-green mr-1 text-sm'></i>
-                                        Dificultades para caminar
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-t-shirt text-medical-green mr-1 text-sm'></i>
-                                        Vestirse más lentamente
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-plus-medical text-medical-green mr-1 text-sm'></i>
-                                        Otros problemas de salud
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-run text-medical-green mr-1 text-sm'></i>
-                                        Actividad física no segura
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-brain text-medical-green mr-1 text-sm'></i>
-                                        Pensamientos preocupantes
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-time-five text-medical-green mr-1 text-sm'></i>
-                                        Dolor persistirá mucho tiempo
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div class="border border-gray-200 rounded-lg p-3 hover:border-medical-green transition-all">
-                                    <p class="text-sm font-medium text-gray-800 mb-2 flex items-center">
-                                        <i class='bx bx-heart text-medical-green mr-1 text-sm'></i>
-                                        Dejó de disfrutar actividades
-                                    </p>
-                                    <div class="flex space-x-4">
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="si" class="mr-2 text-medical-green text-sm">
-                                            <span class="text-xs">Sí</span>
-                                        </label>
-                                        <label class="flex items-center cursor-pointer">
-                                            <input type="checkbox" name="preguntas1[]" value="no" class="mr-2 text-gray-500 text-sm">
-                                            <span class="text-xs">No</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-6" id="section-annoyance">
-                            <div class="flex items-center mb-3">
-                                <div class="bg-medical-orange text-white rounded-full w-7 h-7 flex items-center justify-center font-bold mr-3 text-sm">3</div>
-                                <div>
-                                    <h3 class="text-base font-semibold text-gray-800">Nivel de Molestia</h3>
-                                    <p class="text-gray-600 text-xs">¿Qué tan molesto ha sido su dolor?</p>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-5 gap-2">
-                                <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-green hover:bg-green-50 transition-all cursor-pointer">
-                                    <input type="radio" value="nada" name="NivelMolestia" class="mb-1 text-medical-green" required {% if posted_nivel == 'nada' %}checked{% endif %}>
-                                    <span class="text-lg mb-1">😌</span>
-                                    <span class="text-xs font-medium text-gray-800">Nada</span>
-                                </label>
-
-                                <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-blue hover:bg-blue-50 transition-all cursor-pointer">
-                                    <input type="radio" value="leve" name="NivelMolestia" class="mb-1 text-medical-blue" {% if posted_nivel == 'leve' %}checked{% endif %}>
-                                    <span class="text-lg mb-1">🙂</span>
-                                    <span class="text-xs font-medium text-gray-800">Leve</span>
-                                </label>
-
-                                <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-orange hover:bg-orange-50 transition-all cursor-pointer">
-                                    <input type="radio" value="moderado" name="NivelMolestia" class="mb-1 text-medical-orange" {% if posted_nivel == 'moderado' %}checked{% endif %}>
-                                    <span class="text-lg mb-1">😐</span>
-                                    <span class="text-xs font-medium text-gray-800">Moderado</span>
-                                </label>
-
-                                <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-medical-red hover:bg-red-50 transition-all cursor-pointer">
-                                    <input type="radio" value="mucho" name="NivelMolestia" class="mb-1 text-medical-red" {% if posted_nivel == 'mucho' %}checked{% endif %}>
-                                    <span class="text-lg mb-1">😣</span>
-                                    <span class="text-xs font-medium text-gray-800">Mucho</span>
-                                </label>
-
-                                <label class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:border-red-600 hover:bg-red-50 transition-all cursor-pointer">
-                                    <input type="radio" value="extremo" name="NivelMolestia" class="mb-1 text-red-600" {% if posted_nivel == 'extremo' %}checked{% endif %}>
-                                    <span class="text-lg mb-1">😱</span>
-                                    <span class="text-xs font-medium text-gray-800">Extremo</span>
-                                </label>
-                            </div>
-                        </div>
-
-
-                        <div class="bg-gray-50 -mx-4 px-4 py-4 mt-6">
-                            {% if evaluacion_existente %}
-                            <div class="mb-3 rounded-lg p-3 bg-yellow-50 border border-yellow-100 text-yellow-800 flex items-center gap-3">
-                                <i class='bx bx-info-circle text-yellow-600 text-lg'></i>
-                                <div class="text-sm">Ya existe una evaluación para este paciente. Utiliza <strong>Actualizar Evaluación</strong> para modificarla.</div>
-                            </div>
-                            {% else %}
-                            <div class="mb-3 rounded-lg p-3 bg-blue-50 border border-blue-100 text-blue-800 flex items-center gap-3">
-                                <i class='bx bx-info-circle text-blue-600 text-lg'></i>
-                                <div class="text-sm">No existe una evaluación. Pulsa <strong>Guardar Evaluación</strong> para registrar una nueva.</div>
-                            </div>
-                            {% endif %}
-
-                            <div class="flex flex-col sm:flex-row justify-center items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                                {% if evaluacion_existente %}
-                                <button type="submit" name="action" value="actualizar" class="w-full sm:w-auto bg-gradient-to-r from-medical-blue to-medical-blue-dark text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center">
-                                    <i class='bx bx-refresh mr-1'></i>
-                                    Actualizar Evaluación
-                                </button>
-                                {% else %}
-                                <button type="submit" name="action" value="guardar" class="w-full sm:w-auto bg-gradient-to-r from-medical-green to-medical-teal text-white px-6 py-2.5 rounded-lg font-medium text-sm hover:shadow-lg transition-all flex items-center justify-center">
-                                    <i class='bx bx-save mr-1'></i>
-                                    Guardar Evaluación
-                                </button>
-                                {% endif %}
-                            </div>
-                            <p class="text-center text-gray-600 text-xs mt-2">
-                                <i class='bx bx-shield-check mr-1'></i>
-                                Datos protegidos y confidenciales
-                            </p>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-
-            <div class="lg:col-span-1 space-y-4">
-
-                {% if alerta %}
-                <div id="alerta-riesgo">
-                    {{ alerta.html|safe }}
-                </div>
-                {% endif %}
-
-                <div class="bg-white p-4 rounded-lg shadow-md">
-                    <h2 class="text-base font-bold text-gray-800 mb-3 flex items-center">
-                        <i class='bx bx-history mr-2'></i>
-                        Ultima evaluacion
-                    </h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs">
-                            <thead class="bg-medical-blue text-white">
-                                <tr>
-                                    <th class="px-2 py-1 text-left">Clínico</th>
-                                    <th class="px-2 py-1 text-left">Intensidad</th>
-                                    <th class="px-2 py-1 text-left">Molestia</th>
-                                    <th class="px-2 py-1 text-left">Puntaje</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-gray-700">
-                                {% for eval in toda_evaluacion_existente %}
-                                <tr class="border-t border-gray-200 hover:bg-gray-50">
-                                    <td class="px-2 py-1">{{ eval.clinico|truncatechars:10 }}</td>
-                                    <td class="px-2 py-1">{{ eval.IntensidadDolor|truncatechars:8 }}</td>
-                                    <td class="px-2 py-1">{{ eval.NivelMolestia }}</td>
-                                    <td class="px-2 py-1 font-semibold">{{ eval.Puntaje_Sesion }}</td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="4" class="px-2 py-2 text-center text-gray-400 text-xs">No hay evaluaciones</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
-                </div>
-
-
-
-
+                </form>
             </div>
         </div>
-    </main>
-    <footer class="bg-gray-800 text-white py-4 mt-8">
-        <div class="max-w-7xl mx-auto px-4 text-center">
-            <p class="text-gray-300 text-xs">&copy; 2025 Sistema Médico de Evaluación</p>
-        </div>
-    </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Obtener todos los contenedores de preguntas
-            const questionContainers = document.querySelectorAll('.border.border-gray-200.rounded-lg.p-3');
+        <!-- Panel Lateral -->
+        <div class="lg:col-span-1 space-y-6">
 
-            questionContainers.forEach(container => {
-                const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            <!-- Alerta de Riesgo -->
+            {% if alerta %}
+            <div id="alerta-riesgo" class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                {{ alerta.html|safe }}
+            </div>
+            {% endif %}
+
+            <!-- Historial -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+                <h2 class="text-base font-bold text-gray-900 mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+                    <i class='bx bx-history text-medical-blue'></i> Evaluaciones Previas
+                </h2>
                 
-                checkboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', function() {
-                        if (this.checked) {
-                            // Desmarcar el otro checkbox en el mismo contenedor
-                            checkboxes.forEach(cb => {
-                                if (cb !== this) {
-                                    cb.checked = false;
-                                }
-                            });
-                        }
-                    });
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50/50 text-gray-500">
+                            <tr>
+                                <th class="px-3 py-2 text-left font-medium rounded-l-lg">Clínico</th>
+                                <th class="px-3 py-2 text-left font-medium">Intensidad</th>
+                                <th class="px-3 py-2 text-left font-medium">Molestia</th>
+                                <th class="px-3 py-2 text-right font-medium rounded-r-lg">Pto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700 divide-y divide-gray-100">
+                            {% for eval in toda_evaluacion_existente %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-3 py-3 font-medium text-gray-900">{{ eval.clinico|truncatechars:10 }}</td>
+                                <td class="px-3 py-3 text-gray-600 capitalize text-xs">
+                                    {% if eval.IntensidadDolor == 'sin molestias' %}<span class="text-green-600 font-semibold">Cero</span>
+                                    {% elif eval.IntensidadDolor == 'molestia minima' %}<span class="text-blue-600 font-semibold">Leve</span>
+                                    {% elif eval.IntensidadDolor == 'interferencia significativa' %}<span class="text-orange-600 font-semibold">Mod.</span>
+                                    {% elif eval.IntensidadDolor == 'Limitacion severa' %}<span class="text-red-500 font-semibold">Sev.</span>
+                                    {% else %}<span class="text-red-700 font-bold">Max.</span>{% endif %}
+                                </td>
+                                <td class="px-3 py-3 text-gray-600 capitalize text-xs">{{ eval.NivelMolestia }}</td>
+                                <td class="px-3 py-3 font-bold text-right text-medical-blue">{{ eval.Puntaje_Sesion|default:"-" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="px-3 py-8 text-center text-gray-400">
+                                    <i class='bx bx-folder-open text-3xl mb-2 block'></i>
+                                    No hay evaluaciones clínicas previas
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Asegurar que solo un checkbox se puede marcar por pregunta (Sí / No)
+        const questionContainers = document.querySelectorAll('.functional-card');
+
+        questionContainers.forEach(container => {
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        checkboxes.forEach(cb => {
+                            if (cb !== this) {
+                                cb.checked = false;
+                            }
+                        });
+                    }
                 });
             });
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

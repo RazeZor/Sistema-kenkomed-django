@@ -2,67 +2,292 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}KenkoMed - Sistema de Kinesiología{% endblock %}</title>
-    
-    <!-- Tailwind CSS CDN -->
+    <title>{% block title %}Panel Médico - Sistema Clínico{% endblock %}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Configuración personalizada de Tailwind -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jQuery y modales -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+    {% block extra_head %}{% endblock %}
+
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'medical-blue': {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6',
+                            yellow: '#f7dc6f'
+                        },
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        },
+                        success: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d'
+                        },
+                        danger: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d'
+                        },
+                        warning: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f'
+                        },
+                        purple: {
+                            50: '#faf5ff',
+                            100: '#f3e8ff',
+                            200: '#e9d5ff',
+                            300: '#d8b4fe',
+                            400: '#c084fc',
+                            500: '#a855f7',
+                            600: '#9333ea',
+                            700: '#7e22ce',
+                            800: '#6b21a8',
+                            900: '#581c87'
                         }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Vue.js CDN (opcional, solo si se usa) -->
-    {% block vue_js %}{% endblock %}
-    
-    <!-- Estilos personalizados adicionales -->
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
         }
-        
-        /* Estilos para RUT con validación */
-        .rut-error {
-            color: #dc2626;
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        /* Overrides básicos si es necesario */
         {% block extra_css %}{% endblock %}
     </style>
-    
-    {% block extra_head %}{% endblock %}
 </head>
-<body class="{% block body_class %}{% endblock %}">
-    {% block content %}{% endblock %}
+<body class="min-h-screen font-sans text-gray-800 bg-white {% block body_class %}{% endblock %}">
     
-    <!-- JavaScript global del proyecto -->
-    <script src="{% static 'js/utils.js' %}"></script>
+    <!-- Script de notificaciones global -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% if messages %}
+                {% for message in messages %}
+                Swal.fire({
+                    icon: "{% if message.tags == 'error' %}error{% else %}success{% endif %}",
+                    title: '{{ message|escapejs }}',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    background: 'white',
+                    color: '#1f2937'
+                });
+                {% endfor %}
+            {% endif %}
+            
+            {% if request.session.show_success_message %}
+                const message = '{{ request.session.show_success_message|escapejs }}';
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 5000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer);
+                        toast.addEventListener('mouseleave', Swal.resumeTimer);
+                    }
+                });
+
+                Toast.fire({
+                    icon: 'success',
+                    title: message,
+                    background: 'white',
+                    color: '#1f2937',
+                    iconColor: '#10b981',
+                    customClass: {
+                        popup: 'shadow-lg rounded-lg'
+                    }
+                });
+
+                fetch('/clear-session-message/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({})
+                });
+                
+                function getCookie(name) {
+                    let cookieValue = null;
+                    if (document.cookie && document.cookie !== '') {
+                        const cookies = document.cookie.split(';');
+                        for (let i = 0; i < cookies.length; i++) {
+                            const cookie = cookies[i].trim();
+                            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                break;
+                            }
+                        }
+                    }
+                    return cookieValue;
+                }
+            {% endif %}
+        });
+    </script>
     
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar Navigation -->
+        {% include 'menu.html' %}
+
+        <!-- Contenido principal wrapper -->
+        <div class="flex flex-col flex-1 overflow-hidden">
+            <!-- Header común para todas las vistas -->
+            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100 flex-shrink-0">
+                <div class="flex items-center">
+                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggleMain">
+                        <i class='text-2xl bx bx-menu'></i>
+                    </button>
+                    <h1 class="text-lg font-medium text-gray-800">{% block header_title %}Panel Médico{% endblock %}</h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    {% block header_actions %}
+                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
+                        <i class='text-xl bx bx-bell'></i>
+                        <span class="absolute w-2 h-2 rounded-full top-1 right-1 bg-medical-red"></span>
+                    </button>
+                    <a href="{% url 'perfilClinico' %}" class="flex items-center p-2 space-x-2 transition-all rounded-lg hover:bg-gray-50">
+                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-gradient-to-r from-medical-blue to-medical-blue-light">
+                            <i class='bx bx-user'></i>
+                        </div>
+                        <span class="hidden text-sm font-medium text-gray-700 md:block">Mi Perfil</span>
+                    </a> 
+                    {% endblock %}
+                </div>
+            </header>
+
+            <!-- Área de main content que hace scroll -->
+            <main class="flex-1 p-6 overflow-y-auto bg-gray-50 scrollbar-hide">
+                <div class="mx-auto max-w-7xl">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Overlay para sidebar móvil -->
+    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlayMain"></div>
+
+    <script>
+        // Toggle sidebar de la base - Integración directa con menu.html
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuToggleMain = document.getElementById('menuToggleMain');
+            const sidebarBtn = document.getElementById('menuToggle'); // de menu.html
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlayMain');
+
+            function openSidebar() {
+                if(sidebar) {
+                    sidebar.classList.add('translate-x-0');
+                    sidebar.classList.remove('-translate-x-full');
+                    if(sidebarOverlay) sidebarOverlay.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                }
+            }
+
+            function closeSidebar() {
+                if(sidebar) {
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('-translate-x-full');
+                    if(sidebarOverlay) sidebarOverlay.classList.add('hidden');
+                    document.body.classList.remove('overflow-hidden');
+                }
+            }
+
+            if(menuToggleMain) menuToggleMain.addEventListener('click', openSidebar);
+            if(sidebarBtn) sidebarBtn.addEventListener('click', openSidebar);
+            if(sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+            if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
+        });
+
+        // Utilidades globales
+        function showDevModal(e) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Funcionalidad en desarrollo',
+                text: 'Esta funcionalidad estará disponible próximamente.',
+                background: 'white',
+                color: '#1f2937',
+                iconColor: '#0284c7',
+                customClass: {
+                    popup: 'shadow-lg rounded-lg'
+                }
+            });
+        }
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

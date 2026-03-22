@@ -20,12 +20,18 @@
 <body class="bg-light">
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
+            {% if es_publico %}
+            <span class="navbar-brand" style="cursor: default; color: inherit; text-decoration: none;">
+                <i class="fas fa-hospital-user me-2"></i>Kenkomed - Ingreso de Paciente
+            </span>
+            {% else %}
             <a class="navbar-brand" href="{%url 'panel' %}">
                 <i class="fas fa-hospital-user me-2"></i>Sistema Clínico
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            {% endif %}
         </div>
     </nav>
 

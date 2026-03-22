@@ -1,106 +1,167 @@
-{%load static%}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Registro Clínico</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'CSS/AgregarClinico.css' %}" />
+{% extends 'base_kenkomed.html' %}
+{% load static %}
 
-        <!-- JavaScript global del proyecto -->
+{% block title %}Agregar Clínico | KenkoMed{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
-    <script src="{% static 'js/utils.js' %}"></script>
-</head>
-<body>
-    <header class="site-header">
-        <div class="container">
-            <nav class="main-nav">
-                <div class="nav-brand">
-                    <a href="#" class="brand-link">
-                        <i class="fas fa-hospital-user"></i>
-                        <a href="{% url 'panel' %}" class="nav-link">Sistema Clinico</a>
-                    </a>
+    <style>
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+{% endblock %}
+
+{% block header_title %}Gestión de Clínicos{% endblock %}
+
+{% block header_actions %}
+    <a href="{% url 'panel' %}" class="px-4 py-2 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 flex items-center gap-2 transition-colors">
+        <i class='bx bx-list-ul'></i> Ver Clínicos
+    </a>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6 fade-in">
+    
+    <!-- Encabezado de la página -->
+    <div class="text-center mb-8 pt-4">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-medical-blue mb-4 shadow-sm border border-blue-100">
+            <i class='bx bx-user-plus text-3xl'></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">Registrar Nuevo Clínico</h2>
+        <p class="text-gray-500 mt-2 max-w-xl mx-auto">Complete el formulario a continuación para crear una nueva cuenta de profesional clínico en el sistema.</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover-lift">
+        <form method="post" action="" class="space-y-6">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- RUT -->
+                <div class="space-y-2">
+                    <label for="rut" class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class='bx bx-id-card text-medical-blue'></i> RUT
+                    </label>
+                    <input 
+                        type="text" 
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors bg-gray-50 focus:bg-white text-sm rut-input" 
+                        maxlength="12" 
+                        name="rut" 
+                        id="rut" 
+                        placeholder="Ejemplo: 12.345.678-9" 
+                        pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" 
+                        title="Formato: 12.345.678-9 o 12.345.678-K" 
+                        required
+                    />
                 </div>
                 
-                <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                
-                <div class="nav-menu" id="navMenu">
-                    <ul class="nav-links">
-                        <li class="nav-item"></li>
-                    </ul>
-                    
-                    <div class="nav-actions">
-                        <a href="{% url 'panel' %}" class="nav-link">Ver clínicos</a>
-                        <a href="#" class="btn-nav">Cerrar Sesión</a>
+                <!-- Profesión -->
+                <div class="space-y-2">
+                    <label for="profesion" class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class='bx bx-briefcase text-medical-blue'></i> Profesión
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="text" 
+                            id="profesion" 
+                            name="profesion" 
+                            placeholder="Ej: Kinesiólogo" 
+                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors bg-gray-50 focus:bg-white text-sm"
+                            required 
+                        />
                     </div>
                 </div>
-            </nav>
-        </div>
-    </header>
-    
-    <main>
-        <div class="container">
-            <div class="form-container">
-                <h1>Registro de Clínico</h1>
-                <center>
-                    <form method="post" action="">
-                        {% csrf_token %}
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="rut">Rut</label>
-                                <input type="text" class="rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="profesion">Profesión</label>
-                                <input type="text" id="profesion" name="profesion" placeholder="Kinesiólogo" required />
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="nombre">Nombre</label>
-                                <input type="text" id="nombre" name="nombre" placeholder="Juan" required />
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="apellido">Apellido</label>
-                                <input type="text" id="apellido" name="apellido" placeholder="Pérez" required />
-                            </div>
-                        </div>
-                        
-                        <div class="form-group full-width">
-                            <label for="contraseña">Contraseña</label>
-                            <input type="password" id="contraseña" name="contraseña" placeholder="••••••••" required />
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="submit" class="btn-primary">Agregar Clínico</button>
-                        </div>
-                    </form>
-                </center>
-               
+                
+                <!-- Nombre -->
+                <div class="space-y-2">
+                    <label for="nombre" class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class='bx bx-user text-medical-blue'></i> Nombre
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nombre" 
+                        name="nombre" 
+                        placeholder="Ej: Juan" 
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors bg-gray-50 focus:bg-white text-sm"
+                        required 
+                    />
+                </div>
+                
+                <!-- Apellido -->
+                <div class="space-y-2">
+                    <label for="apellido" class="block text-sm font-semibold text-gray-700 flex items-center gap-2">
+                        <i class='bx bx-user text-medical-blue'></i> Apellido
+                    </label>
+                    <input 
+                        type="text" 
+                        id="apellido" 
+                        name="apellido" 
+                        placeholder="Ej: Pérez" 
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors bg-gray-50 focus:bg-white text-sm"
+                        required 
+                    />
+                </div>
             </div>
-        </div>
-    </main>
+            
+            <div class="w-full h-px bg-gray-100 my-6"></div>
 
-    <script>
+            <!-- Contraseña -->
+            <div class="space-y-2 max-w-md mx-auto">
+                <label for="contraseña" class="block text-sm font-semibold text-gray-700 flex items-center justify-center gap-2">
+                    <i class='bx bx-lock-alt text-medical-blue'></i> Contraseña de Acceso
+                </label>
+                <div class="relative mt-2">
+                    <input 
+                        type="password" 
+                        id="contraseña" 
+                        name="contraseña" 
+                        placeholder="••••••••" 
+                        class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors bg-gray-50 focus:bg-white text-sm text-center tracking-widest"
+                        required 
+                    />
+                </div>
+                <p class="text-xs text-center text-gray-500 mt-2">La contraseña permitirá al profesional acceder al sistema.</p>
+            </div>
+            
+            <!-- Botones -->
+            <div class="flex justify-center pt-8">
+                <button 
+                    type="submit" 
+                    class="px-8 py-3.5 bg-medical-blue text-white rounded-xl hover:bg-medical-blue-dark transition-all font-medium flex items-center gap-3 shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                >
+                    <i class='bx bx-user-plus text-lg'></i>
+                    Registrar Clínico
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/utils.js' %}"></script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        const mobileToggle = document.getElementById('mobileToggle');
-        const navMenu = document.getElementById('navMenu');
-        
-        mobileToggle.addEventListener('click', function() {
-            navMenu.classList.toggle('active');
-        });
-        
         // Inicializar el formateo de RUT
         if (typeof initializeKenkomedUtils === 'function') {
             initializeKenkomedUtils();
         }
     });
-    </script>
-</body>
-</html>
+</script>
+{% endblock %}

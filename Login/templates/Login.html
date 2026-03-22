@@ -4,9 +4,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KenkoMed - Sistema de Kinesiología</title>
+    <title>KenkoMed | Iniciar Sesión</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
     <!-- JavaScript global del proyecto -->
     <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
     <script src="{% static 'js/utils.js' %}"></script>
@@ -21,13 +46,14 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: url('{% static 'image/kinesiology-hero.jpg' %}');
+            background-image: url('{% static "image/LoginKenKommed2.png" %}');
             background-size: cover;
             background-position: center;
-            filter: blur(4px);
+            filter: blur(8px);
             z-index: -2;
+            transform: scale(1.05); /* Evita bordes blancos por el blur */
         }
-        /* Updated overlay to use slate color matching KenkoMed brand */
+        
         .bg-blur::after {
             content: '';
             position: absolute;
@@ -35,153 +61,152 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.75));
+            background: linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(3, 105, 161, 0.90));
             z-index: -1;
-        }
-        
-        /* Added gradient animation for modern look */
-        .gradient-border {
-            position: relative;
-            background: white;
-            border-radius: 0.75rem;
-        }
-        
-        .gradient-border::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            border-radius: 0.75rem;
-            padding: 2px;
-            background: linear-gradient(135deg, #2563eb, #14b8a6, #10b981);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: exclude;
-            opacity: 0.5;
         }
     </style>
 </head>
-<!-- Updated body background to match KenkoMed slate theme -->
-<body class="flex items-center justify-center min-h-screen bg-blur">
-    <div class="w-full max-w-md mx-4">
+<body class="flex items-center justify-center min-h-screen bg-blur font-sans">
+    
+    <div class="w-full max-w-[420px] mx-4 relative z-10">
         
-        <!-- Updated card styling with gradient border and backdrop blur -->
-        <div class="gradient-border p-8 shadow-2xl bg-white/95 backdrop-blur-md">
-            <!-- Logo y título -->
-            <div class="mb-8 text-center">
-                <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="KineLogin" class="h-16 mx-auto mb-4 drop-shadow-lg">
-                <!-- Updated text colors to match brand -->
-                <h1 class="text-2xl font-bold text-slate-800 mb-2">Acceso Profesional</h1>
-                <p class="text-sm text-slate-600">Sistema exclusivo para kinesiólogos</p>
-                <p class="text-xs text-slate-500 mt-1">Ingresa tus credenciales para acceder</p>
-            </div>
+        <!-- Contenedor Principal -->
+        <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
+            <!-- Barra superior decorativa -->
+            <div class="h-2 w-full bg-gradient-to-r from-medical-blue-light via-medical-blue to-medical-blue-dark"></div>
             
-            <form class="space-y-6" id="loginForm" method="post" action="{% url 'login' %}">
-                {% csrf_token %}
-
-                {% if messages %}
-                    <div class="mb-4">
-                        {% for message in messages %}
-                            <!-- Updated error styling with emerald accent -->
-                            <div class="p-3 rounded-lg bg-red-50 border border-red-200">
-                                <p class="font-semibold text-red-600 text-sm">{{ message }}</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+            <div class="p-8 sm:p-10">
+                <!-- Logo y título -->
+                <div class="mb-10 text-center">
+                    <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="KenkoMed Logo" class="h-20 mx-auto mb-5 rounded-2xl shadow-sm border border-gray-100 object-cover bg-white">
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Acceso Clínico</h1>
+                    <p class="text-sm text-gray-500 mt-2 font-medium">Ingrese sus credenciales para continuar</p>
+                </div>
                 
-                <div class="space-y-4">
-                    <!-- Updated RUT input with new color scheme -->
-                    <div class="relative">
-                        <label for="rut" class="block text-sm font-medium text-slate-700 mb-2">RUT</label>
-                        <div class="flex items-center space-x-3 p-3 border-2 border-slate-200 rounded-lg bg-slate-50 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
-                            <span class="text-teal-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
-                            </span>
-                            <input 
-                                type="text" 
-                                class="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 text-slate-800 placeholder-slate-400" 
-                                maxlength="12" 
-                                name="rut" 
-                                id="rut" 
-                                placeholder="Ejemplo: 21.222.899-3" 
-                                pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" 
-                                title="Formato: 12.345.678-9 o 12.345.678-K" 
-                                required
-                            />
+                <form class="space-y-6" id="loginForm" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    {% if messages %}
+                        <div class="mb-6 space-y-2">
+                            {% for message in messages %}
+                                <div class="px-4 py-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-3">
+                                    <i class='bx bx-error-circle text-red-500 text-lg mt-0.5'></i>
+                                    <p class="font-medium text-red-700 text-sm">{{ message }}</p>
+                                </div>
+                            {% endfor %}
                         </div>
-                    </div>
+                    {% endif %}
                     
-                    <!-- Updated password input with new color scheme -->
-                    <div class="relative">
-                        <label for="password" class="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
-                        <div class="flex items-center space-x-3 p-3 border-2 border-slate-200 rounded-lg bg-slate-50 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 transition-all">
-                            <span class="text-teal-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                </svg>
-                            </span>
-                            <div class="relative flex-1">
+                    <div class="space-y-5">
+                        <!-- RUT -->
+                        <div>
+                            <label for="rut" class="block text-sm font-semibold text-gray-700 mb-2">RUT</label>
+                            <div class="relative flex items-center">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                                    <i class='bx bx-id-card text-xl'></i>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-all text-sm font-medium rut-input" 
+                                    maxlength="12" 
+                                    name="rut" 
+                                    id="rut" 
+                                    placeholder="12.345.678-9" 
+                                    pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" 
+                                    title="Formato: 12.345.678-9 o 12.345.678-K" 
+                                    required
+                                />
+                            </div>
+                        </div>
+                        
+                        <!-- Contraseña -->
+                        <div>
+                            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
+                            <div class="relative flex items-center">
+                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
+                                    <i class='bx bx-lock-alt text-xl'></i>
+                                </div>
                                 <input 
                                     type="password" 
                                     id="password" 
                                     name="password" 
-                                    class="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-slate-800 placeholder-slate-400 pr-10" 
+                                    class="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-all text-sm font-medium tracking-wider" 
                                     placeholder="••••••••" 
                                     required
                                 >
                                 <button 
                                     type="button" 
                                     id="togglePassword" 
-                                    class="absolute inset-y-0 right-0 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none transition-colors" 
+                                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-medical-blue focus:outline-none transition-colors" 
                                     title="Mostrar/ocultar contraseña"
                                 >
-                                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    <i id="eyeIcon" class='bx bx-show text-xl'></i>
                                 </button>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Updated checkbox styling with teal accent -->
-                <div class="flex items-center justify-between mt-6">
-                    <div class="flex items-center">
-                        <input 
-                            type="checkbox" 
-                            id="remember" 
-                            name="recordar" 
-                            class="w-4 h-4 text-teal-600 border-slate-300 rounded focus:ring-teal-500 focus:ring-2"
-                        >
-                        <label for="remember" class="ml-2 text-sm text-slate-600">Recordarme</label>
+                    
+                    <div class="flex items-center justify-between pt-2">
+                        <div class="flex items-center gap-2">
+                            <input 
+                                type="checkbox" 
+                                id="remember" 
+                                name="recordar" 
+                                class="w-4 h-4 text-medical-blue border-gray-300 rounded focus:ring-medical-blue/50 focus:ring-2 cursor-pointer"
+                            >
+                            <label for="remember" class="text-sm font-medium text-gray-600 cursor-pointer select-none">Recordarme</label>
+                        </div>
+                        <a href="#" class="text-sm font-semibold text-medical-blue hover:text-medical-blue-dark transition-colors">¿Olvidó su contraseña?</a>
                     </div>
-                </div>
-                
-                <!-- Updated button with gradient matching KenkoMed brand -->
-                <button 
-                    type="submit" 
-                    class="flex items-center justify-center w-full px-6 py-3.5 mt-6 space-x-2 font-semibold text-white transition-all rounded-lg shadow-lg bg-gradient-to-r from-blue-600 via-teal-500 to-emerald-500 hover:shadow-xl hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:scale-[0.98]"
-                >
-                    <span>Iniciar Sesión</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
-                
-                <!-- Updated footer text color -->
-                <p class="mt-8 text-xs text-center text-slate-500">
-                    Sistema exclusivo para profesionales de kinesiología
+                    
+                    <button 
+                        type="submit" 
+                        class="w-full px-6 py-4 mt-8 font-bold text-white transition-all rounded-xl shadow-lg shadow-medical-blue/30 bg-medical-blue hover:bg-medical-blue-dark hover:shadow-xl hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-medical-blue/30 active:translate-y-0 flex items-center justify-center gap-2"
+                    >
+                        <span>Ingresar al Sistema</span>
+                        <i class='bx bx-right-arrow-alt text-xl'></i>
+                    </button>
+                    
+                </form>
+            </div>
+            
+            <!-- Footer del form -->
+            <div class="px-8 py-5 bg-gray-50/80 border-t border-gray-100 text-center">
+                <p class="text-xs font-medium text-gray-500">
+                    Sistema Clínico de KenkoMed &copy; {% now "Y" %}
                 </p>
-            </form>
+            </div>
         </div>
         
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar formateo de RUT
+            if (typeof initializeKenkomedUtils === 'function') {
+                initializeKenkomedUtils();
+            }
+
+            // Mostrar/Ocultar contraseña
+            const togglePassword = document.getElementById('togglePassword');
+            const password = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (togglePassword && password && eyeIcon) {
+                togglePassword.addEventListener('click', function () {
+                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                    password.setAttribute('type', type);
+                    
+                    if (type === 'password') {
+                        eyeIcon.classList.remove('bx-hide');
+                        eyeIcon.classList.add('bx-show');
+                    } else {
+                        eyeIcon.classList.remove('bx-show');
+                        eyeIcon.classList.add('bx-hide');
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

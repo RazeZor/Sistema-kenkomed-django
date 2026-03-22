@@ -1,39 +1,18 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recetas Médicas | KenkoMed</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- JavaScript utilities -->
-    <script src="{% static 'js/utils.js' %}"></script>
-        <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
-    
+
+{% block title %}Recetas Médicas | KenkoMed{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
     <style>
-        :root {
-            --color-primary: #115b9c;
-            --color-primary-light: #1a7bc4;
-            --color-primary-50: rgba(17, 91, 156, 0.46);
-        }
-        
-        .gradient-header {
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
-        }
-        
         .hover-lift {
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         
         .hover-lift:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
         }
         
         .fade-in {
@@ -45,411 +24,311 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
-</head>
+{% endblock %}
 
-<body class="bg-gray-50">
-    <!-- Sidebar -->
-    
-    <!-- Contenido principal -->
-    <main class="main-content">
-        <!-- Header con Navbar -->
-        <header class="bg-white border-b border-gray-100 sticky top-0 z-10 backdrop-blur-sm bg-white/95">
-            <div class="max-w-7xl mx-auto px-6">
-                <div class="flex items-center justify-between py-4">
-                    <!-- Logo y Título -->
-                    <div class="flex items-center gap-3">
-                        <button class="menu-toggle lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors" id="menuToggle">
-                            <i class="fas fa-bars text-gray-600"></i>
-                        </button>
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center" style="background-color: var(--color-primary-50);">
-                                <i class="fas fa-prescription text-lg" style="color: var(--color-primary);"></i>
-                            </div>
-                            <h1 class="text-xl font-semibold text-gray-900">Recetas Médicas</h1>
-                        </div>
-                    </div>
+{% block header_title %}Gestión de Recetas Médicas{% endblock %}
 
-                    <!-- Navbar Desktop -->
-                    <nav class="hidden md:flex items-center gap-1">
-                        <a href="{% url 'panel' %}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-                            <i class="fas fa-home mr-2"></i>Inicio
-                        </a>
-                        <a href="{% url 'pacientes' %}" class="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors">
-                            <i class="fas fa-users mr-2"></i>Pacientes
-                        </a>
-                        <!-- Divider -->
-                        <div class="w-px h-6 bg-gray-200 mx-2"></div>
-                    </nav>
+{% block header_actions %}
+    <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
+        <i class='bx bx-arrow-back'></i> Volver
+    </button>
+    {{ block.super }}
+{% endblock %}
 
-                    <!-- Mobile Menu Button -->
-                    <button class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors" id="mobileMenuBtn">
-                        <i class="fas fa-ellipsis-v text-gray-600"></i>
-                    </button>
-                </div>
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
 
-                <!-- Mobile Navbar -->
-                <nav class="md:hidden border-t border-gray-100 py-2 hidden" id="mobileMenu">
-                    <a href="{% url 'panel' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-home w-5"></i>Inicio
-                    </a>
-                    <a href="" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-users w-5"></i>Pacientes
-                    </a>
-                    <a href="{% url 'receta' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white transition-colors" style="background-color: var(--color-primary);">
-                        <i class="fas fa-prescription w-5"></i>Recetas
-                    </a>
-                    <a href="" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-calendar-alt w-5"></i>Citas
-                    </a>
-                    <hr class="my-2 border-gray-100">
-                    <a href="" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-user-circle w-5"></i>Mi Perfil
-                    </a>
-                    <a href="" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-cog w-5"></i>Configuración
-                    </a>
-                    <a href="" class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors">
-                        <i class="fas fa-sign-out-alt w-5"></i>Cerrar Sesión
-                    </a>
-                </nav>
+    <!-- Búsqueda de Paciente -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 fade-in hover-lift">
+        <div class="flex items-center gap-2 mb-4">
+            <i class='bx bx-search text-medical-blue text-lg'></i>
+            <h2 class="text-base font-semibold text-gray-900">Buscar Paciente</h2>
+        </div>
+        
+        <form method="post" action="{% url 'receta' %}" class="flex gap-3">
+            {% csrf_token %}
+            <div class="flex-1">
+                <input 
+                    type="text" 
+                    id="rutsito" 
+                    name="rutsito" 
+                    placeholder="12.345.678-9"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-colors rut-input"
+                    value="{{ paciente.rut|default:'' }}"
+                    maxlength="12"
+                    pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}"
+                    required
+                >
             </div>
-        </header>
+            <button 
+                type="submit"
+                class="px-6 py-3 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark transition-colors font-medium flex items-center gap-2 shadow-sm"
+            >
+                <i class='bx bx-search'></i> Buscar
+            </button>
+        </form>
 
-        <div class="max-w-6xl mx-auto px-6 py-8">
-            <!-- Búsqueda de Paciente - Diseño Minimalista -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 fade-in hover-lift">
-                <div class="flex items-center gap-2 mb-4">
-                    <i class="fas fa-search text-sm" style="color: var(--color-primary);"></i>
-                    <h2 class="text-base font-semibold text-gray-900">Buscar Paciente</h2>
-                </div>
-                
-                <form method="post" action="{% url 'receta' %}" class="flex gap-3">
-                    {% csrf_token %}
-                    <div class="flex-1">
-                        <input 
-                            type="text" 
-                            id="rutsito" 
-                            name="rutsito" 
-                            placeholder="12.345.678-9"
-                            class="rut-input"
-                            style="focus:ring-color: var(--color-primary-50); focus:border-color: var(--color-primary);"
-                            value="{{ paciente.rut|default:'' }}"
-                            maxlength="12"
-                            pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}"
-                            required
-                        >
-                    </div>
-                    <button 
-                        type="submit"
-                        class="px-6 py-3 text-white rounded-xl transition-all hover:shadow-lg flex items-center gap-2 font-medium"
-                        style="background-color: var(--color-primary);"
-                        onmouseover="this.style.backgroundColor='var(--color-primary-light)'"
-                        onmouseout="this.style.backgroundColor='var(--color-primary)'"
-                    >
-                        <i class="fas fa-search text-sm"></i>
-                        Buscar
-                    </button>
-                </form>
+        {% if error %}
+        <div class="mt-4 bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-lg flex items-center gap-3 fade-in">
+            <i class='bx bx-error-circle text-lg'></i>
+            <span class="text-sm font-medium">{{ error }}</span>
+        </div>
+        {% endif %}
 
-                {% if error %}
-                <div class="mt-4 bg-red-50 border border-red-100 text-red-700 px-4 py-3 rounded-xl flex items-center gap-3 fade-in">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span class="text-sm">{{ error }}</span>
-                </div>
-                {% endif %}
+        {% if mensaje %}
+        <div class="mt-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-lg flex items-center gap-3 fade-in">
+            <i class='bx bx-check-circle text-lg'></i>
+            <span class="text-sm font-medium">{{ mensaje }}</span>
+        </div>
+        {% endif %}
+    </div>
 
-                {% if mensaje %}
-                <div class="mt-4 bg-green-50 border border-green-100 text-green-700 px-4 py-3 rounded-xl flex items-center gap-3 fade-in">
-                    <i class="fas fa-check-circle"></i>
-                    <span class="text-sm">{{ mensaje }}</span>
-                </div>
-                {% endif %}
+    {% if paciente %}
+    <!-- Información del Paciente -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 fade-in hover-lift">
+        <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-2">
+                <i class='bx bx-user text-medical-blue text-lg'></i>
+                <h2 class="text-base font-semibold text-gray-900">Información del Paciente</h2>
             </div>
+            <a href="{% url 'receta' %}" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600">
+                <i class='bx bx-x text-xl'></i>
+            </a>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Nombre completo</p>
+                <p class="font-medium text-gray-900">{{ paciente.nombre }} {{ paciente.apellido }}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">RUT</p>
+                <p class="font-medium text-gray-900">{{ paciente.rut }}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-[10px] font-bold text-gray-500 mb-1 uppercase tracking-wider">Fecha de nacimiento</p>
+                <p class="font-medium text-gray-900">{{ paciente.fechaNacimiento|default:"-" }}</p>
+            </div>
+        </div>
+    </div>
 
-            {% if paciente %}
-            <!-- Información del Paciente - Minimalista -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 fade-in hover-lift">
-                <div class="flex items-center justify-between mb-5">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-user text-sm" style="color: var(--color-primary);"></i>
-                        <h2 class="text-base font-semibold text-gray-900">Información del Paciente</h2>
-                    </div>
-                    <a href="{% url 'receta' %}" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-times text-gray-400 text-sm"></i>
-                    </a>
+    <!-- Botón Nueva Receta -->
+    {% if not mostrar_formulario and not receta %}
+    <div class="flex justify-end fade-in">
+        <a href="?rut={{ paciente.rut }}&accion=nueva" 
+            class="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg transition-colors hover:bg-indigo-700 shadow-sm font-medium">
+            <i class='bx bx-plus hover:rotate-90 transition-transform'></i>
+            Nueva Receta
+        </a>
+    </div>
+
+    <!-- Sin Receta -->
+    <div class="bg-white rounded-xl shadow-sm border border-dashed border-gray-300 p-16 text-center fade-in mt-6">
+        <div class="w-20 h-20 rounded-full mx-auto mb-4 flex items-center justify-center bg-gray-50 border border-gray-100">
+            <i class='bx bx-file-blank text-4xl text-gray-400'></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Sin receta médica</h3>
+        <p class="text-sm text-gray-500 max-w-md mx-auto">Este paciente no tiene una receta médica activa. Cree una nueva para comenzar su tratamiento.</p>
+    </div>
+    {% endif %}
+
+    {% if mostrar_formulario %}
+    <!-- Formulario Receta Médica -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 fade-in">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <div class="bg-medical-blue/10 p-2 rounded-lg text-medical-blue">
+                    <i class='bx bx-edit text-xl'></i>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="p-4 rounded-xl bg-gray-50">
-                        <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Nombre completo</p>
-                        <p class="font-medium text-gray-900">{{ paciente.nombre }} {{ paciente.apellido }}</p>
-                    </div>
-                    <div class="p-4 rounded-xl bg-gray-50">
-                        <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">RUT</p>
-                        <p class="font-medium text-gray-900">{{ paciente.rut }}</p>
-                    </div>
-                    <div class="p-4 rounded-xl bg-gray-50">
-                        <p class="text-xs text-gray-500 mb-1 uppercase tracking-wide">Fecha de nacimiento</p>
-                        <p class="font-medium text-gray-900">{{ paciente.fechaNacimiento }}</p>
-                    </div>
-                </div>
+                <h2 class="text-lg font-bold text-gray-900">
+                    {% if receta %}Editar Receta{% else %}Nueva Receta{% endif %}
+                </h2>
+            </div>
+            <a href="?rut={{ paciente.rut }}" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <i class='bx bx-x text-2xl'></i>
+            </a>
+        </div>
+
+        <form method="post" action="{% url 'receta' %}" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="rutsito" value="{{ paciente.rut }}">
+            <input type="hidden" name="accion" value="{% if receta %}editar{% else %}crear{% endif %}">
+
+            <!-- Medicamentos -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class='bx bx-capsule text-medical-blue'></i> Medicamentos
+                </label>
+                <textarea 
+                    name="medicamentos"
+                    rows="6"
+                    placeholder="Ej: Paracetamol 500mg - 1 comp. c/8hrs&#10;Ibuprofeno 400mg - 1 comp. c/12hrs si dolor&#10;Amoxicilina 500mg - 1 cáps. c/8hrs x 7 días"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-all resize-none bg-gray-50 focus:bg-white text-sm"
+                >{{ receta.medicamentos|default:'' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1.5"><i class='bx bx-info-circle'></i> Especifique dosis, frecuencia y duración del tratamiento</p>
             </div>
 
-            <!-- Botón Nueva Receta -->
-            {% if not mostrar_formulario and not receta %}
-            <div class="mb-6">
-                <a href="?rut={{ paciente.rut }}&accion=nueva" 
-                   class="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-xl transition-all hover:bg-green-600 hover:shadow-lg font-medium">
-                    <i class="fas fa-plus text-sm"></i>
-                    Nueva Receta
+            <!-- Indicaciones -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class='bx bx-list-ul text-medical-blue'></i> Indicaciones Generales
+                </label>
+                <textarea 
+                    name="indicaciones"
+                    rows="5"
+                    placeholder="Ej: Tomar con abundantes líquidos&#10;Evitar actividad física intensa&#10;Reposo relativo por 3 días"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-all resize-none bg-gray-50 focus:bg-white text-sm"
+                >{{ receta.indicaciones|default:'' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1.5"><i class='bx bx-info-circle'></i> Instrucciones y recomendaciones para el paciente</p>
+            </div>
+
+            <!-- Notas -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                    <i class='bx bx-notepad text-medical-blue'></i> Notas Adicionales (Internas)
+                </label>
+                <textarea 
+                    name="notas"
+                    rows="3"
+                    placeholder="Comentarios adicionales o información relevante para el clínico..."
+                    class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue transition-all resize-none bg-gray-50 focus:bg-white text-sm"
+                >{{ receta.NotaRecetaMedica|default:'' }}</textarea>
+                <p class="text-xs text-gray-500 mt-1.5"><i class='bx bx-lock-alt'></i> Uso interno (opcional)</p>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 justify-end pt-5 border-t border-gray-100">
+                <a 
+                    href="?rut={{ paciente.rut }}"
+                    class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+                >
+                    Cancelar
                 </a>
+                <button 
+                    type="submit"
+                    class="px-6 py-2.5 bg-medical-blue text-white rounded-lg transition-colors hover:bg-medical-blue-dark flex items-center gap-2 font-medium text-sm shadow-sm"
+                >
+                    <i class='bx bx-save'></i> {% if receta %}Actualizar{% else %}Guardar{% endif %} Receta
+                </button>
             </div>
+        </form>
+    </div>
+    {% endif %}
 
-            <!-- Sin Receta - Minimalista -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center fade-in">
-                <div class="w-20 h-20 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background-color: var(--color-primary-50);">
-                    <i class="fas fa-prescription text-3xl" style="color: var(--color-primary);"></i>
+    {% if receta and not mostrar_formulario %}
+    <!-- Receta Existente -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden fade-in relative">
+        <!-- Decoration element -->
+        <div class="absolute top-0 right-0 w-32 h-32 bg-medical-blue opacity-5 rounded-bl-full pointer-events-none"></div>
+        
+        <!-- Header Minimalista -->
+        <div class="border-b border-gray-100 p-6">
+            <div class="flex justify-between items-start">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-blue-50 text-medical-blue rounded-xl flex items-center justify-center shadow-sm border border-blue-100">
+                        <i class='bx bx-clinic text-2xl'></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">
+                            Receta Médica Activa
+                        </h3>
+                        <p class="text-sm font-medium text-medical-blue">Paciente: {{ paciente.nombre }} {{ paciente.apellido }}</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-semibold text-gray-700 mb-2">Sin receta médica</h3>
-                <p class="text-sm text-gray-500 max-w-md mx-auto">Este paciente no tiene una receta médica activa. Cree una nueva para comenzar.</p>
+                <span class="px-3 py-1 bg-green-100 text-green-700 border border-green-200 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> Vigente
+                </span>
+            </div>
+            
+            <div class="flex flex-wrap gap-5 mt-5">
+                <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                    <i class='bx bx-calendar text-gray-400'></i>
+                    <span class="font-medium text-gray-900">{{ receta.fecha_creacion|date:"d/m/Y" }}</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-gray-600 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
+                    <i class='bx bx-user-pin text-gray-400'></i>
+                    <span>Dr/a. </span> <span class="font-medium text-gray-900">{{ receta.clinico.nombre }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido -->
+        <div class="p-6 space-y-6">
+            {% if receta.medicamentos %}
+            <div>
+                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                    <i class='bx bx-capsule text-medical-blue text-lg'></i> Medicación
+                </h4>
+                <div class="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <p class="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-medium">{{ receta.medicamentos }}</p>
+                </div>
             </div>
             {% endif %}
 
-            {% if mostrar_formulario %}
-            <!-- Formulario Receta Médica - Minimalista -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6 fade-in">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-prescription text-sm" style="color: var(--color-primary);"></i>
-                        <h2 class="text-lg font-semibold text-gray-900">
-                            {% if receta %}Editar Receta{% else %}Nueva Receta{% endif %}
-                        </h2>
-                    </div>
-                    <a href="?rut={{ paciente.rut }}" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
-                        <i class="fas fa-times text-gray-400 text-sm"></i>
-                    </a>
-                </div>
-
-                <form method="post" action="{% url 'receta' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="rutsito" value="{{ paciente.rut }}">
-                    <input type="hidden" name="accion" value="{% if receta %}editar{% else %}crear{% endif %}">
-
-                    <!-- Medicamentos -->
-                    <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-pills text-xs" style="color: var(--color-primary);"></i>
-                            Medicamentos
-                        </label>
-                        <textarea 
-                            name="medicamentos"
-                            rows="6"
-                            placeholder="Paracetamol 500mg - 1 comp. c/8hrs&#10;Ibuprofeno 400mg - 1 comp. c/12hrs si dolor&#10;Amoxicilina 500mg - 1 cáps. c/8hrs x 7 días"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 hover:bg-white text-sm"
-                            style="focus:ring-color: var(--color-primary-50); focus:border-color: var(--color-primary);"
-                        >{{ receta.medicamentos|default:'' }}</textarea>
-                        <p class="text-xs text-gray-400 mt-2">Dosis, frecuencia y duración del tratamiento</p>
-                    </div>
-
-                    <!-- Indicaciones -->
-                    <div class="mb-5">
-                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-clipboard-list text-xs" style="color: var(--color-primary);"></i>
-                            Indicaciones
-                        </label>
-                        <textarea 
-                            name="indicaciones"
-                            rows="5"
-                            placeholder="Tomar con alimentos&#10;Evitar actividad física intensa&#10;Reposo relativo por 3 días&#10;Control en 7 días"
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 hover:bg-white text-sm"
-                            style="focus:ring-color: var(--color-primary-50); focus:border-color: var(--color-primary);"
-                        >{{ receta.indicaciones|default:'' }}</textarea>
-                        <p class="text-xs text-gray-400 mt-2">Instrucciones y recomendaciones generales</p>
-                    </div>
-
-                    <!-- Notas -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                            <i class="fas fa-sticky-note text-xs" style="color: var(--color-primary);"></i>
-                            Notas Adicionales
-                        </label>
-                        <textarea 
-                            name="notas"
-                            rows="4"
-                            placeholder="Comentarios adicionales o información relevante..."
-                            class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 transition-all resize-none bg-gray-50 hover:bg-white text-sm"
-                            style="focus:ring-color: var(--color-primary-50); focus:border-color: var(--color-primary);"
-                        >{{ receta.NotaRecetaMedica|default:'' }}</textarea>
-                        <p class="text-xs text-gray-400 mt-2">Opcional</p>
-                    </div>
-
-                    <!-- Botones -->
-                    <div class="flex gap-3 justify-end pt-5 border-t border-gray-100">
-                        <a 
-                            href="?rut={{ paciente.rut }}"
-                            class="px-6 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
-                        >
-                            Cancelar
-                        </a>
-                        <button 
-                            type="submit"
-                            class="px-6 py-2.5 text-white rounded-xl transition-all hover:shadow-lg flex items-center gap-2 font-medium text-sm"
-                            style="background-color: var(--color-primary);"
-                            onmouseover="this.style.backgroundColor='var(--color-primary-light)'"
-                            onmouseout="this.style.backgroundColor='var(--color-primary)'"
-                        >
-                            <i class="fas fa-save text-xs"></i>
-                            {% if receta %}Actualizar{% else %}Guardar{% endif %}
-                        </button>
-                    </div>
-                </form>
-            </div>
-            {% endif %}
-
-            {% if receta and not mostrar_formulario %}
-            <!-- Botón Editar -->
-            <div class="mb-6">
-                <a href="?rut={{ paciente.rut }}&accion=editar" 
-                   class="inline-flex items-center gap-2 px-6 py-3 text-white rounded-xl transition-all hover:shadow-lg font-medium"
-                   style="background-color: var(--color-primary);"
-                   onmouseover="this.style.backgroundColor='var(--color-primary-light)'"
-                   onmouseout="this.style.backgroundColor='var(--color-primary)'">
-                    <i class="fas fa-edit text-sm"></i>
-                    Editar Receta
-                </a>
-            </div>
-
-            <!-- Receta Existente - Minimalista -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-                <!-- Header Minimalista -->
-                <div class="gradient-header p-6 text-white">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="text-lg font-semibold mb-3 flex items-center gap-2">
-                                <i class="fas fa-prescription"></i>
-                                Receta de {{ paciente.nombre }} {{ paciente.apellido }}
-                            </h3>
-                            <div class="flex flex-wrap gap-4 text-sm opacity-90">
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fas fa-calendar text-xs"></i>
-                                    {{ receta.fecha_creacion|date:"d/m/Y" }}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <i class="fas fa-user-md text-xs"></i>
-                                    Dr. {{ receta.clinico.nombre }}
-                                </span>
-                            </div>
-                        </div>
-                        <span class="px-3 py-1 bg-white/20 backdrop-blur-sm text-white text-xs font-medium rounded-lg">
-                            Activa
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Contenido -->
-                <div class="p-6 space-y-5">
-                    {% if receta.medicamentos %}
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <i class="fas fa-pills text-xs" style="color: var(--color-primary);"></i>
-                            Medicamentos
-                        </h4>
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <p class="text-sm text-gray-900 whitespace-pre-line leading-relaxed">{{ receta.medicamentos }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if receta.indicaciones %}
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <i class="fas fa-clipboard-list text-xs" style="color: var(--color-primary);"></i>
-                            Indicaciones
-                        </h4>
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <p class="text-sm text-gray-900 whitespace-pre-line leading-relaxed">{{ receta.indicaciones }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    {% if receta.NotaRecetaMedica %}
-                    <div>
-                        <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                            <i class="fas fa-sticky-note text-xs" style="color: var(--color-primary);"></i>
-                            Notas Adicionales
-                        </h4>
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <p class="text-sm text-gray-900 whitespace-pre-line leading-relaxed">{{ receta.NotaRecetaMedica }}</p>
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <!-- Acciones Minimalistas -->
-                <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex flex-wrap gap-3">
-                    <a href="?rut={{ paciente.rut }}&accion=editar" 
-                       class="inline-flex items-center gap-2 px-5 py-2.5 text-white rounded-xl transition-all hover:shadow-lg text-sm font-medium"
-                       style="background-color: var(--color-primary);"
-                       onmouseover="this.style.backgroundColor='var(--color-primary-light)'"
-                       onmouseout="this.style.backgroundColor='var(--color-primary)'">
-                        <i class="fas fa-edit text-xs"></i>
-                        Editar
-                    </a>
-                    <form method="post" action="{% url 'receta' %}" class="inline" onsubmit="return confirm('¿Está seguro de eliminar esta receta médica?');">
-                        {% csrf_token %}
-                        <input type="hidden" name="rutsito" value="{{ paciente.rut }}">
-                        <input type="hidden" name="accion" value="eliminar">
-                        <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all hover:shadow-lg text-sm font-medium">
-                            <i class="fas fa-trash text-xs"></i>
-                            Eliminar
-                        </button>
-                    </form>
+            {% if receta.indicaciones %}
+            <div>
+                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                    <i class='bx bx-list-check text-medical-blue text-lg'></i> Indicaciones
+                </h4>
+                <div class="bg-gray-50 p-5 rounded-xl border border-gray-100">
+                    <p class="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-medium">{{ receta.indicaciones }}</p>
                 </div>
             </div>
             {% endif %}
+
+            {% if receta.NotaRecetaMedica %}
+            <div>
+                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2 uppercase tracking-wide">
+                    <i class='bx bx-notepad text-medical-blue text-lg'></i> Notas Adicionales
+                </h4>
+                <div class="bg-yellow-50/50 p-5 rounded-xl border border-yellow-100">
+                    <p class="text-sm text-gray-800 whitespace-pre-line leading-relaxed font-medium">{{ receta.NotaRecetaMedica }}</p>
+                </div>
+            </div>
             {% endif %}
         </div>
-    </main>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Toggle sidebar
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.querySelector('.sidebar');
-            
-            if (menuToggle && sidebar) {
-                menuToggle.addEventListener('click', function() {
-                    sidebar.classList.add('active');
-                    document.body.style.overflow = 'hidden';
-                });
-            }
+        <!-- Acciones Minimalistas -->
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
+            <a href="?rut={{ paciente.rut }}&accion=editar" 
+                class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-medical-blue transition-colors font-medium text-sm shadow-sm">
+                <i class='bx bx-edit'></i> Editar
+            </a>
+            <form method="post" action="{% url 'receta' %}" class="inline" onsubmit="return confirm('¿Está seguro de eliminar esta receta médica? Esta acción no se puede deshacer.');">
+                {% csrf_token %}
+                <input type="hidden" name="rutsito" value="{{ paciente.rut }}">
+                <input type="hidden" name="accion" value="eliminar">
+                <button type="submit" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-50 text-red-600 border border-red-200 rounded-lg hover:bg-red-600 hover:text-white transition-colors font-medium text-sm shadow-sm">
+                    <i class='bx bx-trash'></i> Eliminar
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% endif %}
+</div>
+{% endblock %}
 
-            // Toggle mobile menu
-            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-            
-            if (mobileMenuBtn && mobileMenu) {
-                mobileMenuBtn.addEventListener('click', function() {
-                    mobileMenu.classList.toggle('hidden');
-                });
-            }
+{% block extra_js %}
+<script src="{% static 'js/utils.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar formateo de RUT
+        if (typeof initializeKenkomedUtils === 'function') {
+            initializeKenkomedUtils();
+        }
 
-            // Inicializar formateo de RUT
-            if (typeof initializeKenkomedUtils === 'function') {
-                initializeKenkomedUtils();
-            }
-
-            // Auto-ocultar mensajes
-            const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50');
-            alerts.forEach(alert => {
-                setTimeout(() => {
-                    alert.style.transition = 'opacity 0.5s, transform 0.5s';
-                    alert.style.opacity = '0';
-                    alert.style.transform = 'translateY(-10px)';
-                    setTimeout(() => alert.remove(), 500);
-                }, 5000);
-            });
+        // Auto-ocultar mensajes de éxito y error
+        const alerts = document.querySelectorAll('.bg-green-50, .bg-red-50');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.5s, transform 0.5s';
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-10px)';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000);
         });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

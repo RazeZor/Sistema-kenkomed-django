@@ -1,95 +1,14 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Estadísticas y Análisis - Sistema Clínico</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+
+{% block title %}Estadísticas y Análisis - Sistema Clínico{% endblock %}
+
+{% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            200: '#bae6fd',
-                            300: '#7dd3fc',
-                            400: '#38bdf8',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            800: '#075985',
-                            900: '#0c4a6e'
-                        },
-                        success: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d'
-                        },
-                        danger: {
-                            50: '#fef2f2',
-                            100: '#fee2e2',
-                            200: '#fecaca',
-                            300: '#fca5a5',
-                            400: '#f87171',
-                            500: '#ef4444',
-                            600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            900: '#7f1d1d'
-                        },
-                        warning: {
-                            50: '#fffbeb',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            300: '#fcd34d',
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f'
-                        },
-                        purple: {
-                            50: '#faf5ff',
-                            100: '#f3e8ff',
-                            200: '#e9d5ff',
-                            300: '#d8b4fe',
-                            400: '#c084fc',
-                            500: '#a855f7',
-                            600: '#9333ea',
-                            700: '#7e22ce',
-                            800: '#6b21a8',
-                            900: '#581c87'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+{% endblock %}
 
+{% block extra_css %}
         .chart-container {
             position: relative;
             height: 320px;
@@ -202,39 +121,28 @@
         .gradient-green { --gradient-from: #22c55e; --gradient-to: #16a34a; }
         .gradient-red { --gradient-from: #f87171; --gradient-to: #ef4444; }
         .gradient-purple { --gradient-from: #a855f7; --gradient-to: #9333ea; }
-    </style>
-</head>    
-<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
-    <div class="flex h-screen overflow-hidden">
-        {% include 'menu.html' %}
+{% endblock %}
 
-        <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Header -->
-            <header class="flex items-center justify-between h-16 px-6 bg-white/80 backdrop-blur-sm border-b border-slate-200">
-                <div class="flex items-center">
-                    <button class="mr-4 text-slate-500 lg:hidden hover:text-slate-700" id="menuToggle">
-                        <i class='text-2xl bx bx-menu'></i>
-                    </button>
-                    <div>
-                        <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                            <i class='text-2xl bx bx-bar-chart-alt-2 text-primary-600'></i>
-                            Panel de Estadísticas Clínicas
-                        </h1>
-                        <p class="text-sm text-slate-500 mt-0.5">Análisis integral de datos de pacientes</p>
-                    </div>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                    <button onclick="window.print()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all no-print flex items-center gap-2">
-                        <i class='bx bx-printer'></i>
-                        Exportar
-                    </button>
-                </div>
-            </header>
+{% block header_title %}
+    <div class="flex items-center gap-2">
+        <i class='text-2xl bx bx-bar-chart-alt-2 text-primary-600'></i>
+        <div class="flex flex-col">
+            <span>Panel de Estadísticas Clínicas</span>
+            <span class="text-sm text-slate-500 font-normal">Análisis integral de datos de pacientes</span>
+        </div>
+    </div>
+{% endblock %}
 
-            <!-- Main Content -->
-            <main class="flex-1 p-6 overflow-y-auto">
-                <div class="mx-auto space-y-8 max-w-7xl">
+{% block header_actions %}
+    <button onclick="window.print()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-all no-print flex items-center gap-2">
+        <i class='bx bx-printer'></i>
+        Exportar
+    </button>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
                     
                     <!-- KPIs Principales -->
                     <div>
@@ -473,12 +381,10 @@
                             </div>
                         </div>
                     </div>
+</div>
+{% endblock %}
 
-                </div>
-            </main>
-        </div>
-    </div>
-
+{% block extra_js %}
     <script>
         // Configuración global de Chart.js
         Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
@@ -1105,10 +1011,5 @@
             plugins: [ChartDataLabels]
         });
 
-        // Script para menú móvil
-        document.getElementById('menuToggle')?.addEventListener('click', function() {
-            document.querySelector('[data-menu]')?.classList.toggle('hidden');
-        });
     </script>
-</body>
-</html>
+{% endblock %}

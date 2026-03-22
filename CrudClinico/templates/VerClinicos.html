@@ -1,388 +1,335 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Clínicos - Sistema Clínico</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        medical: {
-                            blue: '#0284c7',
-                            'blue-light': '#38bdf8',
-                            'blue-dark': '#0369a1',
-                            green: '#10b981',
-                            red: '#ef4444',
-                            orange: '#f59e0b'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
-</head>
-<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
-    
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Navigation -->
-        {% include 'menu.html' %}
 
-        <!-- Contenido principal -->
-        <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Header -->
-            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100">
-                <div class="flex items-center">
-                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggle">
-                        <i class='text-2xl bx bx-menu'></i>
-                    </button>
-                    <div>
-                        <h1 class="text-lg font-medium text-gray-800">Clínicos</h1>
-                        <p class="text-sm text-gray-500">Administra los clínicos registrados en el sistema.</p>
+{% block title %}Clínicos | KenkoMed{% endblock %}
+
+{% block header_title %}Directorio de Clínicos{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'agregar' %}" class="px-4 py-2 text-sm font-medium text-white bg-medical-blue rounded-lg hover:bg-medical-blue-dark flex items-center gap-2 transition-colors shadow-sm">
+    <i class='bx bx-user-plus'></i> Agregar Clínico
+</a>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Barra de búsqueda -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div class="relative max-w-md">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <i class='bx bx-search text-gray-400 text-lg'></i>
+            </div>
+            <input 
+                type="text" 
+                id="searchInput" 
+                class="w-full bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue block pl-10 p-2.5 transition-colors" 
+                placeholder="Buscar clínico por nombre, RUT o profesión..."
+            >
+        </div>
+    </div>
+    
+    <!-- Lista de clínicos -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Encabezado de tabla en desktop -->
+        <div class="hidden md:grid md:grid-cols-5 bg-gray-50/80 px-6 py-3 border-b border-gray-100 text-xs font-semibold tracking-wider text-gray-500 uppercase">
+            <div>RUT</div>
+            <div>Nombre</div>
+            <div>Apellido</div>
+            <div>Profesión</div>
+            <div class="text-right">Acciones</div>
+        </div>
+        
+        <!-- Filas de clínicos -->
+        <div id="clinicosTableBody" class="divide-y divide-gray-100">
+            {% for clinico in clinicos %}
+            <div class="clinico-row hover:bg-gray-50/50 transition-colors">
+                <!-- Vista móvil -->
+                <div class="md:hidden p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-gray-500 uppercase">RUT</span>
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-medical-blue/10 text-medical-blue border border-medical-blue/20">{{ clinico.rut }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-gray-500 uppercase">Nombre</span>
+                        <span class="text-sm font-medium text-gray-900">{{ clinico.nombre }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-gray-500 uppercase">Apellido</span>
+                        <span class="text-sm font-medium text-gray-900">{{ clinico.apellido }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-medium text-gray-500 uppercase">Profesión</span>
+                        <span class="text-sm text-gray-600">{{ clinico.profesion }}</span>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2 border-t border-gray-100">
+                        <button 
+                            type="button" 
+                            class="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors border border-indigo-100"
+                            onclick='abrirModal("{{ clinico.rut }}", "{{ clinico.nombre }}", "{{ clinico.apellido }}", "{{ clinico.profesion }}")'>
+                            <i class='bx bx-edit text-lg'></i>
+                        </button>
+                        <button 
+                            type="button" 
+                            class="p-2 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors border border-red-100"
+                            onclick="abrirConfirmacionModal('{{ clinico.rut }}')">
+                            <i class='bx bx-trash text-lg'></i>
+                        </button>
                     </div>
                 </div>
                 
-                <div class="flex items-center space-x-4">
-                    <!-- Botón de notificaciones -->
-                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
-                        <i class='text-xl bx bx-bell'></i>
-                    </button>
-                </div>
-            </header>
-
-            <!-- Contenido principal con scroll -->
-            <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
-                <div class="mx-auto space-y-6 max-w-7xl">
-                    <!-- Barra de búsqueda y acciones -->
-                    <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-                        <!-- Barra de búsqueda -->
-                        <div class="w-full md:w-96">
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                    <i class='text-gray-400 bx bx-search'></i>
-                                </div>
-                                <input 
-                                    type="text" 
-                                    id="searchInput" 
-                                    class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-medical-blue focus:border-medical-blue block w-full pl-10 p-2.5" 
-                                    placeholder="Buscar clínico por nombre, RUT o profesión..."
-                                >
-                            </div>
-                        </div>
-                        
-                        <!-- Botón para agregar clínico -->
-                        <a href="{% url 'agregar' %}" class="inline-flex items-center px-4 py-2.5 bg-medical-blue text-white rounded-lg text-sm font-medium transition-all hover:bg-medical-blue-dark">
-                            <i class='mr-2 bx bx-user-plus'></i>
-                            <span>Agregar clínico</span>
-                        </a>
+                <!-- Vista desktop -->
+                <div class="hidden md:grid md:grid-cols-5 md:items-center px-6 py-4">
+                    <div>
+                        <span class="px-2.5 py-1 text-xs font-bold rounded-md bg-blue-50 text-blue-700 border border-blue-100 shadow-sm">
+                            {{ clinico.rut }}
+                        </span>
                     </div>
-                    
-                    <!-- Lista de clínicos -->
-                    <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
-                        <!-- Encabezado de tabla en desktop -->
-                        <div class="hidden px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-100 md:grid md:grid-cols-5 bg-gray-50">
-                            <div>RUT</div>
-                            <div>Nombre</div>
-                            <div>Apellido</div>
-                            <div>Profesión</div>
-                            <div class="text-right">Acciones</div>
-                        </div>
-                        
-                        <!-- Filas de clínicos -->
-                        <div id="clinicosTableBody" class="divide-y divide-gray-100">
-                            {% for clinico in clinicos %}
-                            <div class="transition-all duration-200 clinico-row hover:bg-gray-50">
-                                <!-- Vista móvil -->
-                                <div class="p-4 space-y-2 md:hidden">
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500">RUT:</span>
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-medical-blue/10 text-medical-blue">{{ clinico.rut }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500">Nombre:</span>
-                                        <span class="text-sm">{{ clinico.nombre }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500">Apellido:</span>
-                                        <span class="text-sm">{{ clinico.apellido }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500">Profesión:</span>
-                                        <span class="text-sm">{{ clinico.profesion }}</span>
-                                    </div>
-                                    <div class="flex justify-end gap-2 mt-3">
-                                        <button 
-                                            type="button" 
-                                            class="p-2 text-white transition-colors bg-medical-orange rounded-md hover:bg-medical-orange/90"
-                                            onclick='abrirModal("{{ clinico.rut }}", "{{ clinico.nombre }}", "{{ clinico.apellido }}", "{{ clinico.profesion }}")'>
-                                            <i class='bx bx-edit'></i>
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            class="p-2 text-white transition-colors bg-medical-red rounded-md hover:bg-medical-red/90"
-                                            onclick="abrirConfirmacionModal('{{ clinico.rut }}')">
-                                            <i class='bx bx-trash'></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- Vista desktop -->
-                                <div class="hidden px-6 py-4 md:grid md:grid-cols-5 md:items-center">
-                                    <div>
-                                        <span class="px-2 py-1 text-xs font-medium rounded-full bg-medical-blue/10 text-medical-blue">
-                                            {{ clinico.rut }}
-                                        </span>
-                                    </div>
-                                    <div class="text-sm">{{ clinico.nombre }}</div>
-                                    <div class="text-sm">{{ clinico.apellido }}</div>
-                                    <div class="text-sm">{{ clinico.profesion }}</div>
-                                    <div class="flex justify-end gap-2">
-                                        <button 
-                                            type="button" 
-                                            class="p-2 text-white transition-colors bg-medical-orange rounded-md hover:bg-medical-orange/90"
-                                            onclick='abrirModal("{{ clinico.rut }}", "{{ clinico.nombre }}", "{{ clinico.apellido }}", "{{ clinico.profesion }}")'>
-                                            <i class='bx bx-edit'></i>
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            class="p-2 text-white transition-colors bg-medical-red rounded-md hover:bg-medical-red/90"
-                                            onclick="abrirConfirmacionModal('{{ clinico.rut }}')">
-                                            <i class='bx bx-trash'></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            {% empty %}
-                            <div class="py-8 text-center text-gray-400">
-                                <div class="flex justify-center mb-3">
-                                    <i class='text-3xl bx bx-folder-open'></i>
-                                </div>
-                                <p>No hay clínicos registrados.</p>
-                            </div>
-                            {% endfor %}
-                        </div>
+                    <div class="text-sm font-medium text-gray-900">{{ clinico.nombre }}</div>
+                    <div class="text-sm font-medium text-gray-900">{{ clinico.apellido }}</div>
+                    <div class="text-sm text-gray-600">{{ clinico.profesion }}</div>
+                    <div class="flex justify-end gap-2">
+                        <button 
+                            type="button" 
+                            class="inline-flex items-center justify-center w-8 h-8 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-colors border border-indigo-100 shadow-sm"
+                            onclick='abrirModal("{{ clinico.rut }}", "{{ clinico.nombre }}", "{{ clinico.apellido }}", "{{ clinico.profesion }}")'
+                            title="Editar">
+                            <i class='bx bx-edit text-lg'></i>
+                        </button>
+                        <button 
+                            type="button" 
+                            class="inline-flex items-center justify-center w-8 h-8 text-red-600 bg-red-50 hover:bg-red-100 hover:text-red-700 rounded-lg transition-colors border border-red-100 shadow-sm"
+                            onclick="abrirConfirmacionModal('{{ clinico.rut }}')"
+                            title="Eliminar">
+                            <i class='bx bx-trash text-lg'></i>
+                        </button>
                     </div>
                 </div>
-            </main>
+            </div>
+            {% empty %}
+            <div class="py-12 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 border border-gray-100">
+                    <i class='bx bx-user-x text-3xl text-gray-400'></i>
+                </div>
+                <h3 class="text-sm font-medium text-gray-900">No hay clínicos registrados</h3>
+                <p class="mt-1 text-sm text-gray-500">Comience agregando un nuevo profesional clínico.</p>
+                <div class="mt-6">
+                    <a href="{% url 'agregar' %}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-medical-blue hover:bg-medical-blue-dark">
+                        <i class='bx bx-plus mr-2'></i> Nuevo Clínico
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
+</div>
 
-    <!-- Overlay para sidebar móvil -->
-    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlay"></div>
+<!-- Modal de Confirmación -->
+<div id="confirmacionModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" id="confirmacionOverlay"></div>
+    <div class="relative w-full max-w-md p-6 mx-4 bg-white rounded-2xl shadow-xl transform scale-95 transition-transform duration-300" id="confirmacionModalContent">
+        <div class="mb-5 flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0">
+                    <i class='bx bx-error-circle text-2xl'></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Confirmar Eliminación</h3>
+            </div>
+            <button type="button" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 transition-colors" id="closeConfirmacionModal">
+                <i class='bx bx-x text-2xl'></i>
+            </button>
+        </div>
+        <div class="mb-6 pl-13">
+            <p class="text-sm text-gray-600">¿Estás seguro de eliminar a este clínico? Esta acción eliminará permanentemente su registro y no se puede deshacer.</p>
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+            <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" id="cancelarEliminar">
+                Cancelar
+            </button>
+            <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm flex items-center gap-2" id="confirmarEliminar">
+                <i class='bx bx-trash'></i> Eliminar Clínico
+            </button>
+        </div>
+    </div>
+</div>
 
-    <!-- Modal de Confirmación -->
-    <div id="confirmacionModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="fixed inset-0 bg-black/50" id="confirmacionOverlay"></div>
-        <div class="relative w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-lg">
-            <div class="mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Confirmar Eliminación</h3>
-                <button type="button" class="absolute text-gray-400 top-4 right-4 hover:text-gray-500" id="closeConfirmacionModal">
-                    <i class='text-xl bx bx-x'></i>
-                </button>
+<!-- Modal de Edición -->
+<div id="editarClinicoModal" class="fixed inset-0 z-[100] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+    <div class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm" id="editarOverlay"></div>
+    <div class="relative w-full max-w-md p-6 mx-4 bg-white rounded-2xl shadow-xl transform scale-95 transition-transform duration-300" id="editarModalContent">
+        <div class="mb-5 flex items-start justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                    <i class='bx bx-edit text-xl'></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Editar Clínico</h3>
             </div>
-            <div class="mb-6">
-                <p class="text-sm text-gray-600">¿Estás seguro de eliminar a este clínico? Esta acción no se puede deshacer.</p>
+            <button type="button" class="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-1.5 transition-colors" id="closeEditarModal">
+                <i class='bx bx-x text-2xl'></i>
+            </button>
+        </div>
+        <form id="editarClinicoForm" method="POST" action="{% url 'editar' %}" class="space-y-4">
+            {% csrf_token %}
+            <input type="hidden" name="rut" id="rutInput" />
+            
+            <div>
+                <label for="nombreInput" class="block mb-1.5 text-sm font-medium text-gray-700">Nombre</label>
+                <input 
+                    type="text" 
+                    class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-colors" 
+                    name="nombre" 
+                    id="nombreInput" 
+                    required 
+                />
             </div>
-            <div class="flex justify-end gap-3">
-                <button type="button" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200" id="cancelarEliminar">
+            
+            <div>
+                <label for="apellidoInput" class="block mb-1.5 text-sm font-medium text-gray-700">Apellido</label>
+                <input 
+                    type="text" 
+                    class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-colors" 
+                    name="apellido" 
+                    id="apellidoInput" 
+                    required 
+                />
+            </div>
+            
+            <div>
+                <label for="profesionInput" class="block mb-1.5 text-sm font-medium text-gray-700">Profesión</label>
+                <input 
+                    type="text" 
+                    class="w-full px-4 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-colors" 
+                    name="profesion" 
+                    id="profesionInput" 
+                    required 
+                />
+            </div>
+            
+            <div class="flex justify-end pt-5 border-t border-gray-100 mt-6 gap-3">
+                <button type="button" class="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors" onclick="cerrarEditarModal()">
                     Cancelar
                 </button>
-                <button type="button" class="px-4 py-2 text-sm font-medium text-white bg-medical-red rounded-md hover:bg-medical-red/90" id="confirmarEliminar">
-                    Eliminar
+                <button 
+                    type="submit" 
+                    class="px-5 py-2.5 text-sm font-medium text-white bg-medical-blue rounded-lg hover:bg-medical-blue-dark transition-colors shadow-sm flex items-center gap-2"
+                >
+                    <i class='bx bx-save'></i> Guardar Cambios
                 </button>
             </div>
-        </div>
+        </form>
     </div>
+</div>
+{% endblock %}
 
-    <!-- Modal de Edición -->
-    <div id="editarClinicoModal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
-        <div class="fixed inset-0 bg-black/50" id="editarOverlay"></div>
-        <div class="relative w-full max-w-md p-6 mx-4 bg-white rounded-lg shadow-lg">
-            <div class="mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Editar Clínico</h3>
-                <button type="button" class="absolute text-gray-400 top-4 right-4 hover:text-gray-500" id="closeEditarModal">
-                    <i class='text-xl bx bx-x'></i>
-                </button>
-            </div>
-            <form id="editarClinicoForm" method="POST" action="{% url 'editar' %}" class="space-y-4">
-                {% csrf_token %}
-                <input type="hidden" name="rut" id="rutInput" />
-                <div>
-                    <label for="nombreInput" class="block mb-2 text-sm font-medium text-gray-700">Nombre</label>
-                    <input 
-                        type="text" 
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-medical-blue focus:border-medical-blue" 
-                        name="nombre" 
-                        id="nombreInput" 
-                        required 
-                    />
-                </div>
-                <div>
-                    <label for="apellidoInput" class="block mb-2 text-sm font-medium text-gray-700">Apellido</label>
-                    <input 
-                        type="text" 
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-medical-blue focus:border-medical-blue" 
-                        name="apellido" 
-                        id="apellidoInput" 
-                        required 
-                    />
-                </div>
-                <div>
-                    <label for="profesionInput" class="block mb-2 text-sm font-medium text-gray-700">Profesión</label>
-                    <input 
-                        type="text" 
-                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-medical-blue focus:border-medical-blue" 
-                        name="profesion" 
-                        id="profesionInput" 
-                        required 
-                    />
-                </div>
-                <div class="flex justify-end pt-2">
-                    <button 
-                        type="submit" 
-                        class="px-4 py-2 text-sm font-medium text-white bg-medical-blue rounded-md hover:bg-medical-blue-dark"
-                    >
-                        Guardar Cambios
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        // Toggle sidebar en móvil
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const sidebarClose = document.getElementById('sidebarClose');
-
-        if (menuToggle && sidebar && sidebarOverlay && sidebarClose) {
-            menuToggle.addEventListener('click', () => {
-                sidebar.classList.add('translate-x-0');
-                sidebar.classList.remove('-translate-x-full');
-                sidebarOverlay.classList.remove('hidden');
-                document.body.classList.add('overflow-hidden');
+{% block extra_js %}
+<script>
+    // Función de búsqueda de clínicos
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.clinico-row');
+    
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const shouldShow = text.includes(searchTerm);
+                row.style.display = shouldShow ? '' : 'none';
             });
+        });
+    }
 
-            sidebarClose.addEventListener('click', () => {
-                sidebar.classList.remove('translate-x-0');
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            });
+    // Modal de confirmación
+    let rutEliminar;
+    const confirmacionModal = document.getElementById('confirmacionModal');
+    const confirmacionModalContent = document.getElementById('confirmacionModalContent');
+    const confirmacionOverlay = document.getElementById('confirmacionOverlay');
+    const closeConfirmacionModal = document.getElementById('closeConfirmacionModal');
+    const cancelarEliminar = document.getElementById('cancelarEliminar');
+    const confirmarEliminar = document.getElementById('confirmarEliminar');
 
-            sidebarOverlay.addEventListener('click', () => {
-                sidebar.classList.remove('translate-x-0');
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-                document.body.classList.remove('overflow-hidden');
-            });
-        }
+    function abrirConfirmacionModal(rut) {
+        rutEliminar = rut;
+        confirmacionModal.classList.remove('hidden');
+        // trigger reflow
+        void confirmacionModal.offsetWidth;
+        confirmacionModal.classList.remove('opacity-0');
+        confirmacionModalContent.classList.remove('scale-95');
+        document.body.classList.add('overflow-hidden');
+    }
 
-        // Función de búsqueda de clínicos
-        const searchInput = document.getElementById('searchInput');
-        if (searchInput) {
-            searchInput.addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const rows = document.querySelectorAll('.clinico-row');
-        
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    const shouldShow = text.includes(searchTerm);
-                    row.style.display = shouldShow ? '' : 'none';
-                });
-            });
-        }
-
-        // Modal de confirmación
-        let rutEliminar;
-        const confirmacionModal = document.getElementById('confirmacionModal');
-        const confirmacionOverlay = document.getElementById('confirmacionOverlay');
-        const closeConfirmacionModal = document.getElementById('closeConfirmacionModal');
-        const cancelarEliminar = document.getElementById('cancelarEliminar');
-        const confirmarEliminar = document.getElementById('confirmarEliminar');
-
-        function abrirConfirmacionModal(rut) {
-            rutEliminar = rut;
-            confirmacionModal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
-
-        function cerrarConfirmacionModal() {
+    function cerrarConfirmacionModal() {
+        confirmacionModal.classList.add('opacity-0');
+        confirmacionModalContent.classList.add('scale-95');
+        setTimeout(() => {
             confirmacionModal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
-        }
+        }, 300);
+    }
 
-        if (confirmacionOverlay) confirmacionOverlay.addEventListener('click', cerrarConfirmacionModal);
-        if (closeConfirmacionModal) closeConfirmacionModal.addEventListener('click', cerrarConfirmacionModal);
-        if (cancelarEliminar) cancelarEliminar.addEventListener('click', cerrarConfirmacionModal);
+    if (confirmacionOverlay) confirmacionOverlay.addEventListener('click', cerrarConfirmacionModal);
+    if (closeConfirmacionModal) closeConfirmacionModal.addEventListener('click', cerrarConfirmacionModal);
+    if (cancelarEliminar) cancelarEliminar.addEventListener('click', cerrarConfirmacionModal);
 
-        if (confirmarEliminar) {
-            confirmarEliminar.addEventListener('click', function() {
-                // Crear un formulario dinámicamente para enviar la solicitud de eliminación
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = "{% url 'ver' %}";
-                
-                // Agregar el token CSRF
-                const csrfToken = document.createElement('input');
-                csrfToken.type = 'hidden';
-                csrfToken.name = 'csrfmiddlewaretoken';
-                csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
-                form.appendChild(csrfToken);
-                
-                // Agregar el RUT
-                const rutInput = document.createElement('input');
-                rutInput.type = 'hidden';
-                rutInput.name = 'rut';
-                rutInput.value = rutEliminar;
-                form.appendChild(rutInput);
-                
-                // Añadir el formulario al documento y enviarlo
-                document.body.appendChild(form);
-                form.submit();
-            });
-        }
+    if (confirmarEliminar) {
+        confirmarEliminar.addEventListener('click', function() {
+            // Añadir spin al botón
+            this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Eliminando...';
+            this.disabled = true;
+            this.classList.add('opacity-75', 'cursor-not-allowed');
+            
+            // Crear el formulario para enviar
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{% url 'ver' %}";
+            
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrfmiddlewaretoken';
+            csrfToken.value = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            form.appendChild(csrfToken);
+            
+            const rutInput = document.createElement('input');
+            rutInput.type = 'hidden';
+            rutInput.name = 'rut';
+            rutInput.value = rutEliminar;
+            form.appendChild(rutInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        });
+    }
 
-        // Modal de edición
-        const editarClinicoModal = document.getElementById('editarClinicoModal');
-        const editarOverlay = document.getElementById('editarOverlay');
-        const closeEditarModal = document.getElementById('closeEditarModal');
+    // Modal de edición
+    const editarClinicoModal = document.getElementById('editarClinicoModal');
+    const editarModalContent = document.getElementById('editarModalContent');
+    const editarOverlay = document.getElementById('editarOverlay');
+    const closeEditarModal = document.getElementById('closeEditarModal');
 
-        function abrirModal(rut, nombre, apellido, profesion) {
-            document.getElementById('rutInput').value = rut;
-            document.getElementById('nombreInput').value = nombre;
-            document.getElementById('apellidoInput').value = apellido;
-            document.getElementById('profesionInput').value = profesion;
+    function abrirModal(rut, nombre, apellido, profesion) {
+        document.getElementById('rutInput').value = rut;
+        document.getElementById('nombreInput').value = nombre;
+        document.getElementById('apellidoInput').value = apellido;
+        document.getElementById('profesionInput').value = profesion;
 
-            editarClinicoModal.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-        }
+        editarClinicoModal.classList.remove('hidden');
+        // trigger reflow
+        void editarClinicoModal.offsetWidth;
+        editarClinicoModal.classList.remove('opacity-0');
+        editarModalContent.classList.remove('scale-95');
+        document.body.classList.add('overflow-hidden');
+    }
 
-        function cerrarEditarModal() {
+    function cerrarEditarModal() {
+        editarClinicoModal.classList.add('opacity-0');
+        editarModalContent.classList.add('scale-95');
+        setTimeout(() => {
             editarClinicoModal.classList.add('hidden');
             document.body.classList.remove('overflow-hidden');
-        }
+        }, 300);
+    }
 
-        if (editarOverlay) editarOverlay.addEventListener('click', cerrarEditarModal);
-        if (closeEditarModal) closeEditarModal.addEventListener('click', cerrarEditarModal);
-    </script>
-</body>
-</html>
+    if (editarOverlay) editarOverlay.addEventListener('click', cerrarEditarModal);
+    if (closeEditarModal) closeEditarModal.addEventListener('click', cerrarEditarModal);
+</script>
+{% endblock %}

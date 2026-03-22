@@ -1,73 +1,11 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <title>Lista de Pacientes - Sistema Clínico</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        medical: {
-                            blue: '#0284c7',
-                            'blue-light': '#38bdf8',
-                            'blue-dark': '#0369a1',
-                            green: '#10b981',
-                            red: '#ef4444',
-                            orange: '#f59e0b'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
-</head>
-<body class="min-h-screen font-sans text-gray-800 bg-gray-50">
-    
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Navigation -->
-        {% include 'menu.html' %}
 
-        <!-- Contenido principal -->
-        <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Header -->
-            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100">
-                <div class="flex items-center">
-                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggle">
-                        <i class='text-2xl bx bx-menu'></i>
-                    </button>
-                    <h1 class="text-lg font-medium text-gray-800">Lista de Pacientes</h1>
-                </div>
-                
-                <div class="flex items-center space-x-4">
-                    <!-- Botón de notificaciones -->
-                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
-                        <i class='text-xl bx bx-bell'></i>
-                    </button>
-                    
-                </div>
-            </header>
+{% block title %}Lista de Pacientes - Sistema Clínico{% endblock %}
+{% block header_title %}Lista de Pacientes{% endblock %}
 
-            <!-- Contenido principal con scroll -->
-            <main class="flex-1 p-6 overflow-y-auto bg-gray-50">
-                <div class="mx-auto space-y-6 max-w-7xl">
+{% block content %}
+<div class="space-y-6">
                     <!-- Barra de búsqueda y acciones -->
                     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
                         <!-- Barra de búsqueda -->
@@ -210,54 +148,22 @@
                                 </span>
                             {% endif %}
                         </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
+        <!-- Paginación anterior aquí -->
+</div>
+{% endblock %}
 
-    <!-- Overlay para sidebar móvil -->
-    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlay"></div>
+{% block extra_js %}
+<script>
+    // Función de búsqueda de pacientes
+    document.getElementById('searchInput')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.patient-row');
 
-    <script>
-        // Toggle sidebar en móvil
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebarClose = document.getElementById('sidebarClose');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.add('translate-x-0');
-            sidebar.classList.remove('-translate-x-full');
-            sidebarOverlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const shouldShow = text.includes(searchTerm);
+            row.style.display = shouldShow ? '' : 'none';
         });
-
-        sidebarClose.addEventListener('click', () => {
-            sidebar.classList.remove('translate-x-0');
-            sidebar.classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        });
-
-        sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('translate-x-0');
-            sidebar.classList.add('-translate-x-full');
-            sidebarOverlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-        });
-
-        // Función de búsqueda de pacientes
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('.patient-row');
-    
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                const shouldShow = text.includes(searchTerm);
-                row.style.display = shouldShow ? '' : 'none';
-            });
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
+{% endblock %}

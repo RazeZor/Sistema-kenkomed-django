@@ -1,551 +1,526 @@
-{%load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard ENA - Escala de Intensidad del Dolor</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        :root {
-            --primary: #1e40af;
-            --secondary: #64748b;
-            --success: #059669;
-            --warning: #d97706;
-            --danger: #dc2626;
-        }
+{% extends 'base_kenkomed.html' %}
+{% load static %}
 
-        /* Added emoji background removal and enhanced styles */
-        .face-button img {
-            background: transparent !important;
-            mix-blend-mode: multiply;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
+{% block title %}Escala ENA - Sistema Clínico{% endblock %}
 
-        .face-button {
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background: transparent !important;
-        }
+{% block extra_css %}
+    /* Custom styles for ENA */
+    .face-button img {
+        background: transparent !important;
+        mix-blend-mode: multiply;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+    }
+    
+    .face-button {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: transparent !important;
+    }
+    
+    .face-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .face-button.selected {
+        transform: scale(1.15);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        border: 3px solid #ffffff;
+        border-radius: 50%;
+    }
+    
+    .scale-container {
+        background: linear-gradient(90deg, 
+            #60a5fa 0%, #60a5fa 10%, #3b82f6 20%, #22c55e 30%, #84cc16 40%,
+            #eab308 50%, #f59e0b 60%, #f97316 70%, #ef4444 80%, #dc2626 90%, #b91c1c 100%
+        );
+        border-radius: 50px;
+        padding: 8px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .pain-level-0 { background-color: #dbeafe; color: #1e40af; }
+    .pain-level-1 { background-color: #dbeafe; color: #1e40af; }
+    .pain-level-2 { background-color: #bfdbfe; color: #1d4ed8; }
+    .pain-level-3 { background-color: #dcfce7; color: #15803d; }
+    .pain-level-4 { background-color: #dcfce7; color: #15803d; }
+    .pain-level-5 { background-color: #fef3c7; color: #d97706; }
+    .pain-level-6 { background-color: #fed7aa; color: #ea580c; }
+    .pain-level-7 { background-color: #fed7aa; color: #ea580c; }
+    .pain-level-8 { background-color: #fecaca; color: #dc2626; }
+    .pain-level-9 { background-color: #fecaca; color: #dc2626; }
+    .pain-level-10 { background-color: #fecaca; color: #b91c1c; }
+    
+    .result-display {
+        min-height: 120px;
+        transition: all 0.3s ease;
+    }
+    
+    /* Animation for active session */
+    .session-active {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    @media print {
+        .no-print { display: none !important; }
+        .print-only { display: block !important; }
+        body { background: white !important; }
+    }
+    .print-only { display: none; }
+{% endblock %}
 
-        .face-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
+{% block header_title %}Escala Numérica Análoga (ENA){% endblock %}
 
-        .face-button.selected {
-            transform: scale(1.15);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-            border: 3px solid #ffffff;
-        }
+{% block header_actions %}
+    <div class="flex items-center gap-3 no-print">
+        <div class="hidden md:flex flex-col text-right mr-2">
+            <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Sesión Actual</span>
+            <span id="session-info" class="text-sm font-bold text-medical-blue flex items-center justify-end gap-1">
+                <i class='bx bx-radio-circle-marked session-active text-red-500'></i> Iniciando...
+            </span>
+        </div>
+        <button onclick="newSession()" class="px-4 py-2 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 flex items-center gap-2 transition-colors">
+            <i class='bx bx-refresh'></i> Nueva Sesión
+        </button>
+        <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
+            <i class='bx bx-arrow-back'></i> Volver
+        </button>
+    </div>
+    {{ block.super }}
+{% endblock %}
 
-        .scale-container {
-            background: linear-gradient(90deg, 
-                #60a5fa 0%, #60a5fa 10%, #3b82f6 20%, #22c55e 30%, #84cc16 40%,
-                #eab308 50%, #f59e0b 60%, #f97316 70%, #ef4444 80%, #dc2626 90%, #b91c1c 100%
-            );
-            border-radius: 50px;
-            padding: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+{% block content %}
+<form id="csrf-form" style="display:none;">
+    {% csrf_token %}
+</form>
 
-        .pain-level-0 { background-color: #dbeafe; color: #1e40af; }
-        .pain-level-1 { background-color: #dbeafe; color: #1e40af; }
-        .pain-level-2 { background-color: #bfdbfe; color: #1d4ed8; }
-        .pain-level-3 { background-color: #dcfce7; color: #15803d; }
-        .pain-level-4 { background-color: #dcfce7; color: #15803d; }
-        .pain-level-5 { background-color: #fef3c7; color: #d97706; }
-        .pain-level-6 { background-color: #fed7aa; color: #ea580c; }
-        .pain-level-7 { background-color: #fed7aa; color: #ea580c; }
-        .pain-level-8 { background-color: #fecaca; color: #dc2626; }
-        .pain-level-9 { background-color: #fecaca; color: #dc2626; }
-        .pain-level-10 { background-color: #fecaca; color: #b91c1c; }
-
-        .result-display {
-            min-height: 120px;
-            transition: all 0.3s ease;
-        }
-
-        /* Added print styles */
-        @media print {
-            .no-print { display: none !important; }
-            .print-only { display: block !important; }
-            body { background: white !important; }
-            .bg-gradient-to-r { background: #1e40af !important; }
-        }
-
-        .print-only { display: none; }
-
-        /* Added dashboard card animations */
-        .dashboard-card {
-            transition: all 0.3s ease;
-        }
-
-        .dashboard-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-
-        /* Added session indicator styles */
-        .session-active {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-    </style>
-</head>
-<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
-    <!-- Hidden form to ensure CSRF cookie is set for AJAX requests -->
-    <form id="csrf-form" style="display:none;">
-        {% csrf_token %}
-    </form>
-    <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg no-print">
-        <div class="max-w-7xl mx-auto px-6 py-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="text-center md:text-left mb-4 md:mb-0">
-                    <h1 class="text-2xl md:text-3xl font-bold mb-2">📊 Dashboard ENA - Escala de Dolor</h1>
-                    <p class="text-blue-100 text-sm md:text-base">Sistema de Evaluación y Seguimiento del Dolor</p>
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Métricas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+        <!-- Evaluaciones Hoy -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
+            <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Evaluaciones Hoy</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-2xl font-bold text-gray-800" id="today-count">0</h3>
                 </div>
-                <!-- Added session info and controls -->
-                <div class="flex items-center space-x-4">
-                    <div class="text-center">
-                        <div class="text-sm text-blue-100">Sesión Actual</div>
-                        <div id="session-info" class="font-bold text-lg">🔄 Iniciando...</div>
-                    </div>
-                    <button onclick="newSession()" class="bg-blue-500 hover:bg-blue-400 px-4 py-2 rounded-lg font-semibold transition-colors">
-                        🆕 Nueva Sesión
+            </div>
+            <div class="w-12 h-12 rounded-full bg-blue-50 text-medical-blue flex items-center justify-center text-2xl">
+                <i class='bx bx-bar-chart-alt-2'></i>
+            </div>
+        </div>
+
+        <!-- Promedio Actual -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
+            <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Promedio Actual</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-2xl font-bold text-orange-500" id="average-pain">--</h3>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-2xl">
+                <i class='bx bx-line-chart'></i>
+            </div>
+        </div>
+
+        <!-- Última Evaluación -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
+            <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Última Evaluación</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-sm font-semibold text-gray-700" id="last-evaluation">Sin registros</h3>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-2xl">
+                <i class='bx bx-time'></i>
+            </div>
+        </div>
+
+        <!-- Estado Actual -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
+            <div>
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Estado Último</p>
+                <div class="flex items-end gap-2">
+                    <h3 class="text-sm font-semibold text-green-600" id="current-status">Esperando...</h3>
+                </div>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-2xl">
+                <i class='bx bx-user-voice'></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instrucciones -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+        <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4 text-3xl text-medical-blue">
+            <i class='bx bx-question-mark'></i>
+        </div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">¿Cuál es su nivel de dolor actual?</h2>
+        <p class="text-gray-600 mb-4 max-w-2xl mx-auto">Seleccione el número o la carita que mejor represente la intensidad de su dolor en este momento, donde 0 es "Sin dolor" y 10 es "Dolor insoportable".</p>
+        <div class="inline-flex items-center gap-2 text-sm font-medium text-medical-blue bg-blue-50 px-4 py-2 rounded-full">
+            <i class='bx bx-bulb'></i> Use los emojis como guía visual
+        </div>
+    </div>
+
+    <!-- Escala Visual ENA -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+        <div class="scale-container mb-10 overflow-x-auto custom-scrollbar pb-4">
+            <div class="grid grid-cols-11 gap-1 min-w-[600px]">
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="0" onclick="selectPainLevel(0)">
+                        <img src="{% static 'image/emuyfeliz.gif' %}" alt="0" class="w-full h-full object-contain">
                     </button>
+                    <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">0</div>
                 </div>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-6 py-8">
-        <!-- Added comprehensive dashboard with statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 no-print">
-            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">📈 Evaluaciones Hoy</p>
-                        <p id="today-count" class="text-2xl font-bold text-blue-600">0</p>
-                    </div>
-                    <div class="text-3xl">📊</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="1" onclick="selectPainLevel(1)">
+                        <img src="{% static 'image/efliz.gif' %}" alt="1" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">1</div>
                 </div>
-            </div>
-
-            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">📊 Promedio Actual</p>
-                        <p id="average-pain" class="text-2xl font-bold text-orange-600">--</p>
-                    </div>
-                    <div class="text-3xl">📈</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="2" onclick="selectPainLevel(2)">
+                        <img src="{% static 'image/emasomenos.gif' %}" alt="2" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">2</div>
                 </div>
-            </div>
-
-            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">⏰ Última Evaluación</p>
-                        <p id="last-evaluation" class="text-sm font-semibold text-gray-700">Sin registros</p>
-                    </div>
-                    <div class="text-3xl">🕐</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="3" onclick="selectPainLevel(3)">
+                        <img src="{% static 'image/emalmasomenos.gif' %}" alt="3" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">3</div>
                 </div>
-            </div>
-
-            <div class="dashboard-card bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">🎯 Estado Actual</p>
-                        <p id="current-status" class="text-sm font-semibold text-green-600">😊 Esperando evaluación</p>
-                    </div>
-                    <div class="text-3xl">🎯</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="4" onclick="selectPainLevel(4)">
+                        <img src="{% static 'image/emogi4.gif' %}" alt="4" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">4</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Instrucciones -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-8">
-            <div class="text-center">
-                <h2 class="text-xl font-semibold text-gray-800 mb-3">🤔 ¿Cuál es su nivel de dolor actual?</h2>
-                <p class="text-gray-600">Seleccione el número que mejor represente la intensidad de su dolor en este momento</p>
-                <div class="mt-4 flex justify-center items-center space-x-2 text-sm text-gray-500">
-                    <span>💡 Tip: Use los emojis como guía visual</span>
-                    <span class="session-active">🔴</span>
-                    <span id="session-timer">Sesión activa</span>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="5" onclick="selectPainLevel(5)">
+                        <img src="{% static 'image/emogi5.gif' %}" alt="5" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">5</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Escala Visual -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
-            <div class="scale-container mb-8">
-                <div class="grid grid-cols-11 gap-1 md:gap-2">
-                    <!-- Enhanced emoji buttons with transparent backgrounds -->
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="0" onclick="selectPainLevel(0)">
-                            <img src="{% static 'image/emuyfeliz.gif' %}" alt="😊" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">0</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="1" onclick="selectPainLevel(1)">
-                            <img src="{% static 'image/efliz.gif' %}" alt="🙂" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">1</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="2" onclick="selectPainLevel(2)">
-                            <img src="{% static 'image/emasomenos.gif' %}" alt="😐" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">2</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="3" onclick="selectPainLevel(3)">
-                            <img src="{% static 'image/emalmasomenos.gif' %}" alt="😕" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">3</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="4" onclick="selectPainLevel(4)">
-                            <img src="{% static 'image/emogi4.gif' %}" alt="😟" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">4</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="5" onclick="selectPainLevel(5)">
-                            <img src="{% static 'image/emogi5.gif' %}" alt="😣" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">5</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="6" onclick="selectPainLevel(6)">
-                            <img src="{% static 'image/emal.gif' %}" alt="😖" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-amber-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">6</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="7" onclick="selectPainLevel(7)">
-                            <img src="{% static 'image/emal7.gif' %}" alt="😫" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">7</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="8" onclick="selectPainLevel(8)">
-                            <img src="{% static 'image/mal8.gif' %}" alt="😰" class="w-[50px] h-[50px] object-contain mix-blend-multiply">    
-                        </button>
-                        <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">8</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="9" onclick="selectPainLevel(9)">
-                            <img src="{% static 'image/emogi.triste.gif' %}" alt="😭" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">9</div>
-                    </div>
-
-                    <div class="text-center">
-                        <button class="transition-transform duration-200 hover:scale-125 mix-blend-multiply" 
-                                data-level="10" onclick="selectPainLevel(10)">
-                            <img src="{% static 'image/emal10.gif' %}" alt="😵" class="w-[50px] h-[50px] object-contain mix-blend-multiply">
-                        </button>
-                        <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto">10</div>
-                    </div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="6" onclick="selectPainLevel(6)">
+                        <img src="{% static 'image/emal.gif' %}" alt="6" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-orange-400 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">6</div>
                 </div>
-            </div>
-
-            <!-- Etiquetas descriptivas con más emojis -->
-            <div class="grid grid-cols-4 gap-4 text-center text-xs md:text-sm font-medium mb-6">
-                <div class="text-blue-700">
-                    <div class="text-2xl mb-1">😊</div>
-                    <div class="font-bold">No dolor</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="7" onclick="selectPainLevel(7)">
+                        <img src="{% static 'image/emal7.gif' %}" alt="7" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">7</div>
                 </div>
-                <div class="text-green-700">
-                    <div class="text-2xl mb-1">😐</div>
-                    <div class="font-bold">Leve</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="8" onclick="selectPainLevel(8)">
+                        <img src="{% static 'image/mal8.gif' %}" alt="8" class="w-full h-full object-contain">    
+                    </button>
+                    <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">8</div>
                 </div>
-                <div class="text-yellow-700">
-                    <div class="text-2xl mb-1">😣</div>
-                    <div class="font-bold">Moderado</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="9" onclick="selectPainLevel(9)">
+                        <img src="{% static 'image/emogi.triste.gif' %}" alt="9" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">9</div>
                 </div>
-                <div class="text-red-700">
-                    <div class="text-2xl mb-1">😰</div>
-                    <div class="font-bold">Severo</div>
-                </div>
-            </div>
-
-            <!-- Resultado -->
-            <div id="result-display" class="result-display bg-gray-100 rounded-lg p-6 text-center">
-                <div class="text-gray-500">
-                    <div class="text-4xl mb-2">🤔</div>
-                    <div class="text-lg font-medium">Seleccione su nivel de dolor</div>
-                    <div class="text-sm">Haga clic en la carita que mejor represente cómo se siente</div>
+                <div class="text-center">
+                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="10" onclick="selectPainLevel(10)">
+                        <img src="{% static 'image/emal10.gif' %}" alt="10" class="w-full h-full object-contain">
+                    </button>
+                    <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">10</div>
                 </div>
             </div>
         </div>
 
-        <!-- Added comprehensive results table -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6 mb-6">
-            <div class="flex flex-col md:flex-row justify-between items-center mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 md:mb-0">📋 Historial de Evaluaciones</h3>
+        <!-- Descripciones cortas -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-sm font-medium mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
+            <div class="text-medical-blue flex flex-col items-center">
+                <span class="text-2xl mb-1">😊</span>
+                <span>No dolor (0-2)</span>
+            </div>
+            <div class="text-green-600 flex flex-col items-center">
+                <span class="text-2xl mb-1">😐</span>
+                <span>Leve (3-4)</span>
+            </div>
+            <div class="text-yellow-600 flex flex-col items-center">
+                <span class="text-2xl mb-1">😣</span>
+                <span>Moderado (5-6)</span>
+            </div>
+            <div class="text-red-600 flex flex-col items-center">
+                <span class="text-2xl mb-1">😰</span>
+                <span>Severo (7-10)</span>
+            </div>
+        </div>
+
+        <!-- Carga de Resultado -->
+        <div id="result-display" class="result-display bg-gray-50 rounded-xl border border-gray-100 p-8 text-center flex flex-col justify-center items-center">
+            <div class="text-gray-400">
+                <i class='bx bx-pointer text-5xl mb-3'></i>
+                <div class="text-lg font-medium text-gray-700">Seleccione su nivel de dolor en la escala superior</div>
+                <div class="text-sm mt-1">El resultado aparecerá aquí antes de guardar</div>
+            </div>
+        </div>
+        
+        <!-- Guardar action -->
+        <div class="mt-8 flex justify-center no-print">
+            <button id="save-btn" onclick="savePainLevel()" disabled 
+                    class="px-8 py-3 bg-medical-blue text-white rounded-lg font-semibold shadow-sm hover:bg-medical-blue-dark disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-lg">
+                <i class='bx bx-save'></i> Guardar Evaluación
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Historial (2/3 width on desktop) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class='bx bx-history text-medical-blue'></i> Historial de Evaluaciones
+                </h3>
                 <div class="flex space-x-2">
-                    <button onclick="exportData()" class="no-print bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                        📊 Exportar Datos
+                    <button onclick="exportData()" class="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 flex items-center gap-1 transition-colors no-print">
+                        <i class='bx bx-export'></i> Exportar
                     </button>
-                    <button onclick="printTable()" class="no-print bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
-                        🖨️ Imprimir Tabla
+                    <button onclick="printTable()" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 flex items-center gap-1 transition-colors no-print">
+                        <i class='bx bx-printer'></i> Imprimir
                     </button>
                 </div>
             </div>
-
             <div class="overflow-x-auto">
-                <table id="results-table" class="w-full table-auto">
-                    <thead class="bg-gray-50">
+                <table id="results-table" class="min-w-full">
+                    <thead class="bg-white border-b border-gray-100">
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">🕐 Fecha y Hora</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">📊 Nivel</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">😊 Estado</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">📝 Descripción</th>
-                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">🔄 Sesión</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha / Hora</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nivel</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/3">Descripción</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sesión</th>
                         </tr>
                     </thead>
-                    <tbody id="results-tbody" class="bg-white divide-y divide-gray-200">
-                        <tr>
-                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                                <div class="text-4xl mb-2">📊</div>
-                                <div>No hay evaluaciones registradas</div>
-                                <div class="text-sm">Realice su primera evaluación para ver los resultados aquí</div>
-                            </td>
-                        </tr>
+                    <tbody id="results-tbody" class="bg-white divide-y divide-gray-50">
+                        <!-- Llenado por javascript -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Información adicional con más emojis -->
-        <div class="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">📖 Descripción de los Niveles</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div class="space-y-2">
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-blue-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😊</span>
-                        <span><strong>0-2 Sin dolor:</strong> No interfiere con las actividades</span>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-green-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😐</span>
-                        <span><strong>3-4 Dolor leve:</strong> Molesta pero no impide actividades</span>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-yellow-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😣</span>
-                        <span><strong>5-6 Dolor moderado:</strong> Interfiere con algunas actividades</span>
+        <!-- Descripciones texto (1/3 width on desktop) -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
+                <i class='bx bx-info-circle text-medical-blue'></i> Significado de Niveles
+            </h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 mt-0.5 font-bold">😊</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">0-2 Sin dolor</h4>
+                        <p class="text-xs text-gray-500 mt-1">No interfiere con las actividades diarias normales.</p>
                     </div>
                 </div>
-                <div class="space-y-2">
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-orange-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😫</span>
-                        <span><strong>7-8 Dolor severo:</strong> Dificulta la mayoría de actividades</span>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 mt-0.5 font-bold">😐</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">3-4 Dolor leve</h4>
+                        <p class="text-xs text-gray-500 mt-1">Molesta pero no impide realizar actividades comunes.</p>
                     </div>
-                    <div class="flex items-center">
-                        <span class="w-8 h-8 bg-red-200 rounded-full mr-3 flex items-center justify-center text-xs font-bold">😰</span>
-                        <span><strong>9-10 Dolor extremo:</strong> Impide realizar cualquier actividad</span>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center shrink-0 border border-yellow-100 mt-0.5 font-bold">😣</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">5-6 Dolor moderado</h4>
+                        <p class="text-xs text-gray-500 mt-1">Empieza a interferir con algunas actividades físicas o cotidianas.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-100 mt-0.5 font-bold">😫</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">7-8 Dolor severo</h4>
+                        <p class="text-xs text-gray-500 mt-1">Dificulta la mayoría de actividades, requiere atención inmediata.</p>
+                    </div>
+                </div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 mt-0.5 font-bold">😰</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-gray-800">9-10 Dolor extremo</h4>
+                        <p class="text-xs text-gray-500 mt-1">Impide realizar cualquier actividad de forma absoluta.</p>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Botones de acción -->
-        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center no-print">
-            <button id="save-btn" onclick="savePainLevel()" disabled 
-                    class="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold shadow-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-200">
-                💾 Guardar Evaluación
-            </button>
-        </div>
-    </main>
-
-    <!-- Print header for printed version -->
-    <div class="print-only">
-        <h1 class="text-2xl font-bold text-center mb-4">📊 Reporte ENA - Escala de Dolor</h1>
-        <p class="text-center mb-6">Generado el: <span id="print-date"></span></p>
     </div>
+</div>
 
-    <script>
-        // Data injected from server
-        let selectedLevel = null;
-        let currentSession = null;
-        let evaluationHistory = {{ evaluations_json|safe }} || [];
-        let sessionStartTime = null;
+<!-- Print Only Info -->
+<div class="print-only">
+    <div class="text-center mb-6 border-b border-gray-200 pb-4">
+        <h1 class="text-2xl font-bold text-gray-900 mb-2">Reporte ENA - Escala de Dolor</h1>
+        <p class="text-gray-600">Generado el: <span id="print-date"></span></p>
+    </div>
+</div>
+{% endblock %}
 
-        // CSRF token helper
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-        }
-        const csrftoken = getCookie('csrftoken');
+{% block extra_js %}
+<script>
+    let selectedLevel = null;
+    let currentSession = null;
+    let evaluationHistory = {{ evaluations_json|safe|default:"[]" }};
+    let sessionStartTime = null;
 
-        const painDescriptions = {
-            0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0" },
-            1: { text: "Dolor muy leve", description: "Apenas perceptible", emoji: "🙂", class: "pain-level-1" },
-            2: { text: "Dolor leve", description: "Molestia menor", emoji: "😐", class: "pain-level-2" },
-            3: { text: "Dolor leve-moderado", description: "Molestia notable pero tolerable", emoji: "😕", class: "pain-level-3" },
-            4: { text: "Dolor moderado", description: "Molestia que requiere atención", emoji: "😟", class: "pain-level-4" },
-            5: { text: "Dolor moderado", description: "Interfiere con algunas actividades", emoji: "😣", class: "pain-level-5" },
-            6: { text: "Dolor moderado-severo", description: "Dificulta las actividades normales", emoji: "😖", class: "pain-level-6" },
-            7: { text: "Dolor severo", description: "Interfiere significativamente", emoji: "😫", class: "pain-level-7" },
-            8: { text: "Dolor muy severo", description: "Dificulta la mayoría de actividades", emoji: "😰", class: "pain-level-8" },
-            9: { text: "Dolor extremo", description: "Casi insoportable", emoji: "😭", class: "pain-level-9" },
-            10: { text: "Dolor insoportable", description: "El peor dolor imaginable", emoji: "😵", class: "pain-level-10" }
-        };
-
-        function initializeSession() {
-            currentSession = `S${Date.now()}`;
-            sessionStartTime = new Date();
-            updateSessionInfo();
-            updateDashboard();
-        }
-
-        function newSession() {
-            if (confirm('¿Está seguro de que desea iniciar una nueva sesión? 🔄')) {
-                initializeSession();
+    // Helper CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
 
-        function updateSessionInfo() {
-            const sessionInfo = document.getElementById('session-info');
-            if (currentSession) {
-                const duration = Math.floor((new Date() - sessionStartTime) / 60000);
-                sessionInfo.innerHTML = `🔴 ${currentSession.slice(-6)} (${duration}min)`;
+    const painDescriptions = {
+        0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0 border border-blue-200" },
+        1: { text: "Dolor muy leve", description: "Apenas perceptible", emoji: "🙂", class: "pain-level-1 border border-blue-200" },
+        2: { text: "Dolor leve", description: "Molestia menor", emoji: "😐", class: "pain-level-2 border border-blue-300" },
+        3: { text: "Dolor leve-moderado", description: "Molestia notable pero tolerable", emoji: "😕", class: "pain-level-3 border border-green-200" },
+        4: { text: "Dolor moderado", description: "Molestia que requiere atención", emoji: "😟", class: "pain-level-4 border border-green-300" },
+        5: { text: "Dolor moderado", description: "Interfiere con algunas actividades", emoji: "😣", class: "pain-level-5 border border-yellow-200" },
+        6: { text: "Dolor moderado-severo", description: "Dificulta las actividades normales", emoji: "😖", class: "pain-level-6 border border-orange-200" },
+        7: { text: "Dolor severo", description: "Interfiere significativamente", emoji: "😫", class: "pain-level-7 border border-orange-300" },
+        8: { text: "Dolor muy severo", description: "Dificulta la mayoría de actividades", emoji: "😰", class: "pain-level-8 border border-red-200" },
+        9: { text: "Dolor extremo", description: "Casi insoportable", emoji: "😭", class: "pain-level-9 border border-red-300" },
+        10: { text: "Dolor insoportable", description: "El peor dolor imaginable", emoji: "😵", class: "pain-level-10 border border-red-400 text-white" }
+    };
+
+    function initializeSession() {
+        currentSession = `S${Date.now()}`;
+        sessionStartTime = new Date();
+        updateSessionInfo();
+        updateDashboard();
+    }
+
+    function newSession() {
+        if (confirm('¿Iniciar nueva sesión de evaluación?')) {
+            initializeSession();
+        }
+    }
+
+    function updateSessionInfo() {
+        const sessionInfo = document.getElementById('session-info');
+        if (currentSession && sessionInfo) {
+            const duration = Math.floor((new Date() - sessionStartTime) / 60000);
+            sessionInfo.innerHTML = `<i class='bx bx-radio-circle-marked session-active text-red-500'></i> ${currentSession.slice(-6)} (${duration} min)`;
+        }
+    }
+
+    function updateDashboard() {
+        const today = new Date().toDateString();
+        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
+        const todayEvaluations = evalArr.filter(eval => new Date(eval.timestamp).toDateString() === today);
+
+        document.getElementById('today-count').textContent = todayEvaluations.length;
+
+        if (evalArr.length > 0) {
+            const average = evalArr.reduce((sum, eval) => sum + parseInt(eval.level), 0) / evalArr.length;
+            document.getElementById('average-pain').textContent = average.toFixed(1);
+
+            const lastEval = evalArr[evalArr.length - 1];
+            document.getElementById('last-evaluation').textContent = new Date(lastEval.timestamp).toLocaleString('es-ES', {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
+
+            const pain = painDescriptions[lastEval.level];
+            if(pain) {
+                document.getElementById('current-status').innerHTML = `${pain.emoji} Nivel ${lastEval.level}`;
+                
+                let colorClass = 'text-green-600';
+                if(lastEval.level > 3) colorClass = 'text-yellow-600';
+                if(lastEval.level > 6) colorClass = 'text-red-600';
+                document.getElementById('current-status').className = `text-sm font-semibold ${colorClass}`;
             }
         }
+        updateResultsTable();
+    }
 
-        function updateDashboard() {
-            const today = new Date().toDateString();
-            const todayEvaluations = evaluationHistory.filter(eval => 
-                new Date(eval.timestamp).toDateString() === today
-            );
-
-            document.getElementById('today-count').textContent = todayEvaluations.length;
-
-            if (evaluationHistory.length > 0) {
-                const average = evaluationHistory.reduce((sum, eval) => sum + eval.level, 0) / evaluationHistory.length;
-                document.getElementById('average-pain').textContent = average.toFixed(1);
-
-                const lastEval = evaluationHistory[evaluationHistory.length - 1];
-                document.getElementById('last-evaluation').textContent = 
-                    new Date(lastEval.timestamp).toLocaleString('es-ES');
-
-                const pain = painDescriptions[lastEval.level];
-                document.getElementById('current-status').innerHTML = 
-                    `${pain.emoji} ${pain.text}`;
-            }
-
-            updateResultsTable();
+    function updateResultsTable() {
+        const tbody = document.getElementById('results-tbody');
+        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
+        if (evalArr.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500 bg-gray-50/50"><div class="text-4xl mb-3 text-gray-300"><i class='bx bx-list-ul'></i></div><div class="font-medium text-gray-600">No hay evaluaciones</div><div class="text-sm">Las evaluaciones guardadas aparecerán aquí.</div></td></tr>`;
+            return;
         }
 
-        function updateResultsTable() {
-            const tbody = document.getElementById('results-tbody');
-            
-            if (evaluationHistory.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="px-4 py-8 text-center text-gray-500">
-                            <div class="text-4xl mb-2">📊</div>
-                            <div>No hay evaluaciones registradas</div>
-                            <div class="text-sm">Realice su primera evaluación para ver los resultados aquí</div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-
-            tbody.innerHTML = evaluationHistory.map((evaluation, index) => {
-                const pain = painDescriptions[evaluation.level];
-                const date = new Date(evaluation.timestamp);
-                return `
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${index + 1}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${date.toLocaleString('es-ES')}</td>
-                        <td class="px-4 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${pain.class}">
-                                ${evaluation.level}
-                            </span>
-                        </td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <span class="text-lg mr-2">${pain.emoji}</span>
-                            ${pain.text}
-                        </td>
-                        <td class="px-4 py-4 text-sm text-gray-900">${pain.description}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${evaluation.session}</td>
-                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium no-print">
-
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function selectPainLevel(level) {
-            document.querySelectorAll('.face-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-
-            const selectedButton = document.querySelector(`[data-level="${level}"]`);
-            selectedButton.classList.add('selected');
-            
-            selectedLevel = level;
-            updateResultDisplay(level);
-            
-            document.getElementById('save-btn').disabled = false;
-        }
-
-        function updateResultDisplay(level) {
-            const resultDiv = document.getElementById('result-display');
-            const pain = painDescriptions[level];
-            
-            resultDiv.className = `result-display rounded-lg p-6 text-center ${pain.class}`;
-            resultDiv.innerHTML = `
-                <div class="text-6xl mb-4">${pain.emoji}</div>
-                <div class="text-3xl font-bold mb-2">Nivel ${level}</div>
-                <div class="text-xl font-semibold mb-2">${pain.text}</div>
-                <div class="text-base opacity-80">${pain.description}</div>
+        tbody.innerHTML = evalArr.map((evaluation, index) => {
+            const pain = painDescriptions[evaluation.level];
+            const date = new Date(evaluation.timestamp);
+            return `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 text-sm font-medium text-gray-500">${index + 1}</td>
+                    <td class="px-4 py-3 text-sm text-gray-600">${date.toLocaleString('es-ES', {dateStyle: 'short', timeStyle: 'short'})}</td>
+                    <td class="px-4 py-3">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${pain.class}">
+                            Nivel ${evaluation.level}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-700">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">${pain.emoji}</span>
+                            <span><span class="font-medium">${pain.text}</span> — <span class="text-gray-500">${pain.description}</span></span>
+                        </div>
+                    </td>
+                    <td class="px-4 py-3 text-xs font-mono text-gray-500">${evaluation.session}</td>
+                </tr>
             `;
-        }
+        }).join('');
+    }
 
-        async function savePainLevel() {
-            if (selectedLevel !== null && currentSession) {
-                const pain = painDescriptions[selectedLevel];
-                const timestamp = new Date().toISOString();
+    function selectPainLevel(level) {
+        document.querySelectorAll('.face-button').forEach(btn => btn.classList.remove('selected'));
+        const selectedButton = document.querySelector(`[data-level="${level}"]`);
+        if(selectedButton) selectedButton.classList.add('selected');
+        
+        selectedLevel = level;
+        updateResultDisplay(level);
+        document.getElementById('save-btn').disabled = false;
+    }
 
-                const form = new FormData();
-                form.append('action', 'guardar');
-                form.append('level', selectedLevel);
-                form.append('description', pain.description);
-                form.append('timestamp', timestamp);
-                form.append('session', currentSession);
+    function updateResultDisplay(level) {
+        const resultDiv = document.getElementById('result-display');
+        const pain = painDescriptions[level];
+        
+        resultDiv.className = `result-display rounded-xl p-8 text-center flex flex-col justify-center items-center shadow-inner ${pain.class}`;
+        resultDiv.innerHTML = `
+            <div class="text-6xl mb-4 animate-bounce shrink-0">${pain.emoji}</div>
+            <div class="text-3xl font-bold mb-1">Nivel ${level}</div>
+            <div class="text-lg font-semibold mb-2 opacity-90">${pain.text}</div>
+            <div class="text-sm font-medium opacity-80 max-w-sm">${pain.description}</div>
+        `;
+    }
 
+    async function savePainLevel() {
+        if (selectedLevel !== null && currentSession) {
+            const pain = painDescriptions[selectedLevel];
+            const timestamp = new Date().toISOString();
+
+            const form = new FormData();
+            form.append('action', 'guardar');
+            form.append('level', selectedLevel);
+            form.append('description', pain.description);
+            form.append('timestamp', timestamp);
+            form.append('session', currentSession);
+
+            try {
                 const resp = await fetch(window.location.href, {
                     method: 'POST',
                     headers: { 'X-CSRFToken': csrftoken },
@@ -553,110 +528,69 @@
                 });
 
                 if (resp.ok) {
-                    // recargar la página para obtener datos actualizados desde el servidor
-                    window.location.reload();
+                    if(typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Guardado',
+                            text: 'Evaluación guardada correctamente.',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => { window.location.reload(); });
+                    } else {
+                        window.location.reload();
+                    }
                 } else {
-                    alert('Error al guardar la evaluación. Intenta de nuevo.');
+                    alert('Error al guardar la evaluación.');
                 }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error.');
             }
         }
+    }
 
-        function resetScale() {
-            document.querySelectorAll('.face-button').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            selectedLevel = null;
-            document.getElementById('save-btn').disabled = true;
-            
-            const resultDiv = document.getElementById('result-display');
-            resultDiv.className = 'result-display bg-gray-100 rounded-lg p-6 text-center';
-            resultDiv.innerHTML = `
-                <div class="text-gray-500">
-                    <div class="text-4xl mb-2">🤔</div>
-                    <div class="text-lg font-medium">Seleccione su nivel de dolor</div>
-                    <div class="text-sm">Haga clic en la carita que mejor represente cómo se siente</div>
-                </div>
-            `;
+    function printTable() {
+        const dt = document.getElementById('print-date');
+        if(dt) dt.textContent = new Date().toLocaleString('es-ES');
+        window.print();
+    }
+
+    function exportData() {
+        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
+        if (evalArr.length === 0) {
+            alert('No hay datos para exportar');
+            return;
         }
 
-        async function deleteEvaluation(index) {
-            if (!confirm('¿Está seguro de que desea eliminar esta evaluación? 🗑️')) return;
-            const form = new FormData();
-            form.append('action', 'delete');
-            form.append('index', index);
+        const csvContent = [
+            ['Fecha y Hora', 'Nivel', 'Descripcion', 'Sesion'],
+            ...evalArr.map(eval => [
+                new Date(eval.timestamp).toLocaleString('es-ES'),
+                eval.level,
+                `"${eval.text}"`,
+                eval.session
+            ])
+        ].map(row => row.join(',')).join('\n');
 
-            const resp = await fetch(window.location.href, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrftoken },
-                body: form
-            });
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `eval_ena_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
 
-            if (resp.ok) window.location.reload();
-            else alert('Error al eliminar la evaluación.');
+    setInterval(updateSessionInfo, 60000);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
+        if (evalArr.length > 0) {
+            currentSession = evalArr[evalArr.length - 1].session || `S${Date.now()}`;
+        } else {
+            currentSession = `S${Date.now()}`;
         }
-
-        async function clearHistory() {
-            if (!confirm('¿Está seguro de que desea eliminar todo el historial? ⚠️ Esta acción no se puede deshacer.')) return;
-            const form = new FormData();
-            form.append('action', 'clear');
-
-            const resp = await fetch(window.location.href, {
-                method: 'POST',
-                headers: { 'X-CSRFToken': csrftoken },
-                body: form
-            });
-
-            if (resp.ok) window.location.reload();
-            else alert('Error al limpiar historial.');
-        }
-
-        function printTable() {
-            document.getElementById('print-date').textContent = new Date().toLocaleString('es-ES');
-            window.print();
-        }
-
-        function exportData() {
-            if (evaluationHistory.length === 0) {
-                alert('📊 No hay datos para exportar');
-                return;
-            }
-
-            const csvContent = [
-                ['Fecha y Hora', 'Nivel', 'Descripción', 'Sesión'],
-                ...evaluationHistory.map(eval => [
-                    new Date(eval.timestamp).toLocaleString('es-ES'),
-                    eval.level,
-                    eval.text,
-                    eval.session
-                ])
-            ].map(row => row.join(',')).join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `evaluaciones_dolor_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-            
-            alert('📊 Datos exportados correctamente');
-        }
-
-        // Update session info every minute
-        setInterval(updateSessionInfo, 60000);
-
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Dashboard ENA del dolor inicializado');
-            // current session default from server or create new
-            if (evaluationHistory.length > 0) {
-                currentSession = evaluationHistory[evaluationHistory.length - 1].session || `S${Date.now()}`;
-            } else {
-                currentSession = `S${Date.now()}`;
-            }
-            initializeSession();
-        });
-    </script>
-</body>
-</html>
+        initializeSession();
+    });
+</script>
+{% endblock %}
