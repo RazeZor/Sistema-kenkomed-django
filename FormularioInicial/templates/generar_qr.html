@@ -3,309 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generar Código QR - Kenkomed</title>
+    <title>Gestor de Códigos QR - Kenkomed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            @apply bg-neutral-50;
         }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .header p {
-            font-size: 1.2em;
-            opacity: 0.9;
-        }
-        
-        .content {
-            padding: 40px;
-        }
-        
-        .form-section {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .form-section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e8ed;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 50px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        
-        .tokens-section {
-            margin-top: 40px;
-        }
-        
-        .tokens-section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-        
-        .token-card {
-            background: white;
-            border: 2px solid #e1e8ed;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .token-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.1);
-        }
-        
-        .token-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        .token-id {
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
-            color: #667eea;
-            font-size: 1.1em;
-        }
-        
-        .token-status {
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 600;
-        }
-        
-        .status-active {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-expired {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .status-used {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
-        .token-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .info-label {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        
-        .info-value {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .token-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5a6fd8;
-            transform: translateY(-1px);
-        }
-        
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-        }
-        
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #218838;
-            transform: translateY(-1px);
-        }
-        
-        .alert {
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 10px;
-            font-weight: 500;
-        }
-        
-        .alert-error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .alert-success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        
-        @media (max-width: 768px) {
-            .token-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            
-            .token-info {
-                grid-template-columns: 1fr;
-            }
-            
-            .token-actions {
-                justify-content: center;
-            }
+
+        /* Minimalista color scheme for kinesiotherapy */
+        :root {
+            --primary: #1e293b;
+            --primary-light: #334155;
+            --accent: #0ea5e9;
+            --accent-light: #e0f2fe;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --neutral-bg: #f9fafb;
+            --border: #e5e7eb;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>📱 Generar Código QR</h1>
-            <p>Cree códigos QR para formularios de salud públicos</p>
+<body class="bg-neutral-50">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 border-b border-neutral-200 bg-white">
+        <div class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
+                        <span class="text-lg font-bold text-white">QR</span>
+                    </div>
+                    <h1 class="text-xl font-semibold text-slate-900">Gestor QR</h1>
+                </div>
+                <nav class="hidden text-sm text-slate-600 md:block">
+                    <span>Kinesiología</span>
+                </nav>
+            </div>
         </div>
-        
-        <div class="content">
-            {% if messages %}
+    </header>
+
+    <!-- Main Content -->
+    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <!-- Messages -->
+        {% if messages %}
+            <div class="mb-6 space-y-3">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
+                    <div class="rounded-lg border-l-4 px-4 py-3 {% if message.tags == 'error' %}border-red-500 bg-red-50 text-red-800{% elif message.tags == 'success' %}border-green-500 bg-green-50 text-green-800{% else %}border-blue-500 bg-blue-50 text-blue-800{% endif %}">
+                        <p class="text-sm font-medium">{{ message }}</p>
                     </div>
                 {% endfor %}
-            {% endif %}
-            
-            <div class="form-section">
-                <h2>🆕 Crear Nuevo Token QR</h2>
-                <form method="POST">
+            </div>
+        {% endif %}
+
+        <!-- Create Token Section -->
+        <section class="mb-8">
+            <div class="rounded-lg border border-neutral-200 bg-white p-6">
+                <div class="mb-6">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                        <svg class="h-5 w-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.5 1.5H5.75A2.25 2.25 0 003.5 3.75v12.5A2.25 2.25 0 005.75 18.5h8.5a2.25 2.25 0 002.25-2.25V10M10 7h4m0 0V3m0 4l-5-5" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                        </svg>
+                        Crear Nuevo Token QR
+                    </h2>
+                </div>
+                
+                <form method="POST" class="space-y-4">
                     {% csrf_token %}
                     
-                    <div class="form-group">
-                        <label for="dias_expiracion">Días de Expiración</label>
-                        <select id="dias_expiracion" name="dias_expiracion">
+                    <div>
+                        <label for="dias_expiracion" class="block text-sm font-medium text-slate-700 mb-2">
+                            Días de expiración
+                        </label>
+                        <select id="dias_expiracion" name="dias_expiracion" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
                             <option value="1">1 día</option>
                             <option value="3">3 días</option>
                             <option value="7" selected>7 días</option>
@@ -313,150 +89,147 @@
                             <option value="30">30 días</option>
                         </select>
                     </div>
-                    
-                    <button type="submit" class="submit-btn">
-                        🎯 Generar Código QR
+
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 font-medium text-white transition hover:bg-slate-800 active:bg-slate-950">
+                        Generar Código QR
                     </button>
                 </form>
             </div>
-            
-            {% if tokens_activos %}
-                <div class="tokens-section">
-                    <h2>📋 Tokens Activos</h2>
+        </section>
+
+        <!-- Tokens List Section -->
+        {% if tokens_activos %}
+            <section>
+                <div class="mb-4">
+                    <h2 class="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                        <svg class="h-5 w-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2H3V4z M3 8h14v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
+                        </svg>
+                        Tokens Activos ({{ tokens_activos|length }})
+                    </h2>
+                </div>
+
+                <div class="space-y-4">
                     {% for token in tokens_activos %}
-                        <div class="token-card">
-                            <div class="token-header">
-                                <div class="token-id">ID: {{ token.id|truncatechars:8 }}...</div>
-                                <div class="token-status 
-                                    {% if token.is_valid %}status-active
-                                    {% elif token.is_expired %}status-expired
-                                    {% elif token.usado %}status-used
-                                    {% endif %}">
-                                    {% if token.is_valid %}
-                                        ✅ Activo
-                                    {% elif token.is_expired %}
-                                        ⏰ Expirado
-                                    {% elif token.usado %}
-                                        ✅ Usado
-                                    {% else %}
-                                        ❌ Inactivo
-                                    {% endif %}
+                        <div class="rounded-lg border border-neutral-200 bg-white p-6 transition hover:shadow-sm">
+                            <!-- Token Header -->
+                            <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate font-mono text-sm text-slate-600">
+                                        ID: <span class="font-medium text-slate-900">{{ token.id|truncatechars:8 }}</span>
+                                    </p>
+                                </div>
+                                
+                                <div class="flex flex-shrink-0 items-center gap-2">
+                                    <span class="inline-block rounded-full px-3 py-1 text-xs font-medium {% if token.is_valid %}bg-green-100 text-green-700{% elif token.is_expired %}bg-red-100 text-red-700{% elif token.usado %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                                        {% if token.is_valid %}
+                                            Activo
+                                        {% elif token.is_expired %}
+                                            Expirado
+                                        {% elif token.usado %}
+                                            Usado
+                                        {% else %}
+                                            Inactivo
+                                        {% endif %}
+                                    </span>
                                 </div>
                             </div>
-                            
-                            <div class="token-info">
-                                <div class="info-item">
-                                    <div class="info-label">Clínico</div>
-                                    <div class="info-value">{{ token.clinico.nombre }} {{ token.clinico.apellido }}</div>
+
+                            <!-- Token Info Grid -->
+                            <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                <div>
+                                    <p class="text-xs font-medium uppercase text-slate-500">Clínico</p>
+                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.clinico.nombre }} {{ token.clinico.apellido }}</p>
                                 </div>
-                                
-                                <div class="info-item">
-                                    <div class="info-label">Fecha de Creación</div>
-                                    <div class="info-value">{{ token.fecha_creacion|date:"d/m/Y H:i" }}</div>
+
+                                <div>
+                                    <p class="text-xs font-medium uppercase text-slate-500">Creado</p>
+                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.fecha_creacion|date:"d/m/Y H:i" }}</p>
                                 </div>
-                                
-                                <div class="info-item">
-                                    <div class="info-label">Fecha de Expiración</div>
-                                    <div class="info-value">{{ token.fecha_expiracion|date:"d/m/Y H:i" }}</div>
+
+                                <div>
+                                    <p class="text-xs font-medium uppercase text-slate-500">Expira</p>
+                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.fecha_expiracion|date:"d/m/Y H:i" }}</p>
                                 </div>
-                                
+
                                 {% if token.paciente_asociado %}
-                                <div class="info-item">
-                                    <div class="info-label">Paciente Asociado</div>
-                                    <div class="info-value">{{ token.paciente_asociado.nombre }} {{ token.paciente_asociado.apellido }}</div>
+                                <div>
+                                    <p class="text-xs font-medium uppercase text-slate-500">Paciente</p>
+                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.paciente_asociado.nombre }} {{ token.paciente_asociado.apellido }}</p>
                                 </div>
                                 {% endif %}
                             </div>
-                            
-                            <div class="token-actions">
+
+                            <!-- Token Actions -->
+                            <div class="flex flex-wrap gap-2">
                                 {% if token.is_valid %}
-                                    <a href="{% url 'descargar_qr' token.id %}" class="btn btn-primary">
-                                        📥 Descargar QR
+                                    <a href="{% url 'descargar_qr' token.id %}" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
+                                        Descargar QR
                                     </a>
-                                    <a href="{% url 'formulario_publico' token.id %}" class="btn btn-success" target="_blank">
-                                        🔗 Ver Formulario
+                                    <a href="{% url 'formulario_publico' token.id %}" target="_blank" class="inline-flex items-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200">
+                                        Ver Formulario
                                     </a>
-                                    <a href="{% url 'desactivar_token' token.id %}" class="btn btn-danger" 
-                                       onclick="return confirm('¿Está seguro de desactivar este token?')">
-                                        🚫 Desactivar
+                                    <button onclick="copyUrl('url-{{ token.id }}'); return false;" class="inline-flex items-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200">
+                                        Copiar URL
+                                    </button>
+                                    <a href="{% url 'desactivar_token' token.id %}" class="inline-flex items-center rounded-lg bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200" onclick="return confirm('¿Desactivar este token?')">
+                                        Desactivar
                                     </a>
                                 {% elif token.usado %}
-                                    <span class="btn btn-success">✅ Completado</span>
+                                    <span class="inline-flex items-center rounded-lg bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
+                                        Completado
+                                    </span>
                                 {% else %}
-                                    <span class="btn" style="background: #6c757d; color: white;">❌ No disponible</span>
+                                    <span class="inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
+                                        No disponible
+                                    </span>
                                 {% endif %}
                             </div>
-                            
+
+                            <!-- URL Copy Section -->
                             {% if token.is_valid %}
-                            <div class="url-section" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #28a745;">
-                                <h4 style="color: #28a745; margin-bottom: 10px;">🔗 URL del Formulario Público:</h4>
-                                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                    <input type="text" id="url-{{ token.id }}" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'formulario_publico' token.id %}" 
-                                           readonly style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; font-size: 14px;">
-                                    <button onclick="copyUrl('url-{{ token.id }}')" class="btn btn-primary" style="padding: 8px 12px; font-size: 12px;">
-                                        📋 Copiar
+                            <div class="mt-4 rounded-lg border-l-4 border-green-500 bg-green-50 p-4">
+                                <p class="mb-3 text-xs font-medium uppercase text-green-700">URL del Formulario</p>
+                                <div class="flex gap-2">
+                                    <input type="text" id="url-{{ token.id }}" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'formulario_publico' token.id %}" readonly class="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-mono text-slate-600">
+                                    <button onclick="copyUrl('url-{{ token.id }}'); return false;" class="rounded-lg bg-green-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-green-700">
+                                        Copiar
                                     </button>
-                                    <a href="{% url 'formulario_publico' token.id %}" target="_blank" class="btn btn-success" style="padding: 8px 12px; font-size: 12px;">
-                                        🔗 Abrir
-                                    </a>
                                 </div>
-                                <p style="margin-top: 10px; font-size: 12px; color: #666;">
-                                    💡 <strong>Para probar:</strong> Copia esta URL y ábrela en una nueva pestaña o en tu celular
-                                </p>
                             </div>
                             {% endif %}
                         </div>
                     {% endfor %}
                 </div>
-            {% else %}
-                <div class="alert alert-info">
-                    <strong>ℹ️ No hay tokens activos</strong><br>
-                    Genere un nuevo código QR para comenzar a recibir formularios de pacientes.
-                </div>
-            {% endif %}
-        </div>
-    </div>
-    
+            </section>
+        {% else %}
+            <div class="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-6">
+                <p class="text-sm text-blue-900">
+                    <span class="font-medium">No hay tokens activos.</span> Crea uno nuevo para comenzar a recibir formularios de pacientes.
+                </p>
+            </div>
+        {% endif %}
+    </main>
+
     <script>
         function copyUrl(inputId) {
             const input = document.getElementById(inputId);
             input.select();
-            input.setSelectionRange(0, 99999); // Para dispositivos móviles
+            input.setSelectionRange(0, 99999);
             
-            try {
-                document.execCommand('copy');
-                // Cambiar el texto del botón temporalmente
-                const button = input.nextElementSibling;
-                const originalText = button.innerHTML;
-                button.innerHTML = '✅ Copiado!';
-                button.style.background = '#28a745';
+            navigator.clipboard.writeText(input.value).then(() => {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = 'Copiado!';
+                button.classList.add('bg-green-700');
                 
                 setTimeout(() => {
-                    button.innerHTML = originalText;
-                    button.style.background = '#667eea';
+                    button.textContent = originalText;
+                    button.classList.remove('bg-green-700');
                 }, 2000);
-            } catch (err) {
-                // Fallback para navegadores que no soportan execCommand
-                navigator.clipboard.writeText(input.value).then(() => {
-                    const button = input.nextElementSibling;
-                    const originalText = button.innerHTML;
-                    button.innerHTML = '✅ Copiado!';
-                    button.style.background = '#28a745';
-                    
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.style.background = '#667eea';
-                    }, 2000);
-                }).catch(() => {
-                    alert('No se pudo copiar automáticamente. Selecciona el texto y cópialo manualmente.');
-                });
-            }
-        }
-        
-        // Función para obtener la IP local (para pruebas en dispositivos móviles)
-        function getLocalIP() {
-            // Esta función se puede usar para mostrar la IP local en lugar de localhost
-            return window.location.hostname;
+            }).catch(() => {
+                alert('No se pudo copiar. Intenta de nuevo.');
+            });
         }
     </script>
 </body>

@@ -663,7 +663,7 @@ def renderizar_cuestionarioScrening(request):
     """Vista corregida para Cuestionario Screening"""
     handler = BaseEvaluacionHandler(request)
 
-    if not handler.validar_sesion(requiere_admin=True):
+    if not handler.validar_sesion(requiere_admin=False):
         return handler.redirect_to_login()
 
     paciente = handler.obtener_paciente()
