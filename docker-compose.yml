@@ -8,12 +8,17 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: my_database
-      MYSQL_USER: django_user        # Cambiado de root a django_user
+      MYSQL_USER: django_user
       MYSQL_PASSWORD: my_password
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "django_user", "-pmy_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   web:
     build:
@@ -22,11 +27,17 @@ services:
     container_name: django_app
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8000:8000"
     environment:
       DJANGO_SETTINGS_MODULE: ProyectoMainAPP.settings
+      DB_HOST: db
+      DB_NAME: my_database
+      DB_USER: django_user
+      DB_PASSWORD: my_password
+      DB_PORT: "3306"
     volumes:
       - .:/app
 
