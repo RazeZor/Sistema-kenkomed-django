@@ -85,9 +85,8 @@ def RenderInforme(request):
 def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, hora_levantarse):
     """
     Recibe los 5 campos del formulario de sueño como strings.
-    Devuelve un bloque HTML con observaciones para el kinesiólogo.
+    Devuelve un diccionario con observaciones estructuradas.
     """
-
     try:
         mensajes = []
 
@@ -115,29 +114,26 @@ def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, h
 
         # --- Resultado final ---
         if not mensajes:
-            return (
-                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>El paciente no presenta dificultades relevantes para dormir.</label>'
-                '</div>'
-            )
+            return {
+                'status': 'success',
+                'title': 'Sueño sin Dificultades',
+                'message': 'El paciente no presenta dificultades relevantes para dormir.',
+                'items': []
+            }
         else:
-            lista = "".join([f"<li>{m}</li>" for m in mensajes])
-            return (
-                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #ffeeba;">'
-                '<label><strong>Observaciones sobre el sueño:</strong></label>'
-                f'<ul>{lista}</ul>'
-                '</div>'
-            )
+            return {
+                'status': 'warning',
+                'title': 'Observaciones sobre el Sueño',
+                'items': mensajes
+            }
 
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al procesar el formulario de sueño: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Procesamiento',
+            'message': f'Error al procesar el formulario de sueño: {str(e)}',
+            'items': []
+        }
 
 
 
@@ -148,7 +144,6 @@ def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, h
 def Neuropaticas(caracteristicasDolor):
     """
     Evalúa las características del dolor para detectar posibles componentes neuropáticos.
-    Devuelve un bloque HTML con observaciones detalladas para el kinesiólogo.
     """
     try:
         caracteristicas_neuropaticas = {
@@ -163,38 +158,32 @@ def Neuropaticas(caracteristicasDolor):
         for caracteristica in caracteristicasDolor:
             if caracteristica in caracteristicas_neuropaticas:
                 caracteristicas_detectadas.append(
-                    f"<li><strong>{caracteristica.capitalize()}:</strong> {caracteristicas_neuropaticas[caracteristica]}</li>"
+                    f"{caracteristica.capitalize()}: {caracteristicas_neuropaticas[caracteristica]}"
                 )
         
         if caracteristicas_detectadas:
-            lista_caracteristicas = "".join(caracteristicas_detectadas)
-            return (
-                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #ffeeba;">'
-                '<label><strong>⚠️ Posible componente neuropático del dolor</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;">Se detectaron las siguientes características neuropáticas:</label>'
-                f'<ul style="margin: 8px 0;">{lista_caracteristicas}</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Recomendación:</strong> '
-                'Aplicar la Escala DN4 (Douleur Neuropathique 4) para confirmar el diagnóstico de dolor neuropático. '
-                'Esta escala validada permite diferenciar el dolor neuropático del nociceptivo mediante 10 ítems '
-                '(7 relacionados con síntomas y 3 con el examen físico). Un puntaje ≥4/10 sugiere dolor neuropático.</label>'
-                '</div>'
-            )
+            return {
+                'status': 'warning',
+                'title': 'Posible componente neuropático del dolor',
+                'message': 'Se detectaron las siguientes características neuropáticas:',
+                'items': caracteristicas_detectadas,
+                'recommendation': 'Aplicar la Escala DN4 (Douleur Neuropathique 4) para confirmar el diagnóstico de dolor neuropático. Esta escala validada permite diferenciar el dolor neuropático del nociceptivo mediante 10 ítems (7 relacionados con síntomas y 3 con el examen físico). Un puntaje ≥4/10 sugiere dolor neuropático.'
+            }
         
-        return (
-            '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #c3e6cb;">'
-            '<label>No se detectaron características de dolor neuropático en las respuestas del paciente.</label>'
-            '</div>'
-        )
+        return {
+            'status': 'success',
+            'title': 'Dolor Nociceptivo',
+            'message': 'No se detectaron características de dolor neuropático en las respuestas del paciente.',
+            'items': []
+        }
     
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al evaluar características del dolor: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Evaluación',
+            'message': f'Error al evaluar características del dolor: {str(e)}',
+            'items': []
+        }
 
 
 def condicionesSalud(condicionesSalud):
@@ -241,44 +230,30 @@ def condicionesSalud(condicionesSalud):
         for condicion in condicionesSalud:
             if condicion in recomendaciones_detalladas:
                 info = recomendaciones_detalladas[condicion]
-                condiciones_detectadas.append(
-                    f'<li style="margin-bottom: 12px;">'
-                    f'<strong>{info["titulo"]}:</strong><br>'
-                    f'<span style="margin-left: 15px; display: block; margin-top: 4px;">'
-                    f'• <em>Contexto:</em> {info["razon"]}<br>'
-                    f'• <em>Herramienta recomendada:</em> {info["herramienta"]}<br>'
-                    f'• <em>Justificación:</em> {info["justificacion"]}'
-                    f'</span>'
-                    f'</li>'
-                )
+                condiciones_detectadas.append(info)
         
         if condiciones_detectadas:
-            lista_condiciones = "".join(condiciones_detectadas)
-            return (
-                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #ffeeba;">'
-                '<label><strong>📋 Evaluaciones complementarias recomendadas</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;">'
-                f'Se detectaron {len(condiciones_detectadas)} condición(es) de salud que requieren evaluación específica:'
-                '</label>'
-                f'<ul style="margin: 10px 0; list-style-type: none; padding-left: 0;">{lista_condiciones}</ul>'
-                '</div>'
-            )
+            return {
+                'status': 'warning',
+                'title': 'Evaluaciones complementarias recomendadas',
+                'message': f'Se detectaron {len(condiciones_detectadas)} condición(es) de salud que requieren evaluación específica:',
+                'items': condiciones_detectadas
+            }
         
-        return (
-            '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #c3e6cb;">'
-            '<label>No se detectaron condiciones de salud que requieran evaluaciones complementarias específicas.</label>'
-            '</div>'
-        )
+        return {
+            'status': 'success',
+            'title': 'Condiciones de Salud Estables',
+            'message': 'No se detectaron condiciones de salud que requieran evaluaciones complementarias específicas.',
+            'items': []
+        }
     
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al evaluar condiciones de salud: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Evaluación',
+            'message': f'Error al evaluar condiciones de salud: {str(e)}',
+            'items': []
+        }
 
 def CreenciaDolor(CreenciaDolor):
     """
@@ -287,50 +262,33 @@ def CreenciaDolor(CreenciaDolor):
     """
     try:
         if CreenciaDolor == 'si':
-            return (
-                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #ffeeba;">'
-                '<label><strong>⚠️ Creencia de dolor no diagnosticado</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;">'
-                '<strong>Hallazgo:</strong> El paciente cree que tiene un problema de salud o dolor que no ha sido diagnosticado.'
-                '</label>'
-                '<label style="margin-top: 8px; display: block;">'
-                '<strong>Implicación clínica:</strong> Esta creencia puede indicar catastrofización del dolor, '
-                'un proceso cognitivo-afectivo caracterizado por magnificación de la amenaza del dolor, '
-                'rumiación y sensación de impotencia. La catastrofización se asocia con:'
-                '</label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li>Mayor intensidad del dolor percibido</li>'
-                '<li>Peor respuesta al tratamiento</li>'
-                '<li>Mayor discapacidad funcional</li>'
-                '<li>Riesgo de cronificación del dolor</li>'
-                '</ul>'
-                '<label style="margin-top: 8px; display: block;">'
-                '<strong>Herramienta recomendada:</strong> Pain Catastrophizing Scale (PCS)'
-                '</label>'
-                '<label style="margin-top: 4px; display: block;">'
-                '<strong>Justificación:</strong> La PCS es un cuestionario validado de 13 ítems que evalúa tres dimensiones '
-                'de la catastrofización: rumiación, magnificación e impotencia. Un puntaje ≥30 indica catastrofización clínicamente '
-                'significativa que requiere intervención cognitivo-conductual.'
-                '</label>'
-                '</div>'
-            )
+            return {
+                'status': 'warning',
+                'title': 'Creencia de dolor no diagnosticado',
+                'message': 'El paciente cree que tiene un problema de salud o dolor que no ha sido diagnosticado.',
+                'implication': 'Esta creencia puede indicar catastrofización del dolor, un proceso cognitivo-afectivo caracterizado por magnificación de la amenaza del dolor, rumiación y sensación de impotencia. La catastrofización se asocia con:',
+                'bullets': [
+                    'Mayor intensidad del dolor percibido',
+                    'Peor respuesta al tratamiento',
+                    'Mayor discapacidad funcional',
+                    'Riesgo de cronificación del dolor'
+                ],
+                'recommendation': 'Pain Catastrophizing Scale (PCS)',
+                'justification': 'La PCS es un cuestionario validado de 13 ítems que evalúa tres dimensiones de la catastrofización: rumiación, magnificación e impotencia. Un puntaje ≥30 indica catastrofización clínicamente significativa que requiere intervención cognitivo-conductual.'
+            }
         else:
-            return (
-                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label>El paciente no manifiesta creencias de dolor no diagnosticado, lo que sugiere una '
-                'percepción más realista de su condición.</label>'
-                '</div>'
-            )
+            return {
+                'status': 'success',
+                'title': 'Percepción Realista',
+                'message': 'El paciente no manifiesta creencias de dolor no diagnosticado, lo que sugiere una percepción más realista de su condición.'
+            }
     
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al evaluar creencias sobre el dolor: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Evaluación',
+            'message': f'Error al evaluar creencias sobre el dolor: {str(e)}'
+        }
 
 
 def Respuesta_evitativo_persistente(respuestas):
@@ -357,16 +315,11 @@ def Respuesta_evitativo_persistente(respuestas):
         
         # Si no hay respuestas válidas
         if total_respuestas == 0:
-            return (
-                '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #d6d8db;">'
-                '<label><strong>Sin datos suficientes</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;">'
-                'No se detectaron respuestas válidas para evaluar el patrón de conducta ante el dolor. '
-                'Se recomienda completar el cuestionario de conductas evitativas/persistentes.'
-                '</label>'
-                '</div>'
-            )
+            return {
+                'status': 'info',
+                'title': 'Sin datos suficientes',
+                'message': 'No se detectaron respuestas válidas para evaluar el patrón de conducta ante el dolor. Se recomienda completar el cuestionario de conductas evitativas/persistentes.'
+            }
 
         # Calcular porcentajes
         porcentaje_evitativo = round((evitativo / total_respuestas) * 100, 1)
@@ -376,114 +329,90 @@ def Respuesta_evitativo_persistente(respuestas):
         if evitativo > persistente:
             diferencia = evitativo - persistente
             nivel = "marcada" if diferencia >= 3 else "leve"
-            return (
-                '<div style="background-color: #fff3cd; color: #856404; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #ffeeba;">'
-                f'<label><strong>⚠️ Conducta predominantemente EVITATIVA ({nivel})</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
-                f'<ul style="margin: 8px 0 8px 20px;">'
-                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
-                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
-                f'<li>Diferencia: {diferencia} respuestas a favor de evitación</li>'
-                f'</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
-                '<label style="margin-top: 4px; display: block;">'
-                'El paciente presenta un patrón de <strong>kinesiofobia</strong> (miedo al movimiento), '
-                'caracterizado por evitación de actividades que podrían causar dolor. Este comportamiento:'
-                '</label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li>Reduce la capacidad funcional progresivamente</li>'
-                '<li>Aumenta el desacondicionamiento físico</li>'
-                '<li>Perpetúa el ciclo miedo-evitación-discapacidad</li>'
-                '<li>Puede llevar a aislamiento social y depresión</li>'
-                '</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li><strong>Exposición gradual:</strong> Programa de reactivación progresiva con jerarquía de actividades temidas</li>'
-                '<li><strong>Educación en neurociencia del dolor:</strong> Explicar mecanismos del dolor para reducir el miedo</li>'
-                '<li><strong>Reestructuración cognitiva:</strong> Modificar creencias catastróficas sobre el movimiento</li>'
-                '<li><strong>Establecer metas funcionales:</strong> Objetivos realistas y medibles de actividad</li>'
-                '<li><strong>Considerar aplicar:</strong> Tampa Scale of Kinesiophobia (TSK) para cuantificar el miedo al movimiento</li>'
-                '</ul>'
-                '</div>'
-            )
+            return {
+                'status': 'warning',
+                'title': f'Conducta predominantemente EVITATIVA ({nivel})',
+                'stats': [
+                    f'Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)',
+                    f'Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)',
+                    f'Diferencia: {diferencia} respuestas a favor de evitación'
+                ],
+                'interpretation': 'El paciente presenta un patrón de kinesiofobia (miedo al movimiento), caracterizado por evitación de actividades que podrían causar dolor. Este comportamiento:',
+                'bullets': [
+                    'Reduce la capacidad funcional progresivamente',
+                    'Aumenta el desacondicionamiento físico',
+                    'Perpetúa el ciclo miedo-evitación-discapacidad',
+                    'Puede llevar a aislamiento social y depresión'
+                ],
+                'recommendations': [
+                    'Exposición gradual: Programa de reactivación progresiva con jerarquía de actividades temidas',
+                    'Educación en neurociencia del dolor: Explicar mecanismos del dolor para reducir el miedo',
+                    'Reestructuración cognitiva: Modificar creencias catastróficas sobre el movimiento',
+                    'Establecer metas funcionales: Objetivos realistas y medibles de actividad',
+                    'Considerar aplicar: Tampa Scale of Kinesiophobia (TSK) para cuantificar el miedo al movimiento'
+                ]
+            }
         
         # Conducta predominantemente persistente
         elif persistente > evitativo:
             diferencia = persistente - evitativo
             nivel = "marcada" if diferencia >= 3 else "leve"
-            return (
-                '<div style="background-color: #f8d7da; color: #721c24; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #f5c6cb;">'
-                f'<label><strong>🔴 Conducta predominantemente PERSISTENTE ({nivel})</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
-                f'<ul style="margin: 8px 0 8px 20px;">'
-                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
-                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
-                f'<li>Diferencia: {diferencia} respuestas a favor de persistencia</li>'
-                f'</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
-                '<label style="margin-top: 4px; display: block;">'
-                'El paciente presenta un patrón de <strong>sobreactividad</strong> o <strong>endurance</strong>, '
-                'caracterizado por ignorar las señales de dolor y continuar con actividades hasta el agotamiento. Este comportamiento:'
-                '</label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li>Genera ciclos de sobreactividad seguidos de colapso ("boom-bust")</li>'
-                '<li>Aumenta la inflamación y el daño tisular</li>'
-                '<li>Prolonga los períodos de recuperación</li>'
-                '<li>Dificulta la percepción de límites corporales</li>'
-                '</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li><strong>Pacing (dosificación de actividades):</strong> Enseñar a distribuir actividades en el tiempo</li>'
-                '<li><strong>Reconocimiento de señales corporales:</strong> Entrenar en identificación temprana de fatiga/dolor</li>'
-                '<li><strong>Establecer límites realistas:</strong> Definir umbrales de actividad sostenibles</li>'
-                '<li><strong>Técnica de los "bloques de tiempo":</strong> Alternar períodos de actividad y descanso programados</li>'
-                '<li><strong>Mindfulness:</strong> Mejorar la conciencia corporal y aceptación de limitaciones</li>'
-                '<li><strong>Prevenir recaídas:</strong> Identificar triggers de sobreexigencia (perfeccionismo, presión social)</li>'
-                '</ul>'
-                '</div>'
-            )
+            return {
+                'status': 'danger',
+                'title': f'Conducta predominantemente PERSISTENTE ({nivel})',
+                'stats': [
+                    f'Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)',
+                    f'Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)',
+                    f'Diferencia: {diferencia} respuestas a favor de persistencia'
+                ],
+                'interpretation': 'El paciente presenta un patrón de sobreactividad o endurance, caracterizado por ignorar las señales de dolor y continuar con actividades hasta el agotamiento. Este comportamiento:',
+                'bullets': [
+                    'Genera ciclos de sobreactividad seguidos de colapso ("boom-bust")',
+                    'Aumenta la inflamación y el daño tisular',
+                    'Prolonga los períodos de recuperación',
+                    'Dificulta la percepción de límites corporales'
+                ],
+                'recommendations': [
+                    'Pacing (dosificación de actividades): Enseñar a distribuir actividades en el tiempo',
+                    'Reconocimiento de señales corporales: Entrenar en identificación temprana de fatiga/dolor',
+                    'Establecer límites realistas: Definir umbrales de actividad sostenibles',
+                    'Técnica de los "bloques de tiempo": Alternar períodos de actividad y descanso programados',
+                    'Mindfulness: Mejorar la conciencia corporal y aceptación de limitaciones',
+                    'Prevenir recaídas: Identificar triggers de sobreexigencia (perfeccionismo, presión social)'
+                ]
+            }
         
         # Conducta equilibrada (empate)
         else:
-            return (
-                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #c3e6cb;">'
-                f'<label><strong>✅ Conducta EQUILIBRADA</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;"><strong>Análisis cuantitativo:</strong></label>'
-                f'<ul style="margin: 8px 0 8px 20px;">'
-                f'<li>Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)</li>'
-                f'<li>Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)</li>'
-                f'<li>Distribución: Equilibrio perfecto entre ambos patrones</li>'
-                f'</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Interpretación clínica:</strong></label>'
-                '<label style="margin-top: 4px; display: block;">'
-                'El paciente muestra un <strong>patrón adaptativo</strong> de respuesta al dolor, con capacidad para:'
-                '</label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li>Ajustar su nivel de actividad según las señales corporales</li>'
-                '<li>Mantener un balance entre actividad y descanso</li>'
-                '<li>Evitar tanto la kinesiofobia como la sobreexigencia</li>'
-                '<li>Demostrar flexibilidad conductual</li>'
-                '</ul>'
-                '<label style="margin-top: 8px; display: block;"><strong>Recomendaciones terapéuticas:</strong></label>'
-                '<ul style="margin: 8px 0 8px 20px;">'
-                '<li><strong>Reforzar estrategias actuales:</strong> El paciente ya utiliza un enfoque adaptativo</li>'
-                '<li><strong>Mantener autorregulación:</strong> Continuar con el automonitoreo de síntomas</li>'
-                '<li><strong>Prevención de recaídas:</strong> Identificar situaciones que puedan alterar este equilibrio</li>'
-                '<li><strong>Optimizar funcionalidad:</strong> Trabajar en incremento gradual de capacidades dentro del equilibrio</li>'
-                '</ul>'
-                '</div>'
-            )
+            return {
+                'status': 'success',
+                'title': 'Conducta EQUILIBRADA',
+                'stats': [
+                    f'Respuestas evitativas: {evitativo} de {total_respuestas} ({porcentaje_evitativo}%)',
+                    f'Respuestas persistentes: {persistente} de {total_respuestas} ({porcentaje_persistente}%)',
+                    'Distribución: Equilibrio perfecto entre ambos patrones'
+                ],
+                'interpretation': 'El paciente muestra un patrón adaptativo de respuesta al dolor, con capacidad para:',
+                'bullets': [
+                    'Ajustar su nivel de actividad según las señales corporales',
+                    'Mantener un balance entre actividad y descanso',
+                    'Evitar tanto la kinesiofobia como la sobreexigencia',
+                    'Demostrar flexibilidad conductual'
+                ],
+                'recommendations': [
+                    'Reforzar estrategias actuales: El paciente ya utiliza un enfoque adaptativo',
+                    'Mantener autorregulación: Continuar con el automonitoreo de síntomas',
+                    'Prevención de recaídas: Identificar situaciones que puedan alterar este equilibrio',
+                    'Optimizar funcionalidad: Trabajar en incremento gradual de capacidades dentro del equilibrio'
+                ]
+            }
     
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al evaluar patrón de conducta: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Evaluación',
+            'message': f'Error al evaluar patrón de conducta: {str(e)}'
+        }
 
 
 def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapida):
@@ -588,75 +517,37 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
         
         # --- Generar reporte final ---
         if not observaciones:
-            return (
-                '<div style="background-color: #d4edda; color: #155724; padding: 15px; '
-                'border-radius: 5px; border: 1px solid #c3e6cb;">'
-                '<label><strong>✅ Determinantes Sociales de Salud - Perfil favorable</strong></label><br>'
-                '<label style="margin-top: 8px; display: block;">'
-                'El paciente presenta un perfil de estilo de vida favorable sin factores de riesgo significativos identificados '
-                'en las áreas evaluadas (percepción de salud, sueño, peso y alimentación).'
-                '</label>'
-                '<label style="margin-top: 8px; display: block;"><strong>Recomendación:</strong> '
-                'Reforzar hábitos saludables actuales y mantener seguimiento preventivo.'
-                '</label>'
-                '</div>'
-            )
+            return {
+                'status': 'success',
+                'title': 'Análisis de Determinantes Sociales de Salud',
+                'nivel': 'Perfil favorable',
+                'message': 'El paciente presenta un perfil de estilo de vida favorable sin factores de riesgo significativos identificados en las áreas evaluadas (percepción de salud, sueño, peso y alimentación).',
+                'recommendation': 'Reforzar hábitos saludables actuales y mantener seguimiento preventivo.',
+                'observaciones': []
+            }
         
-        # Determinar color según nivel de riesgo
         if nivel_riesgo == "alto":
-            bg_color = "#f8d7da"
-            border_color = "#f5c6cb"
-            text_color = "#721c24"
-            icono = "🔴"
+            status = 'danger'
             titulo_riesgo = "ALTO RIESGO"
         elif nivel_riesgo == "moderado":
-            bg_color = "#fff3cd"
-            border_color = "#ffeeba"
-            text_color = "#856404"
-            icono = "⚠️"
+            status = 'warning'
             titulo_riesgo = "RIESGO MODERADO"
         else:
-            bg_color = "#d1ecf1"
-            border_color = "#bee5eb"
-            text_color = "#0c5460"
-            icono = "ℹ️"
+            status = 'info'
             titulo_riesgo = "RIESGO BAJO"
         
-        # Construir lista de observaciones
-        lista_observaciones = ""
-        for obs in observaciones:
-            lista_observaciones += (
-                f'<li style="margin-bottom: 15px; border-left: 3px solid {border_color}; padding-left: 10px;">'
-                f'<strong>{obs["categoria"]}</strong><br>'
-                f'<span style="margin-left: 0px; display: block; margin-top: 6px;">'
-                f'• <em>Hallazgo:</em> {obs["hallazgo"]}<br>'
-                f'• <em>Implicación clínica:</em> {obs["implicacion"]}<br>'
-                f'• <em>Recomendación:</em> {obs["recomendacion"]}'
-                f'</span>'
-                f'</li>'
-            )
-        
-        return (
-            f'<div style="background-color: {bg_color}; color: {text_color}; padding: 15px; '
-            f'border-radius: 5px; border: 1px solid {border_color};">'
-            f'<label><strong>{icono} Análisis de Determinantes Sociales de Salud - {titulo_riesgo}</strong></label><br>'
-            '<label style="margin-top: 8px; display: block;">'
-            f'Se identificaron <strong>{len(observaciones)} área(s) de preocupación</strong> relacionadas con el estilo de vida '
-            'que pueden impactar el pronóstico y la respuesta al tratamiento:'
-            '</label>'
-            f'<ul style="margin: 10px 0; list-style-type: none; padding-left: 0;">{lista_observaciones}</ul>'
-            '<label style="margin-top: 12px; display: block; background-color: rgba(255,255,255,0.3); padding: 10px; border-radius: 3px;">'
-            '<strong>📌 Nota clínica:</strong> Los determinantes sociales de salud (DSS) son factores no médicos que influyen '
-            'significativamente en los resultados de salud. Abordar estos factores mediante intervenciones multidisciplinarias '
-            'puede mejorar sustancialmente el pronóstico del paciente.'
-            '</label>'
-            '</div>'
-        )
+        return {
+            'status': status,
+            'title': f'Análisis de Determinantes Sociales de Salud',
+            'nivel': titulo_riesgo,
+            'message': f'Se identificaron {len(observaciones)} área(s) de preocupación relacionadas con el estilo de vida que pueden impactar el pronóstico y la respuesta al tratamiento:',
+            'observaciones': observaciones,
+            'note': 'Los determinantes sociales de salud (DSS) son factores no médicos que influyen significativamente en los resultados de salud. Abordar estos factores mediante intervenciones multidisciplinarias puede mejorar sustancialmente el pronóstico del paciente.'
+        }
     
     except Exception as e:
-        return (
-            '<div style="background-color: #e2e3e5; color: #383d41; padding: 15px; '
-            'border-radius: 5px; border: 1px solid #d6d8db;">'
-            f'<label>Error al evaluar determinantes sociales de salud: {str(e)}</label>'
-            '</div>'
-        )
+        return {
+            'status': 'error',
+            'title': 'Error de Evaluación',
+            'message': f'Error al evaluar determinantes sociales de salud: {str(e)}'
+        }
