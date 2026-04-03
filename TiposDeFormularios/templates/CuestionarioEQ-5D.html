@@ -5,15 +5,24 @@
 
 {% block extra_css %}
     <style>
-        /* Termómetro simplificado */
+        /* Termómetro - wrapper externo para que el bulbo sea visible */
+        .thermometer-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 30px; /* espacio para el bulbo */
+            position: relative;
+        }
+
         .thermometer {
             width: 40px;
             height: 250px;
             background: #f1f5f9;
-            border-radius: 20px;
+            border-radius: 20px 20px 0 0;
             position: relative;
-            overflow: hidden;
+            overflow: hidden;  /* solo afecta al tubo, no al bulbo */
             border: 2px solid #e2e8f0;
+            border-bottom: none;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
         
@@ -21,23 +30,23 @@
             position: absolute;
             bottom: 0;
             width: 100%;
-            background: linear-gradient(to top, #dc2626, #f59e0b, #059669);
-            transition: height 0.3s ease;
-            border-radius: 0 0 20px 20px;
+            background: linear-gradient(to top, #dc2626, #f59e0b, #22c55e);
+            transition: height 0.4s cubic-bezier(.4,0,.2,1);
+            border-radius: 0;
         }
         
+        /* Bulbo debajo del tubo, fuera del overflow:hidden */
         .thermometer-bulb {
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 60px;
+            width: 52px;
+            height: 52px;
             background: #dc2626;
             border-radius: 50%;
-            z-index: 1;
             border: 4px solid white;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15);
+            margin-top: -2px;
+            transition: background 0.4s ease;
+            z-index: 2;
+            position: relative;
         }
 
         .thermometer-marks {
@@ -341,7 +350,7 @@
                         </h3>
                         <div class="flex items-center space-x-6">
                             <!-- Termómetro lateral -->
-                            <div class="flex flex-col items-center">
+                            <div class="thermometer-wrapper">
                                 <div class="text-xs text-gray-500 font-bold mb-1">100</div>
                                 <div class="thermometer">
                                     <div class="thermometer-marks">
@@ -357,9 +366,10 @@
                                         <div class="thermometer-mark"></div>
                                     </div>
                                     <div class="thermometer-fill" id="thermometerFill" style="height: 50%"></div>
-                                    <div class="thermometer-bulb"></div>
                                 </div>
-                                <div class="text-xs text-gray-500 font-bold mt-4">0</div>
+                                <!-- Bulbo fuera del overflow:hidden -->
+                                <div class="thermometer-bulb" id="thermometerBulb"></div>
+                                <div class="text-xs text-gray-500 font-bold mt-2">0</div>
                             </div>
 
                             <!-- Slider y Valor -->
@@ -510,15 +520,24 @@
     const vasSlider = document.getElementById('vasSlider');
     const vasValue = document.getElementById('vasValue');
     const thermometerFill = document.getElementById('thermometerFill');
+    const thermometerBulb = document.getElementById('thermometerBulb');
 
     function updateThermometer() {
-        const val = vasSlider.value;
+        const val = parseInt(vasSlider.value);
         vasValue.textContent = val;
-        thermometerFill.style.height = val + '%';
-        
-        // Efecto visual según el nivel
-        let color1 = '#dc2626', color2 = '#f59e0b', color3 = '#059669';
-        // Mantenemos el gradiente original CSS
+
+        // Altura del fill = porcentaje del tubo (0-100%)
+        const pct = Math.min(100, Math.max(0, val));
+        thermometerFill.style.height = pct + '%';
+
+        // Color del bulbo según el valor
+        if (val <= 33) {
+            thermometerBulb.style.background = '#dc2626'; // rojo
+        } else if (val <= 66) {
+            thermometerBulb.style.background = '#f59e0b'; // amarillo
+        } else {
+            thermometerBulb.style.background = '#22c55e'; // verde
+        }
     }
 
     vasSlider.addEventListener('input', updateThermometer);
