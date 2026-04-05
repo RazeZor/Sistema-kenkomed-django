@@ -755,11 +755,19 @@ def estadisticas(request):
     
     nombre_clinico = request.session['nombre_clinico']
     es_admin = request.session.get('es_admin', False)
-    
-    # Obtener todos los pacientes y formularios
-    pacientes = Paciente.objects.all()
-    formularios = formularioClinico.objects.all()
-    
+    rut_clinico = request.session.get('rut_clinico')
+
+    # Filtrar pacientes según si es admin o clínico normal
+    if es_admin:
+        pacientes = Paciente.objects.all()
+        formularios = formularioClinico.objects.all()
+    else:
+        clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
+        if not clinico_obj:
+            return redirect('login')
+        pacientes = Paciente.objects.filter(clinico=clinico_obj)
+        formularios = formularioClinico.objects.filter(paciente__clinico=clinico_obj)
+
     # === ESTADÍSTICAS GENERALES ===
     total_pacientes = pacientes.count()
     total_formularios = formularios.count()
