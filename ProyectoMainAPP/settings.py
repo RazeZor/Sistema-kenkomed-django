@@ -28,7 +28,10 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '.ngrok-free.app',  # Permite todos los subdominios de ngrok-free.app
     'localhost',
-    '127.0.0.1'
+    '127.0.0.1',
+    'software.kenkomed.cl',
+    'www.software.kenkomed.cl',
+    '*.trycloudflare.com',
 ]
 
 
@@ -147,6 +150,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CSRF_TRUSTED_ORIGINS = [
     'https://2695-2803-c600-8104-8392-89f9-6098-6dd5-84db.ngrok-free.app',
     # Para permitir cualquier subdominio de ngrok-free.app:
-    'https://*.ngrok-free.app'
+    'https://*.ngrok-free.app',
+    'https://software.kenkomed.cl',
+    'https://www.software.kenkomed.cl',
+    'https://*.trycloudflare.com',
 ]
 
