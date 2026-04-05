@@ -356,16 +356,16 @@
                                 
                                 <!-- Mini grid de dimensiones -->
                                 <div class="grid grid-cols-5 gap-1 pt-1">
-                                    {% include "partials/_barthel_badge.html" with score=sesion.comer max=10 label="Com" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.lavarse max=5 label="Lav" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.vestirse max=10 label="Ves" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.arreglarse max=5 label="Arr" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.deposiciones max=10 label="Dep" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.miccion max=10 label="Mic" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.usar_retrete max=10 label="Ret" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.trasladarse max=15 label="Tra" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.deambular max=15 label="Dea" %}
-                                    {% include "partials/_barthel_badge.html" with score=sesion.escalones max=10 label="Esc" %}
+                                    {% include "_barthel_badge.html" with score=sesion.comer max=10 label="Com" %}
+                                    {% include "_barthel_badge.html" with score=sesion.lavarse max=5 label="Lav" %}
+                                    {% include "_barthel_badge.html" with score=sesion.vestirse max=10 label="Ves" %}
+                                    {% include "_barthel_badge.html" with score=sesion.arreglarse max=5 label="Arr" %}
+                                    {% include "_barthel_badge.html" with score=sesion.deposiciones max=10 label="Dep" %}
+                                    {% include "_barthel_badge.html" with score=sesion.miccion max=10 label="Mic" %}
+                                    {% include "_barthel_badge.html" with score=sesion.usar_retrete max=10 label="Ret" %}
+                                    {% include "_barthel_badge.html" with score=sesion.trasladarse max=15 label="Tra" %}
+                                    {% include "_barthel_badge.html" with score=sesion.deambular max=15 label="Dea" %}
+                                    {% include "_barthel_badge.html" with score=sesion.escalones max=10 label="Esc" %}
                                 </div>
                             </div>
                             {% endfor %}

@@ -1,236 +1,213 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Códigos QR - Kenkomed</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base_kenkomed.html' %}
+{% load static %}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            @apply bg-neutral-50;
-        }
+{% block title %}Gestor QR | KenkoMed{% endblock %}
 
-        /* Minimalista color scheme for kinesiotherapy */
-        :root {
-            --primary: #1e293b;
-            --primary-light: #334155;
-            --accent: #0ea5e9;
-            --accent-light: #e0f2fe;
-            --success: #16a34a;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --neutral-bg: #f9fafb;
-            --border: #e5e7eb;
-        }
-    </style>
-</head>
-<body class="bg-neutral-50">
-    <!-- Header -->
-    <header class="sticky top-0 z-50 border-b border-neutral-200 bg-white">
-        <div class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-900">
-                        <span class="text-lg font-bold text-white">QR</span>
-                    </div>
-                    <h1 class="text-xl font-semibold text-slate-900">Gestor QR</h1>
+{% block header_title %}Gestor de Códigos QR{% endblock %}
+
+{% block header_actions %}
+<div class="flex items-center gap-3">
+    <div class="hidden md:flex flex-col text-right mr-2">
+        <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Módulo</span>
+        <span class="text-sm font-bold text-medical-blue flex items-center justify-end gap-1">
+            <i class='bx bx-qr-scan'></i> Formularios Remotos
+        </span>
+    </div>
+</div>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="mb-6 space-y-3">
+            {% for message in messages %}
+                <div class="rounded-lg border-l-4 px-4 py-3 shadow-sm flex items-center gap-3 {% if message.tags == 'error' %}border-red-500 bg-red-50 text-red-800{% elif message.tags == 'success' %}border-emerald-500 bg-emerald-50 text-emerald-800{% else %}border-medical-blue bg-blue-50 text-blue-800{% endif %}">
+                    {% if message.tags == 'error' %}<i class='bx bx-error-circle text-xl'></i>
+                    {% elif message.tags == 'success' %}<i class='bx bx-check-circle text-xl'></i>
+                    {% else %}<i class='bx bx-info-circle text-xl'></i>{% endif %}
+                    <p class="text-sm font-medium">{{ message }}</p>
                 </div>
-                <nav class="hidden text-sm text-slate-600 md:block">
-                    <span>Kinesiología</span>
-                </nav>
-            </div>
+            {% endfor %}
         </div>
-    </header>
+    {% endif %}
 
-    <!-- Main Content -->
-    <main class="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <!-- Messages -->
-        {% if messages %}
-            <div class="mb-6 space-y-3">
-                {% for message in messages %}
-                    <div class="rounded-lg border-l-4 px-4 py-3 {% if message.tags == 'error' %}border-red-500 bg-red-50 text-red-800{% elif message.tags == 'success' %}border-green-500 bg-green-50 text-green-800{% else %}border-blue-500 bg-blue-50 text-blue-800{% endif %}">
-                        <p class="text-sm font-medium">{{ message }}</p>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Sidebar Create Token -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-6">
+                <div class="mb-5 flex items-center gap-2">
+                    <div class="bg-medical-blue/10 p-2 rounded-lg text-medical-blue">
+                        <i class='bx bx-qr text-xl'></i>
                     </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <!-- Create Token Section -->
-        <section class="mb-8">
-            <div class="rounded-lg border border-neutral-200 bg-white p-6">
-                <div class="mb-6">
-                    <h2 class="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                        <svg class="h-5 w-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10.5 1.5H5.75A2.25 2.25 0 003.5 3.75v12.5A2.25 2.25 0 005.75 18.5h8.5a2.25 2.25 0 002.25-2.25V10M10 7h4m0 0V3m0 4l-5-5" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                        </svg>
-                        Crear Nuevo Token QR
-                    </h2>
+                    <h2 class="text-lg font-bold text-gray-900">Crear Nuevo Token QR</h2>
                 </div>
                 
-                <form method="POST" class="space-y-4">
+                <form method="POST" class="space-y-5">
                     {% csrf_token %}
                     
                     <div>
-                        <label for="dias_expiracion" class="block text-sm font-medium text-slate-700 mb-2">
-                            Días de expiración
+                        <label for="dias_expiracion" class="block text-sm font-semibold text-gray-700 mb-2">
+                            Duración de validez
                         </label>
-                        <select id="dias_expiracion" name="dias_expiracion" class="w-full rounded-lg border border-neutral-300 bg-white px-4 py-2 text-slate-900 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200">
+                        <select id="dias_expiracion" name="dias_expiracion" class="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-gray-900 transition focus:border-medical-blue focus:outline-none focus:ring-2 focus:ring-medical-blue/20">
                             <option value="1">1 día</option>
                             <option value="3">3 días</option>
-                            <option value="7" selected>7 días</option>
+                            <option value="7" selected>7 días (Recomendado)</option>
                             <option value="15">15 días</option>
                             <option value="30">30 días</option>
                         </select>
+                        <p class="text-xs text-gray-500 mt-2"><i class='bx bx-time-five'></i> Tras el tiempo seleccionado, el link caducará.</p>
                     </div>
 
-                    <button type="submit" class="w-full rounded-lg bg-slate-900 px-4 py-2.5 font-medium text-white transition hover:bg-slate-800 active:bg-slate-950">
-                        Generar Código QR
+                    <button type="submit" class="w-full rounded-lg bg-medical-blue px-4 py-3 font-medium text-white transition hover:bg-medical-blue-dark shadow-sm flex items-center justify-center gap-2">
+                        <i class='bx bx-plus-medical'></i> Generar Código QR
                     </button>
                 </form>
             </div>
-        </section>
+        </div>
 
-        <!-- Tokens List Section -->
-        {% if tokens_activos %}
-            <section>
-                <div class="mb-4">
-                    <h2 class="flex items-center gap-2 text-lg font-semibold text-slate-900">
-                        <svg class="h-5 w-5 text-slate-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2H3V4z M3 8h14v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-                        </svg>
+        <!-- Tokens List -->
+        <div class="lg:col-span-2">
+            {% if tokens_activos %}
+                <div class="mb-4 flex items-center justify-between">
+                    <h2 class="flex items-center gap-2 text-lg font-bold text-gray-900">
+                        <i class='bx bx-list-ul text-medical-blue text-xl'></i>
                         Tokens Activos ({{ tokens_activos|length }})
                     </h2>
                 </div>
 
                 <div class="space-y-4">
                     {% for token in tokens_activos %}
-                        <div class="rounded-lg border border-neutral-200 bg-white p-6 transition hover:shadow-sm">
+                        <div class="rounded-xl border border-gray-100 bg-white p-5 transition hover:shadow-md hover:border-medical-blue/30 relative overflow-hidden group">
+                            
+                            <!-- Indicador de borde lateral -->
+                            <div class="absolute left-0 top-0 bottom-0 w-1 {% if token.is_valid %}bg-emerald-500{% elif token.is_expired %}bg-red-500{% elif token.usado %}bg-amber-500{% else %}bg-gray-400{% endif %}"></div>
+
                             <!-- Token Header -->
-                            <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                            <div class="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-start pl-2">
                                 <div class="min-w-0 flex-1">
-                                    <p class="truncate font-mono text-sm text-slate-600">
-                                        ID: <span class="font-medium text-slate-900">{{ token.id|truncatechars:8 }}</span>
+                                    <p class="truncate font-mono text-sm text-gray-500 flex items-center gap-2">
+                                        <i class='bx bx-hash'></i> Token ID: <span class="font-bold text-gray-900">{{ token.id|truncatechars:12 }}</span>
                                     </p>
                                 </div>
                                 
                                 <div class="flex flex-shrink-0 items-center gap-2">
-                                    <span class="inline-block rounded-full px-3 py-1 text-xs font-medium {% if token.is_valid %}bg-green-100 text-green-700{% elif token.is_expired %}bg-red-100 text-red-700{% elif token.usado %}bg-yellow-100 text-yellow-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold {% if token.is_valid %}bg-emerald-50 text-emerald-700 border border-emerald-100{% elif token.is_expired %}bg-red-50 text-red-700 border border-red-100{% elif token.usado %}bg-amber-50 text-amber-700 border border-amber-100{% else %}bg-gray-50 text-gray-700 border border-gray-200{% endif %}">
                                         {% if token.is_valid %}
-                                            Activo
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Activo
                                         {% elif token.is_expired %}
-                                            Expirado
+                                            <i class='bx bx-x-circle'></i> Expirado
                                         {% elif token.usado %}
-                                            Usado
+                                            <i class='bx bx-check-double'></i> Usado
                                         {% else %}
-                                            Inactivo
+                                            <i class='bx bx-minus-circle'></i> Inactivo
                                         {% endif %}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Token Info Grid -->
-                            <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                            <div class="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 pl-2 bg-gray-50/50 p-3 rounded-lg border border-gray-100">
                                 <div>
-                                    <p class="text-xs font-medium uppercase text-slate-500">Clínico</p>
-                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.clinico.nombre }} {{ token.clinico.apellido }}</p>
+                                    <p class="text-xs font-bold uppercase text-gray-400 mb-1 flex items-center gap-1"><i class='bx bx-calendar-plus'></i> Creación</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ token.fecha_creacion|date:"d/m/Y H:i" }}</p>
                                 </div>
 
                                 <div>
-                                    <p class="text-xs font-medium uppercase text-slate-500">Creado</p>
-                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.fecha_creacion|date:"d/m/Y H:i" }}</p>
-                                </div>
-
-                                <div>
-                                    <p class="text-xs font-medium uppercase text-slate-500">Expira</p>
-                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.fecha_expiracion|date:"d/m/Y H:i" }}</p>
+                                    <p class="text-xs font-bold uppercase text-gray-400 mb-1 flex items-center gap-1"><i class='bx bx-calendar-x'></i> Expiración</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ token.fecha_expiracion|date:"d/m/Y H:i" }}</p>
                                 </div>
 
                                 {% if token.paciente_asociado %}
                                 <div>
-                                    <p class="text-xs font-medium uppercase text-slate-500">Paciente</p>
-                                    <p class="mt-1 text-sm font-medium text-slate-900">{{ token.paciente_asociado.nombre }} {{ token.paciente_asociado.apellido }}</p>
+                                    <p class="text-xs font-bold uppercase text-gray-400 mb-1 flex items-center gap-1"><i class='bx bx-user'></i> Paciente Asignado</p>
+                                    <p class="text-sm font-semibold text-gray-800">{{ token.paciente_asociado.nombre }} {{ token.paciente_asociado.apellido }}</p>
+                                </div>
+                                {% else %}
+                                <div>
+                                    <p class="text-xs font-bold uppercase text-gray-400 mb-1 flex items-center gap-1"><i class='bx bx-user-x'></i> Paciente Asignado</p>
+                                    <p class="text-sm font-semibold text-gray-400 italic">Pendiente</p>
                                 </div>
                                 {% endif %}
                             </div>
 
                             <!-- Token Actions -->
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap items-center gap-2 pl-2">
                                 {% if token.is_valid %}
-                                    <a href="{% url 'descargar_qr' token.id %}" class="inline-flex items-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700">
-                                        Descargar QR
+                                    <a href="{% url 'descargar_qr' token.id %}" class="inline-flex items-center gap-1.5 rounded-lg bg-medical-blue px-4 py-2 text-sm font-medium text-white transition hover:bg-medical-blue-dark shadow-sm">
+                                        <i class='bx bx-download text-lg'></i> Bajar QR
                                     </a>
-                                    <a href="{% url 'formulario_publico' token.id %}" target="_blank" class="inline-flex items-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200">
-                                        Ver Formulario
-                                    </a>
-                                    <button onclick="copyUrl('url-{{ token.id }}'); return false;" class="inline-flex items-center rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-200">
-                                        Copiar URL
+                                    <button onclick="copyUrl('url-{{ token.id }}'); return false;" class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50" title="Copiar URL">
+                                        <i class='bx bx-copy'></i> Copiar
                                     </button>
-                                    <a href="{% url 'desactivar_token' token.id %}" class="inline-flex items-center rounded-lg bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200" onclick="return confirm('¿Desactivar este token?')">
-                                        Desactivar
+                                    <a href="{% url 'formulario_publico' token.id %}" target="_blank" class="inline-flex items-center gap-1.5 rounded-lg bg-white border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50" title="Probar Formulario Público">
+                                        <i class='bx bx-link-external'></i> Ver
                                     </a>
-                                {% elif token.usado %}
-                                    <span class="inline-flex items-center rounded-lg bg-green-100 px-4 py-2 text-sm font-medium text-green-700">
-                                        Completado
-                                    </span>
-                                {% else %}
-                                    <span class="inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700">
-                                        No disponible
-                                    </span>
+                                    <a href="{% url 'desactivar_token' token.id %}" class="ml-auto inline-flex items-center gap-1 rounded-lg bg-red-50 text-red-600 px-3 py-2 text-sm font-medium transition hover:bg-red-100" onclick="return confirm('¿Estás seguro de desactivar este token de acceso?')">
+                                        <i class='bx bx-trash'></i> Desactivar
+                                    </a>
                                 {% endif %}
                             </div>
 
                             <!-- URL Copy Section -->
                             {% if token.is_valid %}
-                            <div class="mt-4 rounded-lg border-l-4 border-green-500 bg-green-50 p-4">
-                                <p class="mb-3 text-xs font-medium uppercase text-green-700">URL del Formulario</p>
-                                <div class="flex gap-2">
-                                    <input type="text" id="url-{{ token.id }}" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'formulario_publico' token.id %}" readonly class="flex-1 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-mono text-slate-600">
-                                    <button onclick="copyUrl('url-{{ token.id }}'); return false;" class="rounded-lg bg-green-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-green-700">
-                                        Copiar
-                                    </button>
+                            <div class="mt-4 rounded-lg border border-medical-blue/20 bg-blue-50/50 p-3 flex gap-2 pl-2 ml-2 transition-all opacity-0 scale-95 origin-top hidden group-hover:opacity-100 group-hover:scale-100 group-hover:flex">
+                                <div class="flex-1 relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class='bx bx-link text-gray-400'></i>
+                                    </div>
+                                    <input type="text" id="url-{{ token.id }}" value="{{ request.build_absolute_uri|slice:':-1' }}{% url 'formulario_publico' token.id %}" readonly class="w-full rounded-md border border-gray-200 bg-white pl-9 pr-3 py-1.5 text-xs font-mono text-gray-600 focus:outline-none focus:border-medical-blue">
                                 </div>
                             </div>
                             {% endif %}
                         </div>
                     {% endfor %}
                 </div>
-            </section>
-        {% else %}
-            <div class="rounded-lg border-l-4 border-blue-500 bg-blue-50 p-6">
-                <p class="text-sm text-blue-900">
-                    <span class="font-medium">No hay tokens activos.</span> Crea uno nuevo para comenzar a recibir formularios de pacientes.
-                </p>
-            </div>
-        {% endif %}
-    </main>
+            {% else %}
+                <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50/50 p-12 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-medical-blue mb-4">
+                        <i class='bx bx-qr-scan text-3xl'></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">No hay tokens activos</h3>
+                    <p class="text-sm text-gray-500 max-w-sm mx-auto">
+                        Genera un nuevo Código QR usando el panel lateral izquierdo para que tus pacientes puedan completar el formulario remoto.
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
 
-    <script>
-        function copyUrl(inputId) {
-            const input = document.getElementById(inputId);
-            input.select();
-            input.setSelectionRange(0, 99999);
+<script>
+    function copyUrl(inputId) {
+        const input = document.getElementById(inputId);
+        input.select();
+        input.setSelectionRange(0, 99999);
+        
+        navigator.clipboard.writeText(input.value).then(() => {
+            const button = event.currentTarget;
+            const originalHTML = button.innerHTML;
+            button.innerHTML = "<i class='bx bx-check'></i> ¡Copiado!";
+            button.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+            button.classList.remove('text-gray-700', 'hover:bg-gray-50');
             
-            navigator.clipboard.writeText(input.value).then(() => {
-                const button = event.target;
-                const originalText = button.textContent;
-                button.textContent = 'Copiado!';
-                button.classList.add('bg-green-700');
-                
-                setTimeout(() => {
-                    button.textContent = originalText;
-                    button.classList.remove('bg-green-700');
-                }, 2000);
-            }).catch(() => {
-                alert('No se pudo copiar. Intenta de nuevo.');
+            setTimeout(() => {
+                button.innerHTML = originalHTML;
+                button.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-200');
+                button.classList.add('text-gray-700', 'hover:bg-gray-50');
+            }, 2000);
+        }).catch(() => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo copiar el enlace al portapapeles',
+                confirmButtonColor: '#1e40af'
             });
-        }
-    </script>
-</body>
-</html>
+        });
+    }
+</script>
+{% endblock %}

@@ -3,127 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario Enviado</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 600px;
-            background: white;
-            padding: 50px;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+    <title>Formulario Enviado | KenkoMed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'medical-blue': '#1e40af',
+                        'medical-blue-dark': '#1e3a8a',
+                        'medical-blue-light': '#3b82f6',
+                    }
+                }
             }
         }
-        
-        .icon {
-            font-size: 100px;
-            margin-bottom: 20px;
-            animation: bounce 1s ease-in-out;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
-        
-        h1 {
-            color: #28a745;
-            margin-bottom: 20px;
-            font-size: 36px;
-        }
-        
-        p {
-            color: #666;
-            font-size: 18px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-        
-        .success-box {
-            background: #d4edda;
-            border-left: 4px solid #28a745;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-        
-        .success-box h3 {
-            color: #155724;
-            margin-bottom: 10px;
-        }
-        
-        .success-box ul {
-            margin-left: 20px;
-            color: #155724;
-        }
-        
-        .success-box li {
-            margin-bottom: 8px;
-        }
-        
-        .info-text {
-            font-size: 14px;
-            color: #999;
-            margin-top: 20px;
-        }
-    </style>
+    </script>
 </head>
-<body>
-    <div class="container">
-        <div class="icon">✅</div>
-        <h1>¡Formulario Enviado Exitosamente!</h1>
-        <p>{{ mensaje }}</p>
-        
-        {% if clinico %}
-        <div class="success-box">
-            <h3>📋 Información de tu Clínico</h3>
-            <p><strong>Dr(a). {{ clinico.nombre }} {{ clinico.apellido }}</strong></p>
-            <p>{{ clinico.profesion }}</p>
+<body class="bg-gray-50 flex flex-col min-h-screen">
+    <main class="flex-grow flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+            <!-- Header Banner -->
+            <div class="h-32 bg-medical-blue flex flex-col items-center justify-center relative shadow-inner">
+                <div class="absolute inset-0 bg-gradient-to-tr from-medical-blue-dark to-medical-blue opacity-90"></div>
+                <!-- KenkoMed Logo text -->
+                <div class="relative z-10 flex items-center gap-2 text-white/90 font-semibold mb-2">
+                    <i class='bx bx-plus-medical text-lg'></i>
+                    <span class="tracking-wide">KenkoMed</span>
+                </div>
+                
+                <div class="relative z-10 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg -mb-16 border-4 border-white text-emerald-500">
+                    <i class='bx bx-check text-5xl'></i>
+                </div>
+            </div>
+            
+            <div class="pt-16 pb-8 px-8 text-center">
+                <h1 class="text-2xl font-bold text-gray-900 mb-2">¡Formulario Enviado!</h1>
+                <p class="text-gray-600 mb-6">{{ mensaje }}</p>
+                
+                {% if clinico %}
+                <div class="bg-blue-50/50 rounded-xl p-4 border border-blue-100 mb-6 text-left">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="bg-medical-blue/10 p-2 rounded-lg text-medical-blue">
+                            <i class='bx bx-user-pin text-xl'></i>
+                        </div>
+                        <h3 class="font-bold text-gray-900">Dr(a). {{ clinico.nombre }} {{ clinico.apellido }}</h3>
+                    </div>
+                    <p class="text-sm text-gray-600 ml-11">{{ clinico.profesion }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="bg-gray-50 rounded-xl p-5 border border-gray-100 text-left mb-6">
+                    <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                        <i class='bx bx-info-circle text-medical-blue'></i>
+                        ¿Qué sigue ahora?
+                    </h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i class='bx bx-check-circle text-emerald-500 mt-0.5'></i>
+                            <span>Tu información ha sido recibida y encriptada correctamente.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i class='bx bx-time text-emerald-500 mt-0.5'></i>
+                            <span>El equipo médico revisará tus datos pronto.</span>
+                        </li>
+                        <li class="flex items-start gap-2 text-sm text-gray-600">
+                            <i class='bx bx-phone-call text-emerald-500 mt-0.5'></i>
+                            <span>Mantén tu teléfono disponible por si el especialista necesita contactarte.</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="text-xs text-gray-400 font-medium">
+                    <p>Ya puedes cerrar esta ventana de forma segura.</p>
+                </div>
+            </div>
         </div>
-        {% endif %}
-        
-        <div class="success-box">
-            <h3>¿Qué sigue ahora?</h3>
-            <ul>
-                <li>Tu información ha sido recibida correctamente</li>
-                <li>El equipo médico revisará tus datos</li>
-                <li>Serás contactado próximamente para coordinar tu atención</li>
-                <li>Mantén tu teléfono disponible para recibir llamadas</li>
-            </ul>
-        </div>
-        
-        <p class="info-text">
-            Gracias por confiar en nuestros servicios de salud.<br>
-            Puedes cerrar esta ventana.
-        </p>
-    </div>
+    </main>
 </body>
 </html>
