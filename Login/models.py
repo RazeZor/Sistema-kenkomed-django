@@ -65,6 +65,7 @@ class Paciente(models.Model):
     fechaNacimiento = models.DateField(null=True)
     genero = models.CharField(max_length=15,null=True)
     contacto = models.CharField(max_length=13)
+    correo = models.EmailField(max_length=254, null=True, blank=True)
     cobertura_de_salud = models.CharField(max_length=50)
     trabajo = models.TextField(null=True, blank=True) 
     profesion = models.TextField(null=True,blank=True)
@@ -74,6 +75,31 @@ class Paciente(models.Model):
     
     def __str__(self):
         return f'{self.nombre} {self.apellido} ({self.rut})'
+
+# Modelo Reserva: Representa una hora agendada en el calendario
+class Reserva(models.Model):
+    ESTADOS = [
+        ('Pendiente', 'Pendiente'),
+        ('Confirmada', 'Confirmada'),
+        ('Cancelada', 'Cancelada'),
+    ]
+    
+    paciente = models.ForeignKey('Paciente', on_delete=models.CASCADE, related_name='reservas')
+    clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='reservas_agendadas')
+    fecha = models.DateField(verbose_name="Fecha de Reserva")
+    hora_inicio = models.TimeField(verbose_name="Hora de Inicio")
+    hora_fin = models.TimeField(verbose_name="Hora de Fin")
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='Pendiente')
+    motivo = models.TextField(null=True, blank=True, verbose_name="Motivo o Descripción")
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Reserva"
+        verbose_name_plural = "Reservas"
+        ordering = ['fecha', 'hora_inicio']
+
+    def __str__(self):
+        return f"Reserva: {self.paciente.nombre} con {self.clinico.nombre} el {self.fecha} a las {self.hora_inicio}"
 
 # charfield  : son los varchar qe sabemos de sql
 

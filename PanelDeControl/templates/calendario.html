@@ -1,0 +1,778 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agenda — KenkoMed</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --medical-blue: #0284c7;    /* sky-600 */
+            --medical-blue-dark: #0369a1; /* sky-700 */
+            --blue: #0284c7;
+            --blue-light: #f0f9ff;
+            --blue-mid: #bae6fd;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --surface: #ffffff;
+            --bg: #f8fafc;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            background: var(--bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        /* ── Nav ── */
+        .nav {
+            height: 56px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.25rem;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .nav-icon {
+            width: 36px; height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .nav-icon img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        .nav-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .btn-back {
+            height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 0.875rem 0 0.5rem;
+            gap: 0.375rem;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+            margin-right: 0.25rem;
+        }
+        .btn-back:hover { background: var(--bg); color: var(--text); }
+
+        /* ── Primary Button ── */
+        .btn-primary {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+            line-height: 1;
+        }
+        .btn-primary:hover { background: var(--medical-blue-dark); }
+        .btn-primary:active { background: #075985; }
+
+        /* ── Calendar Wrapper ── */
+        .cal-wrapper {
+            height: calc(100vh - 56px);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cal-card {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            flex-grow: 1;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+
+        #calendar {
+            flex-grow: 1;
+            width: 100% !important;
+        }
+
+        /* ── FullCalendar overrides ── */
+        .fc { color: var(--text-muted); }
+
+        .fc-theme-standard .fc-scrollgrid {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .fc-theme-standard td,
+        .fc-theme-standard th { border-color: var(--border); }
+
+        .fc-theme-standard .fc-col-header { background: var(--bg); }
+
+        .fc-col-header-cell {
+            padding: 0.625rem 0 !important;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.6875rem;
+            letter-spacing: 0.05em;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.125rem !important;
+            font-weight: 700 !important;
+            color: var(--text) !important;
+            letter-spacing: -0.02em;
+        }
+
+        .fc .fc-button-primary {
+            background: var(--surface) !important;
+            color: var(--text-muted) !important;
+            border: 1px solid var(--border) !important;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border-radius: 7px !important;
+            padding: 0.375rem 0.75rem !important;
+            box-shadow: none !important;
+            transition: all 0.15s;
+            text-transform: capitalize;
+        }
+
+        .fc .fc-button-primary:hover:not(:disabled) {
+            background: var(--blue-light) !important;
+            color: var(--blue) !important;
+            border-color: var(--blue-mid) !important;
+        }
+
+        .fc .fc-button-primary:not(:disabled).fc-button-active,
+        .fc .fc-button-primary:not(:disabled):active {
+            background: var(--blue-light) !important;
+            color: var(--blue) !important;
+            border-color: var(--blue-mid) !important;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-muted) !important;
+            font-size: 0.8125rem;
+            font-weight: 500;
+        }
+
+        .fc-daygrid-day.fc-day-other { background: var(--bg) !important; }
+        .fc-daygrid-day.fc-day-today { background: var(--blue-light) !important; }
+
+        .fc-timegrid-slot-label { font-size: 0.6875rem; color: var(--text-muted); }
+
+        .fc-event {
+            cursor: pointer;
+            border-radius: 5px !important;
+            padding: 0.1875rem 0.4375rem !important;
+            border: none !important;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background-color: var(--blue) !important;
+            box-shadow: 0 1px 2px rgba(37,99,235,0.25);
+            transition: opacity 0.15s;
+        }
+        .fc-event:hover { opacity: 0.85; }
+
+        .fc-now-indicator-line { border-color: #ef4444 !important; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal {
+            background: var(--surface);
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 600px;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            animation: modal-in 0.18s ease;
+        }
+
+        @keyframes modal-in {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0)    scale(1); }
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .modal-header-icon {
+            width: 34px; height: 34px;
+            border-radius: 8px;
+            background: var(--blue-light);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--blue);
+            font-size: 1.125rem;
+        }
+
+        .modal-title {
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.01em;
+        }
+
+        .modal-close {
+            width: 30px; height: 30px;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            transition: background 0.15s, color 0.15s;
+        }
+        .modal-close:hover { background: var(--bg); color: var(--text); }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-body::-webkit-scrollbar { width: 4px; }
+        .modal-body::-webkit-scrollbar-track { background: transparent; }
+        .modal-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            background: var(--bg);
+            border-radius: 0 0 14px 14px;
+        }
+
+        /* ── Form elements ── */
+        .form-section { margin-bottom: 1.25rem; }
+        .form-section:last-child { margin-bottom: 0; }
+
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+        @media (max-width: 480px) {
+            .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+
+        .form-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-label span.req { color: #ef4444; margin-left: 2px; }
+
+        .form-label span.hint {
+            font-size: 0.6875rem;
+            font-weight: 400;
+            text-transform: none;
+            letter-spacing: 0;
+            color: #94a3b8;
+            margin-left: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5625rem 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text);
+            background: var(--surface);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .form-input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .form-input::placeholder { color: #cbd5e1; }
+
+        select.form-input { appearance: none; cursor: pointer; }
+
+        textarea.form-input { resize: none; }
+
+        .form-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 1.25rem 0;
+        }
+
+        /* ── Footer Buttons ── */
+        .btn-ghost {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+        .btn-danger {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: transparent;
+            color: #ef4444;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+        }
+        .btn-danger:hover { background: #fef2f2; border-color: #fca5a5; }
+
+        .btn-save {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: var(--blue);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.5rem 1.125rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-family: inherit;
+            min-width: 100px;
+            justify-content: center;
+        }
+        .btn-save:hover { background: var(--medical-blue-dark); }
+        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-row { display: flex; align-items: center; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <header class="nav">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+            <a href="{% url 'panel' %}" class="btn-back" title="Volver al panel principal">
+                <i class="bx bx-arrow-back" style="font-size:1.125rem;"></i>
+                Volver al Panel
+            </a>
+            <div class="nav-brand" style="margin-left: 1rem; border-left: 1px solid var(--border); padding-left: 1.25rem;">
+                <div class="nav-icon">
+                    <img src="{% static 'image/logoKenkoMed.jpeg' %}" alt="Logo KenkoMed">
+                </div>
+                <div>
+                    <div class="nav-title">Agenda Médica</div>
+                    <div class="nav-status">
+                        <span class="status-dot"></span>
+                        Sistema activo
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="abrirModalCrear()" class="btn-primary">
+            <i class="bx bx-plus" style="font-size:1rem;"></i>
+            Nueva reserva
+        </button>
+    </header>
+
+    <!-- Calendar -->
+    <main class="cal-wrapper">
+        <div class="cal-card">
+            <div id="calendar"></div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div id="reservaModal" class="modal-overlay">
+        <div class="modal">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <div class="modal-header-icon">
+                        <i class="bx bx-calendar-check" id="modalIcon"></i>
+                    </div>
+                    <span class="modal-title" id="modalTitle">Nueva consulta</span>
+                </div>
+                <button class="modal-close" onclick="cerrarModal()">
+                    <i class="bx bx-x"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                <form id="reservaForm">
+                    <input type="hidden" id="reserva_id">
+
+                    <!-- Paciente + Correo -->
+                    <div class="form-section form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Paciente <span class="req">*</span></label>
+                            <select id="paciente_rut" class="form-input" required>
+                                <option value="">Seleccione un paciente...</option>
+                                {% for p in pacientes %}
+                                <option value="{{ p.rut }}" data-correo="{{ p.correo|default:'' }}">{{ p.nombre }} {{ p.apellido }} — {{ p.rut }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Correo <span class="hint">(para confirmación)</span></label>
+                            <input type="email" id="correo_paciente" class="form-input" placeholder="email@dominio.com" required>
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Fecha + Horas -->
+                    <div class="form-section form-grid-3">
+                        <div class="form-group">
+                            <label class="form-label">Fecha <span class="req">*</span></label>
+                            <input type="date" id="fecha_reserva" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Inicio <span class="req">*</span></label>
+                            <input type="time" id="hora_inicio" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fin <span class="req">*</span></label>
+                            <input type="time" id="hora_fin" class="form-input" required>
+                        </div>
+                    </div>
+
+                    <hr class="form-divider">
+
+                    <!-- Motivo -->
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Motivo de consulta</label>
+                            <textarea id="motivo_reserva" rows="3" class="form-input" placeholder="Opcional..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" id="btnEliminar" onclick="eliminarReserva()" class="btn-danger" style="display:none;">
+                    <i class="bx bx-trash" style="font-size:0.875rem;"></i>
+                    Eliminar
+                </button>
+                <div class="btn-row" style="margin-left:auto;">
+                    <button type="button" onclick="cerrarModal()" class="btn-ghost">Cancelar</button>
+                    <button type="button" id="btnGuardar" onclick="guardarReserva()" class="btn-save">
+                        <i class="bx bx-check" style="font-size:1rem;"></i>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
+
+    <script>
+        let calendar;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'timeGridWeek',
+                locale: 'es',
+                height: '100%',
+                expandRows: true,
+                stickyHeaderDates: true,
+                nowIndicator: true,
+                headerToolbar: {
+                    left: 'prev,next title',
+                    right: 'today dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                slotMinTime: '07:00:00',
+                slotMaxTime: '21:00:00',
+                slotDuration: '00:30:00',
+                slotLabelInterval: '01:00',
+                allDaySlot: false,
+                editable: true,
+                selectable: true,
+                selectMirror: true,
+                dayMaxEvents: true,
+                events: "{% url 'api_obtener_reservas' %}",
+
+                select: function (info) { abrirModalCrear(info.startStr, info.endStr); },
+                eventClick: function (info) { abrirModalVer(info.event); },
+                eventDrop: function (info) { actualizarFechas(info.event); },
+                eventResize: function (info) { actualizarFechas(info.event); }
+            });
+            calendar.render();
+
+            document.getElementById('paciente_rut').addEventListener('change', function (e) {
+                let option = e.target.options[e.target.selectedIndex];
+                let correoAnterior = option.getAttribute('data-correo');
+                document.getElementById('correo_paciente').value = correoAnterior || '';
+            });
+        });
+
+        const modal = document.getElementById('reservaModal');
+        const form  = document.getElementById('reservaForm');
+
+        function abrirModalCrear(startStr = '', endStr = '') {
+            form.reset();
+            document.getElementById('reserva_id').value = '';
+            document.getElementById('modalTitle').textContent = 'Nueva consulta';
+            document.getElementById('modalIcon').className = 'bx bx-plus-circle';
+            document.getElementById('btnEliminar').style.display = 'none';
+            document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-check" style="font-size:1rem;"></i> Guardar';
+            document.getElementById('paciente_rut').disabled = false;
+
+            if (startStr) {
+                const startDate = new Date(startStr);
+                document.getElementById('fecha_reserva').value = startStr.split('T')[0];
+                document.getElementById('hora_inicio').value  = startDate.toTimeString().slice(0, 5);
+                if (endStr) {
+                    const endDate = new Date(endStr);
+                    document.getElementById('hora_fin').value = endDate.toTimeString().slice(0, 5);
+                }
+            }
+            modal.classList.add('open');
+        }
+
+        function abrirModalVer(event) {
+            form.reset();
+            document.getElementById('reserva_id').value = event.id;
+            document.getElementById('modalTitle').textContent = 'Detalles de la consulta';
+            document.getElementById('modalIcon').className = 'bx bx-edit-alt';
+            document.getElementById('btnEliminar').style.display = '';
+            document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-save" style="font-size:1rem;"></i> Actualizar';
+
+            document.getElementById('fecha_reserva').value   = event.start.toISOString().split('T')[0];
+            document.getElementById('hora_inicio').value     = event.start.toTimeString().slice(0, 5);
+            document.getElementById('hora_fin').value        = event.end ? event.end.toTimeString().slice(0, 5) : '';
+            document.getElementById('motivo_reserva').value  = event.extendedProps.motivo || '';
+            document.getElementById('paciente_rut').value    = event.extendedProps.paciente_id;
+            document.getElementById('paciente_rut').disabled = true;
+            document.getElementById('correo_paciente').value = event.extendedProps.correo || '';
+
+            modal.classList.add('open');
+        }
+
+        function cerrarModal() {
+            modal.classList.remove('open');
+        }
+
+        function guardarReserva() {
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+
+            const btn    = document.getElementById('btnGuardar');
+            const oldHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin" style="font-size:1rem;"></i> Guardando...';
+            btn.disabled  = true;
+
+            const id   = document.getElementById('reserva_id').value;
+            const data = {
+                paciente_rut: document.getElementById('paciente_rut').value,
+                correo:       document.getElementById('correo_paciente').value,
+                fecha:        document.getElementById('fecha_reserva').value,
+                hora_inicio:  document.getElementById('hora_inicio').value,
+                hora_fin:     document.getElementById('hora_fin').value,
+                motivo:       document.getElementById('motivo_reserva').value
+            };
+
+            const url = id
+                ? "{% url 'api_mover_reserva' 0 %}".replace('/0/', '/' + id + '/')
+                : "{% url 'api_crear_reserva' %}";
+
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.status === 'success') {
+                    Swal.fire({ icon: 'success', title: id ? 'Reserva actualizada' : 'Cita agendada', text: id ? '' : 'Se envió la confirmación por correo.', confirmButtonColor: '#0284c7', timer: 2500, showConfirmButton: !id });
+                    cerrarModal();
+                    calendar.refetchEvents();
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'Fallo en la conexión.', 'error'))
+            .finally(() => { btn.innerHTML = oldHTML; btn.disabled = false; });
+        }
+
+        function actualizarFechas(event) {
+            const data = {
+                fecha:       event.start.toISOString().split('T')[0],
+                hora_inicio: event.start.toTimeString().slice(0, 5),
+                hora_fin:    event.end ? event.end.toTimeString().slice(0, 5) : event.start.toTimeString().slice(0, 5)
+            };
+
+            fetch("{% url 'api_mover_reserva' 0 %}".replace('/0/', '/' + event.id + '/'), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(response => {
+                if (response.status !== 'success') {
+                    Swal.fire('Error al mover', response.message, 'error');
+                    event.revert();
+                } else {
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Horario actualizado', showConfirmButton: false, timer: 1500 });
+                }
+            });
+        }
+
+        function eliminarReserva() {
+            const id = document.getElementById('reserva_id').value;
+            if (!id) return;
+            Swal.fire({
+                title: '¿Eliminar esta cita?',
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch("{% url 'api_eliminar_reserva' 0 %}".replace('/0/', '/' + id + '/'), {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+                        if (response.status === 'success') {
+                            cerrarModal();
+                            calendar.refetchEvents();
+                            Swal.fire({ icon: 'success', title: 'Cita eliminada', timer: 1500, showConfirmButton: false });
+                        }
+                    });
+                }
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Cerrar al hacer click fuera del modal
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) cerrarModal();
+        });
+    </script>
+</body>
+</html>

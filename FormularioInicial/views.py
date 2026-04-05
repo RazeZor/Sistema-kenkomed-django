@@ -303,6 +303,7 @@ def FormularioInicial(request):
             fechaNacimiento_raw = request.POST.get('fechaNac')
             genero = request.POST.get('genero')
             contacto = request.POST.get('contact')
+            correo = request.POST.get('correo')
             contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
             trabajo = request.POST.get('trabajo')
             profesion = request.POST.get('profesion')
@@ -315,7 +316,7 @@ def FormularioInicial(request):
             try:
                 resumen = (
                     f"POST recibido: rut={rut}, nombre={nombre}, apellido={apellido}, "
-                    f"fechaNac={fechaNacimiento_raw}, genero={genero}, contacto={contacto}, "
+                    f"fechaNac={fechaNacimiento_raw}, genero={genero}, contacto={contacto}, correo={correo}, "
                     f"cobertura={cobertura_de_salud}, trabajo={trabajo}, profesion={profesion}, "
                     f"lic_inicio={LicenciaInicio_raw}, lic_fin={LicenciaFin_raw}, dias={LicenciaDias}"
                 )
@@ -342,6 +343,7 @@ def FormularioInicial(request):
                 'fechaNacimiento': fechaNacimiento,
                 'genero': genero,
                 'contacto': contacto,
+                'correo': correo,
                 'cobertura_de_salud': cobertura_de_salud,
                 'trabajo': trabajo,
                 'profesion': profesion,
@@ -363,6 +365,7 @@ def FormularioInicial(request):
                 'fechaNacimiento': fechaNacimiento,
                 'genero': genero,
                 'contacto': contacto,
+                'correo': correo,
                 'cobertura_de_salud': cobertura_de_salud,
                 'trabajo': trabajo,
                 'profesion': profesion,
@@ -524,6 +527,7 @@ def formulario_publico(request, token_id):
                 fechaNacimiento_raw = request.POST.get('fechaNac')
                 genero = request.POST.get('genero')
                 contacto = request.POST.get('contact')
+                correo = request.POST.get('correo')
                 if contacto:
                     contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
                 trabajo = request.POST.get('trabajo')
@@ -557,6 +561,7 @@ def formulario_publico(request, token_id):
                     'fechaNacimiento': fechaNacimiento,
                     'genero': genero,
                     'contacto': contacto,
+                    'correo': correo,
                     'cobertura_de_salud': cobertura_de_salud,
                     'trabajo': trabajo,
                     'profesion': profesion,
@@ -582,6 +587,7 @@ def formulario_publico(request, token_id):
                     'fechaNacimiento': fechaNacimiento,
                     'genero': genero,
                     'contacto': contacto,
+                    'correo': correo,
                     'cobertura_de_salud': cobertura_de_salud,
                     'trabajo': trabajo,
                     'profesion': profesion,
