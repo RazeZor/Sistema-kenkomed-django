@@ -190,9 +190,9 @@
                             <option value="{% url 'ENA' %}">ENA (Escala Numérica análoga)</option>
                             <option value="{% url 'Screnning' %}">Screening (Cuestionario Ansiedad)</option>
                         </select>
-                        <a href="#" id="agregarFormulario" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors">
+                        <button type="button" onclick="abrirFormularioEvaluacion()" id="agregarFormulario" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors">
                             <i class='bx bx-plus-circle'></i> Abrir Formulario
-                        </a>
+                        </button>
                     </div>
                     
                     <hr class="border-gray-100">
@@ -307,47 +307,47 @@
             }
         }
 
-        // Formularios dinamicos
+        // Evento select para cambiar estilos (opcional, no afecta la navepgacion)
         const formSelect = document.getElementById('formulario');
         const addBtn = document.getElementById('agregarFormulario');
 
-        function updateFormLink() {
-            if (formSelect && addBtn && rut) {
-                const val = formSelect.value;
-                if (val) {
-                    addBtn.href = val + "?rut=" + encodeURIComponent(rut);
-                    addBtn.style.pointerEvents = 'auto';
+        if (formSelect && addBtn) {
+            formSelect.addEventListener('change', function() {
+                if (formSelect.value) {
                     addBtn.style.opacity = '1';
                 } else {
-                    addBtn.href = "#";
-                    addBtn.style.pointerEvents = 'none';
                     addBtn.style.opacity = '0.5';
-                }
-            }
-        }
-
-        if (formSelect) {
-            formSelect.addEventListener('change', updateFormLink);
-            updateFormLink();
-        }
-
-        if (addBtn) {
-            addBtn.addEventListener('click', function(e) {
-                if (!formSelect.value || !rut) {
-                    e.preventDefault();
-                    if(typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'warning',
-                            title: 'Atención',
-                            text: 'Asegúrese de seleccionar un formulario y tener un paciente cargado.'
-                        });
-                    } else {
-                        alert('Asegúrese de seleccionar un formulario y tener un paciente cargado.');
-                    }
                 }
             });
         }
     });
+
+    // Función global bulletproof para el botón click
+    function abrirFormularioEvaluacion() {
+        const formSelect = document.getElementById('formulario');
+        const rutElement = document.getElementById('rut');
+        
+        if (!formSelect || !rutElement || !rutElement.textContent.trim()) {
+            if(typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Asegúrese de seleccionar un formulario y tener un paciente cargado.'
+                });
+            } else {
+                alert('Asegúrese de seleccionar un formulario y tener un paciente cargado.');
+            }
+            return false;
+        }
+
+        const rut = rutElement.textContent.trim();
+        const url = formSelect.value;
+        
+        if (url) {
+            window.open(url + "?rut=" + encodeURIComponent(rut), '_blank');
+        }
+        return false;
+    }
 
 
     function configurarSesionesKinesicas(rut) {
