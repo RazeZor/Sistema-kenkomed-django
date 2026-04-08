@@ -100,6 +100,7 @@
                 </div>
                 <div class="p-6 space-y-6">
                     
+
                     <!-- Licencias -->
                     <div id="eventos1" class="border border-gray-100 rounded-lg p-4 bg-gray-50">
                         <div class="flex items-center gap-2 mb-3">
@@ -123,6 +124,8 @@
                             </div>
                         </div>
                     </div>
+
+
 
                     <!-- Notas -->
                     {% if paciente %}
@@ -184,6 +187,77 @@
                             <i class='bx bx-file-medical text-lg'></i> Mostrar Informe Completo
                         </a>
                     </div>
+
+                    <!-- Sesiones Kinésicas - Card Mejorada -->
+                    <div id="sesionesKinesicasCard" class="mt-6 rounded-xl overflow-hidden shadow-sm border border-gray-100" style="display: none;">
+                        <!-- Header con gradiente teal/cyan -->
+                        <div class="bg-gradient-to-r from-teal-500 to-cyan-500 px-6 py-4 flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-dumbbell text-lg text-white'></i>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-semibold text-white text-sm">Sesiones Kinésicas</h3>
+                                <p class="text-xs text-white/80">Gestión de sesiones de tratamiento</p>
+                            </div>
+                            <div>
+                                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+                                    <span id="sesionesCount">0</span> sesiones
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Contenido -->
+                        <div class="bg-white p-6 space-y-4">
+
+                            <!-- Selector de sesiones (rellenado por backend) -->
+                            {% with sesiones=paciente.sesiones_kinesicas.all %}
+                            <div id="sesionesSelector" {% if not sesiones %}style="display: none;"{% endif %}>
+                                <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Seleccionar sesión</label>
+                                <select id="comboSesionesKinesicas" class="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-400 focus:border-transparent bg-white text-gray-900 transition-all hover:border-teal-300">
+                                    <option value="">-- Selecciona una sesión --</option>
+                                    {% for sesion in sesiones %}
+                                        <option value="{{ sesion.numero_sesion }}">
+                                            {{ sesion }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endwith %}
+
+                            <!-- Botones de acción -->
+                            <div class="space-y-2.5" id="botonesAccion">
+                                <a id="btnPrimeraSesion" href="{% url 'sesiones_kinesicas:crear_primera' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg hover:from-teal-600 hover:to-cyan-600 transition-all shadow-sm" style="display: none;">
+                                    <i class='bx bx-plus text-lg'></i> Crear Primera Sesión
+                                </a>
+                                <a id="btnNuevaSesion" href="{% url 'sesiones_kinesicas:crear_seguimiento' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-teal-500 to-cyan-500 rounded-lg hover:from-teal-600 hover:to-cyan-600 transition-all shadow-sm" style="display: none;">
+                                    <i class='bx bx-plus text-lg'></i> Nueva Sesión
+                                </a>
+                                <a id="btnVerSesionSeleccionada" href="{% if paciente.sesiones_kinesicas.all %}{% url 'sesiones_kinesicas:ver' %}?rut={{ paciente.rut }}&numero_sesion={{ paciente.sesiones_kinesicas.all.0.numero_sesion }}{% else %}#{% endif %}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-cyan-700 bg-cyan-50 border border-cyan-200 rounded-lg hover:bg-cyan-100 transition-all" style="display: none;">
+                                    <i class='bx bx-show text-lg'></i> Ver Sesión Seleccionada
+                                </a>
+                                <a id="btnVerTodas" href="{% url 'sesiones_kinesicas:listar' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-all">
+                                    <i class='bx bx-list-ul text-lg'></i> Ver Todas
+                                </a>
+                            </div>
+
+                            <!-- Info de última sesión -->
+                            <div id="lastSessionInfo" class="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500" style="display: none;">
+                                <div class="flex items-center gap-2 text-xs text-gray-600 justify-center">
+                                    <i class='bx bx-calendar text-teal-500'></i>
+                                    <span>Última sesión: <strong id="lastSessionDate">--</strong></span>
+                                </div>
+                            </div>
+
+                            <!-- Sin sesiones -->
+                            {% with sesiones=paciente.sesiones_kinesicas.all %}
+                            {% if not sesiones %}
+                            <div id="noSessionsInfo" class="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
+                                <p>Sin sesiones registradas</p>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
                     
                 </div>
             </div>
@@ -197,22 +271,37 @@
     document.addEventListener('DOMContentLoaded', function() {
         const nombre = document.getElementById('nombre')?.textContent.trim();
         const rut = document.getElementById('rut')?.textContent.trim();
-        
+
         // Mostrar divs si hay paciente
         if (nombre && rut) {
             const patientCard = document.getElementById('patientCard');
             const historyCard = document.getElementById('historyCard');
             const formsCard = document.getElementById('formsCard');
-            
+            const sesionesCard = document.getElementById('sesionesKinesicasCard');
+
             if(patientCard) patientCard.style.display = 'block';
             if(historyCard) historyCard.style.display = 'block';
             if(formsCard) formsCard.style.display = 'block';
+            if(sesionesCard) sesionesCard.style.display = 'block';
+
+            // Configurar sesiones kinésicas
+            configurarSesionesKinesicas(rut);
+
+            // Forzar estado inicial del botón Ver Sesión Seleccionada
+            const btnVerSesionSeleccionada = document.getElementById('btnVerSesionSeleccionada');
+            if (btnVerSesionSeleccionada) btnVerSesionSeleccionada.style.display = 'none';
+
+            // Disparar evento de cambio para actualizar el estado del botón si hay selección previa
+            const comboSesiones = document.getElementById('comboSesionesKinesicas');
+            if (comboSesiones) {
+                comboSesiones.dispatchEvent(new Event('change'));
+            }
         }
-        
+
         // Formularios dinamicos
         const formSelect = document.getElementById('formulario');
         const addBtn = document.getElementById('agregarFormulario');
-        
+
         function updateFormLink() {
             if (formSelect && addBtn && rut) {
                 const val = formSelect.value;
@@ -227,7 +316,7 @@
                 }
             }
         }
-        
+
         if (formSelect) {
             formSelect.addEventListener('change', updateFormLink);
             updateFormLink();
@@ -250,6 +339,89 @@
             });
         }
     });
+
+
+    function configurarSesionesKinesicas(rut) {
+        const comboSesiones = document.getElementById('comboSesionesKinesicas');
+        const sesionesSelector = document.getElementById('sesionesSelector');
+        const btnPrimera = document.getElementById('btnPrimeraSesion');
+        const btnNueva = document.getElementById('btnNuevaSesion');
+        const btnVerTodas = document.getElementById('btnVerTodas');
+        const btnVerSesionSeleccionada = document.getElementById('btnVerSesionSeleccionada');
+        const sesionesCount = document.getElementById('sesionesCount');
+        const lastSessionInfo = document.getElementById('lastSessionInfo');
+        const noSessionsInfo = document.getElementById('noSessionsInfo');
+        const lastSessionDate = document.getElementById('lastSessionDate');
+
+        // Extraer sesiones del HTML
+        const sesionesOptions = document.querySelectorAll('#comboSesionesKinesicas option');
+        const sesionesArray = [];
+        sesionesOptions.forEach((opt, index) => {
+            if (index > 0) {
+                sesionesArray.push({
+                    numero: opt.value,
+                    texto: opt.textContent
+                });
+            }
+        });
+        const totalSesiones = sesionesArray.length;
+        sesionesCount.textContent = totalSesiones;
+
+        // Configurar botones
+        if (totalSesiones === 0) {
+            btnPrimera.style.display = 'block';
+            btnNueva.style.display = 'none';
+            sesionesSelector.style.display = 'none';
+            btnVerSesionSeleccionada.style.display = 'none';
+            noSessionsInfo.style.display = 'block';
+            lastSessionInfo.style.display = 'none';
+        } else {
+            btnPrimera.style.display = 'none';
+            btnNueva.style.display = 'block';
+            sesionesSelector.style.display = 'block';
+            btnVerSesionSeleccionada.style.display = 'block';
+            noSessionsInfo.style.display = 'none';
+            lastSessionInfo.style.display = 'block';
+            // Actualizar href del botón Ver Sesión Seleccionada según selección
+            if (comboSesiones) {
+                comboSesiones.addEventListener('change', function() {
+                    if (this.value) {
+                        btnVerSesionSeleccionada.href = "{% url 'sesiones_kinesicas:ver' %}?rut=" + encodeURIComponent(rut) + "&numero_sesion=" + this.value;
+                    } else {
+                        btnVerSesionSeleccionada.href = "#";
+                    }
+                });
+                // Inicializar href si hay una sesión seleccionada
+                if (comboSesiones.value) {
+                    btnVerSesionSeleccionada.href = "{% url 'sesiones_kinesicas:ver' %}?rut=" + encodeURIComponent(rut) + "&numero_sesion=" + comboSesiones.value;
+                }
+            }
+            // Obtener fecha de última sesión del primer option
+            if (sesionesArray.length > 0) {
+                const lastText = sesionesOptions[1].textContent;
+                const dateMatch = lastText.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+                if (dateMatch) {
+                    lastSessionDate.textContent = dateMatch[1];
+                }
+            }
+        }
+
+        btnVerTodas.href = "{% url 'sesiones_kinesicas:listar' %}?rut=" + encodeURIComponent(rut);
+
+        // Evento al cambiar combo
+        if (comboSesiones) {
+            comboSesiones.addEventListener('change', function() {
+                // Mostrar el botón solo si hay una sesión seleccionada
+                if (this.value) {
+                    btnVerSesionSeleccionada.style.display = 'block';
+                } else {
+                    btnVerSesionSeleccionada.style.display = 'none';
+                }
+            });
+        }
+
+        // El botón ahora es un enlace real, no requiere JS para navegar
+    }
 
     if (typeof initializeKenkomedUtils === 'function') {
         initializeKenkomedUtils();

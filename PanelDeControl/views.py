@@ -88,17 +88,21 @@ def HistorialClinico(request):
         if rut_clinico:
             clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
 
+        rut = None
+        nota_texto = None
         if request.method == 'POST':
             rut = request.POST.get('rutsito')
             nota_texto = request.POST.get('nota')
+        elif request.method == 'GET':
+            rut = request.GET.get('rut')
 
+        if rut:
             try:
                 # Filtrar según el tipo de usuario
                 if es_admin:
                     paciente = Paciente.objects.get(rut=rut)
                 else:
                     if not clinico_obj:
-                        # Si por algún motivo no existe el clínico en sesión, no permitimos la búsqueda
                         error = 'No se encontró el clínico en sesión. Inicia sesión nuevamente.'
                         raise Paciente.DoesNotExist()
                     paciente = Paciente.objects.get(rut=rut, clinico=clinico_obj)
@@ -112,7 +116,6 @@ def HistorialClinico(request):
             except Paciente.DoesNotExist:
                 if not error:
                     error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
-          
 
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,

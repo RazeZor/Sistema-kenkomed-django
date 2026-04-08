@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'PerfilClinico',
     'menu',
     'RecetasMedicas',
+    'SesionesKinesicas',
 ]
 
 MIDDLEWARE = [

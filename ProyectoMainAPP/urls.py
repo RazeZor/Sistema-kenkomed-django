@@ -49,6 +49,9 @@ urlpatterns = [
     
     # Incluir las URLs de PanelDeControl
     path('', include('PanelDeControl.urls')),
+    
+    # Incluir las URLs de SesionesKinesicas
+    path('sesiones-kinesicas/', include('SesionesKinesicas.urls')),
 
     #renderizacion de cuestionarios
     path('CuestionarioGROC/',tiposFormularios.RenderizarGROC,name='GROK'),

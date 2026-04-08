@@ -1,0 +1,182 @@
+{% extends 'base_kenkomed.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 py-8">
+    <div class="max-w-6xl mx-auto px-4">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center shadow-lg">
+                    <i class='bx bx-edit text-2xl text-white'></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        Editar {% if sesion.es_primera_sesion %}Evaluacion Inicial{% else %}Sesion #{{ sesion.numero_sesion }}{% endif %}
+                    </h1>
+                    <p class="text-sm text-gray-500">Modificar datos de la sesion</p>
+                </div>
+            </div>
+            
+            <!-- Info Paciente -->
+            <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
+                <i class='bx bx-user text-amber-500'></i>
+                <span class="text-sm font-medium text-gray-700">{{ paciente.nombre }} {{ paciente.apellido }}</span>
+                <span class="text-xs text-gray-400">|</span>
+                <span class="text-sm text-gray-500">{{ paciente.rut }}</span>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %}">
+                    <div class="flex items-center gap-2">
+                        <i class='bx {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="rut" value="{{ rut }}">
+            <input type="hidden" name="numero_sesion" value="{{ sesion.numero_sesion }}">
+
+            {% if sesion.es_primera_sesion %}
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Columna 1: Anamnesis -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-clipboard text-white'></i>
+                            </div>
+                            <h2 class="font-semibold text-white">Anamnesis y Antecedentes</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <label for="antecedentes_relevantes" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Antecedentes Relevantes</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all resize-none" 
+                                      id="antecedentes_relevantes" name="antecedentes_relevantes" rows="3">{{ sesion.evaluacion_inicial.antecedentes_relevantes|default:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="diagnostico_clinico" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Diagnostico Clinico</label>
+                            <input type="text" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all" 
+                                   id="diagnostico_clinico" name="diagnostico_clinico" value="{{ sesion.evaluacion_inicial.diagnostico_clinico|default:"" }}">
+                        </div>
+
+                        <div>
+                            <label for="medicamentos" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Medicamentos Actuales</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all resize-none" 
+                                      id="medicamentos" name="medicamentos" rows="2">{{ sesion.evaluacion_inicial.medicamentos|default:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="alergias" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Alergias</label>
+                            <input type="text" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all" 
+                                   id="alergias" name="alergias" value="{{ sesion.evaluacion_inicial.alergias|default:"" }}">
+                        </div>
+
+                        <div>
+                            <label for="cirugias_previas" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Cirugias Previas</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all resize-none" 
+                                      id="cirugias_previas" name="cirugias_previas" rows="2">{{ sesion.evaluacion_inicial.cirugias_previas|default:"" }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna 2: Evaluacion Fisica -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-teal-500 to-cyan-500 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-body text-white'></i>
+                            </div>
+                            <h2 class="font-semibold text-white">Evaluacion Fisica</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="rango_articular_derecha" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Rango Articular - Derecho</label>
+                                <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                          id="rango_articular_derecha" name="rango_articular_derecha" rows="2">{{ sesion.evaluacion_inicial.rango_articular_derecha|default:"" }}</textarea>
+                            </div>
+                            <div>
+                                <label for="rango_articular_izquierda" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Rango Articular - Izquierdo</label>
+                                <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                          id="rango_articular_izquierda" name="rango_articular_izquierda" rows="2">{{ sesion.evaluacion_inicial.rango_articular_izquierda|default:"" }}</textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="fuerza_muscular" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Fuerza Muscular</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                      id="fuerza_muscular" name="fuerza_muscular" rows="2">{{ sesion.evaluacion_inicial.fuerza_muscular|default:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="sensibilidad" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Sensibilidad</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                      id="sensibilidad" name="sensibilidad" rows="2">{{ sesion.evaluacion_inicial.sensibilidad|default:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="reflejos" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Reflejos</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                      id="reflejos" name="reflejos" rows="2">{{ sesion.evaluacion_inicial.reflejos|default:"" }}</textarea>
+                        </div>
+
+                        <div>
+                            <label for="test_funcionales" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Tests Funcionales</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                                      id="test_funcionales" name="test_funcionales" rows="2">{{ sesion.evaluacion_inicial.test_funcionales|default:"" }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notas y Evolucion -->
+            <div class="{% if sesion.es_primera_sesion %}mt-6{% endif %} bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-cyan-600 to-blue-500 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-note text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Notas Clinicas y Evolucion</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <label for="notas_clinicas" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Notas Clinicas</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all resize-none" 
+                                      id="notas_clinicas" name="notas_clinicas" rows="4">{{ sesion.notas_clinicas|default:"" }}</textarea>
+                        </div>
+                        <div>
+                            <label for="evolucion" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Evolucion</label>
+                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all resize-none" 
+                                      id="evolucion" name="evolucion" rows="4">{{ sesion.evolucion|default:"" }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de accion -->
+            <div class="mt-6 flex items-center gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-500 rounded-lg hover:from-cyan-700 hover:to-blue-600 transition-all shadow-sm">
+                    <i class='bx bx-save'></i> Guardar Cambios
+                </button>
+                <a href="{% url 'sesiones_kinesicas:ver' %}?rut={{ rut }}&numero_sesion={{ sesion.numero_sesion }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class='bx bx-x'></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
