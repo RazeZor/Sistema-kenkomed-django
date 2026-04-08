@@ -167,7 +167,8 @@ def crear_primera_sesion(request):
             )
             
             messages.success(request, 'Primera sesión kinésica creada exitosamente.')
-            return redirect('sesiones_kinesicas:ver') + f'?rut={rut_paciente}&numero_sesion=1'
+            from django.urls import reverse
+            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion=1")
             
         except Exception as e:
             messages.error(request, f'Error al crear la sesión: {str(e)}')
@@ -243,7 +244,8 @@ def crear_sesion_seguimiento(request):
             )
             
             messages.success(request, f'Sesión #{nuevo_numero} creada exitosamente.')
-            return redirect('sesiones_kinesicas:ver') + f'?rut={rut_paciente}&numero_sesion={nuevo_numero}'
+            from django.urls import reverse
+            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={nuevo_numero}")
             
         except Exception as e:
             messages.error(request, f'Error al crear la sesión: {str(e)}')
@@ -417,7 +419,8 @@ def editar_sesion_kinesica(request):
             
             sesion.save()
             messages.success(request, 'Sesión actualizada exitosamente.')
-            return redirect('sesiones_kinesicas:ver') + f'?rut={rut_paciente}&numero_sesion={numero_sesion}'
+            from django.urls import reverse
+            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={numero_sesion}")
             
         except Exception as e:
             messages.error(request, f'Error al actualizar la sesión: {str(e)}')
