@@ -7,7 +7,7 @@
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-2">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-medical-blue to-medical-blue-light flex items-center justify-center shadow-lg">
                     <i class='bx bx-plus text-2xl text-white'></i>
                 </div>
                 <div>
@@ -18,7 +18,7 @@
             
             <!-- Info Paciente -->
             <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
-                <i class='bx bx-user text-cyan-600'></i>
+                <i class='bx bx-user text-medical-blue'></i>
                 <span class="text-sm font-medium text-gray-700">{{ paciente.nombre }} {{ paciente.apellido }}</span>
                 <span class="text-xs text-gray-400">|</span>
                 <span class="text-sm text-gray-500">{{ paciente.rut }}</span>
@@ -57,7 +57,7 @@
 
             <!-- Notas Clinicas -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-cyan-600 to-blue-500 px-6 py-4">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                             <i class='bx bx-notepad text-white'></i>
@@ -67,7 +67,7 @@
                 </div>
                 <div class="p-6">
                     <p class="text-sm text-gray-500 mb-3">Registra tus observaciones y notas clinicas sobre el paciente en esta sesion.</p>
-                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all resize-none" 
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
                               id="notas_clinicas" name="notas_clinicas" rows="5" 
                               placeholder="Escribe tus notas clinicas aqui..."></textarea>
                     <p class="mt-2 text-xs text-gray-400">
@@ -78,7 +78,7 @@
 
             <!-- Evolucion -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="bg-gradient-to-r from-cyan-600 to-blue-500 px-6 py-4">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
                     <div class="flex items-center gap-3">
                         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                             <i class='bx bx-trending-up text-white'></i>
@@ -88,7 +88,7 @@
                 </div>
                 <div class="p-6">
                     <p class="text-sm text-gray-500 mb-3">Describe la evolucion y progreso del paciente en esta sesion.</p>
-                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all resize-none" 
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
                               id="evolucion" name="evolucion" rows="5" 
                               placeholder="Describe la evolucion del paciente..."></textarea>
                     <p class="mt-2 text-xs text-gray-400">
@@ -99,7 +99,7 @@
 
             <!-- Botones de accion -->
             <div class="flex items-center gap-3">
-                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-500 rounded-lg hover:from-cyan-700 hover:to-blue-600 transition-all shadow-sm">
+                <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-medical-blue to-medical-blue-light rounded-lg hover:from-medical-blue-dark hover:to-medical-blue transition-all shadow-sm">
                     <i class='bx bx-save'></i> Guardar Sesion
                 </button>
                 <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">

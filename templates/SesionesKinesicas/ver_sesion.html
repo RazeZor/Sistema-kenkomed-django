@@ -7,7 +7,7 @@
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center gap-3 mb-2">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-500 flex items-center justify-center shadow-lg">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-medical-blue to-medical-blue-light flex items-center justify-center shadow-lg">
                     {% if sesion.es_primera_sesion %}
                     <i class='bx bx-check-shield text-2xl text-white'></i>
                     {% else %}
@@ -24,7 +24,7 @@
             
             <!-- Info Paciente -->
             <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
-                    <i class='bx bx-id-card text-cyan-600'></i>
+                <i class='bx bx-id-card text-medical-blue'></i>
                 <span class="text-sm text-gray-500">{{ paciente.rut }}</span>
             </div>
         </div>
@@ -64,8 +64,8 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full {% if sesion.es_primera_sesion %}bg-emerald-100 text-emerald-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-                                <span class="px-3 py-1 text-xs font-semibold rounded-full {% if sesion.es_primera_sesion %}bg-cyan-100 text-cyan-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                            {% if sesion.es_primera_sesion %}Evaluación Inicial{% else %}Sesión de Seguimiento{% endif %}
                         </span>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                 <!-- Evaluacion Inicial -->
                 {% if sesion.es_primera_sesion and sesion.evaluacion_inicial %}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-emerald-500 to-green-500 px-6 py-4">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                                 <i class='bx bx-clipboard text-white'></i>
@@ -171,7 +171,7 @@
                 <!-- Notas Clinicas -->
                 {% if sesion.notas_clinicas %}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                                 <i class='bx bx-notepad text-white'></i>
@@ -188,8 +188,8 @@
                 <!-- Evolucion -->
                 {% if sesion.evolucion %}
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-teal-500 to-cyan-500 px-6 py-4">
-                            <div class="bg-gradient-to-r from-cyan-600 to-blue-500 px-6 py-4">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                        <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                                 <i class='bx bx-trending-up text-white'></i>
                             </div>
@@ -216,18 +216,17 @@
                         </div>
                     </div>
                     <div class="p-6 space-y-3">
-                        <a href="{% url 'sesiones_kinesicas:editar' %}?rut={{ paciente.rut }}&numero_sesion={{ sesion.numero_sesion }}" 
-                                <a href="{% url 'sesiones_kinesicas:editar' %}?rut={{ rut }}&numero_sesion={{ sesion.numero_sesion }}" 
-                                   class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-cyan-600 to-blue-500 rounded-lg hover:from-cyan-700 hover:to-blue-600 transition-all">
-                                    <i class='bx bx-edit'></i> Editar Sesión
-                                </a>
+                        <button type="button" onclick="document.getElementById('editarSesionModal').classList.remove('hidden')" 
+                           class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-medical-blue to-medical-blue-light rounded-lg hover:from-medical-blue-dark hover:to-medical-blue transition-all">
+                            <i class='bx bx-edit'></i> Editar Sesión
+                        </button>
                         <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ paciente.rut }}" 
                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-600 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-all">
                             <i class='bx bx-arrow-back'></i> Volver
                         </a>
 
                         <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" 
-                           class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-all">
+                           class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all">
                             <i class='bx bx-file-medical'></i> Ver Historial
                         </a>
                     </div>
@@ -259,6 +258,86 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Edición -->
+<div id="editarSesionModal" class="fixed inset-0 z-[60] hidden bg-gray-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="document.getElementById('editarSesionModal').classList.add('hidden')"></div>
+
+        <div class="relative bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 {% if sesion.es_primera_sesion %}sm:max-w-4xl{% else %}sm:max-w-2xl{% endif %} w-full border border-gray-100">
+            <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <i class='bx bx-edit text-white text-2xl'></i>
+                    <h3 class="text-lg font-bold text-white tracking-wide">Editar {% if sesion.es_primera_sesion %}Evaluación Inicial{% else %}Sesión #{{ sesion.numero_sesion }}{% endif %}</h3>
+                </div>
+                <button type="button" class="text-white/80 hover:text-white transition-colors" onclick="document.getElementById('editarSesionModal').classList.add('hidden')">
+                    <i class='bx bx-x text-2xl'></i>
+                </button>
+            </div>
+            
+            <form method="POST" action="{% url 'sesiones_kinesicas:editar' %}?rut={{ paciente.rut }}&numero_sesion={{ sesion.numero_sesion }}">
+                {% csrf_token %}
+                <input type="hidden" name="rut" value="{{ paciente.rut }}">
+                <input type="hidden" name="numero_sesion" value="{{ sesion.numero_sesion }}">
+                
+                {% if sesion.es_primera_sesion %}
+                <div class="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Columna Izquierda -->
+                        <div class="space-y-5">
+                            <h4 class="text-medical-blue font-bold text-sm uppercase tracking-wide border-b pb-2">Anamnesis y Antecedentes</h4>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Diagnóstico Clínico</label><input type="text" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue" name="diagnostico_clinico" value="{{ sesion.evaluacion_inicial.diagnostico_clinico|default:'' }}"></div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Antecedentes Relevantes</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="antecedentes_relevantes" rows="2">{{ sesion.evaluacion_inicial.antecedentes_relevantes|default:"" }}</textarea></div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Alergias</label><input type="text" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue" name="alergias" value="{{ sesion.evaluacion_inicial.alergias|default:'' }}"></div>
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Cirugías Previas</label><input type="text" class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue" name="cirugias_previas" value="{{ sesion.evaluacion_inicial.cirugias_previas|default:'' }}"></div>
+                            </div>
+                            <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Medicamentos</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="medicamentos" rows="2">{{ sesion.evaluacion_inicial.medicamentos|default:"" }}</textarea></div>
+                        </div>
+                        
+                        <!-- Columna Derecha -->
+                        <div class="space-y-5">
+                            <h4 class="text-medical-blue font-bold text-sm uppercase tracking-wide border-b pb-2">Evaluación Física</h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Rango Art. Izquierdo</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="rango_articular_izquierda" rows="2">{{ sesion.evaluacion_inicial.rango_articular_izquierda|default:"" }}</textarea></div>
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Rango Art. Derecho</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="rango_articular_derecha" rows="2">{{ sesion.evaluacion_inicial.rango_articular_derecha|default:"" }}</textarea></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Fuerza Muscular</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="fuerza_muscular" rows="2">{{ sesion.evaluacion_inicial.fuerza_muscular|default:"" }}</textarea></div>
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Sensibilidad</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="sensibilidad" rows="2">{{ sesion.evaluacion_inicial.sensibilidad|default:"" }}</textarea></div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Reflejos</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="reflejos" rows="2">{{ sesion.evaluacion_inicial.reflejos|default:"" }}</textarea></div>
+                                <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Tests Funcionales</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="test_funcionales" rows="2">{{ sesion.evaluacion_inicial.test_funcionales|default:"" }}</textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Notas Clínicas (Sesión)</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="notas_clinicas" rows="3">{{ sesion.notas_clinicas|default:"" }}</textarea></div>
+                        <div><label class="block text-xs font-semibold text-gray-600 mb-1 leading-none">Evolución</label><textarea class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none" name="evolucion" rows="3">{{ sesion.evolucion|default:"" }}</textarea></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="px-8 py-6 space-y-5">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2"><i class='bx bx-notepad text-medical-blue'></i> Notas Clínicas</label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/50 focus:border-medical-blue transition-all resize-none shadow-sm outline-none" name="notas_clinicas" rows="4">{{ sesion.notas_clinicas|default:"" }}</textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2"><i class='bx bx-trending-up text-medical-blue'></i> Evolución del Paciente</label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/50 focus:border-medical-blue transition-all resize-none shadow-sm outline-none" name="evolucion" rows="4">{{ sesion.evolucion|default:"" }}</textarea>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="bg-gray-50 border-t border-gray-100 px-6 py-4 flex justify-end gap-3 rounded-b-xl">
+                    <button type="button" class="px-5 py-2.5 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm" onclick="document.getElementById('editarSesionModal').classList.add('hidden')">Cancelar</button>
+                    <button type="submit" class="px-5 py-2.5 bg-medical-blue rounded-lg text-sm font-bold text-white hover:bg-medical-blue-dark transition-colors shadow-sm flex items-center gap-2"><i class='bx bx-save'></i> Guardar Cambios</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
