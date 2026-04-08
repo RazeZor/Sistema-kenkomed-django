@@ -40,124 +40,164 @@
             {% csrf_token %}
             <input type="hidden" name="rut" value="{{ rut }}">
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Secciones del formulario -->
+            <div class="space-y-8">
                 
-                <!-- Columna 1: Anamnesis -->
+                <!-- 1. ANAMNESIS -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                        <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-user-voice mr-2'></i> 1. ANAMNESIS</h2>
+                    </div>
+                    <div class="p-6 md:p-8 space-y-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Motivo de consulta</label><textarea name="motivo_consulta" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Causa de la lesión</label><textarea name="causa_lesion" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Mecanismo de lesión</label><input type="text" name="mecanismo_lesion" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Manejo / Abordaje de la lesión</label><input type="text" name="manejo_abordaje" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Fecha de la lesión</label><input type="date" name="fecha_lesion" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Fecha de control médico</label><input type="date" name="fecha_control_medico" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Alteraciones funcionales</label><textarea name="alteraciones_funcionales" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Objetivo del paciente</label><textarea name="objetivo_paciente" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. EVALUACIÓN DEL DOLOR -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                        <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-pulse mr-2'></i> 2. EVALUACIÓN DEL DOLOR</h2>
+                    </div>
+                    <div class="p-6 md:p-8 space-y-6">
+                        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <span class="block text-sm font-bold text-gray-700">Presencia de dolor:</span>
+                            <label class="inline-flex items-center cursor-pointer"><input type="radio" name="dolor_presente" value="SI" class="w-5 h-5 text-medical-blue focus:ring-medical-blue border-gray-300"><span class="ml-2 font-medium text-gray-700">SÍ</span></label>
+                            <label class="inline-flex items-center cursor-pointer ml-6"><input type="radio" name="dolor_presente" value="NO" class="w-5 h-5 text-medical-blue focus:ring-medical-blue border-gray-300" checked><span class="ml-2 font-medium text-gray-700">NO</span></label>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Antigüedad (evolución)</label><input type="text" name="dolor_antiguedad" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Localización</label><input type="text" name="dolor_localizacion" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Intensidad (Escala num. ENA)</label><input type="text" name="dolor_intensidad" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Irradiación</label><input type="text" name="dolor_irradiacion" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                            <div class="md:col-span-2"><label class="block text-sm font-bold text-gray-700 mb-1">Características</label><input type="text" name="dolor_caracteristicas" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. EVALUACIÓN POSTURAL & FÍSICA -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                            <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-body mr-2'></i> 3. EVALUACIÓN POSTURAL</h2>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Plano frontal anterior</label><textarea name="postura_plano_frontal_anterior" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Plano frontal posterior</label><textarea name="postura_plano_frontal_posterior" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Plano sagital</label><textarea name="postura_plano_sagital" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                        <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                            <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-search-alt-2 mr-2'></i> 4. EXAMEN FÍSICO</h2>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Observación</label><textarea name="examen_observacion" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Inspección</label><textarea name="examen_inspeccion" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            <div><label class="block text-sm font-bold text-gray-700 mb-1">Palpación</label><textarea name="examen_palpacion" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. RANGOS ARTICULARES -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                        <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-bone mr-2'></i> 5. EVALUACIÓN RANGO ARTICULAR</h2>
+                    </div>
+                    <div class="p-6 md:p-8 space-y-8">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4">Rango Articular Activo</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Conservados</label><textarea name="rango_activo_conservados" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Limitados</label><textarea name="rango_activo_limitados" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4 flex items-center gap-2">Rango Articular Pasivo <span class="text-xs font-normal text-gray-500">(Texto Libre - Especificar Movilidad y Endfeel)</span></h3>
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1 text-medical-blue"><i class='bx bx-right-arrow-alt'></i> MMSS Derecha (Hombro, Codo, Muñeca)</label><textarea name="rango_pasivo_mmss_derecha" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1 text-medical-blue"><i class='bx bx-left-arrow-alt'></i> MMSS Izquierda (Hombro, Codo, Muñeca)</label><textarea name="rango_pasivo_mmss_izquierda" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1 text-medical-blue"><i class='bx bx-right-arrow-alt'></i> MMII Derecha (Cadera, Rodilla, Tobillo)</label><textarea name="rango_pasivo_mmii_derecha" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1 text-medical-blue"><i class='bx bx-left-arrow-alt'></i> MMII Izquierda (Cadera, Rodilla, Tobillo)</label><textarea name="rango_pasivo_mmii_izquierda" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. PRUEBAS DE MOVIMIENTO & TEST -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                        <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-run mr-2'></i> 6. EVALUACIÓN FUNCIÓN Y MOVIMIENTO</h2>
+                    </div>
+                    <div class="p-6 md:p-8 space-y-8">
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4">Evaluación Función Muscular</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Extremidades superiores</label><textarea name="funcion_muscular_superiores" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                                <div><label class="block text-sm font-bold text-gray-700 mb-1">Extremidades inferiores</label><textarea name="funcion_muscular_inferiores" rows="2" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></textarea></div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4">Pruebas Funcionales Activas</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">1. SQUAT OVERHEAD</label><input type="text" name="movimiento_squat_overhead" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">2. SINGLE LEG SQUAT</label><input type="text" name="movimiento_single_leg_squat" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">3. DROP TEST</label><input type="text" name="movimiento_drop_test" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">4. SALTO AL CAJÓN</label><input type="text" name="movimiento_salto_cajon" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4">Movimiento con Carga</h3>
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">SQUAT - SQUAT PRESS</label><input type="text" name="movimiento_carga_squat_press" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">SPLIT DEADLIFT</label><input type="text" name="movimiento_carga_split_deadlift" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                    <div class="flex items-center gap-3"><label class="w-1/2 text-sm font-bold text-gray-700">TURKISH GET UP</label><input type="text" name="movimiento_carga_turkish_get_up" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-lg border-b pb-2 mb-4">Test Ortopédicos</h3>
+                            <textarea name="test_ortopedicos" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue bg-gray-50/50" placeholder="Ej: Neer: (+), Hawkings kennedy: (+), Jobe: (-)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. EVOLUCIÓN ACTUAL DE SESIÓN -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                <i class='bx bx-clipboard text-white'></i>
-                            </div>
-                            <h2 class="font-semibold text-white">Anamnesis y Antecedentes</h2>
+                            <h2 class="font-bold text-white text-lg tracking-wide"><i class='bx bx-trending-up mr-2'></i> 7. NOTAS Y EVOLUCIÓN</h2>
                         </div>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <div>
-                            <label for="antecedentes_relevantes" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Antecedentes Relevantes</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="antecedentes_relevantes" name="antecedentes_relevantes" rows="3" 
-                                      placeholder="Antecedentes medicos, quirurgicos, familiares..."></textarea>
-                        </div>
-
-                        <div>
-                            <label for="diagnostico_clinico" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Diagnostico Clinico</label>
-                            <input type="text" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all" 
-                                   id="diagnostico_clinico" name="diagnostico_clinico" placeholder="Ej: Lumbocisalgia izquierda...">
-                        </div>
-
-                        <div>
-                            <label for="medicamentos" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Medicamentos Actuales</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="medicamentos" name="medicamentos" rows="2" placeholder="Medicamentos que usa actualmente..."></textarea>
-                        </div>
-
-                        <div>
-                            <label for="alergias" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Alergias</label>
-                            <input type="text" class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all" 
-                                   id="alergias" name="alergias" placeholder="Alergias a medicamentos o sustancias...">
-                        </div>
-
-                        <div>
-                            <label for="cirugias_previas" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Cirugias Previas</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="cirugias_previas" name="cirugias_previas" rows="2" placeholder="Historial de cirugias..."></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Columna 2: Evaluacion Fisica -->
-                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                <i class='bx bx-body text-white'></i>
-                            </div>
-                            <h2 class="font-semibold text-white">Evaluacion Fisica</h2>
-                        </div>
-                    </div>
-                    <div class="p-6 space-y-4">
-                        <div class="grid grid-cols-2 gap-4">
+                    <div class="p-6 md:p-8">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                             <div>
-                                <label for="rango_articular_derecha" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Rango Articular - Derecho</label>
-                                <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                          id="rango_articular_derecha" name="rango_articular_derecha" rows="2" placeholder="Flexion, extension, rotacion..."></textarea>
+                                <label for="notas_clinicas" class="block text-sm font-bold text-gray-700 mb-2">Notas Clínicas (Generales)</label>
+                                <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue" name="notas_clinicas" rows="4"></textarea>
                             </div>
                             <div>
-                                <label for="rango_articular_izquierda" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Rango Articular - Izquierdo</label>
-                                <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                          id="rango_articular_izquierda" name="rango_articular_izquierda" rows="2" placeholder="Flexion, extension, rotacion..."></textarea>
+                                <label for="evolucion" class="block text-sm font-bold text-gray-700 mb-2">Evolución de Sesión</label>
+                                <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-medical-blue focus:border-medical-blue" name="evolucion" rows="4"></textarea>
                             </div>
-                        </div>
-
-                        <div>
-                            <label for="fuerza_muscular" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Fuerza Muscular</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="fuerza_muscular" name="fuerza_muscular" rows="2" placeholder="Evaluacion de fuerza por grupos musculares..."></textarea>
-                        </div>
-
-                        <div>
-                            <label for="sensibilidad" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Sensibilidad</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="sensibilidad" name="sensibilidad" rows="2" placeholder="Evaluacion de sintesis sensorial..."></textarea>
-                        </div>
-
-                        <div>
-                            <label for="reflejos" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Reflejos</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="reflejos" name="reflejos" rows="2" placeholder="Reflejos OsteoTendinosos..."></textarea>
-                        </div>
-
-                        <div>
-                            <label for="test_funcionales" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Tests Funcionales</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="test_funcionales" name="test_funcionales" rows="2" placeholder="Ej: Test de Lachman, McMurray, etc..."></textarea>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notas y Evolucion -->
-            <div class="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                            <i class='bx bx-note text-white'></i>
-                        </div>
-                        <h2 class="font-semibold text-white">Notas Clinicas y Evolucion</h2>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div>
-                            <label for="notas_clinicas" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Notas Clinicas</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="notas_clinicas" name="notas_clinicas" rows="4" placeholder="Observaciones y notas clinicas del paciente..."></textarea>
-                        </div>
-                        <div>
-                            <label for="evolucion" class="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">Evolucion</label>
-                            <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
-                                      id="evolucion" name="evolucion" rows="4" placeholder="Descripcion de la evolucion del paciente en esta sesion..."></textarea>
                         </div>
                     </div>
                 </div>

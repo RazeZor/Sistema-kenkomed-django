@@ -95,17 +95,61 @@ def crear_primera_sesion(request):
         try:
             # Recopilar datos del formulario
             evaluacion_datos = {
-                'antecedentes_relevantes': request.POST.get('antecedentes_relevantes', ''),
-                'diagnostico_clinico': request.POST.get('diagnostico_clinico', ''),
-                'medicamentos': request.POST.get('medicamentos', ''),
-                'alergias': request.POST.get('alergias', ''),
-                'cirugias_previas': request.POST.get('cirugias_previas', ''),
-                'rango_articular_derecha': request.POST.get('rango_articular_derecha', ''),
-                'rango_articular_izquierda': request.POST.get('rango_articular_izquierda', ''),
-                'fuerza_muscular': request.POST.get('fuerza_muscular', ''),
-                'sensibilidad': request.POST.get('sensibilidad', ''),
-                'reflejos': request.POST.get('reflejos', ''),
-                'test_funcionales': request.POST.get('test_funcionales', ''),
+                # ANAMNESIS
+                'motivo_consulta': request.POST.get('motivo_consulta', ''),
+                'causa_lesion': request.POST.get('causa_lesion', ''),
+                'mecanismo_lesion': request.POST.get('mecanismo_lesion', ''),
+                'manejo_abordaje': request.POST.get('manejo_abordaje', ''),
+                'fecha_lesion': request.POST.get('fecha_lesion', ''),
+                'fecha_control_medico': request.POST.get('fecha_control_medico', ''),
+                'alteraciones_funcionales': request.POST.get('alteraciones_funcionales', ''),
+                'objetivo_paciente': request.POST.get('objetivo_paciente', ''),
+                
+                # EVALUACIÓN DEL DOLOR
+                'dolor_presente': request.POST.get('dolor_presente', ''),
+                'dolor_antiguedad': request.POST.get('dolor_antiguedad', ''),
+                'dolor_localizacion': request.POST.get('dolor_localizacion', ''),
+                'dolor_intensidad': request.POST.get('dolor_intensidad', ''),
+                'dolor_caracteristicas': request.POST.get('dolor_caracteristicas', ''),
+                'dolor_irradiacion': request.POST.get('dolor_irradiacion', ''),
+                
+                # EVALUACIÓN POSTURAL
+                'postura_plano_frontal_anterior': request.POST.get('postura_plano_frontal_anterior', ''),
+                'postura_plano_frontal_posterior': request.POST.get('postura_plano_frontal_posterior', ''),
+                'postura_plano_sagital': request.POST.get('postura_plano_sagital', ''),
+                
+                # EXAMEN FÍSICO
+                'examen_observacion': request.POST.get('examen_observacion', ''),
+                'examen_inspeccion': request.POST.get('examen_inspeccion', ''),
+                'examen_palpacion': request.POST.get('examen_palpacion', ''),
+                
+                # RANGO ARTICULAR ACTIVO
+                'rango_activo_conservados': request.POST.get('rango_activo_conservados', ''),
+                'rango_activo_limitados': request.POST.get('rango_activo_limitados', ''),
+                
+                # RANGO ARTICULAR PASIVO
+                'rango_pasivo_mmss_derecha': request.POST.get('rango_pasivo_mmss_derecha', ''),
+                'rango_pasivo_mmss_izquierda': request.POST.get('rango_pasivo_mmss_izquierda', ''),
+                'rango_pasivo_mmii_derecha': request.POST.get('rango_pasivo_mmii_derecha', ''),
+                'rango_pasivo_mmii_izquierda': request.POST.get('rango_pasivo_mmii_izquierda', ''),
+                
+                # FUNCIÓN MUSCULAR
+                'funcion_muscular_superiores': request.POST.get('funcion_muscular_superiores', ''),
+                'funcion_muscular_inferiores': request.POST.get('funcion_muscular_inferiores', ''),
+                
+                # PRUEBAS FUNCIONALES ACTIVAS
+                'movimiento_squat_overhead': request.POST.get('movimiento_squat_overhead', ''),
+                'movimiento_single_leg_squat': request.POST.get('movimiento_single_leg_squat', ''),
+                'movimiento_drop_test': request.POST.get('movimiento_drop_test', ''),
+                'movimiento_salto_cajon': request.POST.get('movimiento_salto_cajon', ''),
+                
+                # EVALUACIÓN DE MOVIMIENTO CON CARGA
+                'movimiento_carga_squat_press': request.POST.get('movimiento_carga_squat_press', ''),
+                'movimiento_carga_split_deadlift': request.POST.get('movimiento_carga_split_deadlift', ''),
+                'movimiento_carga_turkish_get_up': request.POST.get('movimiento_carga_turkish_get_up', ''),
+                
+                # TEST ORTOPÉDICOS
+                'test_ortopedicos': request.POST.get('test_ortopedicos', ''),
             }
             
             notas = request.POST.get('notas_clinicas', '')
@@ -313,17 +357,61 @@ def editar_sesion_kinesica(request):
             # Si es la primera sesión, actualizar también la evaluación inicial
             if sesion.es_primera_sesion:
                 evaluacion_datos = {
-                    'antecedentes_relevantes': request.POST.get('antecedentes_relevantes', ''),
-                    'diagnostico_clinico': request.POST.get('diagnostico_clinico', ''),
-                    'medicamentos': request.POST.get('medicamentos', ''),
-                    'alergias': request.POST.get('alergias', ''),
-                    'cirugias_previas': request.POST.get('cirugias_previas', ''),
-                    'rango_articular_derecha': request.POST.get('rango_articular_derecha', ''),
-                    'rango_articular_izquierda': request.POST.get('rango_articular_izquierda', ''),
-                    'fuerza_muscular': request.POST.get('fuerza_muscular', ''),
-                    'sensibilidad': request.POST.get('sensibilidad', ''),
-                    'reflejos': request.POST.get('reflejos', ''),
-                    'test_funcionales': request.POST.get('test_funcionales', ''),
+                    # ANAMNESIS
+                    'motivo_consulta': request.POST.get('motivo_consulta', ''),
+                    'causa_lesion': request.POST.get('causa_lesion', ''),
+                    'mecanismo_lesion': request.POST.get('mecanismo_lesion', ''),
+                    'manejo_abordaje': request.POST.get('manejo_abordaje', ''),
+                    'fecha_lesion': request.POST.get('fecha_lesion', ''),
+                    'fecha_control_medico': request.POST.get('fecha_control_medico', ''),
+                    'alteraciones_funcionales': request.POST.get('alteraciones_funcionales', ''),
+                    'objetivo_paciente': request.POST.get('objetivo_paciente', ''),
+                    
+                    # EVALUACIÓN DEL DOLOR
+                    'dolor_presente': request.POST.get('dolor_presente', ''),
+                    'dolor_antiguedad': request.POST.get('dolor_antiguedad', ''),
+                    'dolor_localizacion': request.POST.get('dolor_localizacion', ''),
+                    'dolor_intensidad': request.POST.get('dolor_intensidad', ''),
+                    'dolor_caracteristicas': request.POST.get('dolor_caracteristicas', ''),
+                    'dolor_irradiacion': request.POST.get('dolor_irradiacion', ''),
+                    
+                    # EVALUACIÓN POSTURAL
+                    'postura_plano_frontal_anterior': request.POST.get('postura_plano_frontal_anterior', ''),
+                    'postura_plano_frontal_posterior': request.POST.get('postura_plano_frontal_posterior', ''),
+                    'postura_plano_sagital': request.POST.get('postura_plano_sagital', ''),
+                    
+                    # EXAMEN FÍSICO
+                    'examen_observacion': request.POST.get('examen_observacion', ''),
+                    'examen_inspeccion': request.POST.get('examen_inspeccion', ''),
+                    'examen_palpacion': request.POST.get('examen_palpacion', ''),
+                    
+                    # RANGO ARTICULAR ACTIVO
+                    'rango_activo_conservados': request.POST.get('rango_activo_conservados', ''),
+                    'rango_activo_limitados': request.POST.get('rango_activo_limitados', ''),
+                    
+                    # RANGO ARTICULAR PASIVO
+                    'rango_pasivo_mmss_derecha': request.POST.get('rango_pasivo_mmss_derecha', ''),
+                    'rango_pasivo_mmss_izquierda': request.POST.get('rango_pasivo_mmss_izquierda', ''),
+                    'rango_pasivo_mmii_derecha': request.POST.get('rango_pasivo_mmii_derecha', ''),
+                    'rango_pasivo_mmii_izquierda': request.POST.get('rango_pasivo_mmii_izquierda', ''),
+                    
+                    # FUNCIÓN MUSCULAR
+                    'funcion_muscular_superiores': request.POST.get('funcion_muscular_superiores', ''),
+                    'funcion_muscular_inferiores': request.POST.get('funcion_muscular_inferiores', ''),
+                    
+                    # PRUEBAS FUNCIONALES ACTIVAS
+                    'movimiento_squat_overhead': request.POST.get('movimiento_squat_overhead', ''),
+                    'movimiento_single_leg_squat': request.POST.get('movimiento_single_leg_squat', ''),
+                    'movimiento_drop_test': request.POST.get('movimiento_drop_test', ''),
+                    'movimiento_salto_cajon': request.POST.get('movimiento_salto_cajon', ''),
+                    
+                    # EVALUACIÓN DE MOVIMIENTO CON CARGA
+                    'movimiento_carga_squat_press': request.POST.get('movimiento_carga_squat_press', ''),
+                    'movimiento_carga_split_deadlift': request.POST.get('movimiento_carga_split_deadlift', ''),
+                    'movimiento_carga_turkish_get_up': request.POST.get('movimiento_carga_turkish_get_up', ''),
+                    
+                    # TEST ORTOPÉDICOS
+                    'test_ortopedicos': request.POST.get('test_ortopedicos', ''),
                 }
                 sesion.evaluacion_inicial = evaluacion_datos
             
