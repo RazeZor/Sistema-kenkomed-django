@@ -158,7 +158,22 @@
 
         <!-- Columna Derecha: Acciones Rápidas -->
         <div class="space-y-6">
-            <div id="formsCard" class="bg-white rounded-xl shadow-sm border border-gray-100" style="display: none;">
+            {% if paciente and not paciente.formulario %}
+            <!-- Tarjeta de Evaluación Pendiente -->
+            <div class="bg-amber-50 rounded-xl p-6 border border-amber-200 text-center shadow-sm relative overflow-hidden group">
+                <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500 rounded-full opacity-10 group-hover:scale-110 transition-transform"></div>
+                <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4 relative z-10 shadow-inner">
+                    <i class='bx bx-clipboard text-3xl text-amber-600'></i>
+                </div>
+                <h3 class="text-lg font-bold text-amber-800 mb-2 relative z-10">Evaluación Inicial Pendiente</h3>
+                <p class="text-amber-700 text-sm mb-6 relative z-10 font-medium">Este paciente requiere contestar su anamnesis y evaluación del dolor para continuar.</p>
+                <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="relative z-10 inline-flex items-center justify-center gap-2 px-6 py-3 w-full font-bold text-white bg-amber-500 rounded-xl hover:bg-amber-600 focus:ring-4 focus:ring-amber-200 transition-all shadow-md hover:shadow-lg transform active:scale-95">
+                    <i class='bx bx-edit text-xl'></i> Iniciar Evaluación Ahora
+                </a>
+            </div>
+            {% endif %}
+
+            <div id="formsCard" class="bg-white rounded-xl shadow-sm border border-gray-100" {% if not paciente.formulario %}style="opacity: 0.5; pointer-events: none;"{% else %}style="display: none;"{% endif %}>
                 <div class="border-b border-gray-100 px-6 py-4 flex items-center gap-2">
                     <i class='bx bx-file text-xl text-medical-blue'></i>
                     <h2 class="text-lg font-semibold text-gray-800">Evaluaciones</h2>

@@ -95,6 +95,11 @@ def HistorialClinico(request):
             nota_texto = request.POST.get('nota')
         elif request.method == 'GET':
             rut = request.GET.get('rut')
+            
+        # Revisamos si viene una redirección desde la creación de paciente    
+        if 'temp_rut_historial' in request.session:
+            rut = request.session['temp_rut_historial']
+            del request.session['temp_rut_historial']
 
         if rut:
             try:

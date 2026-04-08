@@ -289,6 +289,17 @@ def FormularioInicial(request):
         if not clinico and not es_admin:
             return redirect('login')
 
+        context = {}
+        
+        if request.method == 'GET':
+            rut = request.GET.get('rut')
+            if rut:
+                try:
+                    paciente_obj = Paciente.objects.get(rut=rut)
+                    context['paciente_existente'] = True
+                    context['paciente'] = paciente_obj
+                except Paciente.DoesNotExist:
+                    pass
 
         if request.method == 'POST':
             # Parsear duración de sesión y crear registro tiempo
@@ -297,89 +308,86 @@ def FormularioInicial(request):
             if duracion_sesion_str and not nuevo_tiempo:
                 messages.error(request, 'Formato de duración de sesión inválido.')
 
-            rut = request.POST.get('rut')
-            nombre = request.POST.get('nombre')
-            apellido = request.POST.get('apellido')
-            fechaNacimiento_raw = request.POST.get('fechaNac')
-            genero = request.POST.get('genero')
-            contacto = request.POST.get('contact')
-            correo = request.POST.get('correo')
-            contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
-            trabajo = request.POST.get('trabajo')
-            profesion = request.POST.get('profesion')
-            cobertura_de_salud = request.POST.get('cobertura')
-            LicenciaInicio_raw = request.POST.get('fecha_inicio')
-            LicenciaFin_raw = request.POST.get('fecha_fin')
-            LicenciaDias = request.POST.get('dias_licencia')
+            paciente_ya_existe = request.POST.get('paciente_ya_existe') == 'true'
 
-            # Mensaje de diagnóstico con resumen de datos recibidos
-            try:
-                resumen = (
-                    f"POST recibido: rut={rut}, nombre={nombre}, apellido={apellido}, "
-                    f"fechaNac={fechaNacimiento_raw}, genero={genero}, contacto={contacto}, correo={correo}, "
-                    f"cobertura={cobertura_de_salud}, trabajo={trabajo}, profesion={profesion}, "
-                    f"lic_inicio={LicenciaInicio_raw}, lic_fin={LicenciaFin_raw}, dias={LicenciaDias}"
-                )
-                messages.info(request, resumen)
-            except Exception:
-                # No interrumpir si algún valor no es serializable
-                pass
+            if paciente_ya_existe:
+                rut = request.POST.get('rut_oculto')
+                try:
+                    paciente = Paciente.objects.get(rut=rut)
+                except Paciente.DoesNotExist:
+                    messages.error(request, 'El paciente especificado no existe.')
+                    return render(request, 'FormularioInicial.html', context)
+            else:
+                rut = request.POST.get('rut')
+                nombre = request.POST.get('nombre')
+                apellido = request.POST.get('apellido')
+                fechaNacimiento_raw = request.POST.get('fechaNac')
+                genero = request.POST.get('genero')
+                contacto = request.POST.get('contact')
+                correo = request.POST.get('correo')
+                contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '') if contacto else ''
+                trabajo = request.POST.get('trabajo')
+                profesion = request.POST.get('profesion')
+                cobertura_de_salud = request.POST.get('cobertura')
+                LicenciaInicio_raw = request.POST.get('fecha_inicio')
+                LicenciaFin_raw = request.POST.get('fecha_fin')
+                LicenciaDias = request.POST.get('dias_licencia')
 
-            # Parseo de fechas con mensajes en caso de error
-            fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
-            if fechaNacimiento is None:
-                return render(request, 'FormularioInicial.html')
+                try:
+                    resumen = f"POST recibido: rut={rut}, nombre={nombre}, apellido={apellido}"
+                    messages.info(request, resumen)
+                except Exception:
+                    pass
 
-            LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request)
-            if LicenciaInicio is None:
-                return render(request, 'FormularioInicial.html')
+                fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
+                if fechaNacimiento is None:
+                    return render(request, 'FormularioInicial.html', context)
 
-            messages.info(request, 'Fechas parseadas correctamente.')
+                LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request) if LicenciaInicio_raw else None
 
-            datos_para_validar = {
-                'rut': rut,
-                'nombre': nombre,
-                'apellido': apellido,
-                'fechaNacimiento': fechaNacimiento,
-                'genero': genero,
-                'contacto': contacto,
-                'correo': correo,
-                'cobertura_de_salud': cobertura_de_salud,
-                'trabajo': trabajo,
-                'profesion': profesion,
-                'LicenciaInicio': LicenciaInicio,
-                'LicenciaFin': LicenciaFin_raw,
-                'LicenciaDias': LicenciaDias,
-            }
+                datos_para_validar = {
+                    'rut': rut,
+                    'nombre': nombre,
+                    'apellido': apellido,
+                    'fechaNacimiento': fechaNacimiento,
+                    'genero': genero,
+                    'contacto': contacto,
+                    'correo': correo,
+                    'cobertura_de_salud': cobertura_de_salud,
+                    'trabajo': trabajo,
+                    'profesion': profesion,
+                    'LicenciaInicio': LicenciaInicio_raw,
+                    'LicenciaFin': LicenciaFin_raw,
+                    'LicenciaDias': LicenciaDias,
+                }
 
-            errores = validar_campos_obligatorios(datos_para_validar)
-            if errores:
-                for e in errores:
-                    messages.error(request, e)
-                return render(request, 'FormularioInicial.html')
+                errores = validar_campos_obligatorios(datos_para_validar)
+                if errores:
+                    for e in errores:
+                        messages.error(request, e)
+                    return render(request, 'FormularioInicial.html', context)
 
-            # Crear/actualizar paciente
-            defaults = {
-                'nombre': nombre,
-                'apellido': apellido,
-                'fechaNacimiento': fechaNacimiento,
-                'genero': genero,
-                'contacto': contacto,
-                'correo': correo,
-                'cobertura_de_salud': cobertura_de_salud,
-                'trabajo': trabajo,
-                'profesion': profesion,
-                'LicenciaInicio': LicenciaInicio,
-                'LicenciaFin': LicenciaFin_raw,
-                'LicenciaDias': LicenciaDias,
-            }
+                defaults = {
+                    'nombre': nombre,
+                    'apellido': apellido,
+                    'fechaNacimiento': fechaNacimiento,
+                    'genero': genero,
+                    'contacto': contacto,
+                    'correo': correo,
+                    'cobertura_de_salud': cobertura_de_salud,
+                    'trabajo': trabajo,
+                    'profesion': profesion,
+                    'LicenciaInicio': LicenciaInicio,
+                    'LicenciaFin': LicenciaFin_raw if LicenciaFin_raw else None,
+                    'LicenciaDias': LicenciaDias,
+                }
 
-            try:
-                paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
-                messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
-            except Exception as e:
-                messages.error(request, f'Error al crear/actualizar paciente: {e}')
-                return render(request, 'FormularioInicial.html')
+                try:
+                    paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+                    messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
+                except Exception as e:
+                    messages.error(request, f'Error al crear/actualizar paciente: {e}')
+                    return render(request, 'FormularioInicial.html', context)
 
             # Construir y guardar formulario Clínico con todos los campos
             try:
@@ -387,12 +395,12 @@ def FormularioInicial(request):
                 messages.info(request, 'Formulario clínico guardado correctamente.')
             except Exception as e:
                 messages.error(request, f'Error al guardar formulario clínico: {e}')
-                return render(request, 'FormularioInicial.html')
+                return render(request, 'FormularioInicial.html', context)
             
             request.session['show_success_message'] = 'Paciente guardado exitosamente.'
             return redirect('panel')
 
-        return render(request, 'FormularioInicial.html')
+        return render(request, 'FormularioInicial.html', context)
 
     except Exception as e:
         messages.error(request, f'Ocurrió un error inesperado: intenta Nuevamente')

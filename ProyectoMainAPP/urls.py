@@ -46,6 +46,7 @@ urlpatterns = [
     path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
     path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
     path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
+    path('panel/AgregarPaciente',lista.AgregarPacienteBasico,name='AgregarPacienteBasico'),
     
     # Incluir las URLs de PanelDeControl
     path('', include('PanelDeControl.urls')),

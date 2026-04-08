@@ -1,0 +1,204 @@
+{% extends 'base_kenkomed.html' %}
+{% load static %}
+
+{% block title %}Agregar Nuevo Paciente - Sistema Clínico{% endblock %}
+{% block header_title %}Agregar Nuevo Paciente{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        
+        <!-- Header -->
+        <div class="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-r from-medical-blue to-medical-blue-light flex items-center justify-center shadow-lg">
+                    <i class='bx bx-user-plus text-3xl text-white'></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Registro de Paciente</h1>
+                    <p class="text-sm text-gray-500 mt-1">Complete los datos demográficos y de contacto del nuevo paciente</p>
+                </div>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %} flex items-center gap-3 shadow-sm">
+                    <i class='bx text-xl {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
+                    <span class="font-medium">{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'AgregarPacienteBasico' %}" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- SECCIÓN 1: IDENTIFICACIÓN -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
+                        <i class='bx bx-id-card'></i> Identificación Personal
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">RUT <span class="text-red-500">*</span></label>
+                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9" required/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Fecha de Nacimiento <span class="text-red-500">*</span></label>
+                            <input type="date" id="fechaNacimiento" name="fechaNacimiento" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all text-gray-700" required/>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Nombres <span class="text-red-500">*</span></label>
+                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="nombre" maxlength="50" placeholder="Ingrese nombre completo" pattern="[A-Za-zÑn\s]{3,50}$" required/>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Apellidos <span class="text-red-500">*</span></label>
+                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="apellido" maxlength="50" pattern="[A-Za-zÑn\s]{3,50}$" placeholder="Ingrese ambos apellidos" required/>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Género <span class="text-red-500">*</span></label>
+                        <div class="flex gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="genero" value="Masculino" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
+                                    Masculino
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="genero" value="Femenino" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
+                                    Femenino
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="genero" value="Otro" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
+                                    Otro
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 2: CONTACTO Y PREVISIÓN -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
+                        <i class='bx bx-book-contact'></i> Contacto y Previsión
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Teléfono <span class="text-red-500">*</span></label>
+                            <div class="flex">
+                                <span class="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
+                                    +56 9
+                                </span>
+                                <input type="tel" class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="contacto" maxlength="8" pattern="[0-9]{8}" placeholder="Ej: 12345678" required />
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Ingrese los 8 dígitos</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico</label>
+                            <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="correo" placeholder="ejemplo@correo.com">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Cobertura de Salud <span class="text-red-500">*</span></label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="cobertura_de_salud" value="Fonasa" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Fonasa</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="cobertura_de_salud" value="Isapre" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Isapre</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="cobertura_de_salud" value="Particular" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Particular</div>
+                            </label>
+                            <label class="flex-1 cursor-pointer">
+                                <input type="radio" name="cobertura_de_salud" value="Otro" class="peer sr-only" required/>
+                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Otro</div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECCIÓN 3: OCUPACIÓN -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
+                        <i class='bx bx-briefcase'></i> Ocupación y Trabajo
+                    </h2>
+                </div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Nombre de Profesión / Oficio</label>
+                        <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="profesion" placeholder="Ej: Profesor, Administrativo, Ingeniero">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-3">Clasificación de Tipo de Trabajo</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <input type="radio" name="trabajo" value="Trabajo sedentario" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
+                                <div><span class="block font-medium text-gray-700 text-sm">Sedentario</span><span class="block text-xs text-gray-500 mt-0.5">Sentado mayor parte del tiempo</span></div>
+                            </label>
+                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <input type="radio" name="trabajo" value="Trabajo con movilidad moderada" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
+                                <div><span class="block font-medium text-gray-700 text-sm">Movilidad moderada</span><span class="block text-xs text-gray-500 mt-0.5">Alterna sentado/de pie ocasionalmente</span></div>
+                            </label>
+                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <input type="radio" name="trabajo" value="Trabajo de moderado esfuerzo físico" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
+                                <div><span class="block font-medium text-gray-700 text-sm">Moderado esfuerzo físico</span><span class="block text-xs text-gray-500 mt-0.5">Levanta cargas medias, posturas prolongadas</span></div>
+                            </label>
+                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <input type="radio" name="trabajo" value="Trabajo de alto esfuerzo físico" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
+                                <div><span class="block font-medium text-gray-700 text-sm">Alto esfuerzo físico</span><span class="block text-xs text-gray-500 mt-0.5">Cargas pesadas, esfuerzo constante</span></div>
+                            </label>
+                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                                <input type="radio" name="trabajo" value="Trabajo manual especializado" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
+                                <div><span class="block font-medium text-gray-700 text-sm">Manual especializado</span><span class="block text-xs text-gray-500 mt-0.5">Movimientos precisos y repetitivos</span></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex items-center justify-end gap-4 pt-4">
+                <a href="{% url 'pacientes' %}" class="px-6 py-3 font-semibold text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-8 py-3 font-semibold text-white bg-medical-blue rounded-xl hover:bg-medical-blue-dark transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform active:scale-95">
+                    <i class='bx bx-save text-xl'></i> Confirmar e Ir al Historial
+                </button>
+            </div>
+            
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/utils.js' %}"></script>
+{% endblock %}
