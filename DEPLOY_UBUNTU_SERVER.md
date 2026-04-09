@@ -585,7 +585,40 @@ En tu Ubuntu, escribe esto y dale Enter:
 nohup cloudflared tunnel --url http://127.0.0.1:8000 > tunnel.log 2>&1 &
 
 ¿Cómo veo la URL que me generó? Como ahora se está ejecutando invisible en el fondo, guardará todo lo que imprime en un archivo llamado tunnel.log. Para leer ese archivo y ver tu URL, ejecuta:
+
 cat tunnel.log | grep trycloudflare
 
 Para "apagarlo" cuando ya no lo necesites, harás:
 pkill cloudflared
+
+
+APUNTES MAX: 
+
+
+levantar docker y cloudflare: 
+
+ir a la ruta del software del kenko: 
+
+cd /home/darknesslimit/kenko/Sistema-kenkomed-django
+
+ejecutar matar el tunel y el docker
+
+pkill cloudflared
+docker compose down
+
+levantar el docker nuevamente:
+
+docker compose up -d
+
+levantar el tunel del cloudflared:
+
+nohup cloudflared tunnel --url http://127.0.0.1:8000 > tunnel.log 2>&1 &
+
+ver el enlace de cloudflare: 
+
+cat tunnel.log | grep trycloudflare
+
+
+
+
+
