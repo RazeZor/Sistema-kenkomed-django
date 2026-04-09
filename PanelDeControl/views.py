@@ -3,7 +3,12 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-from Login.models import Paciente, formularioClinico,tiempo,Notas,Clinico
+from Login.models import (
+    Paciente, formularioClinico, tiempo, Notas, Clinico,
+    CuestionarioPSFS, Groc, CuestionarioEQ_5D, CuestionarioBarthel, 
+    CuestionarioScrenning, CuestionarioEvaluacionENA
+)
+from SesionesKinesicas.models import SesionKinesica
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta
 import time 
@@ -941,3 +946,95 @@ def estadisticas(request):
     }
     
     return render(request, 'estadisticas.html', context)
+
+
+@requiere_clinico
+def estadisticas_paciente_view(request):
+    if 'nombre_clinico' not in request.session:
+        return redirect('login')
+    
+    nombre_clinico = request.session['nombre_clinico']
+    es_admin = request.session.get('es_admin', False)
+    rut_clinico = request.session.get('rut_clinico')
+    
+    context = {
+        'nombre_clinico': nombre_clinico,
+        'es_admin': es_admin,
+        'error': None,
+        'paciente': None
+    }
+
+    if request.method == 'POST':
+        rut = request.POST.get('rutsito')
+    else:
+        rut = request.GET.get('rut')
+        
+    if rut:
+        try:
+            if es_admin:
+                paciente = Paciente.objects.get(rut=rut)
+            else:
+                clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
+                if not clinico_obj:
+                    context['error'] = 'Sesión inválida.'
+                    return render(request, 'estadisticas_paciente.html', context)
+                paciente = Paciente.objects.get(rut=rut, clinico=clinico_obj)
+                
+            context['paciente'] = paciente
+            
+            # Datos para gráficos
+            charts_data = {
+                'psfs': {'labels': [], 'data': []},
+                'groc': {'labels': [], 'data': []},
+                'ena': {'labels': [], 'data': []},
+                'screnning': {'labels': [], 'data': []},
+            }
+            
+            # 1. PSFS
+            try:
+                psfs = CuestionarioPSFS.objects.get(paciente=paciente)
+                if psfs.puntajeTotal:
+                    data_psfs = json.loads(psfs.puntajeTotal) if isinstance(psfs.puntajeTotal, str) else psfs.puntajeTotal
+                    # data_psfs es un array o dicc. Asumiendo que es lista de puntajes por sesion
+                    if isinstance(data_psfs, list):
+                        charts_data['psfs']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_psfs]
+                        charts_data['psfs']['labels'] = [f'Sesión {i+1}' for i in range(len(data_psfs))]
+            except CuestionarioPSFS.DoesNotExist:
+                pass
+                
+            # 2. GROC
+            try:
+                groc = Groc.objects.get(paciente=paciente)
+                if groc.puntajeGroc:
+                    data_groc = json.loads(groc.puntajeGroc) if isinstance(groc.puntajeGroc, str) else groc.puntajeGroc
+                    if isinstance(data_groc, list):
+                        charts_data['groc']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_groc]
+                        charts_data['groc']['labels'] = [f'Sesión {i+1}' for i in range(len(data_groc))]
+            except Groc.DoesNotExist:
+                pass
+                
+            # 3. ENA
+            try:
+                ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
+                if ena.puntaje_obtenido_sesion:
+                    data_ena = json.loads(ena.puntaje_obtenido_sesion) if isinstance(ena.puntaje_obtenido_sesion, str) else ena.puntaje_obtenido_sesion
+                    if isinstance(data_ena, list):
+                        charts_data['ena']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_ena]
+                        charts_data['ena']['labels'] = [f'Sesión {i+1}' for i in range(len(data_ena))]
+            except CuestionarioEvaluacionENA.DoesNotExist:
+                pass
+                
+            # 4. Sesiones y Estadísticas Generales
+            sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
+            context['total_sesiones'] = sesiones.count()
+            if sesiones.exists():
+                context['ultima_sesion'] = sesiones.last().fecha_creacion
+            else:
+                context['ultima_sesion'] = "N/A"
+            
+            context['charts_data'] = json.dumps(charts_data)
+            
+        except Paciente.DoesNotExist:
+            context['error'] = "No se encontró ningún paciente con ese RUT o no tienes permisos."
+            
+    return render(request, 'estadisticas_paciente.html', context)

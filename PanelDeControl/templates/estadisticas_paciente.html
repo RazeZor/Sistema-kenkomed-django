@@ -1,0 +1,219 @@
+{% extends 'base_kenkomed.html' %}
+{% load static %}
+
+{% block title %}Estadísticas del Paciente - Sistema Clínico{% endblock %}
+
+{% block header_title %}Estadísticas Clínicas por Paciente{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
+<script src="{% static 'js/utils.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Buscador -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="post" action="{% url 'estadisticas_paciente' %}" class="flex flex-col md:flex-row gap-4 items-end">
+            {% csrf_token %}
+            <div class="flex-1 w-full relative">
+                <label for="rutsito" class="block text-sm font-medium text-gray-700 mb-1">Buscar paciente por RUT</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class='bx bx-id-card text-gray-400 text-lg'></i>
+                    </div>
+                    <input type="text" id="rutsito" name="rutsito" 
+                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-medical-blue focus:border-medical-blue block w-full pl-10 p-2.5 transition-colors rut-input" 
+                        maxlength="12" placeholder="Ejemplo: 21.222.899-3" required>
+                </div>
+            </div>
+            <button type="submit" class="px-6 py-2.5 bg-medical-blue text-white rounded-lg text-sm font-medium transition-all hover:bg-medical-blue-dark flex items-center justify-center gap-2 md:w-auto w-full">
+                <i class='bx bx-search'></i> Ver Estadísticas
+            </button>
+        </form>
+
+        {% if error %}
+        <div class="mt-4 p-4 text-sm text-red-800 rounded-lg bg-red-50 flex items-center gap-2 border border-red-100">
+            <i class='bx bx-error-circle text-lg'></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Si se encontró paciente, mostramos los datos -->
+    {% if paciente %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
+        <div class="border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center gap-2">
+                <i class='bx bx-user-circle text-2xl text-medical-blue'></i>
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800">{{ paciente.nombre }} {{ paciente.apellido }}</h2>
+                    <p class="text-sm text-gray-500">RUT: {{ paciente.rut }}</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="text-right">
+                    <span class="block text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Sesiones</span>
+                    <span class="text-lg font-bold text-gray-900">{{ total_sesiones }}</span>
+                </div>
+                <div class="text-right border-l pl-4 border-gray-200">
+                    <span class="block text-xs text-gray-500 uppercase tracking-wider font-semibold">Última Sesión</span>
+                    <span class="text-lg font-medium text-gray-900">{{ ultima_sesion|date:"d M Y"|default:"N/A" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- PSFS -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <i class='bx bx-line-chart text-green-500'></i> Escala Funcional (PSFS)
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">Mide la progresión en la capacidad funcional del paciente sobre sus actividades (Mayor es mejor).</p>
+            
+            <div class="flex-grow w-full" style="min-height: 300px; position: relative;">
+                <canvas id="chart-psfs"></canvas>
+            </div>
+        </div>
+
+        <!-- GROC -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <i class='bx bx-trending-up text-blue-500'></i> Cambio Clínico Global (GROC)
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">Mide el progreso general percibido por el paciente desde el inicio del tratamiento.</p>
+            
+            <div class="flex-grow w-full" style="min-height: 300px; position: relative;">
+                <canvas id="chart-groc"></canvas>
+            </div>
+        </div>
+
+        <!-- ENA -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                <i class='bx bx-sad text-red-500'></i> Intensidad del Dolor (ENA)
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">Evolución de la evaluación numérica analógica de dolor por sesión (Menor es mejor).</p>
+            
+            <div class="flex-grow w-full" style="min-height: 300px; position: relative;">
+                <canvas id="chart-ena"></canvas>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+</div>
+
+<!-- Script de renderizado para Chart.js -->
+{% if paciente %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const rawData = `{{ charts_data|safe }}`;
+        let chartData = {};
+        
+        try {
+            chartData = JSON.parse(rawData);
+        } catch (e) {
+            console.error("Error parseando datos de gráficos", e);
+        }
+        
+        // Configuraciones globales para línea
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        const noDataPlugin = {
+            id: 'noData',
+            afterDraw: (chart) => {
+                if (chart.data.datasets.length === 0 || chart.data.datasets[0].data.length === 0) {
+                    const ctx = chart.ctx;
+                    const width = chart.width;
+                    const height = chart.height;
+                    chart.clear();
+                    
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = "14px Inter";
+                    ctx.fillStyle = "#6b7280";
+                    ctx.fillText("Aún no hay estadística registrada", width / 2, height / 2 - 10);
+                    ctx.font = "12px Inter";
+                    ctx.fillStyle = "#9ca3af";
+                    ctx.fillText("Se requiere realizar más sesiones para generar el gráfico", width / 2, height / 2 + 15);
+                    ctx.restore();
+                }
+            }
+        };
+
+        Chart.register(noDataPlugin);
+
+        function createLineChart(ctxId, dataObj, colorLine, colorBg, labelName) {
+            const ctx = document.getElementById(ctxId);
+            if (!ctx) return;
+            
+            const hasData = dataObj && dataObj.data && dataObj.data.length > 0;
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hasData ? dataObj.labels : [],
+                    datasets: hasData ? [{
+                        label: labelName,
+                        data: dataObj.data.map(val => Number(val)),
+                        borderColor: colorLine,
+                        backgroundColor: colorBg,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: colorLine,
+                        pointHoverBackgroundColor: colorLine,
+                        pointHoverBorderColor: '#fff',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        fill: true,
+                        tension: 0.3
+                    }] : []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
+                            padding: 12,
+                            titleFont: { size: 13 },
+                            bodyFont: { size: 14, weight: 'bold' },
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            display: hasData,
+                            beginAtZero: true,
+                            grid: { color: '#f3f4f6' }
+                        },
+                        x: {
+                            display: hasData,
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Renderizar cada gráfico
+        createLineChart('chart-psfs', chartData.psfs, '#10b981', 'rgba(16, 185, 129, 0.1)', 'Puntaje PSFS');
+        createLineChart('chart-groc', chartData.groc, '#0ea5e9', 'rgba(14, 165, 233, 0.1)', 'Puntaje GROC');
+        createLineChart('chart-ena', chartData.ena, '#ef4444', 'rgba(239, 68, 68, 0.1)', 'Intensidad Dolor');
+    });
+
+    if (typeof initializeKenkomedUtils === 'function') {
+        initializeKenkomedUtils();
+    }
+</script>
+{% endif %}
+
+{% endblock %}
