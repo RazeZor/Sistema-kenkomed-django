@@ -150,7 +150,7 @@
 
         Chart.register(noDataPlugin);
 
-        function createLineChart(ctxId, dataObj, colorLine, colorBg, labelName) {
+        function createLineChart(ctxId, dataObj, colorLine, colorBg, labelName, minY = 0, maxY = 10) {
             const ctx = document.getElementById(ctxId);
             if (!ctx) return;
             
@@ -162,7 +162,7 @@
                     labels: hasData ? dataObj.labels : [],
                     datasets: hasData ? [{
                         label: labelName,
-                        data: dataObj.data.map(val => Number(val)),
+                        data: dataObj.data.map(val => val === null ? null : Number(val)),
                         borderColor: colorLine,
                         backgroundColor: colorBg,
                         borderWidth: 3,
@@ -192,8 +192,16 @@
                     scales: {
                         y: {
                             display: hasData,
-                            beginAtZero: true,
-                            grid: { color: '#f3f4f6' }
+                            min: minY,
+                            max: maxY,
+                            beginAtZero: false, // Desactivado para controlar nosotros con min/max
+                            grid: { 
+                                color: (ctx) => ctx.tick.value === 0 ? '#9ca3af' : '#f3f4f6',
+                                lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1
+                            },
+                            ticks: {
+                                stepSize: maxY > 7 ? 2 : 1
+                            }
                         },
                         x: {
                             display: hasData,
@@ -204,10 +212,10 @@
             });
         }
 
-        // Renderizar cada gráfico
-        createLineChart('chart-psfs', chartData.psfs, '#10b981', 'rgba(16, 185, 129, 0.1)', 'Puntaje PSFS');
-        createLineChart('chart-groc', chartData.groc, '#0ea5e9', 'rgba(14, 165, 233, 0.1)', 'Puntaje GROC');
-        createLineChart('chart-ena', chartData.ena, '#ef4444', 'rgba(239, 68, 68, 0.1)', 'Intensidad Dolor');
+        // Renderizar cada gráfico con rangos clínicos estándar
+        createLineChart('chart-psfs', chartData.psfs, '#10b981', 'rgba(16, 185, 129, 0.1)', 'Puntaje PSFS', 0, 10);
+        createLineChart('chart-groc', chartData.groc, '#0ea5e9', 'rgba(14, 165, 233, 0.1)', 'Puntaje GROC', -7, 7);
+        createLineChart('chart-ena', chartData.ena, '#ef4444', 'rgba(239, 68, 68, 0.1)', 'Intensidad Dolor', 0, 10);
     });
 
     if (typeof initializeKenkomedUtils === 'function') {

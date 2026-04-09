@@ -995,9 +995,11 @@ def estadisticas_paciente_view(request):
                 psfs = CuestionarioPSFS.objects.get(paciente=paciente)
                 if psfs.puntajeTotal:
                     data_psfs = json.loads(psfs.puntajeTotal) if isinstance(psfs.puntajeTotal, str) else psfs.puntajeTotal
-                    # data_psfs es un array o dicc. Asumiendo que es lista de puntajes por sesion
                     if isinstance(data_psfs, list):
-                        charts_data['psfs']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_psfs]
+                        def safe_int(x):
+                            try: return int(x)
+                            except: return x
+                        charts_data['psfs']['data'] = [safe_int(x) for x in data_psfs]
                         charts_data['psfs']['labels'] = [f'Sesión {i+1}' for i in range(len(data_psfs))]
             except CuestionarioPSFS.DoesNotExist:
                 pass
@@ -1008,19 +1010,39 @@ def estadisticas_paciente_view(request):
                 if groc.puntajeGroc:
                     data_groc = json.loads(groc.puntajeGroc) if isinstance(groc.puntajeGroc, str) else groc.puntajeGroc
                     if isinstance(data_groc, list):
-                        charts_data['groc']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_groc]
-                        charts_data['groc']['labels'] = [f'Sesión {i+1}' for i in range(len(data_groc))]
+                        raw_values = []
+                        for item in data_groc:
+                            if isinstance(item, dict):
+                                raw_values.append(item.get('puntaje'))
+                            else:
+                                raw_values.append(item)
+                        
+                        def safe_int_g(x):
+                            try: return int(x) if x is not None else None
+                            except: return x
+                        charts_data['groc']['data'] = [safe_int_g(x) for x in raw_values]
+                        charts_data['groc']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values))]
             except Groc.DoesNotExist:
                 pass
                 
             # 3. ENA
             try:
                 ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
-                if ena.puntaje_obtenido_sesion:
-                    data_ena = json.loads(ena.puntaje_obtenido_sesion) if isinstance(ena.puntaje_obtenido_sesion, str) else ena.puntaje_obtenido_sesion
+                if ena.estado_por_sesion:
+                    data_ena = json.loads(ena.estado_por_sesion) if isinstance(ena.estado_por_sesion, str) else ena.estado_por_sesion
                     if isinstance(data_ena, list):
-                        charts_data['ena']['data'] = [int(x) if isinstance(x, str) and x.isdigit() else x for x in data_ena]
-                        charts_data['ena']['labels'] = [f'Sesión {i+1}' for i in range(len(data_ena))]
+                        raw_values_e = []
+                        for item in data_ena:
+                            if isinstance(item, dict):
+                                raw_values_e.append(item.get('level'))
+                            else:
+                                raw_values_e.append(item)
+                                
+                        def safe_int_e(x):
+                            try: return int(x) if x is not None else None
+                            except: return x
+                        charts_data['ena']['data'] = [safe_int_e(x) for x in raw_values_e]
+                        charts_data['ena']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values_e))]
             except CuestionarioEvaluacionENA.DoesNotExist:
                 pass
                 
