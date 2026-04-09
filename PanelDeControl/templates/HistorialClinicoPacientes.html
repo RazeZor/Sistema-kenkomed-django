@@ -159,21 +159,21 @@
         <!-- Columna Derecha: Acciones Rápidas -->
         <div class="space-y-6">
             {% if paciente and not paciente.formulario %}
-            <!-- Tarjeta de Evaluación Pendiente -->
+            <!-- Tarjeta de Evaluación Opcional -->
             <div class="bg-amber-50 rounded-xl p-6 border border-amber-200 text-center shadow-sm relative overflow-hidden group">
                 <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500 rounded-full opacity-10 group-hover:scale-110 transition-transform"></div>
                 <div class="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4 relative z-10 shadow-inner">
                     <i class='bx bx-clipboard text-3xl text-amber-600'></i>
                 </div>
-                <h3 class="text-lg font-bold text-amber-800 mb-2 relative z-10">Evaluación Inicial Pendiente</h3>
-                <p class="text-amber-700 text-sm mb-6 relative z-10 font-medium">Este paciente requiere contestar su anamnesis y evaluación del dolor para continuar.</p>
+                <h3 class="text-lg font-bold text-amber-800 mb-2 relative z-10">Evaluación Inicial (Opcional)</h3>
+                <p class="text-amber-700 text-sm mb-6 relative z-10 font-medium">Puede contestar la anamnesis para habilitar el Informe Inteligente con DSS, o saltarla y proceder con las sesiones.</p>
                 <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="relative z-10 inline-flex items-center justify-center gap-2 px-6 py-3 w-full font-bold text-white bg-amber-500 rounded-xl hover:bg-amber-600 focus:ring-4 focus:ring-amber-200 transition-all shadow-md hover:shadow-lg transform active:scale-95">
                     <i class='bx bx-edit text-xl'></i> Iniciar Evaluación Ahora
                 </a>
             </div>
             {% endif %}
 
-            <div id="formsCard" class="bg-white rounded-xl shadow-sm border border-gray-100" {% if not paciente.formulario %}style="opacity: 0.5; pointer-events: none;"{% else %}style="display: none;"{% endif %}>
+            <div id="formsCard" class="bg-white rounded-xl shadow-sm border border-gray-100" style="display: none;">
                 <div class="border-b border-gray-100 px-6 py-4 flex items-center gap-2">
                     <i class='bx bx-file text-xl text-medical-blue'></i>
                     <h2 class="text-lg font-semibold text-gray-800">Evaluaciones</h2>
@@ -198,9 +198,15 @@
                     <hr class="border-gray-100">
                     
                     <div>
+                        {% if paciente.formulario %}
                         <a href="{% url 'informe' %}?rut={{ paciente.rut }}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
                             <i class='bx bx-file-medical text-lg'></i> Mostrar Informe Completo
                         </a>
+                        {% else %}
+                        <button type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed shadow-sm" title="Requiere completar la Evaluación Inicial">
+                            <i class='bx bx-file-medical text-lg'></i> Mostrar Informe Completo (Bloqueado)
+                        </button>
+                        {% endif %}
                     </div>
 
                     <!-- Sesiones Kinésicas - Card Mejorada -->
