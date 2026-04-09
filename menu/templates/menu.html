@@ -105,6 +105,12 @@
                             </div>
                             <span class="ml-3 text-sm font-medium lg:hidden xl:block">Estadísticas</span>
                         </a>
+                        <a href="{% url 'estadisticas_paciente' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
+                            <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/estadisticas_paciente/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                                <i class='text-lg bx bx-line-chart'></i>
+                            </div>
+                            <span class="ml-3 text-sm font-medium lg:hidden xl:block">Estad. por Paciente</span>
+                        </a>
                         <a href="{% url 'calendario_reservas' %}" class="flex items-center p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 touch-manipulation">
                             <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 {% if request.path == '/panel/calendario/' %}text-white rounded-lg bg-medical-blue{% else %}text-gray-600 transition-all bg-gray-100 rounded-lg group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                                 <i class='text-lg bx bx-calendar'></i>

@@ -5,6 +5,7 @@ from . import views_reservas
 urlpatterns = [
     path('clear-session-message/', views.clear_session_message, name='clear_session_message'),
     path('estadisticas/', views.estadisticas, name='estadisticas'),
+    path('estadisticas_paciente/', views.estadisticas_paciente_view, name='estadisticas_paciente'),
     
     # Reservas / Calendario
     path('calendario/', views_reservas.calendario_view, name='calendario_reservas'),

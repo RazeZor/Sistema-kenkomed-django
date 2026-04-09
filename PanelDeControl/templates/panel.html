@@ -17,7 +17,7 @@
                 <p class="text-gray-600">Panel de control del Sistema Clínico</p>
                 
                 <div class="flex flex-wrap gap-4 mt-6">
-                    <a href="{% url 'formularioInicial' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-white transition-all bg-medical-blue rounded-xl hover:bg-medical-blue-dark hover:shadow-md">
+                    <a href="{% url 'AgregarPacienteBasico' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-white transition-all bg-medical-blue rounded-xl hover:bg-medical-blue-dark hover:shadow-md">
                         <i class='mr-2 bx bx-user-plus'></i>
                         <span>Nuevo Paciente</span>
                     </a>
@@ -48,8 +48,9 @@
     </section>
 
     <!-- Accesos rápidos -->
+    
     <section class="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group cursor-pointer" onclick="showDevModal(event)">
+        <a href="{% url 'calendario_reservas' %}" class="block p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
             <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-blue/10 text-medical-blue group-hover:bg-medical-blue group-hover:text-white">
                 <i class='text-2xl bx bx-calendar-plus'></i>
             </div>
@@ -59,7 +60,7 @@
                 <span>Agendar ahora</span>
                 <i class='ml-1 bx bx-right-arrow-alt'></i>
             </span>
-        </div>
+        </a>
         
         <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group cursor-pointer" onclick="showDevModal(event)">
             <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-green/10 text-medical-green group-hover:bg-medical-green group-hover:text-white">

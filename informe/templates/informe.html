@@ -4,514 +4,1028 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Informe Clínico Profesional - KenkoMed</title>
+    <title>Informe Clínico DSS - KenkoMed</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        medical: {
-                            blue: '#1e3a8a',
-                            light: '#eff6ff',
-                            accent: '#3b82f6',
-                            success: '#10b981',
-                            warning: '#f59e0b',
-                            danger: '#ef4444',
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        body { 
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
-        
-        /* ===== ESTILOS DE IMPRESIÓN PROFESIONAL ===== */
-        @media print {
-            * {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-            
-            body { 
-                background-color: white !important;
-                font-size: 10pt; /* Tamaño óptimo para A4 */
-                line-height: 1.5;
-                color: #111827 !important;
-            }
-            
-            @page {
-                size: A4 portrait;
-                margin: 1.5cm;
-            }
+        /* ── Variables corporativas KenkoMed ─────────────────────────────── */
+        :root {
+            --blue:    #115b9c;
+            --blue-lt: #eff6ff;
+            --blue-md: #3b82f6;
+            --ink:     #111827;
+            --ink2:    #4b5563;
+            --ink3:    #6b7280;
+            --line:    #e5e7eb;
+            --bg:      #f3f4f6;
+            --white:   #ffffff;
 
-            .max-w-4xl {
-                max-width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            
-            /* Ocultar UI */
-            .no-print { display: none !important; }
-            #dss-loader { display: none !important; }
-            #dss-content { display: block !important; opacity: 1 !important; visibility: visible !important; }
-            #contenido-expandible { display: block !important; }
-            
-            /* Quitar sombras para no gastar tinta gris */
-            .shadow-sm, .shadow-md, .shadow-lg { box-shadow: none !important; }
-            
-            /* Bordes más limpios */
-            .border { border-color: #d1d5db !important; }
-            
-            /* Evitar cortes feos de página */
-            .print-avoid-break { break-inside: avoid; page-break-inside: avoid; }
-            .print-page-break { page-break-before: always; }
-            
-            .report-card {
-                border: 1px solid #e5e7eb !important;
-                background-color: #ffffff !important;
-                margin-bottom: 1.5rem !important;
-                break-inside: avoid;
-            }
-            
-            /* Ajustes en cuadrículas */
-            .grid { display: grid !important; }
-            
-            /* Asegurar colores de fondos en alertas (pastel) */
-            .card-success { background-color: #ecfdf5 !important; border-color: #a7f3d0 !important; }
-            .card-warning { background-color: #fffbeb !important; border-color: #fde68a !important; }
-            .card-danger { background-color: #fef2f2 !important; border-color: #fecaca !important; }
-            .card-info { background-color: #eff6ff !important; border-color: #bfdbfe !important; }
-        }
-        
-        /* Estilos Web */
-        .report-card {
-            background-color: white;
-            border-radius: 0.75rem;
-            border: 1px solid #e5e7eb;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .header-title-border {
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 0.75rem;
-            margin-bottom: 1.25rem;
+            --g-ok:    #e6f4ec;  --b-ok:  #1a7a45;  --a-ok:  #2ea55e;
+            --g-warn:  #fdf4e3;  --b-warn:#8a5a00;  --a-warn:#e0960a;
+            --g-risk:  #fdecea;  --b-risk:#8b1a1a;  --a-risk:#d93025;
+            --g-info:  #e8eef7;  --b-info:#1a3a6b;  --a-info:#2d5fa0;
+
+            --font: 'IBM Plex Sans', sans-serif;
+            --mono: 'IBM Plex Mono', monospace;
         }
 
-        .data-label { font-weight: 600; color: #4b5563; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.025em; }
-        .data-value { color: #111827; font-size: 0.95rem; }
-        
-        /* Paleta de Alertas DSS (Web + Print sync) */
-        .card-success { background-color: #ecfdf5; border: 1px solid #a7f3d0; border-left: 4px solid #10b981; }
-        .card-warning { background-color: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; }
-        .card-danger  { background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; }
-        .card-info    { background-color: #eff6ff; border: 1px solid #bfdbfe; border-left: 4px solid #3b82f6; }
-        
-        .text-success { color: #065f46; }
-        .text-warning { color: #92400e; }
-        .text-danger  { color: #991b1b; }
-        .text-info    { color: #1e40af; }
-        
-        .icon-success { color: #10b981; }
-        .icon-warning { color: #f59e0b; }
-        .icon-danger  { color: #ef4444; }
-        .icon-info    { color: #3b82f6; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Loader */
-        .loader-spinner {
-            width: 50px; height: 50px;
-            border: 3px solid #e5e7eb;
-            border-top: 3px solid #3b82f6;
+        body {
+            font-family: var(--font);
+            font-size: 13px;
+            line-height: 1.55;
+            color: var(--ink);
+            background: var(--bg);
+        }
+
+        /* ── Layout ────────────────────────────────── */
+        .page-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 24px 16px 48px;
+        }
+
+        /* ── Navbar web ────────────────────────────── */
+        .topbar {
+            background: var(--blue);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+        .topbar-brand { font-weight: 700; font-size: 15px; letter-spacing: .5px; display: flex; align-items: center; gap: 6px; }
+        .topbar a { color: rgba(255,255,255,.8); text-decoration: none; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+        .topbar a:hover { color: white; }
+
+        /* ── Report Header ─────────────────────────── */
+        .report-header {
+            background: var(--white);
+            border-top: 4px solid var(--blue);
+            border: 1px solid var(--line);
+            border-top: 4px solid var(--blue);
+            padding: 20px 24px 16px;
+            margin-bottom: 12px;
+        }
+        .report-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--line);
+        }
+        .report-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--blue);
+            letter-spacing: .3px;
+            text-transform: uppercase;
+        }
+        .report-title p { font-size: 11px; color: var(--ink3); margin-top: 2px; }
+        .brand-mark { font-weight: 800; font-size: 17px; color: var(--blue); letter-spacing: -.3px; display: flex; align-items: center; gap: 5px; }
+
+        /* ── Patient Summary Strip ─────────────────── */
+        .patient-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            background: var(--blue-lt);
+            border: 1px solid #c9d5e8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .patient-field {
+            padding: 8px 12px;
+            border-right: 1px solid #c9d5e8;
+        }
+        .patient-field:last-child { border-right: none; }
+        .pf-label {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--blue-md);
+            margin-bottom: 3px;
+        }
+        .pf-value { font-size: 12px; font-weight: 600; color: var(--ink); }
+
+        /* ── Section header ────────────────────────── */
+        .section-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0 6px;
+            border-bottom: 2px solid var(--blue);
+            margin-bottom: 10px;
+        }
+        .section-head h2 {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--blue);
+        }
+        .section-head i { color: var(--blue); font-size: 16px; }
+
+        /* ── DSS Alert Cards ───────────────────────── */
+        .alert-card {
+            border-radius: 4px;
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border-left: 3px solid;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .alert-card.ok   { background: var(--g-ok);   border-color: var(--a-ok); }
+        .alert-card.warn { background: var(--g-warn);  border-color: var(--a-warn); }
+        .alert-card.risk { background: var(--g-risk);  border-color: var(--a-risk); }
+        .alert-card.info { background: var(--g-info);  border-color: var(--a-info); }
+
+        .alert-icon {
+            width: 22px; height: 22px; min-width: 22px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: white;
+            margin-top: 1px;
+        }
+        .ok   .alert-icon { background: var(--a-ok); }
+        .warn .alert-icon { background: var(--a-warn); }
+        .risk .alert-icon { background: var(--a-risk); }
+        .info .alert-icon { background: var(--a-info); }
+
+        .alert-body h3 {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .ok   .alert-body h3 { color: var(--b-ok); }
+        .warn .alert-body h3 { color: var(--b-warn); }
+        .risk .alert-body h3 { color: var(--b-risk); }
+        .info .alert-body h3 { color: var(--b-info); }
+
+        .alert-body p, .alert-body li {
+            font-size: 11.5px;
+            line-height: 1.5;
+        }
+        .ok   .alert-body p, .ok   .alert-body li { color: #1d6035; }
+        .warn .alert-body p, .warn .alert-body li { color: #6b4300; }
+        .risk .alert-body p, .risk .alert-body li { color: #6b1111; }
+        .info .alert-body p, .info .alert-body li { color: #1a3a6b; }
+
+        .alert-body ul { padding-left: 14px; margin-top: 4px; }
+        .alert-body li { margin-bottom: 2px; }
+
+        .obs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .obs-item {
+            background: rgba(255,255,255,.65);
+            border: 1px solid rgba(0,0,0,.08);
+            border-radius: 3px;
+            padding: 8px 10px;
+            font-size: 11px;
+        }
+        .obs-item .obs-cat { font-weight: 700; margin-bottom: 3px; font-size: 10.5px; }
+        .obs-item .obs-rec { font-weight: 600; margin-top: 4px; }
+
+        .badge-nivel {
+            display: inline-block;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 2px;
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            background: rgba(255,255,255,.5);
+            border: 1px solid rgba(0,0,0,.1);
+        }
+        .note-clinica {
+            font-size: 10.5px;
+            font-style: italic;
+            opacity: .75;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,.1);
+        }
+
+        /* ── Rec box ───────────────────────────────── */
+        .rec-box {
+            background: rgba(255,255,255,.7);
+            border: 1px solid rgba(0,0,0,.1);
+            border-radius: 3px;
+            padding: 7px 10px;
+            margin-top: 7px;
+            font-size: 11px;
+        }
+        .rec-box strong { font-size: 11px; }
+
+        /* ── Data Cards (Anamnesis) ─────────────────── */
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        @media (max-width: 600px) { .data-grid { grid-template-columns: 1fr; } }
+
+        .data-card {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 12px 14px;
+        }
+        .data-card h3 {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            color: var(--ink2);
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .data-card h3 i { font-size: 14px; }
+
+        .field-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 3px 0;
+            border-bottom: 1px solid var(--bg);
+            gap: 8px;
+        }
+        .field-row:last-child { border-bottom: none; }
+        .fl { font-size: 10.5px; color: var(--ink3); font-weight: 500; flex-shrink: 0; }
+        .fv { font-size: 11.5px; color: var(--ink); font-weight: 500; text-align: right; }
+
+        /* Sustancias tabla */
+        .sust-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 4px; }
+        .sust-table th {
+            text-align: left; font-size: 9.5px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: .5px;
+            color: var(--ink3); padding: 3px 6px;
+            border-bottom: 1px solid var(--line);
+        }
+        .sust-table td { padding: 4px 6px; border-bottom: 1px solid var(--bg); }
+        .sust-table tr:last-child td { border-bottom: none; }
+        .sust-name { font-weight: 600; color: var(--ink2); }
+
+        /* Mapeo dolor */
+        .dolor-map {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 3px;
+            padding: 8px 10px;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        .dolor-map li { list-style: none; padding: 2px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; }
+        .dolor-map li:last-child { border-bottom: none; }
+
+        /* Nota textual */
+        .quote-block {
+            background: var(--bg);
+            border-left: 3px solid var(--line);
+            padding: 8px 10px;
+            font-size: 11.5px;
+            color: var(--ink2);
+            font-style: italic;
+            border-radius: 0 3px 3px 0;
+            margin-top: 4px;
+        }
+
+        /* ── Loader ────────────────────────────────── */
+        .loader-wrap {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 32px 20px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 2px solid var(--line);
+            border-top-color: var(--blue-md);
             border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .dss-hidden { display: none; opacity: 0; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-wrap h3 { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+        .loader-wrap p { font-size: 11px; color: var(--ink3); max-width: 340px; margin: 0 auto 14px; }
+        #analyze-btn {
+            display: none;
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font);
+        }
+        #analyze-btn:hover { background: var(--blue-md); }
+
+        /* ── Toggle btn ────────────────────────────── */
+        .toggle-btn-wrap { text-align: center; padding: 12px 0; }
+        .toggle-btn {
+            background: var(--white);
+            border: 1px solid var(--line);
+            color: var(--ink2);
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-btn:hover { background: var(--bg); }
+
+        /* ── Print actions ─────────────────────────── */
+        .print-actions {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 0 0;
+            border-top: 1px solid var(--line);
+            margin-top: 20px;
+        }
+        .btn-print {
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: var(--font);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+        .btn-print:hover { background: var(--blue-md); }
+
+        /* ── Fade in ───────────────────────────────── */
+        .fade-in { animation: fadeIn .5s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden-section { display: none; }
+
+        /* ───────────────────────────────────────────
+           PRINT STYLES — compact A4
+        ─────────────────────────────────────────── */
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+            @page {
+                size: A4 portrait;
+                margin: 1.2cm 1.4cm;
+            }
+
+            body {
+                background: white !important;
+                font-size: 9.5pt;
+                line-height: 1.4;
+                color: #111 !important;
+            }
+
+            .topbar, .no-print, .toggle-btn-wrap, .print-actions { display: none !important; }
+
+            /* Show everything on print */
+            .hidden-section { display: block !important; }
+            #dss-loader { display: none !important; }
+            #dss-content { display: block !important; opacity: 1 !important; }
+
+            .page-wrap { max-width: 100% !important; padding: 0 !important; }
+
+            /* Tighter cards */
+            .report-header { padding: 10px 12px 10px !important; margin-bottom: 8px !important; }
+            .report-title h1 { font-size: 13pt !important; }
+            .alert-card { padding: 8px 10px !important; margin-bottom: 5px !important; }
+            .alert-body p, .alert-body li { font-size: 8.5pt !important; }
+            .alert-body h3 { font-size: 9.5pt !important; }
+            .data-card { padding: 8px 10px !important; }
+            .data-card h3 { font-size: 8pt !important; padding-bottom: 4px !important; margin-bottom: 5px !important; }
+            .fl { font-size: 8pt !important; }
+            .fv { font-size: 8.5pt !important; }
+            .obs-item { font-size: 8pt !important; padding: 5px 7px !important; }
+            .section-head h2 { font-size: 8.5pt !important; }
+            .patient-field { padding: 5px 8px !important; }
+            .pf-label { font-size: 7pt !important; }
+            .pf-value { font-size: 9pt !important; }
+            .sust-table, .sust-table td, .sust-table th { font-size: 8pt !important; }
+
+            /* page-break rules */
+            .report-header,
+            .dss-section,
+            .anamnesis-section { break-inside: avoid; }
+
+            .data-grid { gap: 7px !important; }
+            .data-card { margin-bottom: 0 !important; }
+
+            /* Colors on print */
+            .alert-card.ok   { background: #e6f4ec !important; }
+            .alert-card.warn { background: #fdf4e3 !important; }
+            .alert-card.risk { background: #fdecea !important; }
+            .alert-card.info { background: #e8eef7 !important; }
+
+            /* print footer */
+            .print-footer {
+                display: block !important;
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                border-top: 1px solid #dde2ea;
+                padding: 4px 14px;
+                font-size: 7pt;
+                color: #888;
+                background: white;
+                text-align: center;
+            }
+        }
+
+        /* hide print footer on screen */
+        .print-footer { display: none; }
+
+        /* Not-found state */
+        .not-found {
+            background: var(--white);
+            border: 1px solid var(--line);
+            border-radius: 4px;
+            padding: 48px 20px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .not-found-icon {
+            width: 56px; height: 56px;
+            background: var(--blue-lt);
+            color: var(--blue);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 12px;
+        }
+        .not-found h2 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+        .not-found p { font-size: 12px; color: var(--ink3); max-width: 320px; margin: 0 auto 16px; }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: var(--blue); color: white;
+            padding: 8px 16px; border-radius: 4px; text-decoration: none;
+            font-size: 12px; font-weight: 600;
+        }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
-    <!-- Navbar simplificada solo para UI web -->
-    <div class="bg-medical-blue text-white py-3 px-6 mb-6 shadow-md no-print flex justify-between items-center">
-        <div class="flex items-center gap-2 font-bold text-xl tracking-wide">
-            <i class='bx bx-plus-medical text-white'></i>
-            <span>KenkoMed</span>
+    <!-- Topbar (web only) -->
+    <div class="topbar no-print">
+        <div class="topbar-brand">
+            <img src="{% static 'image/logoblanco.png' %}" alt="KenkoMed Logo" style="height: 20px;"> KenkoMed
         </div>
-        <div>
-            <a href="/panel/" class="text-sm hover:text-gray-200 transition flex items-center gap-1">
-                <i class='bx bx-arrow-back'></i> Volver al Panel
-            </a>
-        </div>
+        <a href="/panel/">
+            <i class='bx bx-arrow-back'></i> Volver al Panel
+        </a>
     </div>
 
-    <div class="max-w-4xl mx-auto px-4 md:px-0 pb-12">
-        
+    <div class="page-wrap">
+
         {% if encontrado %}
-        <!-- HEADER DEL REPORTE -->
-        <div class="bg-white p-8 rounded-t-xl border-b-[4px] border-medical-blue print-avoid-break mb-6 shadow-sm">
-            <div class="flex justify-between items-start mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 tracking-tight uppercase">Informe Clínico DSS</h1>
-                    <p class="text-gray-500 mt-1 font-medium">Sistema de Apoyo a la Toma de Decisiones</p>
+
+        <!-- ═══════════════════════════════════════
+             CABECERA DEL INFORME
+        ═══════════════════════════════════════ -->
+        <div class="report-header">
+            <div class="report-title-row">
+                <div class="report-title">
+                    <h1>Informe Clínico DSS</h1>
+                    <p>Sistema de Apoyo a la Toma de Decisiones · KenkoMed</p>
                 </div>
-                <!-- Logo Kenkomed Imprimible -->
-                <div class="flex items-center gap-2 text-medical-blue text-2xl font-black tracking-tighter">
-                    <i class='bx bx-plus-medical'></i> KenkoMed
+                <div class="brand-mark">
+                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" style="height: 28px;">
                 </div>
             </div>
-
-            <!-- Ficha Resumen Paciente -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-5 rounded-lg border border-gray-200">
-                <div>
-                    <p class="data-label">Paciente</p>
-                    <p class="data-value font-semibold">{{paciente.nombre}} {{paciente.apellido}}</p>
+            <!-- Strip de datos del paciente -->
+            <div class="patient-strip">
+                <div class="patient-field">
+                    <div class="pf-label">Paciente</div>
+                    <div class="pf-value">{{ paciente.nombre }} {{ paciente.apellido }}</div>
                 </div>
-                <div>
-                    <p class="data-label">RUT</p>
-                    <p class="data-value">{{paciente.rut}}</p>
+                <div class="patient-field">
+                    <div class="pf-label">RUT</div>
+                    <div class="pf-value">{{ paciente.rut }}</div>
                 </div>
-                <div>
-                    <p class="data-label">Profesional a Cargo</p>
-                    <p class="data-value">{{ formulario.clinico }}</p>
+                <div class="patient-field">
+                    <div class="pf-label">Profesional</div>
+                    <div class="pf-value">{{ formulario.clinico }}</div>
                 </div>
-                <div>
-                    <p class="data-label">Fecha de Evaluación</p>
-                    <p class="data-value">{{ formulario.fechaCreacion }}</p>
+                <div class="patient-field">
+                    <div class="pf-label">Fecha evaluación</div>
+                    <div class="pf-value">{{ formulario.fechaCreacion }}</div>
                 </div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- SECCIÓN 1: ANÁLISIS DSS (DECISION SUPPORT) -->
-        <!-- ========================================== -->
-        <div class="mb-4 flex items-center gap-2 px-2 print-page-break">
-            <i class='bx bx-brain text-2xl text-medical-blue'></i>
-            <h2 class="text-2xl font-bold text-gray-800">Resultados del Análisis DSS</h2>
-        </div>
+        <!-- ═══════════════════════════════════════
+             SECCIÓN 1 — DSS
+        ═══════════════════════════════════════ -->
+        <div class="dss-section">
 
-        <!-- LOADER (solo web) -->
-        <div id="dss-loader" class="bg-white p-12 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center gap-4 text-center">
-            <div class="loader-spinner"></div>
-            <h3 class="text-lg font-bold text-gray-700">Procesando Perfil Clínico...</h3>
-            <p class="text-gray-500 max-w-md mx-auto">Nuestro motor analítico está evaluando las respuestas del paciente para detectar patrones, factores de riesgo y recomendaciones clínicas.</p>
-            
-            <button id="analyze-btn" onclick="revealDSS()" class="mt-4 hidden bg-medical-blue text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-800 transition shadow-lg items-center gap-2">
-                <i class='bx bx-check-shield text-xl'></i> Mostrar Resultados DSS
+            <div class="section-head">
+                <i class='bx bx-brain'></i>
+                <h2>Análisis DSS — Resultados</h2>
+            </div>
+
+            <!-- Loader (web only) -->
+            <div id="dss-loader" class="loader-wrap no-print">
+                <div class="spinner"></div>
+                <h3>Procesando perfil clínico...</h3>
+                <p>Evaluando respuestas del paciente: factores de riesgo, patrones de dolor y recomendaciones.</p>
+                <button id="analyze-btn" onclick="revealDSS()">
+                    <i class='bx bx-check-shield'></i> Mostrar resultados DSS
+                </button>
+            </div>
+
+            <!-- Contenedor resultados DSS -->
+            <div id="dss-content" style="display:none;">
+
+                <!-- ── Escala Semáforo ── -->
+                {% if mensajeDSS %}
+                    {% if mensajeDSS.status == 'danger' %}
+                    <div class="alert-card risk">
+                        <div class="alert-icon">!</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeDSS.title }}</h3>
+                            {% if mensajeDSS.nivel %}<span class="badge-nivel">{{ mensajeDSS.nivel }}</span>{% endif %}
+                            <p>{{ mensajeDSS.message }}</p>
+                            {% if mensajeDSS.observaciones %}
+                            <div class="obs-grid">
+                                {% for obs in mensajeDSS.observaciones %}
+                                <div class="obs-item">
+                                    <div class="obs-cat">{{ obs.categoria }}</div>
+                                    <div><strong>Hallazgo:</strong> {{ obs.hallazgo }}</div>
+                                    <div><strong>Implicación:</strong> {{ obs.implicacion }}</div>
+                                    <div class="obs-rec"><i class='bx bx-check'></i> {{ obs.recomendacion }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if mensajeDSS.note %}<p class="note-clinica"><em>Nota:</em> {{ mensajeDSS.note }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mensajeDSS.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon">⚠</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeDSS.title }}</h3>
+                            {% if mensajeDSS.nivel %}<span class="badge-nivel">{{ mensajeDSS.nivel }}</span>{% endif %}
+                            <p>{{ mensajeDSS.message }}</p>
+                            {% if mensajeDSS.observaciones %}
+                            <div class="obs-grid">
+                                {% for obs in mensajeDSS.observaciones %}
+                                <div class="obs-item">
+                                    <div class="obs-cat">{{ obs.categoria }}</div>
+                                    <div><strong>Hallazgo:</strong> {{ obs.hallazgo }}</div>
+                                    <div><strong>Implicación:</strong> {{ obs.implicacion }}</div>
+                                    <div class="obs-rec"><i class='bx bx-check'></i> {{ obs.recomendacion }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if mensajeDSS.note %}<p class="note-clinica"><em>Nota:</em> {{ mensajeDSS.note }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mensajeDSS.status == 'info' %}
+                    <div class="alert-card info">
+                        <div class="alert-icon">i</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeDSS.title }}</h3>
+                            {% if mensajeDSS.nivel %}<span class="badge-nivel">{{ mensajeDSS.nivel }}</span>{% endif %}
+                            <p>{{ mensajeDSS.message }}</p>
+                            {% if mensajeDSS.observaciones %}
+                            <div class="obs-grid">
+                                {% for obs in mensajeDSS.observaciones %}
+                                <div class="obs-item">
+                                    <div class="obs-cat">{{ obs.categoria }}</div>
+                                    <div><strong>Hallazgo:</strong> {{ obs.hallazgo }}</div>
+                                    <div><strong>Implicación:</strong> {{ obs.implicacion }}</div>
+                                    <div class="obs-rec"><i class='bx bx-check'></i> {{ obs.recomendacion }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            {% if mensajeDSS.note %}<p class="note-clinica"><em>Nota:</em> {{ mensajeDSS.note }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mensajeDSS.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeDSS.title }}</h3>
+                            <p>{{ mensajeDSS.message }}</p>
+                            {% if mensajeDSS.recommendation %}
+                            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ mensajeDSS.recommendation }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Características del dolor ── -->
+                {% if MensajecaracteristicasDolor %}
+                    {% if MensajecaracteristicasDolor.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon">⚠</div>
+                        <div class="alert-body">
+                            <h3>{{ MensajecaracteristicasDolor.title }}</h3>
+                            <p>{{ MensajecaracteristicasDolor.message }}</p>
+                            {% if MensajecaracteristicasDolor.items %}
+                            <ul>{% for item in MensajecaracteristicasDolor.items %}<li>{{ item }}</li>{% endfor %}</ul>
+                            {% endif %}
+                            {% if MensajecaracteristicasDolor.recommendation %}
+                            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ MensajecaracteristicasDolor.recommendation }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if MensajecaracteristicasDolor.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-body">
+                            <h3>{{ MensajecaracteristicasDolor.title }}</h3>
+                            <p>{{ MensajecaracteristicasDolor.message }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Condiciones de salud ── -->
+                {% if MensajeCondicionesSalud %}
+                    {% if MensajeCondicionesSalud.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon">⚠</div>
+                        <div class="alert-body">
+                            <h3>{{ MensajeCondicionesSalud.title }}</h3>
+                            <p>{{ MensajeCondicionesSalud.message }}</p>
+                            {% if MensajeCondicionesSalud.items %}
+                            <div class="obs-grid">
+                                {% for item in MensajeCondicionesSalud.items %}
+                                <div class="obs-item">
+                                    <div class="obs-cat">{{ item.titulo }}</div>
+                                    <div>{{ item.razon }}</div>
+                                    <div class="obs-rec">🎯 {{ item.herramienta }}</div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if MensajeCondicionesSalud.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-body">
+                            <h3>{{ MensajeCondicionesSalud.title }}</h3>
+                            <p>{{ MensajeCondicionesSalud.message }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Creencias sobre el dolor ── -->
+                {% if opinionproblemaEnfermead %}
+                    {% if opinionproblemaEnfermead.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon">?</div>
+                        <div class="alert-body">
+                            <h3>{{ opinionproblemaEnfermead.title }}</h3>
+                            <p><strong>Hallazgo:</strong> {{ opinionproblemaEnfermead.message }}</p>
+                            <p><strong>Implicación:</strong> {{ opinionproblemaEnfermead.implication }}</p>
+                            {% if opinionproblemaEnfermead.bullets %}
+                            <ul>{% for bullet in opinionproblemaEnfermead.bullets %}<li>{{ bullet }}</li>{% endfor %}</ul>
+                            {% endif %}
+                            <div class="rec-box">
+                                <strong>Herramienta:</strong> {{ opinionproblemaEnfermead.recommendation }}
+                                {% if opinionproblemaEnfermead.justification %}
+                                <p class="note-clinica">Ref: {{ opinionproblemaEnfermead.justification }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if opinionproblemaEnfermead.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-body">
+                            <h3>{{ opinionproblemaEnfermead.title }}</h3>
+                            <p>{{ opinionproblemaEnfermead.message }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Evitativo / Persistente ── -->
+                {% if mensajeEVPER %}
+                    {% if mensajeEVPER.status == 'danger' %}
+                    <div class="alert-card risk">
+                        <div class="alert-icon">!</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeEVPER.title }}</h3>
+                            {% if mensajeEVPER.stats %}<ul>{% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %}</ul>{% endif %}
+                            {% if mensajeEVPER.interpretation %}<p><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p>{% endif %}
+                            {% if mensajeEVPER.bullets %}<ul>{% for b in mensajeEVPER.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+                            {% if mensajeEVPER.recommendations %}
+                            <div class="rec-box">
+                                <strong>Estrategias terapéuticas:</strong>
+                                <ul style="margin-top:4px;">{% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mensajeEVPER.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon">⏸</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeEVPER.title }}</h3>
+                            {% if mensajeEVPER.stats %}<ul>{% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %}</ul>{% endif %}
+                            {% if mensajeEVPER.interpretation %}<p><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p>{% endif %}
+                            {% if mensajeEVPER.bullets %}<ul>{% for b in mensajeEVPER.bullets %}<li>{{ b }}</li>{% endfor %}</ul>{% endif %}
+                            {% if mensajeEVPER.recommendations %}
+                            <div class="rec-box">
+                                <strong>Estrategias terapéuticas:</strong>
+                                <ul style="margin-top:4px;">{% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if mensajeEVPER.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">⚖</div>
+                        <div class="alert-body">
+                            <h3>{{ mensajeEVPER.title }}</h3>
+                            {% if mensajeEVPER.stats %}<ul>{% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %}</ul>{% endif %}
+                            {% if mensajeEVPER.interpretation %}<p><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p>{% endif %}
+                            {% if mensajeEVPER.recommendations %}
+                            <div class="rec-box">
+                                <strong>Mantenimiento:</strong>
+                                <ul style="margin-top:4px;">{% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Sueño ── -->
+                {% if ResultadosSueño %}
+                    {% if ResultadosSueño.status == 'warning' %}
+                    <div class="alert-card warn">
+                        <div class="alert-icon"><i class='bx bx-moon' style="font-size:12px;"></i></div>
+                        <div class="alert-body">
+                            <h3>{{ ResultadosSueño.title }}</h3>
+                            {% if ResultadosSueño.items %}
+                            <ul>{% for item in ResultadosSueño.items %}<li>{{ item }}</li>{% endfor %}</ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if ResultadosSueño.status == 'success' %}
+                    <div class="alert-card ok">
+                        <div class="alert-icon">✓</div>
+                        <div class="alert-body">
+                            <h3>{{ ResultadosSueño.title }}</h3>
+                            <p>{{ ResultadosSueño.message }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- ── Apoyo psicológico ── -->
+                {% if mensajeApoyo %}
+                <div class="alert-card risk">
+                    <div class="alert-icon">!</div>
+                    <div class="alert-body">
+                        <h3>Apoyo Psicológico Requerido</h3>
+                        <p>{{ mensajeApoyo }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+            </div><!-- /dss-content -->
+        </div><!-- /dss-section -->
+
+        <!-- Toggle button -->
+        <div class="toggle-btn-wrap no-print">
+            <button class="toggle-btn" onclick="toggleAnamnesis()">
+                <i class='bx bx-list-ul'></i>
+                <span id="toggleText">Mostrar datos de anamnesis</span>
             </button>
         </div>
 
-        <!-- CONTENEDOR DSS RESULTADOS -->
-        <div id="dss-content" class="dss-hidden space-y-4">
-            
-            <!-- RENDERIZAR RESULTADOS -->
-            
-            {% if mensajeDSS %}
-            <div class="mb-2">
-                {% if mensajeDSS.status == 'danger' %} <div class="p-5 rounded-lg print-avoid-break card-danger"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-danger text-2xl"><i class='bx bxs-error-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-danger">{{ mensajeDSS.title }}</h3> {% if mensajeDSS.nivel %} <span class="inline-block px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-bold mb-3 border border-gray-200 text-danger">{{ mensajeDSS.nivel }}</span> {% endif %} <p class="text-sm font-medium mb-2 text-gray-800">{{ mensajeDSS.message }}</p> <div class="space-y-3 mt-3"> {% for obs in mensajeDSS.observaciones %} <div class="bg-white bg-opacity-50 p-3 rounded border border-gray-200/60 shadow-sm text-sm"> <p class="font-bold mb-1">{{ obs.categoria }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Hallazgo:</span> {{ obs.hallazgo }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Implicación:</span> {{ obs.implicacion }}</p> <p class="text-medical-blue font-semibold mt-2"><i class='bx bx-check'></i> Recomendación: {{ obs.recomendacion }}</p> </div> {% endfor %} </div> <p class="text-xs text-gray-600 mt-3 pt-2 border-t border-gray-200/50"><em>Nota Clínica:</em> {{ mensajeDSS.note }}</p> </div> </div> </div> {% endif %}
-                {% if mensajeDSS.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bxs-error'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ mensajeDSS.title }}</h3> {% if mensajeDSS.nivel %} <span class="inline-block px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-bold mb-3 border border-gray-200 text-warning">{{ mensajeDSS.nivel }}</span> {% endif %} <p class="text-sm font-medium mb-2 text-gray-800">{{ mensajeDSS.message }}</p> <div class="space-y-3 mt-3"> {% for obs in mensajeDSS.observaciones %} <div class="bg-white bg-opacity-50 p-3 rounded border border-gray-200/60 shadow-sm text-sm"> <p class="font-bold mb-1">{{ obs.categoria }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Hallazgo:</span> {{ obs.hallazgo }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Implicación:</span> {{ obs.implicacion }}</p> <p class="text-medical-blue font-semibold mt-2"><i class='bx bx-check'></i> Recomendación: {{ obs.recomendacion }}</p> </div> {% endfor %} </div> <p class="text-xs text-gray-600 mt-3 pt-2 border-t border-gray-200/50"><em>Nota Clínica:</em> {{ mensajeDSS.note }}</p> </div> </div> </div> {% endif %}
-                {% if mensajeDSS.status == 'info' %} <div class="p-5 rounded-lg print-avoid-break card-info"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-info text-2xl"><i class='bx bxs-info-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-info">{{ mensajeDSS.title }}</h3> {% if mensajeDSS.nivel %} <span class="inline-block px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-bold mb-3 border border-gray-200 text-info">{{ mensajeDSS.nivel }}</span> {% endif %} <p class="text-sm font-medium mb-2 text-gray-800">{{ mensajeDSS.message }}</p> <div class="space-y-3 mt-3"> {% for obs in mensajeDSS.observaciones %} <div class="bg-white bg-opacity-50 p-3 rounded border border-gray-200/60 shadow-sm text-sm"> <p class="font-bold mb-1">{{ obs.categoria }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Hallazgo:</span> {{ obs.hallazgo }}</p> <p class="text-gray-700 mb-1"><span class="font-semibold">Implicación:</span> {{ obs.implicacion }}</p> <p class="text-medical-blue font-semibold mt-2"><i class='bx bx-check'></i> Recomendación: {{ obs.recomendacion }}</p> </div> {% endfor %} </div> <p class="text-xs text-gray-600 mt-3 pt-2 border-t border-gray-200/50"><em>Nota Clínica:</em> {{ mensajeDSS.note }}</p> </div> </div> </div> {% endif %}
-                {% if mensajeDSS.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ mensajeDSS.title }}</h3> {% if mensajeDSS.nivel %} <span class="inline-block px-2 py-1 bg-white bg-opacity-60 rounded text-xs font-bold mb-3 border border-gray-200 text-success">{{ mensajeDSS.nivel }}</span> {% endif %} <p class="text-sm font-medium mb-2 text-gray-800">{{ mensajeDSS.message }}</p> {% if mensajeDSS.recommendation %}<div class="mt-3 text-sm font-medium text-gray-900 bg-white bg-opacity-60 p-2 rounded"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ mensajeDSS.recommendation }}</div>{% endif %} </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
+        <!-- ═══════════════════════════════════════
+             SECCIÓN 2 — ANAMNESIS
+        ═══════════════════════════════════════ -->
+        <div id="anamnesis-section" class="anamnesis-section hidden-section">
 
-            {% if MensajecaracteristicasDolor %}
-            <div class="mb-2">
-                {% if MensajecaracteristicasDolor.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bxs-error'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ MensajecaracteristicasDolor.title }}</h3> <p class="text-sm font-medium mb-2 text-gray-800">{{ MensajecaracteristicasDolor.message }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2 space-y-1"> {% for item in MensajecaracteristicasDolor.items %} <li>{{ item }}</li> {% endfor %} </ul> <div class="mt-3 text-sm font-medium text-gray-900 bg-white bg-opacity-60 p-2 rounded border border-gray-200"><i class='bx bx-check text-medical-blue'></i> <strong>Recomendación:</strong> {{ MensajecaracteristicasDolor.recommendation }}</div> </div> </div> </div> {% endif %}
-                {% if MensajecaracteristicasDolor.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ MensajecaracteristicasDolor.title }}</h3> <p class="text-sm font-medium mb-2 text-gray-800">{{ MensajecaracteristicasDolor.message }}</p> </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
-
-            {% if MensajeCondicionesSalud %}
-            <div class="mb-2">
-                {% if MensajeCondicionesSalud.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bxs-error'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ MensajeCondicionesSalud.title }}</h3> <p class="text-sm font-medium mb-2 text-gray-800">{{ MensajeCondicionesSalud.message }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2 space-y-1"> {% for item in MensajeCondicionesSalud.items %} <li class="font-semibold">{{ item.titulo }} <p class="font-normal text-xs ml-5 mt-1 mb-2"> <span class="block">Contexto: {{ item.razon }}</span> <span class="block text-gray-900 mt-1 font-medium bg-white p-1 rounded inline-block">🎯 Herramienta: {{ item.herramienta }}</span> </p> </li> {% endfor %} </ul> </div> </div> </div> {% endif %}
-                {% if MensajeCondicionesSalud.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ MensajeCondicionesSalud.title }}</h3> <p class="text-sm font-medium mb-2 text-gray-800">{{ MensajeCondicionesSalud.message }}</p> </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
-
-            {% if opinionproblemaEnfermead %}
-            <div class="mb-2">
-                {% if opinionproblemaEnfermead.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bxs-error'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ opinionproblemaEnfermead.title }}</h3> <p class="text-sm font-bold mb-2 text-gray-800">Hallazgo: {{ opinionproblemaEnfermead.message }}</p> <p class="text-sm mb-2 text-gray-700"><strong>Implicación clínica:</strong> {{ opinionproblemaEnfermead.implication }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2"> {% for bullet in opinionproblemaEnfermead.bullets %}<li>{{ bullet }}</li>{% endfor %} </ul> <div class="mt-3 p-3 text-sm font-medium text-gray-900 bg-white bg-opacity-60 rounded border border-gray-200"> <i class='bx bx-brain text-medical-blue'></i> <strong>Herramienta:</strong> {{ opinionproblemaEnfermead.recommendation }} <p class="text-xs text-gray-600 mt-2 font-normal italic">Ref: {{ opinionproblemaEnfermead.justification }}</p> </div> </div> </div> </div> {% endif %}
-                {% if opinionproblemaEnfermead.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ opinionproblemaEnfermead.title }}</h3> <p class="text-sm font-medium mb-2 text-gray-800">{{ opinionproblemaEnfermead.message }}</p> </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
-
-            {% if mensajeEVPER %}
-            <div class="mb-2">
-                {% if mensajeEVPER.status == 'danger' %} <div class="p-5 rounded-lg print-avoid-break card-danger"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-danger text-2xl"><i class='bx bxs-error-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-danger">{{ mensajeEVPER.title }}</h3> <p class="text-sm font-bold mb-1 border-b border-red-200 pb-1">Análisis Cuantitativo:</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 font-medium"> {% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %} </ul> <p class="text-sm mb-2 text-gray-700"><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2 opacity-90"> {% for bullet in mensajeEVPER.bullets %}<li>{{ bullet }}</li>{% endfor %} </ul> <div class="mt-3 p-3 bg-white bg-opacity-70 rounded border border-red-200 shadow-sm"> <p class="font-bold text-sm mb-2 text-medical-blue"><i class='bx bx-list-check'></i> Estrategias Terapéuticas:</p> <ul class="list-disc list-inside text-sm text-gray-800 space-y-1"> {% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %} </ul> </div> </div> </div> </div> {% endif %}
-                {% if mensajeEVPER.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bxs-error'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ mensajeEVPER.title }}</h3> <p class="text-sm font-bold mb-1 border-b border-yellow-200 pb-1">Análisis Cuantitativo:</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 font-medium"> {% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %} </ul> <p class="text-sm mb-2 text-gray-700"><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2 opacity-90"> {% for bullet in mensajeEVPER.bullets %}<li>{{ bullet }}</li>{% endfor %} </ul> <div class="mt-3 p-3 bg-white bg-opacity-70 rounded border border-yellow-200 shadow-sm"> <p class="font-bold text-sm mb-2 text-medical-blue"><i class='bx bx-list-check'></i> Estrategias Terapéuticas:</p> <ul class="list-disc list-inside text-sm text-gray-800 space-y-1"> {% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %} </ul> </div> </div> </div> </div> {% endif %}
-                {% if mensajeEVPER.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ mensajeEVPER.title }}</h3> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 font-medium"> {% for stat in mensajeEVPER.stats %}<li>{{ stat }}</li>{% endfor %} </ul> <p class="text-sm mb-2 text-gray-700"><strong>Interpretación:</strong> {{ mensajeEVPER.interpretation }}</p> <ul class="list-disc list-inside text-sm text-gray-700 mb-3 ml-2 opacity-90"> {% for bullet in mensajeEVPER.bullets %}<li>{{ bullet }}</li>{% endfor %} </ul> <div class="mt-3 p-3 bg-white bg-opacity-70 rounded border border-green-200 shadow-sm"> <p class="font-bold text-sm mb-2 text-medical-blue"><i class='bx bx-list-check'></i> Mantenimiento:</p> <ul class="list-disc list-inside text-sm text-gray-800 space-y-1"> {% for rec in mensajeEVPER.recommendations %}<li>{{ rec }}</li>{% endfor %} </ul> </div> </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
-
-            {% if ResultadosSueño %}
-            <div class="mb-2">
-                {% if ResultadosSueño.status == 'warning' %} <div class="p-5 rounded-lg print-avoid-break card-warning"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-warning text-2xl"><i class='bx bx-moon'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-warning">{{ ResultadosSueño.title }}</h3> <ul class="list-disc list-inside text-sm text-gray-700 mb-0 ml-2 space-y-1"> {% for item in ResultadosSueño.items %} <li>{{ item }}</li> {% endfor %} </ul> </div> </div> </div> {% endif %}
-                {% if ResultadosSueño.status == 'success' %} <div class="p-5 rounded-lg print-avoid-break card-success"> <div class="flex items-start gap-3"> <div class="mt-0.5 icon-success text-2xl"><i class='bx bxs-check-circle'></i></div> <div class="flex-1"> <h3 class="font-bold text-lg mb-1 text-success">{{ ResultadosSueño.title }}</h3> <p class="text-sm font-medium mb-0 text-gray-800">{{ ResultadosSueño.message }}</p> </div> </div> </div> {% endif %}
-            </div>
-            {% endif %}
-
-        </div>
-
-        <!-- Botón Mostrar/Ocultar Resto del Informe -->
-        <div class="flex justify-center my-8 no-print">
-            <button id="toggleBtn" onclick="toggleContent()" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2.5 rounded-full font-medium transition-all shadow-sm flex items-center gap-2">
-                <i class='bx bx-list-ul text-lg'></i> <span id="toggleText">Mostrar Informe Completo (Anamnesis)</span>
-            </button>
-        </div>
-
-        <!-- ========================================== -->
-        <!-- SECCIÓN 2: DATOS CRUDOS ANAMNESIS          -->
-        <!-- ========================================== -->
-        <div id="contenido-expandible" class="dss-hidden print-page-break">
-            
-            <div class="mb-6 flex items-center gap-2 px-2">
-                <i class='bx bx-folder text-2xl text-gray-600'></i>
-                <h2 class="text-2xl font-bold text-gray-800">Detalles de Anamnesis y Evaluación</h2>
+            <div class="section-head" style="margin-top:8px;">
+                <i class='bx bx-folder'></i>
+                <h2>Datos de Anamnesis y Evaluación</h2>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <!-- Columna Izquierda -->
-                <div class="space-y-6">
-                    
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-user-pin text-medical-blue'></i> Demografía y Contacto
-                        </h3>
-                        <div class="space-y-3">
-                            <div><p class="data-label">Género</p><p class="data-value">{{paciente.genero}}</p></div>
-                            <div><p class="data-label">F. Nacimiento</p><p class="data-value">{{paciente.fechaNacimiento}}</p></div>
-                            <div><p class="data-label">Contacto</p><p class="data-value">{{paciente.contacto}}</p></div>
-                            <div><p class="data-label">Cobertura de Salud</p><p class="data-value">{{paciente.cobertura_de_salud}}</p></div>
-                        </div>
+            <div class="data-grid">
+
+                <!-- Col izq -->
+                <div style="display:flex;flex-direction:column;gap:10px;">
+
+                    <div class="data-card">
+                        <h3><i class='bx bx-user-pin' style="color:#2d5fa0;"></i> Demografía</h3>
+                        <div class="field-row"><span class="fl">Género</span><span class="fv">{{ paciente.genero }}</span></div>
+                        <div class="field-row"><span class="fl">F. Nacimiento</span><span class="fv">{{ paciente.fechaNacimiento }}</span></div>
+                        <div class="field-row"><span class="fl">Contacto</span><span class="fv">{{ paciente.contacto }}</span></div>
+                        <div class="field-row"><span class="fl">Cobertura de salud</span><span class="fv">{{ paciente.cobertura_de_salud }}</span></div>
                     </div>
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-pulse text-red-500'></i> Dolor y Síntomas Físicos
-                        </h3>
-                        <div class="space-y-4">
-                            <div><p class="data-label">Duración del Dolor</p><p class="data-value">{{ formulario.duracionDolor|default:"No registrado" }}</p></div>
-                            <div><p class="data-label">Características</p><p class="data-value">{{ formulario.caracteristicasDeDolor|default:"No registrado" }}</p></div>
-                            <div class="bg-gray-50 border border-gray-200 p-3 rounded">
-                                <p class="data-label mb-1">Ubicación e Intensidad (Mapeo)</p>
-                                <div class="text-sm prose max-w-none text-gray-700">
-                                    {{ ubicacion_intensidad|safe|default:"No especificado" }}
-                                </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-pulse' style="color:#d93025;"></i> Dolor y síntomas</h3>
+                        <div class="field-row"><span class="fl">Duración</span><span class="fv">{{ formulario.duracionDolor|default:"—" }}</span></div>
+                        <div class="field-row"><span class="fl">Características</span><span class="fv">{{ formulario.caracteristicasDeDolor|default:"—" }}</span></div>
+                        <div style="margin-top:6px;">
+                            <div class="fl" style="margin-bottom:3px;">Mapeo de ubicación e intensidad</div>
+                            <div class="dolor-map">
+                                {{ ubicacion_intensidad|safe|default:"No especificado" }}
                             </div>
                         </div>
                     </div>
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-plus-medical text-green-500'></i> Historial Médico
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <p class="data-label">Condiciones y Comorbilidades</p>
-                                <p class="data-value">{{ formulario.TiposDeEnfermedades|default:"Ninguna registrada" }}</p>
-                            </div>
-                            <div>
-                                <p class="data-label">Medicamentos Actuales</p>
-                                <p class="data-value">{{ formulario.medicamentos|default:"Ninguno registrado" }}</p>
-                            </div>
-                        </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-plus-medical' style="color:#2ea55e;"></i> Historial médico</h3>
+                        <div class="field-row"><span class="fl">Comorbilidades</span><span class="fv">{{ formulario.TiposDeEnfermedades|default:"Ninguna" }}</span></div>
+                        <div class="field-row"><span class="fl">Medicamentos</span><span class="fv">{{ formulario.medicamentos|default:"Ninguno" }}</span></div>
                     </div>
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-sad text-orange-500'></i> Relación con el Problema
-                        </h3>
-                        <div class="space-y-2">
-                            <p class="data-value italic text-gray-700 bg-gray-50 p-3 rounded border-l-4 border-orange-200 text-sm">
-                                "{{ formulario.parametros|default:'No hay registros específicos de cómo afecta el problema' }}"
-                            </p>
-                        </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-sad' style="color:#e0960a;"></i> Relación con el problema</h3>
+                        <div class="quote-block">{{ formulario.parametros|default:"Sin registro" }}</div>
                     </div>
 
                 </div>
 
-                <!-- Columna Derecha -->
-                <div class="space-y-6">
+                <!-- Col der -->
+                <div style="display:flex;flex-direction:column;gap:10px;">
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-smile text-yellow-500'></i> Esfera Psicosocial (Últimas 2 Semanas)
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="col-span-2"><p class="data-label">Propósito de Vida</p><p class="data-value">{{ formulario.proposito|default:"No registrado" }}</p></div>
-                            <div class="col-span-2"><p class="data-label">Red de Apoyo</p><p class="data-value">{{ formulario.red_de_apoyo|default:"No registrada" }}</p></div>
-                            <div><p class="data-label">Anhedonia</p><p class="data-value">{{ formulario.placer_cosas|default:"N/A" }}</p></div>
-                            <div><p class="data-label">Ánimo Bajos</p><p class="data-value">{{ formulario.deprimido|default:"N/A" }}</p></div>
-                            <div><p class="data-label">Ansiedad</p><p class="data-value">{{ formulario.ansioso|default:"N/A" }}</p></div>
-                            <div><p class="data-label">Preocupación Constante</p><p class="data-value">{{ formulario.preocupacion|default:"N/A" }}</p></div>
-                        </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-smile' style="color:#e0960a;"></i> Esfera psicosocial (últ. 2 semanas)</h3>
+                        <div class="field-row"><span class="fl">Propósito de vida</span><span class="fv">{{ formulario.proposito|default:"—" }}</span></div>
+                        <div class="field-row"><span class="fl">Red de apoyo</span><span class="fv">{{ formulario.red_de_apoyo|default:"—" }}</span></div>
+                        <div class="field-row"><span class="fl">Anhedonia</span><span class="fv">{{ formulario.placer_cosas|default:"N/A" }}</span></div>
+                        <div class="field-row"><span class="fl">Ánimo bajo</span><span class="fv">{{ formulario.deprimido|default:"N/A" }}</span></div>
+                        <div class="field-row"><span class="fl">Ansiedad</span><span class="fv">{{ formulario.ansioso|default:"N/A" }}</span></div>
+                        <div class="field-row"><span class="fl">Preocupación constante</span><span class="fv">{{ formulario.preocupacion|default:"N/A" }}</span></div>
                     </div>
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-run text-blue-400'></i> Estilo de Vida y DSS
-                        </h3>
-                        
-                        <div class="space-y-4">
-                            <div>
-                                <p class="data-label border-b border-gray-100 pb-1 mb-2">Actividad Física</p>
-                                <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <span class="text-gray-600 font-medium">Frecuencia Semanal:</span> <span class="text-gray-900">{{ formulario.pregunta7_ejercicioDias|default:"No" }}</span>
-                                    <span class="text-gray-600 font-medium">Duración x Sesión:</span> <span class="text-gray-900">{{ formulario.pregunta8_minutosPorEjercicios|default:"No" }}</span>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <p class="data-label border-b border-gray-100 pb-1 mb-2">Hábitos Alimenticios</p>
-                                <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <span class="text-gray-600 font-medium">Comida Ultraprocesada:</span> <span class="text-gray-900">{{ formulario.pregunta5_ConsumoComidaRapida|default:"No" }}</span>
-                                    <span class="text-gray-600 font-medium">Frutas/Verduras:</span> <span class="text-gray-900">{{ formulario.pregunta6_PorcionesDeFrutas|default:"No" }}</span>
-                                    <span class="text-gray-600 font-medium">Percepción Peso:</span> <span class="text-gray-900">{{ formulario.pregunta4_opinion_peso_actual|default:"No" }}</span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p class="data-label border-b border-gray-100 pb-1 mb-2">Consumo de Sustancias y Preocupación</p>
-                                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                    <div class="grid grid-cols-3 gap-y-2 text-xs font-medium text-gray-500 mb-1 border-b border-gray-200 pb-1">
-                                        <div>Sustancia</div><div class="text-center">Consumo Real</div><div class="text-right">Sentimiento de Culpa/Preocupación</div>
-                                    </div>
-                                    <div class="grid grid-cols-3 gap-y-2 text-sm text-gray-800">
-                                        <div class="font-semibold text-gray-600">Tabaco</div>
-                                        <div class="text-center">{{ formulario.NicotinaSiOno|default:"No" }}</div>
-                                        <div class="text-right text-medical-accent">{{ MensajeNicotina|default:"No" }}</div>
-                                        
-                                        <div class="font-semibold text-gray-600">Alcohol</div>
-                                        <div class="text-center">{{ formulario.AlcoholSiOno|default:"No" }}</div>
-                                        <div class="text-right text-medical-accent">{{ mensajeAcoholP|default:"No" }}</div>
-
-                                        <div class="font-semibold text-gray-600">Drogas Letales</div>
-                                        <div class="text-center">{{ formulario.drogasSiOno|default:"No" }}</div>
-                                        <div class="text-right text-medical-accent">{{ mensajeDrogasP|default:"No" }}</div>
-
-                                        <div class="font-semibold text-gray-600">Marihuana</div>
-                                        <div class="text-center">{{ formulario.marihuanaSiOno|default:"No" }}</div>
-                                        <div class="text-right text-medical-accent">{{ mensajeMarihuanaP|default:"No" }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-run' style="color:#2d5fa0;"></i> Estilo de vida</h3>
+                        <div class="field-row"><span class="fl">Ejercicio (días/sem)</span><span class="fv">{{ formulario.pregunta7_ejercicioDias|default:"No" }}</span></div>
+                        <div class="field-row"><span class="fl">Duración x sesión</span><span class="fv">{{ formulario.pregunta8_minutosPorEjercicios|default:"No" }}</span></div>
+                        <div class="field-row"><span class="fl">Comida ultraprocesada</span><span class="fv">{{ formulario.pregunta5_ConsumoComidaRapida|default:"No" }}</span></div>
+                        <div class="field-row"><span class="fl">Frutas/verduras</span><span class="fv">{{ formulario.pregunta6_PorcionesDeFrutas|default:"No" }}</span></div>
+                        <div class="field-row"><span class="fl">Percepción del peso</span><span class="fv">{{ formulario.pregunta4_opinion_peso_actual|default:"No" }}</span></div>
                     </div>
 
-                    <div class="report-card">
-                        <h3 class="font-bold text-lg text-gray-900 header-title-border flex items-center gap-2">
-                            <i class='bx bx-target-lock text-purple-600'></i> Metas y Motivación Clínica
-                        </h3>
-                        <div class="space-y-4">
-                            <div><p class="data-label">Motivaciones de Vida</p>
-                                <p class="data-value bg-gray-50 border border-gray-200 p-2 rounded text-sm mt-1">{{ formulario.AreasMotivacion|default:"No registradas" }}</p>
-                            </div>
-                            <div><p class="data-label">Disposición al Cambio</p>
-                                <p class="data-value font-medium mt-1">{{ formulario.motivacion_Salud|default:"No registrada" }}</p>
-                            </div>
-                        </div>
+                    <div class="data-card">
+                        <h3><i class='bx bx-test-tube' style="color:#d93025;"></i> Consumo de sustancias</h3>
+                        <table class="sust-table">
+                            <thead>
+                                <tr>
+                                    <th>Sustancia</th>
+                                    <th>Consumo</th>
+                                    <th>Preocupación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="sust-name">Tabaco</td>
+                                    <td>{{ formulario.NicotinaSiOno|default:"No" }}</td>
+                                    <td>{{ MensajeNicotina|default:"—" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="sust-name">Alcohol</td>
+                                    <td>{{ formulario.AlcoholSiOno|default:"No" }}</td>
+                                    <td>{{ mensajeAcoholP|default:"—" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="sust-name">Drogas</td>
+                                    <td>{{ formulario.drogasSiOno|default:"No" }}</td>
+                                    <td>{{ mensajeDrogasP|default:"—" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="sust-name">Marihuana</td>
+                                    <td>{{ formulario.marihuanaSiOno|default:"No" }}</td>
+                                    <td>{{ mensajeMarihuanaP|default:"—" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="data-card">
+                        <h3><i class='bx bx-target-lock' style="color:#7b3fa0;"></i> Metas y motivación</h3>
+                        <div class="field-row"><span class="fl">Motivaciones</span><span class="fv">{{ formulario.AreasMotivacion|default:"—" }}</span></div>
+                        <div class="field-row"><span class="fl">Disposición al cambio</span><span class="fv">{{ formulario.motivacion_Salud|default:"—" }}</span></div>
                     </div>
 
                 </div>
             </div>
-        </div>
+        </div><!-- /anamnesis-section -->
 
-        <div class="flex justify-center space-x-4 mt-12 py-6 border-t border-gray-200 no-print">
-            <button onclick="window.print()" class="px-8 py-3 bg-medical-blue text-white rounded-lg hover:bg-blue-800 transition-colors shadow flex items-center gap-2 font-bold text-lg">
-                <i class='bx bx-printer'></i> Imprimir a PDF
+        <!-- Acciones web -->
+        <div class="print-actions no-print">
+            <button class="btn-print" onclick="window.print()">
+                <i class='bx bx-printer'></i> Imprimir / Exportar PDF
             </button>
         </div>
-        
+
         {% else %}
-        <!-- Estado sin Formulario -->
-        <div class="bg-white p-12 text-center rounded-xl border border-gray-200 shadow-sm mt-10">
-            <div class="mx-auto w-20 h-20 bg-blue-50 text-medical-blue rounded-full flex items-center justify-center text-4xl mb-4">
-                <i class='bx bx-folder-minus'></i>
-            </div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Informe no disponible</h2>
-            <p class="text-gray-500 mb-6 max-w-md mx-auto">{{ mensaje|default:"No se encontró una evaluación clínica (formulario inicial) para este paciente." }}</p>
-            <a href="/panel/" class="inline-flex items-center gap-2 px-6 py-2.5 bg-medical-blue text-white font-medium rounded-lg hover:bg-blue-800 transition shadow-sm">
-                <i class='bx bx-arrow-back'></i> Volver al panel general
-            </a>
+        <!-- Estado sin formulario -->
+        <div class="not-found">
+            <div class="not-found-icon"><i class='bx bx-folder-minus'></i></div>
+            <h2>Informe no disponible</h2>
+            <p>{{ mensaje|default:"No se encontró una evaluación clínica para este paciente." }}</p>
+            <a href="/panel/" class="btn-back"><i class='bx bx-arrow-back'></i> Volver al panel</a>
         </div>
         {% endif %}
 
-    </div>
+    </div><!-- /page-wrap -->
 
-    <!-- DOCUMENT FOOTER (PRINT ONLY) -->
-    <div class="hidden print:block fixed bottom-0 left-0 right-0 py-4 text-center text-xs text-gray-500 border-t border-gray-300 bg-white">
-        <p><strong>INFORME CONFIDENCIAL KENKOMED</strong> - Información clínica sujeta a secreto profesional y protección de datos médicos.</p>
-        <p>Generado automáticamente el: {{ formulario.fechaCreacion }} por Lic. {{ formulario.clinico }}</p>
+    <!-- Footer impresión -->
+    <div class="print-footer">
+        <strong>INFORME CONFIDENCIAL KENKOMED</strong> — Información sujeta a secreto profesional y protección de datos médicos. ·
+        Generado: {{ formulario.fechaCreacion }} · Prof. {{ formulario.clinico }}
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Emular procesamiento analítico solo si estamos en UI interactiva
-            const spinnerWrapper = document.getElementById('dss-loader');
-            const analyzeBtn = document.getElementById('analyze-btn');
-            
+            const loader = document.getElementById('dss-loader');
+            const btn    = document.getElementById('analyze-btn');
+            if (!loader) return;
             setTimeout(() => {
-                spinnerWrapper.querySelector('.loader-spinner').style.display = 'none';
-                spinnerWrapper.querySelector('h3').innerText = 'Análisis DSS Completado';
-                spinnerWrapper.querySelector('p').innerText = 'Se han procesado exitosamente los determinantes de salud, características de dolor y test psicosociales.';
-                analyzeBtn.style.display = 'inline-flex';
-            }, 1200);
-            
-            // Si el usuario imprime por atajo de teclado antes de apretar botón, asegurar que todo es visible:
+                loader.querySelector('.spinner').style.display = 'none';
+                loader.querySelector('h3').textContent = 'Análisis DSS completado';
+                loader.querySelector('p').textContent  = 'Se procesaron los determinantes de salud, características del dolor y test psicosociales.';
+                btn.style.display = 'inline-flex';
+            }, 1100);
             window.addEventListener('beforeprint', forceShowAll);
         });
 
         function revealDSS() {
-            document.getElementById('dss-loader').classList.add('hidden');
-            const content = document.getElementById('dss-content');
-            content.classList.remove('dss-hidden');
-            content.classList.add('fade-in');
+            document.getElementById('dss-loader').style.display = 'none';
+            const c = document.getElementById('dss-content');
+            c.style.display = 'block';
+            c.classList.add('fade-in');
         }
 
-        function toggleContent() {
-            const contenido = document.getElementById('contenido-expandible');
+        function toggleAnamnesis() {
+            const sec  = document.getElementById('anamnesis-section');
             const text = document.getElementById('toggleText');
-            
-            if (contenido.classList.contains('dss-hidden')) {
-                contenido.classList.remove('dss-hidden');
-                contenido.classList.add('fade-in');
-                text.textContent = 'Ocultar Datos de Anamnesis';
+            if (sec.classList.contains('hidden-section')) {
+                sec.classList.remove('hidden-section');
+                sec.classList.add('fade-in');
+                text.textContent = 'Ocultar datos de anamnesis';
             } else {
-                contenido.classList.add('dss-hidden');
-                contenido.classList.remove('fade-in');
-                text.textContent = 'Mostrar Informe Completo (Anamnesis)';
+                sec.classList.add('hidden-section');
+                text.textContent = 'Mostrar datos de anamnesis';
             }
         }
 
         function forceShowAll() {
-            // Eliminar ocultamiento DSS y Anamnesis force print
-            const content = document.getElementById('dss-content');
-            const secondary = document.getElementById('contenido-expandible');
-            
-            if (content.classList.contains('dss-hidden')) {
-                content.classList.remove('dss-hidden');
-                document.getElementById('dss-loader').classList.add('hidden');
-            }
-            if (secondary.classList.contains('dss-hidden')) {
-                secondary.classList.remove('dss-hidden');
-            }
+            const dss = document.getElementById('dss-content');
+            const ana = document.getElementById('anamnesis-section');
+            if (dss) dss.style.display = 'block';
+            const loader = document.getElementById('dss-loader');
+            if (loader) loader.style.display = 'none';
+            if (ana) ana.classList.remove('hidden-section');
         }
     </script>
 </body>

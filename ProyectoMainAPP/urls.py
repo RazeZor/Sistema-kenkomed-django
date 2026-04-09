@@ -46,9 +46,13 @@ urlpatterns = [
     path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
     path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
     path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
+    path('panel/AgregarPaciente',lista.AgregarPacienteBasico,name='AgregarPacienteBasico'),
     
     # Incluir las URLs de PanelDeControl
     path('', include('PanelDeControl.urls')),
+    
+    # Incluir las URLs de SesionesKinesicas
+    path('sesiones-kinesicas/', include('SesionesKinesicas.urls')),
 
     #renderizacion de cuestionarios
     path('CuestionarioGROC/',tiposFormularios.RenderizarGROC,name='GROK'),
