@@ -8,195 +8,441 @@
 <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── Fondo continuo que siempre cubre toda la vista ── */
+    .form-bg {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        min-height: 100%;
+        padding: 28px 16px 48px;
+    }
+
+    .form-wrap { max-width: 780px; margin: 0 auto; }
+
+    /* ── Header card ── */
+    .form-header {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .header-icon {
+        width: 48px; height: 48px; min-width: 48px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #0284c7, #0369a1);
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.2);
+    }
+    .header-icon i { color: #fff; font-size: 24px; }
+    .form-header h1 { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 2px; }
+    .form-header p  { font-size: 12px; color: #64748b; }
+
+    /* ── Mensajes ── */
+    .msg-box {
+        border-radius: 8px;
+        padding: 11px 14px;
+        margin-bottom: 14px;
+        display: flex; align-items: center; gap: 10px;
+        font-size: 13px; font-weight: 500;
+        border: 1px solid;
+    }
+    .msg-box.error   { background: #fef2f2; border-color: #fee2e2; color: #991b1b; }
+    .msg-box.success { background: #f0fdf4; border-color: #dcfce7; color: #166534; }
+    .msg-box.info    { background: #f0f9ff; border-color: #e0f2fe; color: #0369a1; }
+    .msg-box i { font-size: 16px; flex-shrink: 0; }
+
+    /* ── Sección card ── */
+    .form-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .section-head {
+        background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+        padding: 12px 20px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .section-head h2 {
+        font-size: 13px; font-weight: 700;
+        color: #fff; letter-spacing: .3px;
+        display: flex; align-items: center; gap: 7px;
+    }
+    .section-head i { font-size: 16px; }
+    .section-body { padding: 20px 24px; }
+
+    /* ── Grid ── */
+    .field-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    @media (max-width: 600px) { .field-grid-2 { grid-template-columns: 1fr; } }
+    .field-last { margin-bottom: 0; }
+
+    /* ── Label + Input ── */
+    .field-label {
+        display: block;
+        font-size: 11.5px; font-weight: 700;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 6px;
+    }
+    .field-label .req { color: #ef4444; margin-left: 2px; }
+
+    .field-input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 7px;
+        font-size: 13px;
+        color: #1e293b;
+        background: #fff;
+        font-family: inherit;
+        transition: all .2s;
+        outline: none;
+    }
+    .field-input:focus {
+        border-color: #0284c7;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, .12);
+    }
+    .field-input::placeholder { color: #94a3b8; }
+
+    /* ── Tel prefix ── */
+    .tel-wrap { display: flex; }
+    .tel-prefix {
+        padding: 9px 12px;
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-right: none;
+        border-radius: 7px 0 0 7px;
+        font-size: 12px; font-weight: 600;
+        color: #64748b;
+        white-space: nowrap;
+        display: flex; align-items: center;
+    }
+    .tel-wrap .field-input {
+        border-radius: 0 7px 7px 0;
+        flex: 1;
+    }
+    .field-hint { font-size: 10.5px; color: #94a3b8; margin-top: 4px; }
+
+    /* ── Radio pills (género / cobertura) ── */
+    .radio-pill-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .radio-pill input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .radio-pill-label {
+        display: block;
+        padding: 8px 16px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 7px;
+        font-size: 12px; font-weight: 600;
+        color: #475569;
+        cursor: pointer;
+        background: #fff;
+        transition: all .18s;
+        user-select: none;
+    }
+    .radio-pill input[type="radio"]:checked + .radio-pill-label {
+        background: #f0f9ff;
+        border-color: #0284c7;
+        color: #0369a1;
+    }
+    .radio-pill-label:hover { background: #f8fafc; border-color: #bae6fd; }
+
+    /* ── Radio work cards ── */
+    .work-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    @media (max-width: 580px) { .work-grid { grid-template-columns: 1fr; } }
+
+    .work-option input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .work-option-label {
+        display: flex; align-items: flex-start; gap: 10px;
+        padding: 11px 13px;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #fff;
+        transition: all .18s;
+    }
+    .work-option input[type="radio"]:checked + .work-option-label {
+        background: #f0f9ff;
+        border-color: #0284c7;
+    }
+    .work-option-label:hover { background: #f8fafc; border-color: #bae6fd; }
+
+    .work-radio-dot {
+        width: 16px; height: 16px; min-width: 16px;
+        border-radius: 50%;
+        border: 2px solid #cbd5e1;
+        margin-top: 1px;
+        background: #fff;
+        transition: all .15s;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .work-option input[type="radio"]:checked ~ .work-option-label .work-radio-dot,
+    .work-option input[type="radio"]:checked + .work-option-label .work-radio-dot {
+        border-color: #0284c7;
+        background: #0284c7;
+        box-shadow: inset 0 0 0 3px #fff;
+    }
+    .work-txt-main { font-size: 12.5px; font-weight: 600; color: #1e293b; }
+    .work-txt-sub  { font-size: 11px; color: #64748b; margin-top: 1px; }
+
+    /* ── Action bar ── */
+    .action-bar {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding-top: 8px;
+    }
+    .btn-cancel {
+        padding: 9px 20px;
+        font-size: 13px; font-weight: 600;
+        color: #475569;
+        background: #fff;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        cursor: pointer; text-decoration: none;
+        font-family: inherit;
+        transition: all .15s;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-cancel:hover { background: #f8fafc; border-color: #cbd5e1; color: #1e293b; }
+
+    .btn-submit {
+        padding: 9px 22px;
+        font-size: 13px; font-weight: 700;
+        color: #fff;
+        background: linear-gradient(90deg, #0284c7 0%, #0369a1 100%);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: inherit;
+        transition: all .15s;
+        display: inline-flex; align-items: center; gap: 7px;
+        box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .btn-submit:hover   { opacity: .92; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(2, 132, 199, 0.3); }
+    .btn-submit:active  { transform: scale(.98); }
+    .btn-submit i { font-size: 16px; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 py-8">
-    <div class="max-w-4xl mx-auto px-4">
-        
+<div class="form-bg">
+    <div class="form-wrap">
+
         <!-- Header -->
-        <div class="mb-8 p-6 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-xl bg-gradient-to-r from-medical-blue to-medical-blue-light flex items-center justify-center shadow-lg">
-                    <i class='bx bx-user-plus text-3xl text-white'></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800">Registro de Paciente</h1>
-                    <p class="text-sm text-gray-500 mt-1">Complete los datos demográficos y de contacto del nuevo paciente</p>
-                </div>
+        <div class="form-header">
+            <div class="header-icon">
+                <i class='bx bx-user-plus'></i>
+            </div>
+            <div>
+                <h1>Registro de Paciente</h1>
+                <p>Complete los datos demográficos y de contacto del nuevo paciente</p>
             </div>
         </div>
 
+        <!-- Mensajes -->
         {% if messages %}
             {% for message in messages %}
-                <div class="mb-6 p-4 rounded-xl {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %} flex items-center gap-3 shadow-sm">
-                    <i class='bx text-xl {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
-                    <span class="font-medium">{{ message }}</span>
+                <div class="msg-box {% if message.tags == 'error' %}error{% elif message.tags == 'success' %}success{% else %}info{% endif %}">
+                    <i class='bx {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
+                    {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <form method="POST" action="{% url 'AgregarPacienteBasico' %}" class="space-y-6">
+        <form method="POST" action="{% url 'AgregarPacienteBasico' %}">
             {% csrf_token %}
 
             <!-- SECCIÓN 1: IDENTIFICACIÓN -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
-                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
-                        <i class='bx bx-id-card'></i> Identificación Personal
-                    </h2>
+            <div class="form-section">
+                <div class="section-head">
+                    <h2><i class='bx bx-id-card'></i> Identificación Personal</h2>
                 </div>
-                <div class="p-6 md:p-8 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="section-body">
+
+                    <div class="field-grid-2">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">RUT <span class="text-red-500">*</span></label>
-                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all rut-input" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9" required/>
+                            <label class="field-label" for="rut">RUT <span class="req">*</span></label>
+                            <input type="text" class="field-input rut-input" maxlength="12" name="rut" id="rut"
+                                   placeholder="21.222.899-3"
+                                   pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}"
+                                   title="Formato: 12.345.678-9" required/>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Fecha de Nacimiento <span class="text-red-500">*</span></label>
-                            <input type="date" id="fechaNacimiento" name="fechaNacimiento" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all text-gray-700" required/>
+                            <label class="field-label" for="fechaNacimiento">Fecha de Nacimiento <span class="req">*</span></label>
+                            <input type="date" id="fechaNacimiento" name="fechaNacimiento" class="field-input" required/>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="field-grid-2">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Nombres <span class="text-red-500">*</span></label>
-                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="nombre" maxlength="50" placeholder="Ingrese nombre completo" pattern="[A-Za-zÑn\s]{3,50}$" required/>
+                            <label class="field-label">Nombres <span class="req">*</span></label>
+                            <input type="text" class="field-input" name="nombre" maxlength="50"
+                                   placeholder="Nombre completo"
+                                   pattern="[A-Za-zÑn\s]{3,50}$" required/>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Apellidos <span class="text-red-500">*</span></label>
-                            <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="apellido" maxlength="50" pattern="[A-Za-zÑn\s]{3,50}$" placeholder="Ingrese ambos apellidos" required/>
+                            <label class="field-label">Apellidos <span class="req">*</span></label>
+                            <input type="text" class="field-input" name="apellido" maxlength="50"
+                                   placeholder="Ambos apellidos"
+                                   pattern="[A-Za-zÑn\s]{3,50}$" required/>
                         </div>
                     </div>
-                    
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Género <span class="text-red-500">*</span></label>
-                        <div class="flex gap-4">
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="genero" value="Masculino" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
-                                    Masculino
-                                </div>
+
+                    <div class="field-last">
+                        <label class="field-label">Género <span class="req">*</span></label>
+                        <div class="radio-pill-group">
+                            <label class="radio-pill">
+                                <input type="radio" name="genero" value="Masculino" required/>
+                                <span class="radio-pill-label">Masculino</span>
                             </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="genero" value="Femenino" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
-                                    Femenino
-                                </div>
+                            <label class="radio-pill">
+                                <input type="radio" name="genero" value="Femenino" required/>
+                                <span class="radio-pill-label">Femenino</span>
                             </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="genero" value="Otro" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">
-                                    Otro
-                                </div>
+                            <label class="radio-pill">
+                                <input type="radio" name="genero" value="Otro" required/>
+                                <span class="radio-pill-label">Otro</span>
                             </label>
                         </div>
                     </div>
+
                 </div>
             </div>
 
             <!-- SECCIÓN 2: CONTACTO Y PREVISIÓN -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
-                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
-                        <i class='bx bx-book-contact'></i> Contacto y Previsión
-                    </h2>
+            <div class="form-section">
+                <div class="section-head">
+                    <h2><i class='bx bx-book-contact'></i> Contacto y Previsión</h2>
                 </div>
-                <div class="p-6 md:p-8 space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="section-body">
+
+                    <div class="field-grid-2">
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Teléfono <span class="text-red-500">*</span></label>
-                            <div class="flex">
-                                <span class="inline-flex items-center px-4 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
-                                    +56 9
-                                </span>
-                                <input type="tel" class="flex-1 min-w-0 px-4 py-3 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="contacto" maxlength="8" pattern="[0-9]{8}" placeholder="Ej: 12345678" required />
+                            <label class="field-label">Teléfono <span class="req">*</span></label>
+                            <div class="tel-wrap">
+                                <span class="tel-prefix">+56 9</span>
+                                <input type="tel" class="field-input" name="contacto"
+                                       maxlength="8" pattern="[0-9]{8}"
+                                       placeholder="12345678" required/>
                             </div>
-                            <p class="text-xs text-gray-400 mt-1">Ingrese los 8 dígitos</p>
+                            <p class="field-hint">Ingrese los 8 dígitos restantes</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico</label>
-                            <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="correo" placeholder="ejemplo@correo.com">
+                            <label class="field-label">Correo Electrónico</label>
+                            <input type="email" class="field-input" name="correo"
+                                   placeholder="ejemplo@correo.com"/>
                         </div>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Cobertura de Salud <span class="text-red-500">*</span></label>
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="cobertura_de_salud" value="Fonasa" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Fonasa</div>
+                    <div class="field-last">
+                        <label class="field-label">Cobertura de Salud <span class="req">*</span></label>
+                        <div class="radio-pill-group">
+                            <label class="radio-pill">
+                                <input type="radio" name="cobertura_de_salud" value="Fonasa" required/>
+                                <span class="radio-pill-label">Fonasa</span>
                             </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="cobertura_de_salud" value="Isapre" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Isapre</div>
+                            <label class="radio-pill">
+                                <input type="radio" name="cobertura_de_salud" value="Isapre" required/>
+                                <span class="radio-pill-label">Isapre</span>
                             </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="cobertura_de_salud" value="Particular" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Particular</div>
+                            <label class="radio-pill">
+                                <input type="radio" name="cobertura_de_salud" value="Particular" required/>
+                                <span class="radio-pill-label">Particular</span>
                             </label>
-                            <label class="flex-1 cursor-pointer">
-                                <input type="radio" name="cobertura_de_salud" value="Otro" class="peer sr-only" required/>
-                                <div class="px-4 py-3 border border-gray-300 rounded-lg text-center peer-checked:bg-medical-blue/10 peer-checked:border-medical-blue peer-checked:text-medical-blue hover:bg-gray-50 transition-all font-medium text-gray-600">Otro</div>
+                            <label class="radio-pill">
+                                <input type="radio" name="cobertura_de_salud" value="Otro" required/>
+                                <span class="radio-pill-label">Otro</span>
                             </label>
                         </div>
                     </div>
+
                 </div>
             </div>
 
             <!-- SECCIÓN 3: OCUPACIÓN -->
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
-                    <h2 class="font-bold text-white text-lg tracking-wide flex items-center gap-2">
-                        <i class='bx bx-briefcase'></i> Ocupación y Trabajo
-                    </h2>
+            <div class="form-section">
+                <div class="section-head">
+                    <h2><i class='bx bx-briefcase'></i> Ocupación y Trabajo</h2>
                 </div>
-                <div class="p-6 md:p-8 space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Nombre de Profesión / Oficio</label>
-                        <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue bg-white transition-all" name="profesion" placeholder="Ej: Profesor, Administrativo, Ingeniero">
+                <div class="section-body">
+
+                    <div style="margin-bottom:16px;">
+                        <label class="field-label">Profesión / Oficio</label>
+                        <input type="text" class="field-input" name="profesion"
+                               placeholder="Ej: Profesor, Administrativo, Ingeniero"/>
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-3">Clasificación de Tipo de Trabajo</label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="trabajo" value="Trabajo sedentario" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
-                                <div><span class="block font-medium text-gray-700 text-sm">Sedentario</span><span class="block text-xs text-gray-500 mt-0.5">Sentado mayor parte del tiempo</span></div>
+                    <div class="field-last">
+                        <label class="field-label" style="margin-bottom:10px;">Tipo de trabajo</label>
+                        <div class="work-grid">
+                            <label class="work-option">
+                                <input type="radio" name="trabajo" value="Trabajo sedentario"/>
+                                <span class="work-option-label">
+                                    <span class="work-radio-dot"></span>
+                                    <span><span class="work-txt-main">Sedentario</span><span class="work-txt-sub">Sentado la mayor parte del tiempo</span></span>
+                                </span>
                             </label>
-                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="trabajo" value="Trabajo con movilidad moderada" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
-                                <div><span class="block font-medium text-gray-700 text-sm">Movilidad moderada</span><span class="block text-xs text-gray-500 mt-0.5">Alterna sentado/de pie ocasionalmente</span></div>
+                            <label class="work-option">
+                                <input type="radio" name="trabajo" value="Trabajo con movilidad moderada"/>
+                                <span class="work-option-label">
+                                    <span class="work-radio-dot"></span>
+                                    <span><span class="work-txt-main">Movilidad moderada</span><span class="work-txt-sub">Alterna sentado / de pie ocasionalmente</span></span>
+                                </span>
                             </label>
-                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="trabajo" value="Trabajo de moderado esfuerzo físico" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
-                                <div><span class="block font-medium text-gray-700 text-sm">Moderado esfuerzo físico</span><span class="block text-xs text-gray-500 mt-0.5">Levanta cargas medias, posturas prolongadas</span></div>
+                            <label class="work-option">
+                                <input type="radio" name="trabajo" value="Trabajo de moderado esfuerzo físico"/>
+                                <span class="work-option-label">
+                                    <span class="work-radio-dot"></span>
+                                    <span><span class="work-txt-main">Moderado esfuerzo físico</span><span class="work-txt-sub">Levanta cargas medias, posturas prolongadas</span></span>
+                                </span>
                             </label>
-                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="trabajo" value="Trabajo de alto esfuerzo físico" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
-                                <div><span class="block font-medium text-gray-700 text-sm">Alto esfuerzo físico</span><span class="block text-xs text-gray-500 mt-0.5">Cargas pesadas, esfuerzo constante</span></div>
+                            <label class="work-option">
+                                <input type="radio" name="trabajo" value="Trabajo de alto esfuerzo físico"/>
+                                <span class="work-option-label">
+                                    <span class="work-radio-dot"></span>
+                                    <span><span class="work-txt-main">Alto esfuerzo físico</span><span class="work-txt-sub">Cargas pesadas, esfuerzo constante</span></span>
+                                </span>
                             </label>
-                            <label class="flex items-start p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                                <input type="radio" name="trabajo" value="Trabajo manual especializado" class="mt-1 mr-3 text-medical-blue focus:ring-medical-blue border-gray-300">
-                                <div><span class="block font-medium text-gray-700 text-sm">Manual especializado</span><span class="block text-xs text-gray-500 mt-0.5">Movimientos precisos y repetitivos</span></div>
+                            <label class="work-option">
+                                <input type="radio" name="trabajo" value="Trabajo manual especializado"/>
+                                <span class="work-option-label">
+                                    <span class="work-radio-dot"></span>
+                                    <span><span class="work-txt-main">Manual especializado</span><span class="work-txt-sub">Movimientos precisos y repetitivos</span></span>
+                                </span>
                             </label>
                         </div>
                     </div>
+
                 </div>
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="flex items-center justify-end gap-4 pt-4">
-                <a href="{% url 'pacientes' %}" class="px-6 py-3 font-semibold text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors shadow-sm">
-                    Cancelar
+            <!-- Acciones -->
+            <div class="action-bar">
+                <a href="{% url 'pacientes' %}" class="btn-cancel">
+                    <i class='bx bx-x'></i> Cancelar
                 </a>
-                <button type="submit" class="px-8 py-3 font-semibold text-white bg-medical-blue rounded-xl hover:bg-medical-blue-dark transition-all shadow-md hover:shadow-lg flex items-center gap-2 transform active:scale-95">
-                    <i class='bx bx-save text-xl'></i> Confirmar e Ir al Historial
+                <button type="submit" class="btn-submit">
+                    <i class='bx bx-save'></i> Confirmar e Ir al Historial
                 </button>
             </div>
-            
+
         </form>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
