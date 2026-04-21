@@ -29,6 +29,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    command: >
+      sh -c "
+      while ! python -c 'import socket; s=socket.socket(); s.connect((\"db\", 3306))' 2>/dev/null; do
+        echo 'Esperando que la base de datos este lista...';
+        sleep 3;
+      done;
+      python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     environment:

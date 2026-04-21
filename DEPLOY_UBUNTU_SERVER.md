@@ -368,7 +368,7 @@ credentials-file: /home/TU_USUARIO/.cloudflared/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
 
 ingress:
   - hostname: kenkomed.tudominio.cl
-    service: http://localhost:8000
+    service: http://127.0.0.1:8000
   - service: http_status:404
 ```
 
@@ -549,6 +549,15 @@ journalctl -u cloudflared --no-pager -n 50
 sudo systemctl restart cloudflared
 ```
 
+### Error 502 Bad Gateway en Cloudflare
+Este error indica que el túnel funciona, pero no encuentra a Django escuchando en el puerto 8000.
+1. Revisa tu `config.yml` y asegúrate de usar `127.0.0.1` en vez de `localhost`.
+2. Puede que Django siga esperando que arranque la Base de Datos. Revisa los logs internos del sistema:
+   ```bash
+   docker compose logs web
+   docker compose restart web
+   ```
+
 ### Puerto 8000 bloqueado por firewall de Ubuntu
 ```bash
 sudo ufw status
@@ -575,50 +584,4 @@ sudo ufw allow from 192.168.0.0/16 to any port 8000
 
 ---
 
-*Manual generado para Sistema Kenkomed — Django 5.1 + MySQL 8.0 + Docker Compose*
-
-La solución rápida (Mantener el túnel temporal vivo)
-Puedes usar un comando de Linux llamado nohup (No Hang Up). Esto hace que el comando se ejecute en el fondo ("background") y siga vivo incluso si cierras tu sesión SSH.
-
-En tu Ubuntu, escribe esto y dale Enter:
-
-nohup cloudflared tunnel --url http://127.0.0.1:8000 > tunnel.log 2>&1 &
-
-¿Cómo veo la URL que me generó? Como ahora se está ejecutando invisible en el fondo, guardará todo lo que imprime en un archivo llamado tunnel.log. Para leer ese archivo y ver tu URL, ejecuta:
-
-cat tunnel.log | grep trycloudflare
-
-Para "apagarlo" cuando ya no lo necesites, harás:
-pkill cloudflared
-
-
-APUNTES MAX: 
-
-
-levantar docker y cloudflare: 
-
-ir a la ruta del software del kenko: 
-
-cd /home/darknesslimit/kenko/Sistema-kenkomed-django
-
-ejecutar matar el tunel y el docker
-
-pkill cloudflared
-docker compose down
-
-levantar el docker nuevamente:
-
-docker compose up -d
-
-levantar el tunel del cloudflared:
-
-nohup cloudflared tunnel --url http://127.0.0.1:8000 > tunnel.log 2>&1 &
-
-ver el enlace de cloudflare: 
-
-cat tunnel.log | grep trycloudflare
-
-
-
-
-
+*Manual actualizado con auto-reparación de bases de datos y enrutado IPv4 limpio.*
