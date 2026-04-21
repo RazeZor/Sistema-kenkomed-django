@@ -1,220 +1,327 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Panel Médico - Sistema Clínico{% endblock %}
-{% block header_title %}Panel Médico{% endblock %}
+{% block title %}Dashboard - KenkoMed{% endblock %}
+{% block header_title %}
+<span class="flex items-center gap-2">
+    <i class='bx bx-heart-circle text-medical-blue text-xl'></i>
+    Panel de Control
+</span>
+{% endblock %}
+
+{% block extra_css %}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.shimmer {
+    background: linear-gradient(90deg, #f0f9ff 25%, #bae6fd 50%, #f0f9ff 75%);
+    background-size: 200% 100%;
+    animation: shimmer 2.5s infinite;
+}
+
+.stat-number {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+/* Mini bar chart */
+.bar-fill {
+    transition: height 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+{% endblock %}
 
 {% block content %}
-<div class="space-y-8">
-    <!-- Sección de bienvenida con diseño moderno -->
-    <section class="relative overflow-hidden bg-white shadow-sm rounded-2xl">
-        <div class="absolute top-0 right-0 w-64 h-64 -mt-32 -mr-32 rounded-full bg-medical-blue/5"></div>
-        <div class="absolute bottom-0 left-0 w-64 h-64 -mb-32 -ml-32 rounded-full bg-medical-blue/5"></div>
-        
-        <div class="relative items-center justify-between p-8 md:flex">
-            <div class="mb-6 md:mb-0">
-                <h2 class="mb-2 text-2xl font-bold text-gray-800">Bienvenido, {{ nombre_clinico }}</h2>
-                <p class="text-gray-600">Panel de control del Sistema Clínico</p>
-                
-                <div class="flex flex-wrap gap-4 mt-6">
-                    <a href="{% url 'AgregarPacienteBasico' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-white transition-all bg-medical-blue rounded-xl hover:bg-medical-blue-dark hover:shadow-md">
-                        <i class='mr-2 bx bx-user-plus'></i>
-                        <span>Nuevo Paciente</span>
-                    </a>
-                    
-                    <a href="{% url 'generar_qr' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-white transition-all bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl hover:from-purple-700 hover:to-indigo-700 hover:shadow-md">
-                        <i class='mr-2 bx bx-qr'></i>
-                        <span>Generar QR Formulario</span>
-                    </a>
-                    <a href="{% url 'historialClinico' %}" class="inline-flex items-center px-5 py-3 text-sm font-medium text-gray-700 transition-all bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-medical-blue hover:text-medical-blue">
-                        <i class='mr-2 bx bx-search-alt'></i>
-                        <span>Buscar Historial</span>
-                    </a>
-                </div>
-            </div>
-            
-            <!-- Ilustración médica (representada con iconos) -->
-            <div class="hidden md:block float-animation">
-                <div class="relative w-48 h-48">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <i class='bx bx-plus-medical text-medical-blue text-7xl opacity-10'></i>
-                    </div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <i class='text-5xl bx bx-heart-circle text-medical-blue'></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<div class="space-y-5 sm:space-y-6 fade-in-up">
 
-    <!-- Accesos rápidos -->
-    
-    <section class="grid grid-cols-1 gap-6 md:grid-cols-3">
-        <a href="{% url 'calendario_reservas' %}" class="block p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
-            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-blue/10 text-medical-blue group-hover:bg-medical-blue group-hover:text-white">
-                <i class='text-2xl bx bx-calendar-plus'></i>
-            </div>
-            <h3 class="mb-2 font-medium text-gray-800">Agendar Consulta</h3>
-            <p class="mb-4 text-sm text-gray-500">Programa nuevas citas médicas para tus pacientes.</p>
-            <span class="flex items-center text-sm text-medical-blue">
-                <span>Agendar ahora</span>
-                <i class='ml-1 bx bx-right-arrow-alt'></i>
-            </span>
-        </a>
-        
-        <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group cursor-pointer" onclick="showDevModal(event)">
-            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-green/10 text-medical-green group-hover:bg-medical-green group-hover:text-white">
-                <i class='text-2xl bx bx-file-find'></i>
-            </div>
-            <h3 class="mb-2 font-medium text-gray-800">Exámenes Pendientes</h3>
-            <p class="mb-4 text-sm text-gray-500">Revisa los exámenes pendientes de tus pacientes.</p>
-            <span class="flex items-center text-sm text-medical-blue">
-                <span>Ver exámenes</span>
-                <i class='ml-1 bx bx-right-arrow-alt'></i>
-            </span>
-        </div>
-        
-        <a href="{% url 'receta' %}" class="block p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md group">
-            <div class="flex items-center justify-center w-12 h-12 mb-4 transition-all rounded-xl bg-medical-orange/10 text-medical-orange group-hover:bg-medical-orange group-hover:text-white">
-                <i class='text-2xl bx bx-notepad'></i>
-            </div>
-            <h3 class="mb-2 font-medium text-gray-800">Recetas Médicas</h3>
-            <p class="mb-4 text-sm text-gray-500">Genera y administra recetas para tus pacientes.</p>
-            <span class="flex items-center text-sm text-medical-blue">
-                <span>Crear receta</span>
-                <i class='ml-1 bx bx-right-arrow-alt'></i>
-            </span>
-        </a>
-    </section>
+    <!-- ============================================================ -->
+    <!-- BIENVENIDA HERO                                               -->
+    <!-- ============================================================ -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-medical-blue via-medical-blue-dark to-sky-900 rounded-2xl shadow-lg">
+        <!-- Decoración de fondo -->
+        <div class="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+        <div class="absolute bottom-0 left-0 w-32 sm:w-48 h-32 sm:h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+        <div class="absolute top-1/2 left-1/3 w-20 h-20 bg-white/3 rounded-full -translate-y-1/2"></div>
 
-    <!-- Estadísticas (Solo para admin) -->
-    {% if es_admin %}
-    <section>
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800">Estadísticas</h2>
-            <div class="flex space-x-2">
-                <button class="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Hoy</button>
-                <button class="px-4 py-2 text-sm text-white rounded-lg bg-medical-blue">Esta semana</button>
-                <button class="px-4 py-2 text-sm text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">Este mes</button>
-            </div>
-        </div>
-        
-        <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <!-- Tarjeta de estadística 1 -->
-            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <p class="mb-1 text-sm text-gray-500">Total Pacientes</p>
-                        <h3 class="text-2xl font-bold text-gray-800">{{numeroPaciente}}</h3>
+        <div class="relative p-5 sm:p-8">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+                <!-- Texto de bienvenida -->
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-full text-xs font-semibold text-white/90">
+                            <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+                            En línea
+                        </span>
                     </div>
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-blue/10 text-medical-blue">
-                        <i class='bx bx-user-plus'></i>
-                    </div>
-                </div>
-                <div class="flex items-center text-xs">
-                    <span class="flex items-center text-medical-green">
-                        <i class='bx bx-up-arrow-alt'></i>
-                        <span>12%</span>
-                    </span>
-                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
-                </div>
-                
-                <!-- Gráfico minimalista simulado -->
-                <div class="flex items-end h-10 mt-4 space-x-1">
-                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 30%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 50%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 70%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 40%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue/10" style="height: 60%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue/20" style="height: 80%"></div>
-                    <div class="w-1/6 rounded-sm bg-medical-blue" style="height: 100%"></div>
-                </div>
-            </div>
-            
-            <!-- Tarjeta de estadística 2 -->
-            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <p class="mb-1 text-sm text-gray-500">Pacientes esta semana</p>
-                        <h3 class="text-2xl font-bold text-gray-800">12</h3>
-                    </div>
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-green/10 text-medical-green">
-                        <i class='bx bx-calendar-check'></i>
+                    <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 truncate">
+                        Hola, {{ nombre_clinico }} 👋
+                    </h2>
+                    <p class="text-white/70 text-sm sm:text-base">
+                        Bienvenido al panel de control de KenkoMed
+                    </p>
+
+                    <!-- Acciones rápidas -->
+                    <div class="flex flex-wrap gap-2 mt-5">
+                        <a href="{% url 'AgregarPacienteBasico' %}"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-medical-blue bg-white rounded-xl hover:bg-blue-50 active:scale-95 transition-all shadow-sm btn-touch">
+                            <i class='bx bx-user-plus text-base'></i>
+                            <span>Nuevo Paciente</span>
+                        </a>
+                        <a href="{% url 'historialClinico' %}"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-white/15 border border-white/30 rounded-xl hover:bg-white/25 active:scale-95 transition-all btn-touch">
+                            <i class='bx bx-search-alt text-base'></i>
+                            <span>Buscar Historial</span>
+                        </a>
+                        <a href="{% url 'generar_qr' %}"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-purple-500/80 border border-purple-400/30 rounded-xl hover:bg-purple-500 active:scale-95 transition-all btn-touch">
+                            <i class='bx bx-qr text-base'></i>
+                            <span class="hidden xs:inline">QR Formulario</span>
+                            <span class="xs:hidden">QR</span>
+                        </a>
                     </div>
                 </div>
-                <div class="flex items-center text-xs">
-                    <span class="flex items-center text-medical-green">
-                        <i class='bx bx-up-arrow-alt'></i>
-                        <span>8%</span>
-                    </span>
-                    <span class="ml-2 text-gray-500">vs. semana anterior</span>
-                </div>
-                
-                <!-- Gráfico circular minimalista simulado -->
-                <div class="flex justify-center mt-4">
-                    <div class="relative w-16 h-16 border-4 rounded-full border-medical-green/20">
-                        <div class="absolute inset-0 border-4 rounded-full border-medical-green" style="clip-path: polygon(50% 0%, 100% 0%, 100% 100%, 50% 100%)"></div>
-                        <div class="absolute inset-0 flex items-center justify-center text-xs font-medium">
-                            +8%
+
+                <!-- Ícono decorativo -->
+                <div class="hidden sm:flex items-center justify-center w-32 h-32 float-animation flex-shrink-0">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-white/10 rounded-3xl blur-xl"></div>
+                        <div class="relative w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20">
+                            <i class='bx bx-heart-circle text-5xl text-white'></i>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Tarjeta de estadística 3 -->
-            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <p class="mb-1 text-sm text-gray-500">Tiempo por consulta</p>
-                        <h3 class="text-2xl font-bold text-gray-800">25 min</h3>
-                    </div>
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-red/10 text-medical-red">
-                        <i class='bx bx-time-five'></i>
-                    </div>
-                </div>
-                <div class="flex items-center text-xs">
-                    <span class="flex items-center text-medical-red">
-                        <i class='bx bx-down-arrow-alt'></i>
-                        <span>3%</span>
-                    </span>
-                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
-                </div>
-                
-                <!-- Indicador de tiempo simulado -->
-                <div class="h-2 mt-4 overflow-hidden bg-gray-100 rounded-full">
-                    <div class="h-full bg-medical-red" style="width: 75%"></div>
-                </div>
+        </div>
+    </section>
 
-            </div>
-            
-            <!-- Tarjeta de estadística 4 -->
-            <div class="p-6 transition-all bg-white border border-gray-100 shadow-sm rounded-2xl hover:shadow-md">
-                <div class="flex items-start justify-between mb-4">
-                    <div>
-                        <p class="mb-1 text-sm text-gray-500">Tiempo de atención</p>
-                        <h3 class="text-2xl font-bold text-gray-800">{{promedio_formateado}}</h3>
-                    </div>
-                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-medical-teal/10 text-medical-teal">
-                        <i class='bx bx-trending-up'></i>
-                    </div>
+    <!-- ============================================================ -->
+    <!-- ACCESOS RÁPIDOS                                               -->
+    <!-- ============================================================ -->
+    <section>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class='bx bx-grid-alt text-medical-blue'></i>
+                Accesos Rápidos
+            </h2>
+        </div>
+
+        <!-- Grid de accesos: 3 col en tablet, 1 en móvil pequeño, 2 en móvil normal -->
+        <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+
+            <!-- Agendar Consulta -->
+            <a href="{% url 'calendario_reservas' %}"
+               class="group flex items-start gap-4 p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl shadow-sm card-hover">
+                <div class="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-blue-50 text-medical-blue group-hover:bg-medical-blue group-hover:text-white transition-all">
+                    <i class='text-xl sm:text-2xl bx bx-calendar-plus'></i>
                 </div>
-                <div class="flex items-center text-xs">
-                    <span class="flex items-center text-medical-green">
-                        <i class='bx bx-up-arrow-alt'></i>
-                        <span>5%</span>
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-gray-800 text-sm sm:text-base mb-0.5">Agendar Consulta</h3>
+                    <p class="text-xs text-gray-500 leading-snug hidden sm:block">Programa nuevas citas para pacientes</p>
+                    <span class="inline-flex items-center gap-1 text-xs text-medical-blue font-medium mt-1 sm:mt-2">
+                        Ir al calendario <i class='bx bx-chevron-right'></i>
                     </span>
-                    <span class="ml-2 text-gray-500">vs. mes anterior</span>
                 </div>
-                
-                <!-- Gráfico de línea minimalista simulado -->
-                <div class="relative h-10 mt-4">
-                    <svg class="w-full h-full" viewBox="0 0 100 20">
-                        <path d="M0,10 L10,12 L20,8 L30,14 L40,6 L50,10 L60,7 L70,15 L80,9 L90,5 L100,2" fill="none" stroke="#14b8a6" stroke-width="1.5"></path>
+            </a>
+
+            <!-- Exámenes Pendientes -->
+            <div onclick="showDevModal(event)"
+               class="group flex items-start gap-4 p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl shadow-sm card-hover cursor-pointer">
+                <div class="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-green-50 text-medical-green group-hover:bg-medical-green group-hover:text-white transition-all">
+                    <i class='text-xl sm:text-2xl bx bx-file-find'></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-gray-800 text-sm sm:text-base mb-0.5">Exámenes</h3>
+                    <p class="text-xs text-gray-500 leading-snug hidden sm:block">Revisa exámenes pendientes</p>
+                    <span class="inline-flex items-center gap-1 text-xs text-gray-400 font-medium mt-1 sm:mt-2">
+                        Próximamente <i class='bx bx-time'></i>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Recetas Médicas -->
+            <a href="{% url 'receta' %}"
+               class="group flex items-start gap-4 p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl shadow-sm card-hover xs:col-span-2 sm:col-span-1">
+                <div class="flex-shrink-0 w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl bg-orange-50 text-medical-orange group-hover:bg-medical-orange group-hover:text-white transition-all">
+                    <i class='text-xl sm:text-2xl bx bx-notepad'></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h3 class="font-semibold text-gray-800 text-sm sm:text-base mb-0.5">Recetas Médicas</h3>
+                    <p class="text-xs text-gray-500 leading-snug hidden sm:block">Genera y administra recetas</p>
+                    <span class="inline-flex items-center gap-1 text-xs text-medical-blue font-medium mt-1 sm:mt-2">
+                        Crear receta <i class='bx bx-chevron-right'></i>
+                    </span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- ============================================================ -->
+    <!-- ESTADÍSTICAS (Solo admin)                                      -->
+    <!-- ============================================================ -->
+    {% if es_admin %}
+    <section>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class='bx bx-bar-chart-alt-2 text-medical-blue'></i>
+                Métricas
+            </h2>
+            <a href="{% url 'estadisticas' %}" class="text-xs sm:text-sm text-medical-blue font-medium hover:underline flex items-center gap-1">
+                Ver todo <i class='bx bx-chevron-right'></i>
+            </a>
+        </div>
+
+        <!-- Grid de tarjetas de métricas: 2 col en mobile, 4 en desktop -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+            <!-- Tarjeta 1: Total Pacientes -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div class="flex items-start justify-between mb-3 sm:mb-4">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 mb-1 font-medium">Total Pacientes</p>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 stat-number">{{ numeroPaciente }}</h3>
+                    </div>
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-blue-50 text-medical-blue ml-2">
+                        <i class='bx bx-user-plus text-lg'></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-medical-green font-medium">
+                    <i class='bx bx-up-arrow-alt'></i>
+                    <span>+12%</span>
+                    <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs. mes ant.</span>
+                </div>
+                <!-- Mini bar chart -->
+                <div class="flex items-end gap-0.5 sm:gap-1 h-8 mt-3">
+                    <div class="flex-1 rounded-sm bg-blue-100 bar-fill" style="height:30%"></div>
+                    <div class="flex-1 rounded-sm bg-blue-100 bar-fill" style="height:50%"></div>
+                    <div class="flex-1 rounded-sm bg-blue-100 bar-fill" style="height:70%"></div>
+                    <div class="flex-1 rounded-sm bg-blue-200 bar-fill" style="height:40%"></div>
+                    <div class="flex-1 rounded-sm bg-blue-200 bar-fill" style="height:60%"></div>
+                    <div class="flex-1 rounded-sm bg-blue-300 bar-fill" style="height:80%"></div>
+                    <div class="flex-1 rounded-sm bg-medical-blue bar-fill" style="height:100%"></div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 2: Pacientes esta semana -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div class="flex items-start justify-between mb-3 sm:mb-4">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 mb-1 font-medium">Esta Semana</p>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 stat-number">12</h3>
+                    </div>
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-green-50 text-medical-green ml-2">
+                        <i class='bx bx-calendar-check text-lg'></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-medical-green font-medium">
+                    <i class='bx bx-up-arrow-alt'></i>
+                    <span>+8%</span>
+                    <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs. sem. ant.</span>
+                </div>
+                <!-- Mini ring -->
+                <div class="flex items-center justify-center mt-3">
+                    <div class="relative w-14 h-14 sm:w-16 sm:h-16">
+                        <svg viewBox="0 0 36 36" class="w-full h-full -rotate-90">
+                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#dcfce7" stroke-width="3"/>
+                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3"
+                                stroke-dasharray="58 97.4" stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center text-xs font-bold text-medical-green">60%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 3: Tiempo por consulta -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div class="flex items-start justify-between mb-3 sm:mb-4">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 mb-1 font-medium">Por Consulta</p>
+                        <h3 class="text-2xl sm:text-3xl font-bold text-gray-800 stat-number">25<span class="text-base font-medium text-gray-500 ml-0.5">min</span></h3>
+                    </div>
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-red-50 text-medical-red ml-2">
+                        <i class='bx bx-time-five text-lg'></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-medical-red font-medium">
+                    <i class='bx bx-down-arrow-alt'></i>
+                    <span>-3%</span>
+                    <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs. mes ant.</span>
+                </div>
+                <!-- Progress bar -->
+                <div class="mt-3 space-y-1.5">
+                    <div class="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div class="h-full bg-medical-red rounded-full" style="width: 75%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400">
+                        <span>0</span>
+                        <span>75%</span>
+                        <span class="hidden sm:block">máx</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tarjeta 4: Tiempo de atención -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+                <div class="flex items-start justify-between mb-3 sm:mb-4">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs text-gray-500 mb-1 font-medium">T. Atención</p>
+                        <h3 class="text-xl sm:text-2xl font-bold text-gray-800 stat-number">{{ promedio_formateado }}</h3>
+                    </div>
+                    <div class="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl bg-teal-50 text-medical-teal ml-2">
+                        <i class='bx bx-trending-up text-lg'></i>
+                    </div>
+                </div>
+                <div class="flex items-center gap-1 text-xs text-medical-green font-medium">
+                    <i class='bx bx-up-arrow-alt'></i>
+                    <span>+5%</span>
+                    <span class="text-gray-400 font-normal ml-1 hidden sm:inline">vs. mes ant.</span>
+                </div>
+                <!-- Mini sparkline -->
+                <div class="relative h-8 mt-3">
+                    <svg class="w-full h-full" viewBox="0 0 100 20" preserveAspectRatio="none">
+                        <defs>
+                            <linearGradient id="sparklGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.6"/>
+                                <stop offset="100%" stop-color="#14b8a6"/>
+                            </linearGradient>
+                        </defs>
+                        <polyline points="0,12 14,10 28,13 42,8 57,11 71,7 85,9 100,3"
+                            fill="none" stroke="url(#sparklGrad)" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </div>
             </div>
+
         </div>
     </section>
+
+    <!-- Acceso rápido a estadísticas detalladas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <a href="{% url 'estadisticas' %}"
+           class="flex items-center gap-4 p-4 sm:p-5 bg-gradient-to-r from-blue-600 to-medical-blue rounded-2xl shadow-sm card-hover text-white">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class='bx bx-bar-chart-alt-2 text-xl'></i>
+            </div>
+            <div class="min-w-0">
+                <p class="font-semibold text-sm">Estadísticas Globales</p>
+                <p class="text-white/70 text-xs">Análisis del clínico</p>
+            </div>
+            <i class='bx bx-chevron-right text-white/60 ml-auto text-xl'></i>
+        </a>
+        <a href="{% url 'estadisticas_paciente' %}"
+           class="flex items-center gap-4 p-4 sm:p-5 bg-gradient-to-r from-teal-500 to-medical-teal rounded-2xl shadow-sm card-hover text-white">
+            <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <i class='bx bx-line-chart text-xl'></i>
+            </div>
+            <div class="min-w-0">
+                <p class="font-semibold text-sm">Estadísticas por Paciente</p>
+                <p class="text-white/70 text-xs">Progreso individual</p>
+            </div>
+            <i class='bx bx-chevron-right text-white/60 ml-auto text-xl'></i>
+        </a>
+    </div>
+
     {% endif %}
+
 </div>
 {% endblock %}

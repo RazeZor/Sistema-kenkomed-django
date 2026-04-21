@@ -2,14 +2,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>{% block title %}Panel Médico - Sistema Clínico{% endblock %}</title>
+    <title>{% block title %}Panel Médico - KenkoMed{% endblock %}</title>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
+    <meta name="description" content="Sistema clínico KenkoMed para kinesiólogos" />
+    <meta name="theme-color" content="#0284c7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- jQuery y modales -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     {% block extra_head %}{% endblock %}
@@ -44,51 +47,21 @@
                         },
                         success: {
                             50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            300: '#86efac',
-                            400: '#4ade80',
                             500: '#22c55e',
                             600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d'
                         },
                         danger: {
                             50: '#fef2f2',
-                            100: '#fee2e2',
-                            200: '#fecaca',
-                            300: '#fca5a5',
-                            400: '#f87171',
                             500: '#ef4444',
                             600: '#dc2626',
-                            700: '#b91c1c',
-                            800: '#991b1b',
-                            900: '#7f1d1d'
                         },
                         warning: {
                             50: '#fffbeb',
-                            100: '#fef3c7',
-                            200: '#fde68a',
-                            300: '#fcd34d',
-                            400: '#fbbf24',
                             500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            800: '#92400e',
-                            900: '#78350f'
                         },
                         purple: {
-                            50: '#faf5ff',
-                            100: '#f3e8ff',
-                            200: '#e9d5ff',
-                            300: '#d8b4fe',
-                            400: '#c084fc',
                             500: '#a855f7',
                             600: '#9333ea',
-                            700: '#7e22ce',
-                            800: '#6b21a8',
-                            900: '#581c87'
                         }
                     },
                     fontFamily: {
@@ -101,28 +74,134 @@
             }
         }
     </script>
+
     <style>
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+        /* ============================================================ */
+        /*  GLOBAL STYLES                                                */
+        /* ============================================================ */
+        * { -webkit-tap-highlight-color: transparent; }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
         @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
+            0%   { transform: translateY(0px); }
+            50%  { transform: translateY(-10px); }
             100% { transform: translateY(0px); }
         }
-        .float-animation {
-            animation: float 3s ease-in-out infinite;
+        .float-animation { animation: float 3s ease-in-out infinite; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        /* Overrides básicos si es necesario */
+        .fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+
+        /* ============================================================ */
+        /*  LAYOUT: App Shell                                            */
+        /* ============================================================ */
+
+        /* Root app container */
+        #app-shell {
+            display: flex;
+            height: 100dvh;  /* dynamic viewport height - perfect for mobile */
+            overflow: hidden;
+        }
+
+        /* Main area (header + content) */
+        #main-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        /* Header */
+        #main-header {
+            height: 64px;
+            flex-shrink: 0;
+        }
+
+        /* Scrollable content area */
+        #main-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 20px 16px;
+        }
+        @media (min-width: 768px) {
+            #main-content { padding: 24px; }
+        }
+        @media (min-width: 1024px) {
+            /* Desktop: no bottom nav, no bottom padding needed */
+            #main-content { padding: 28px; }
+        }
+
+        /* Bottom nav presence: push content up on small screens */
+        @media (max-width: 1023px) {
+            #main-content {
+                /* Cuenta con la bottom nav (≈60px) + safe area */
+                padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+
+        /* ============================================================ */
+        /*  HEADER STYLES                                                */
+        /* ============================================================ */
+        .header-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            transition: background-color 0.2s;
+        }
+        .header-btn:active { background-color: #f3f4f6; }
+
+        /* ============================================================ */
+        /*  TOUCH IMPROVEMENTS                                           */
+        /* ============================================================ */
+        button, a { touch-action: manipulation; }
+
+        /* Bigger touch targets on mobile */
+        @media (max-width: 768px) {
+            .btn-touch {
+                min-height: 48px;
+                padding-top: 12px;
+                padding-bottom: 12px;
+            }
+        }
+
+        /* ============================================================ */
+        /*  CARD ANIMATIONS                                              */
+        /* ============================================================ */
+        .card-hover {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+        @media (hover: none) {
+            /* No hover effect on touch devices */
+            .card-hover:hover {
+                transform: none;
+                box-shadow: none;
+            }
+            .card-hover:active {
+                transform: scale(0.98);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            }
+        }
+
         {% block extra_css %}{% endblock %}
     </style>
 </head>
+
 <body class="min-h-screen font-sans text-gray-800 bg-white {% block body_class %}{% endblock %}">
-    
+
     <!-- Script de notificaciones global -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -141,7 +220,7 @@
                 });
                 {% endfor %}
             {% endif %}
-            
+
             {% if request.session.show_success_message %}
                 const message = '{{ request.session.show_success_message|escapejs }}';
                 const Toast = Swal.mixin({
@@ -155,18 +234,14 @@
                         toast.addEventListener('mouseleave', Swal.resumeTimer);
                     }
                 });
-
                 Toast.fire({
                     icon: 'success',
                     title: message,
                     background: 'white',
                     color: '#1f2937',
                     iconColor: '#10b981',
-                    customClass: {
-                        popup: 'shadow-lg rounded-lg'
-                    }
+                    customClass: { popup: 'shadow-lg rounded-lg' }
                 });
-
                 fetch('/clear-session-message/', {
                     method: 'POST',
                     headers: {
@@ -177,7 +252,6 @@
                     credentials: 'same-origin',
                     body: JSON.stringify({})
                 });
-                
                 function getCookie(name) {
                     let cookieValue = null;
                     if (document.cookie && document.cookie !== '') {
@@ -195,83 +269,56 @@
             {% endif %}
         });
     </script>
-    
-    <div class="flex h-screen overflow-hidden">
-        <!-- Sidebar Navigation -->
+
+    <!-- ============================================================ -->
+    <!-- APP SHELL                                                     -->
+    <!-- ============================================================ -->
+    <div id="app-shell">
+
+        <!-- Sidebar (solo visible en lg+, incluido desde menu.html) -->
         {% include 'menu.html' %}
 
-        <!-- Contenido principal wrapper -->
-        <div class="flex flex-col flex-1 overflow-hidden">
-            <!-- Header común para todas las vistas -->
-            <header class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-100 flex-shrink-0">
-                <div class="flex items-center">
-                    <button class="mr-4 text-gray-500 lg:hidden" id="menuToggleMain">
-                        <i class='text-2xl bx bx-menu'></i>
-                    </button>
-                    <h1 class="text-lg font-medium text-gray-800">{% block header_title %}Panel Médico{% endblock %}</h1>
+        <!-- Main area -->
+        <div id="main-area">
+
+            <!-- Header -->
+            <header id="main-header" class="flex items-center justify-between px-4 sm:px-6 bg-white border-b border-gray-100 shadow-sm">
+                <!-- Izquierda: Título de la vista -->
+                <div class="flex items-center gap-3 min-w-0">
+                    <h1 class="text-base sm:text-lg font-semibold text-gray-800 truncate">
+                        {% block header_title %}Panel Médico{% endblock %}
+                    </h1>
                 </div>
-                
-                <div class="flex items-center space-x-4">
+
+                <!-- Derecha: Acciones del header -->
+                <div class="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                     {% block header_actions %}
-                    <button class="relative p-2 text-gray-500 transition-colors hover:text-medical-blue">
+                    <button class="header-btn relative text-gray-500 hover:text-medical-blue transition-colors" aria-label="Notificaciones">
                         <i class='text-xl bx bx-bell'></i>
-                        <span class="absolute w-2 h-2 rounded-full top-1 right-1 bg-medical-red"></span>
+                        <span class="absolute w-2 h-2 rounded-full top-2 right-2 bg-medical-red ring-2 ring-white"></span>
                     </button>
-                    <a href="{% url 'perfilClinico' %}" class="flex items-center p-2 space-x-2 transition-all rounded-lg hover:bg-gray-50">
-                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-gradient-to-r from-medical-blue to-medical-blue-light">
-                            <i class='bx bx-user'></i>
+                    <a href="{% url 'perfilClinico' %}" class="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-gray-50 transition-all" aria-label="Mi perfil">
+                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-gradient-to-r from-medical-blue to-medical-blue-light flex-shrink-0">
+                            <i class='bx bx-user text-sm'></i>
                         </div>
-                        <span class="hidden text-sm font-medium text-gray-700 md:block">Mi Perfil</span>
-                    </a> 
+                        <span class="hidden sm:block text-sm font-medium text-gray-700">Mi Perfil</span>
+                    </a>
                     {% endblock %}
                 </div>
             </header>
 
-            <!-- Área de main content que hace scroll -->
-            <main class="flex-1 p-6 overflow-y-auto bg-gray-50 scrollbar-hide">
+            <!-- Contenido scrollable -->
+            <main id="main-content" class="bg-gray-50 scrollbar-hide">
                 <div class="mx-auto max-w-7xl">
                     {% block content %}{% endblock %}
                 </div>
             </main>
+
         </div>
+
     </div>
 
-    <!-- Overlay para sidebar móvil -->
-    <div class="fixed inset-0 z-40 hidden bg-black/50" id="sidebarOverlayMain"></div>
-
     <script>
-        // Toggle sidebar de la base - Integración directa con menu.html
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggleMain = document.getElementById('menuToggleMain');
-            const sidebarBtn = document.getElementById('menuToggle'); // de menu.html
-            const sidebarClose = document.getElementById('sidebarClose');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebarOverlayMain');
-
-            function openSidebar() {
-                if(sidebar) {
-                    sidebar.classList.add('translate-x-0');
-                    sidebar.classList.remove('-translate-x-full');
-                    if(sidebarOverlay) sidebarOverlay.classList.remove('hidden');
-                    document.body.classList.add('overflow-hidden');
-                }
-            }
-
-            function closeSidebar() {
-                if(sidebar) {
-                    sidebar.classList.remove('translate-x-0');
-                    sidebar.classList.add('-translate-x-full');
-                    if(sidebarOverlay) sidebarOverlay.classList.add('hidden');
-                    document.body.classList.remove('overflow-hidden');
-                }
-            }
-
-            if(menuToggleMain) menuToggleMain.addEventListener('click', openSidebar);
-            if(sidebarBtn) sidebarBtn.addEventListener('click', openSidebar);
-            if(sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
-            if(sidebarOverlay) sidebarOverlay.addEventListener('click', closeSidebar);
-        });
-
         // Utilidades globales
         function showDevModal(e) {
             e.preventDefault();
@@ -282,12 +329,18 @@
                 background: 'white',
                 color: '#1f2937',
                 iconColor: '#0284c7',
-                customClass: {
-                    popup: 'shadow-lg rounded-lg'
-                }
+                customClass: { popup: 'shadow-lg rounded-lg' }
             });
         }
+
+        // Fix: prevent scroll on iOS when modals are open
+        document.addEventListener('touchmove', function(e) {
+            if (document.body.style.overflow === 'hidden') {
+                e.preventDefault();
+            }
+        }, { passive: false });
     </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>
