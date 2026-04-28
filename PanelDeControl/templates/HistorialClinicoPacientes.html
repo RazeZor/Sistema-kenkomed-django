@@ -166,10 +166,19 @@
                     <i class='bx bx-clipboard text-3xl text-amber-600'></i>
                 </div>
                 <h3 class="text-lg font-bold text-amber-800 mb-2 relative z-10">Evaluación Inicial (Opcional)</h3>
-                <p class="text-amber-700 text-sm mb-6 relative z-10 font-medium">Puede contestar la anamnesis para habilitar el Informe Inteligente con DSS, o saltarla y proceder con las sesiones.</p>
-                <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="relative z-10 inline-flex items-center justify-center gap-2 px-6 py-3 w-full font-bold text-white bg-amber-500 rounded-xl hover:bg-amber-600 focus:ring-4 focus:ring-amber-200 transition-all shadow-md hover:shadow-lg transform active:scale-95">
-                    <i class='bx bx-edit text-xl'></i> Iniciar Evaluación Ahora
-                </a>
+                <p class="text-amber-700 text-sm mb-4 relative z-10 font-medium">Puede contestar la anamnesis para habilitar el Informe Inteligente con DSS, o saltarla y proceder con las sesiones.</p>
+                <div class="space-y-2 relative z-10">
+                    <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 w-full font-bold text-white bg-amber-500 rounded-xl hover:bg-amber-600 focus:ring-4 focus:ring-amber-200 transition-all shadow-md hover:shadow-lg transform active:scale-95">
+                        <i class='bx bx-edit text-xl'></i> Completar Aquí (Presencial)
+                    </a>
+                    <form method="POST" action="{% url 'generar_formulario_remoto' %}" class="w-full">
+                        {% csrf_token %}
+                        <input type="hidden" name="rut" value="{{ paciente.rut }}">
+                        <button type="submit" class="inline-flex items-center justify-center gap-2 px-6 py-3 w-full font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-500 rounded-xl hover:from-emerald-700 hover:to-teal-600 transition-all shadow-md hover:shadow-lg transform active:scale-95">
+                            <i class='bx bxl-whatsapp text-xl'></i> Enviar al Paciente (WhatsApp / QR)
+                        </button>
+                    </form>
+                </div>
             </div>
             {% endif %}
 

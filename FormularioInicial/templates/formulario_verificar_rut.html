@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Verificación | KenkoMed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>body{font-family:'Inter',sans-serif}</style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg mb-4">
+                <i class='bx bx-shield-quarter text-3xl text-white'></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">KenkoMed</h1>
+            <p class="text-sm text-gray-500 mt-1">Formulario Médico Seguro</p>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-center">
+                <h2 class="text-lg font-bold text-white">Verificación de Identidad</h2>
+                <p class="text-blue-100 text-sm mt-1">Hola {{ nombre_paciente }}, por favor confirma tu identidad</p>
+            </div>
+
+            <div class="p-6">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                        <i class='bx bx-error-circle'></i> {{ message }}
+                    </div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="mb-6">
+                    <div class="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <i class='bx bx-info-circle text-blue-600 text-xl'></i>
+                        </div>
+                        <p class="text-sm text-blue-800">Para proteger tu información médica, necesitamos verificar que eres tú. Ingresa tu RUT a continuación.</p>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-6">
+                        <label for="rut_verificacion" class="block text-sm font-semibold text-gray-700 mb-2">Ingresa tu RUT</label>
+                        <input type="text" 
+                               id="rut_verificacion" 
+                               name="rut_verificacion" 
+                               class="w-full px-4 py-3 text-lg text-center font-mono border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all outline-none tracking-wider"
+                               placeholder="12.345.678-9"
+                               required
+                               autocomplete="off">
+                        <p class="text-xs text-gray-400 mt-2 text-center">Con o sin puntos y guión</p>
+                    </div>
+
+                    <button type="submit" class="w-full flex items-center justify-center gap-2 px-6 py-3.5 text-white font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-200 active:scale-[0.98]">
+                        <i class='bx bx-check-shield text-xl'></i> Verificar y Continuar
+                    </button>
+                </form>
+            </div>
+
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">
+                <p class="text-xs text-gray-400"><i class='bx bx-lock-alt'></i> Tu información está protegida y es confidencial</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

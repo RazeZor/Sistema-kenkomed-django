@@ -408,15 +408,14 @@ def FormularioInicial(request):
 
 
 # ================================
-# VISTAS DEL SISTEMA QR
+# SISTEMA DE FORMULARIOS REMOTOS
 # ================================
 
 def generar_token_formulario(request):
-    """Vista para generar un token QR para formularios públicos"""
+    """Gestor de formularios remotos. Genera tokens vinculados a pacientes pre-registrados."""
     try:
-        # Verificar sesión de clínico
         if 'nombre_clinico' not in request.session:
-            messages.error(request, 'Debes iniciar sesión para generar tokens QR')
+            messages.error(request, 'Debes iniciar sesión')
             return redirect('login')
         
         clinico, es_admin = obtener_clinico_desde_sesion(request)
@@ -424,236 +423,188 @@ def generar_token_formulario(request):
             return redirect('login')
         
         if request.method == 'POST':
-            # Obtener días de expiración del formulario
+            rut_paciente = request.POST.get('rut_paciente', '').strip()
             dias_expiracion = int(request.POST.get('dias_expiracion', 7))
             
-            # Crear nuevo token
-            token = TokenFormulario.crear_token(clinico, dias_expiracion)
+            if not rut_paciente:
+                messages.error(request, 'Debes seleccionar un paciente')
+                return redirect('generar_qr')
             
-            messages.success(request, f'Token QR generado exitosamente. ID: {token.id}')
+            try:
+                paciente = Paciente.objects.get(rut=rut_paciente)
+            except Paciente.DoesNotExist:
+                messages.error(request, 'Paciente no encontrado en el sistema')
+                return redirect('generar_qr')
+            
+            # Verificar que no tenga ya formulario clínico
+            if formularioClinico.objects.filter(paciente=paciente).exists():
+                messages.warning(request, f'{paciente.nombre} {paciente.apellido} ya completó su anamnesis.')
+                return redirect('generar_qr')
+            
+            # Desactivar tokens anteriores del mismo paciente
+            TokenFormulario.objects.filter(paciente=paciente, activo=True).update(activo=False)
+            
+            # Crear nuevo token
+            token = TokenFormulario.crear_token(clinico, paciente, dias_expiracion)
+            
+            messages.success(request, f'Formulario remoto generado para {paciente.nombre} {paciente.apellido}')
             return redirect('descargar_qr', token_id=token.id)
         
-        # Mostrar formulario para generar token
+        # GET: Listar pacientes sin anamnesis y tokens activos
+        if es_admin:
+            pacientes_sin_anamnesis = Paciente.objects.filter(formulario__isnull=True)
+        else:
+            pacientes_sin_anamnesis = Paciente.objects.filter(clinico=clinico, formulario__isnull=True)
+        
+        tokens_activos = TokenFormulario.objects.filter(clinico=clinico).order_by('-fecha_creacion')[:20]
+        
         return render(request, 'generar_qr.html', {
             'clinico': clinico,
-            'tokens_activos': TokenFormulario.objects.filter(clinico=clinico, activo=True).order_by('-fecha_creacion')[:10]
+            'pacientes_sin_anamnesis': pacientes_sin_anamnesis,
+            'tokens_activos': tokens_activos,
         })
         
     except Exception as e:
-        messages.error(request, f'Error al generar token: {str(e)}')
+        messages.error(request, f'Error: {str(e)}')
         return render(request, 'generar_qr.html')
 
 
 def descargar_qr(request, token_id):
-    """Vista para descargar el código QR como imagen"""
+    """Muestra QR + link copiable para compartir con el paciente."""
     try:
-        token = get_object_or_404(TokenFormulario, id=token_id)
-        
-        # Verificar que el clínico tenga acceso al token
         if 'nombre_clinico' not in request.session:
-            messages.error(request, 'Debes iniciar sesión para descargar códigos QR')
             return redirect('login')
         
         clinico, es_admin = obtener_clinico_desde_sesion(request)
         if not clinico and not es_admin:
             return redirect('login')
         
+        token = get_object_or_404(TokenFormulario, id=token_id)
+        
         if token.clinico != clinico and not es_admin:
-            messages.error(request, 'No tienes permisos para acceder a este token')
+            messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
-        # Generar URL del formulario público
+        # Generar URL del formulario
         formulario_url = request.build_absolute_uri(
             reverse('formulario_publico', kwargs={'token_id': token_id})
         )
         
-        # Crear código QR
-        qr = qrcode.QRCode(
-            version=1,
-            error_correction=qrcode.constants.ERROR_CORRECT_L,
-            box_size=10,
-            border=4,
-        )
+        # Generar QR como base64 para mostrar en pantalla
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
         qr.add_data(formulario_url)
         qr.make(fit=True)
-        
-        # Crear imagen
         img = qr.make_image(fill_color="black", back_color="white")
         
-        # Convertir a bytes
         buffer = BytesIO()
         img.save(buffer, format='PNG')
         buffer.seek(0)
+        qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         
-        # Crear respuesta HTTP
-        response = HttpResponse(buffer.getvalue(), content_type='image/png')
-        response['Content-Disposition'] = f'attachment; filename="qr_formulario_{token_id}.png"'
+        # Mensaje WhatsApp pre-armado
+        whatsapp_msg = f"Hola {token.paciente.nombre}, te envío el formulario médico de KenkoMed para que completes tu historial antes de tu cita. Ingresa aquí: {formulario_url}"
+        whatsapp_url = f"https://wa.me/{token.paciente.contacto}?text={whatsapp_msg.replace(' ', '%20').replace(':', '%3A').replace('/', '%2F')}"
         
-        return response
+        return render(request, 'mostrar_qr_link.html', {
+            'token': token,
+            'formulario_url': formulario_url,
+            'qr_base64': qr_base64,
+            'whatsapp_url': whatsapp_url,
+            'clinico': clinico,
+        })
         
     except Exception as e:
-        messages.error(request, f'Error al generar código QR: {str(e)}')
+        messages.error(request, f'Error: {str(e)}')
         return redirect('generar_qr')
 
 
 def formulario_publico(request, token_id):
-    """Vista pública del formulario accesible mediante QR"""
+    """Vista pública: Verificación RUT + formulario de anamnesis (solo DSS)."""
     try:
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        # Verificar si el token es válido
         if not token.is_valid():
-            if token.is_expired():
-                return render(request, 'formulario_expirado.html', {
-                    'token': token,
-                    'mensaje': 'Este formulario ha expirado'
-                })
-            elif token.usado:
-                return render(request, 'formulario_expirado.html', {
-                    'token': token,
-                    'mensaje': 'Este formulario ya ha sido utilizado'
-                })
+            if token.usado:
+                msg = 'Este formulario ya fue completado'
+            elif token.is_expired():
+                msg = 'Este formulario ha expirado'
             else:
-                return render(request, 'formulario_expirado.html', {
+                msg = 'Este formulario no está disponible'
+            return render(request, 'formulario_expirado.html', {'token': token, 'mensaje': msg})
+        
+        paciente = token.paciente
+        
+        # PASO 1: Verificación de RUT
+        rut_verificado = request.session.get(f'rut_verificado_{token_id}', False)
+        
+        if not rut_verificado:
+            if request.method == 'POST' and 'rut_verificacion' in request.POST:
+                rut_input = request.POST.get('rut_verificacion', '').strip()
+                # Normalizar ambos RUTs para comparar
+                rut_normalizado = rut_input.replace('.', '').replace('-', '').upper()
+                rut_paciente = paciente.rut.replace('.', '').replace('-', '').upper()
+                
+                if rut_normalizado == rut_paciente:
+                    request.session[f'rut_verificado_{token_id}'] = True
+                    rut_verificado = True
+                else:
+                    messages.error(request, 'El RUT ingresado no coincide con el registro. Verifica e intenta nuevamente.')
+                    return render(request, 'formulario_verificar_rut.html', {
+                        'token': token,
+                        'nombre_paciente': paciente.nombre,
+                    })
+            
+            if not rut_verificado:
+                return render(request, 'formulario_verificar_rut.html', {
                     'token': token,
-                    'mensaje': 'Este formulario no está disponible'
+                    'nombre_paciente': paciente.nombre,
                 })
         
-        if request.method == 'POST':
-            # Procesar formulario público (formulario inicial completo)
+        # PASO 2: Formulario de anamnesis
+        if request.method == 'POST' and 'rut_verificacion' not in request.POST:
             try:
-                # Parsear duración de sesión y crear registro tiempo
                 duracion_sesion_str = request.POST.get('duracion_sesion')
                 nuevo_tiempo = parsear_duracion_sesion(duracion_sesion_str)
-                if duracion_sesion_str and not nuevo_tiempo:
-                    messages.error(request, 'Formato de duración de sesión inválido.')
-
-                # Obtener datos básicos del formulario
-                rut = request.POST.get('rut')
-                nombre = request.POST.get('nombre')
-                apellido = request.POST.get('apellido')
-                fechaNacimiento_raw = request.POST.get('fechaNac')
-                genero = request.POST.get('genero')
-                contacto = request.POST.get('contact')
-                correo = request.POST.get('correo')
-                if contacto:
-                    contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
-                trabajo = request.POST.get('trabajo')
-                profesion = request.POST.get('profesion')
-                cobertura_de_salud = request.POST.get('cobertura')
-                LicenciaInicio_raw = request.POST.get('fecha_inicio')
-                LicenciaFin_raw = request.POST.get('fecha_fin')
-                LicenciaDias = request.POST.get('dias_licencia')
-
-                # Parseo de fechas con mensajes en caso de error
-                fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
-                if fechaNacimiento is None:
-                    return render(request, 'FormularioInicial.html', {
-                        'token': token,
-                        'es_publico': True,
-                        'clinico': token.clinico
-                    })
-
-                LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request)
-                if LicenciaInicio is None:
-                    return render(request, 'FormularioInicial.html', {
-                        'token': token,
-                        'es_publico': True,
-                        'clinico': token.clinico
-                    })
-
-                datos_para_validar = {
-                    'rut': rut,
-                    'nombre': nombre,
-                    'apellido': apellido,
-                    'fechaNacimiento': fechaNacimiento,
-                    'genero': genero,
-                    'contacto': contacto,
-                    'correo': correo,
-                    'cobertura_de_salud': cobertura_de_salud,
-                    'trabajo': trabajo,
-                    'profesion': profesion,
-                    'LicenciaInicio': LicenciaInicio,
-                    'LicenciaFin': LicenciaFin_raw,
-                    'LicenciaDias': LicenciaDias,
-                }
-
-                errores = validar_campos_obligatorios(datos_para_validar)
-                if errores:
-                    for e in errores:
-                        messages.error(request, e)
-                    return render(request, 'FormularioInicial.html', {
-                        'token': token,
-                        'es_publico': True,
-                        'clinico': token.clinico
-                    })
-
-                # Crear/actualizar paciente
-                defaults = {
-                    'nombre': nombre,
-                    'apellido': apellido,
-                    'fechaNacimiento': fechaNacimiento,
-                    'genero': genero,
-                    'contacto': contacto,
-                    'correo': correo,
-                    'cobertura_de_salud': cobertura_de_salud,
-                    'trabajo': trabajo,
-                    'profesion': profesion,
-                    'LicenciaInicio': LicenciaInicio,
-                    'LicenciaFin': LicenciaFin_raw,
-                    'LicenciaDias': LicenciaDias,
-                }
-
-                paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=token.clinico)
+                
+                # Guardar formulario clínico con datos del paciente pre-existente
+                construir_formulario_desde_post(request, paciente, token.clinico, nuevo_tiempo)
                 
                 # Marcar token como usado
-                token.marcar_como_usado(paciente)
-
-                # Construir y guardar formulario Clínico completo con todos los campos
-                try:
-                    construir_formulario_desde_post(request, paciente, token.clinico, nuevo_tiempo)
-                    messages.info(request, 'Formulario clínico guardado correctamente.')
-                except Exception as e:
-                    messages.error(request, f'Error al guardar formulario clínico: {e}')
-                    return render(request, 'FormularioInicial.html', {
-                        'token': token,
-                        'es_publico': True,
-                        'clinico': token.clinico
-                    })
+                token.marcar_como_usado()
+                
+                # Limpiar sesión de verificación
+                if f'rut_verificado_{token_id}' in request.session:
+                    del request.session[f'rut_verificado_{token_id}']
                 
                 return render(request, 'formulario_exitoso.html', {
-                    'mensaje': f'Formulario enviado exitosamente para {nombre} {apellido}',
+                    'mensaje': f'¡Formulario enviado exitosamente!',
                     'paciente': paciente,
                     'clinico': token.clinico
                 })
                 
             except Exception as e:
-                messages.error(request, f'Error al procesar el formulario: {str(e)}')
-                return render(request, 'FormularioInicial.html', {
-                    'token': token,
-                    'es_publico': True,
-                    'clinico': token.clinico
-                })
+                messages.error(request, f'Error al guardar: {str(e)}')
         
-        # Mostrar formulario público (usando el formulario inicial completo)
+        # Mostrar formulario con datos del paciente pre-llenados (readonly)
         return render(request, 'FormularioInicial.html', {
             'token': token,
             'es_publico': True,
-            'clinico': token.clinico
+            'es_solo_anamnesis': True,
+            'paciente_existente': True,
+            'paciente': paciente,
+            'clinico': token.clinico,
         })
         
     except Exception as e:
-        return render(request, 'error.html', {
-            'mensaje': f'Error al cargar el formulario: {str(e)}'
+        return render(request, 'formulario_expirado.html', {
+            'mensaje': f'Error al cargar el formulario'
         })
 
 
 def desactivar_token(request, token_id):
-    """Vista para desactivar un token QR"""
+    """Desactiva un token de formulario remoto."""
     try:
-        # Verificar sesión de clínico
         if 'nombre_clinico' not in request.session:
-            messages.error(request, 'Debes iniciar sesión para desactivar tokens')
             return redirect('login')
         
         clinico, es_admin = obtener_clinico_desde_sesion(request)
@@ -662,18 +613,48 @@ def desactivar_token(request, token_id):
         
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        # Verificar permisos
         if token.clinico != clinico and not es_admin:
-            messages.error(request, 'No tienes permisos para desactivar este token')
+            messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
-        # Desactivar token
         token.desactivar()
-        messages.success(request, f'Token {token_id} desactivado exitosamente')
+        messages.success(request, f'Formulario de {token.paciente.nombre} {token.paciente.apellido} desactivado')
         
         return redirect('generar_qr')
         
     except Exception as e:
-        messages.error(request, f'Error al desactivar token: {str(e)}')
+        messages.error(request, f'Error: {str(e)}')
         return redirect('generar_qr')
+
+
+def generar_token_desde_historial(request):
+    """Genera token rápido desde el historial clínico del paciente (AJAX-friendly)."""
+    if request.method != 'POST':
+        return redirect('panel')
+    
+    if 'nombre_clinico' not in request.session:
+        return redirect('login')
+    
+    clinico, es_admin = obtener_clinico_desde_sesion(request)
+    if not clinico and not es_admin:
+        return redirect('login')
+    
+    rut = request.POST.get('rut', '').strip()
+    try:
+        paciente = Paciente.objects.get(rut=rut)
+    except Paciente.DoesNotExist:
+        messages.error(request, 'Paciente no encontrado')
+        return redirect('historialClinico')
+    
+    if formularioClinico.objects.filter(paciente=paciente).exists():
+        messages.warning(request, f'{paciente.nombre} ya completó su anamnesis.')
+        return redirect(f'/panel/historialClinico/?rut={rut}')
+    
+    # Desactivar tokens anteriores
+    TokenFormulario.objects.filter(paciente=paciente, activo=True).update(activo=False)
+    
+    token = TokenFormulario.crear_token(clinico, paciente, dias_expiracion=7)
+    
+    return redirect('descargar_qr', token_id=token.id)
+
     
