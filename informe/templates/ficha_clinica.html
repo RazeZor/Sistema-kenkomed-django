@@ -1,0 +1,348 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ficha Clínica - {{ paciente.nombre }} {{ paciente.apellido }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body{font-family:'IBM Plex Sans',sans-serif;font-size:13px;background:#f3f4f6;color:#111827}
+        .page{max-width:900px;margin:0 auto;padding:24px 16px 48px}
+        .card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;margin-bottom:12px;overflow:hidden}
+        .card-head{padding:10px 16px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#fff;display:flex;align-items:center;gap:8px}
+        .card-body{padding:16px}
+        .field{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f3f4f6;font-size:12px}
+        .field:last-child{border:none}
+        .fl{color:#6b7280;font-weight:500}.fv{font-weight:500;text-align:right}
+        .topbar{background:#115b9c;color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:20px}
+        .topbar a{color:rgba(255,255,255,.8);text-decoration:none;font-size:12px}
+        .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+        .bg-blue{background:linear-gradient(135deg,#115b9c,#3b82f6)}
+        .bg-green{background:linear-gradient(135deg,#059669,#10b981)}
+        .bg-purple{background:linear-gradient(135deg,#7c3aed,#6366f1)}
+        .bg-amber{background:linear-gradient(135deg,#d97706,#f59e0b)}
+        .bg-red{background:linear-gradient(135deg,#dc2626,#ef4444)}
+        .bg-gray{background:linear-gradient(135deg,#4b5563,#6b7280)}
+        .bg-teal{background:linear-gradient(135deg,#0d9488,#14b8a6)}
+        table.data{width:100%;border-collapse:collapse;font-size:11px}
+        table.data th{text-align:left;padding:6px 8px;background:#f9fafb;border:1px solid #e5e7eb;font-size:10px;text-transform:uppercase;color:#6b7280}
+        table.data td{padding:6px 8px;border:1px solid #e5e7eb}
+        .firma-box{border-top:1px solid #111;width:250px;margin-top:60px;padding-top:6px;text-align:center;font-size:11px}
+        @media print{
+            body{background:#fff!important;font-size:10pt}
+            .topbar,.no-print{display:none!important}
+            .page{max-width:100%!important;padding:0!important}
+            .card{break-inside:avoid;margin-bottom:8px!important}
+            @page{size:A4;margin:1.2cm}
+        }
+    </style>
+</head>
+<body>
+<div class="topbar no-print">
+    <div style="font-weight:700;display:flex;align-items:center;gap:6px">
+        <img src="{% static 'image/logoblanco.png' %}" alt="Logo" style="height:20px"> KenkoMed
+    </div>
+    <a href="/panel/"><i class='bx bx-arrow-back'></i> Volver al Panel</a>
+</div>
+
+<div class="page">
+
+<!-- HEADER -->
+<div class="card" style="border-top:4px solid #115b9c">
+    <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #e5e7eb">
+            <div>
+                <h1 style="font-size:18px;font-weight:700;color:#115b9c;text-transform:uppercase">FICHA CLÍNICA PROFESIONAL</h1>
+                <p style="font-size:11px;color:#6b7280">Documento generado por Sistema KenkoMed · Ley 20.584</p>
+            </div>
+            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo" style="height:28px">
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#eff6ff;border:1px solid #c9d5e8;border-radius:4px;overflow:hidden">
+            <div style="padding:8px 12px;border-right:1px solid #c9d5e8">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3b82f6">Paciente</div>
+                <div style="font-size:12px;font-weight:600">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+            </div>
+            <div style="padding:8px 12px;border-right:1px solid #c9d5e8">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3b82f6">RUT</div>
+                <div style="font-size:12px;font-weight:600">{{ paciente.rut }}</div>
+            </div>
+            <div style="padding:8px 12px;border-right:1px solid #c9d5e8">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3b82f6">Profesional</div>
+                <div style="font-size:12px;font-weight:600">{% if clinico %}{{ clinico.nombre }} {{ clinico.apellido }}{% else %}No asignado{% endif %}</div>
+            </div>
+            <div style="padding:8px 12px">
+                <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:#3b82f6">Fecha Emisión</div>
+                <div style="font-size:12px;font-weight:600">{% now "d/m/Y H:i" %}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. IDENTIFICACIÓN DEL PACIENTE -->
+<div class="card">
+    <div class="card-head bg-blue"><i class='bx bx-user'></i> 1. Identificación del Paciente</div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+            <div class="field"><span class="fl">Nombre Completo</span><span class="fv">{{ paciente.nombre }} {{ paciente.apellido }}</span></div>
+            <div class="field"><span class="fl">RUT</span><span class="fv">{{ paciente.rut }}</span></div>
+            <div class="field"><span class="fl">Fecha Nacimiento</span><span class="fv">{{ paciente.fechaNacimiento|default:"No registrado" }}</span></div>
+            <div class="field"><span class="fl">Género</span><span class="fv">{{ paciente.genero|default:"No registrado" }}</span></div>
+        </div>
+        <div>
+            <div class="field"><span class="fl">Teléfono</span><span class="fv">{{ paciente.contacto|default:"No registrado" }}</span></div>
+            <div class="field"><span class="fl">Correo</span><span class="fv">{{ paciente.correo|default:"No registrado" }}</span></div>
+            <div class="field"><span class="fl">Cobertura</span><span class="fv">{{ paciente.cobertura_de_salud|default:"No registrado" }}</span></div>
+            <div class="field"><span class="fl">Profesión</span><span class="fv">{{ paciente.profesion|default:"No registrado" }}</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. PROFESIONAL TRATANTE -->
+{% if clinico %}
+<div class="card">
+    <div class="card-head bg-blue"><i class='bx bx-id-card'></i> 2. Profesional Tratante</div>
+    <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+            <div class="field"><span class="fl">Nombre</span><span class="fv">{{ clinico.nombre }} {{ clinico.apellido }}</span></div>
+            <div class="field"><span class="fl">Profesión</span><span class="fv">{{ clinico.profesion }}</span></div>
+            <div class="field"><span class="fl">Especialidad</span><span class="fv">{{ clinico.especialidad|default:"—" }}</span></div>
+        </div>
+        <div>
+            <div class="field"><span class="fl">N° Registro</span><span class="fv">{{ clinico.numero_registro|default:"—" }}</span></div>
+            <div class="field"><span class="fl">Centro</span><span class="fv">{{ clinico.centro_trabajo|default:"—" }}</span></div>
+            <div class="field"><span class="fl">Contacto</span><span class="fv">{{ clinico.telefono|default:"—" }}</span></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 3. ANAMNESIS -->
+{% if tiene_anamnesis %}
+<div class="card">
+    <div class="card-head bg-purple"><i class='bx bx-conversation'></i> 3. Anamnesis (Formulario Inicial)</div>
+    <div class="card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+                <div class="field"><span class="fl">Duración del dolor</span><span class="fv">{{ formulario.duracionDolor|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Causa del dolor</span><span class="fv">{{ formulario.causaDolor|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Opinión cura dolor</span><span class="fv">{{ formulario.opinionCuraDolor|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Calidad atención</span><span class="fv">{{ formulario.calidadAtencion|default:"—" }}</span></div>
+            </div>
+            <div>
+                <div class="field"><span class="fl">Características dolor</span><span class="fv">{% for c in caracteristicasDeDolor %}{{ c }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></div>
+                <div class="field"><span class="fl">Enfermedades</span><span class="fv">{% for e in TiposDeEnfermedades %}{{ e }}{% if not forloop.last %}, {% endif %}{% endfor %}</span></div>
+                <div class="field"><span class="fl">Nivel de salud</span><span class="fv">{{ formulario.pregunta1_nivelDeSalud|default:"—"|truncatewords:10 }}</span></div>
+            </div>
+        </div>
+
+        {% if ubicacionDolor %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Ubicación e Intensidad del Dolor</h4>
+        <table class="data">
+            <tr><th>Ubicación</th><th>Intensidad</th></tr>
+            {% for u in ubicacionDolor %}<tr><td>{{ u }}</td><td>{% if dolorIntensidad %}{{ dolorIntensidad|default_if_none:"—" }}{% endif %}</td></tr>{% endfor %}
+        </table>
+        {% endif %}
+
+        {% if medicamentos %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Medicamentos</h4>
+        <p style="font-size:11px">{% for m in medicamentos %}{{ m }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        {% endif %}
+
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Sustancias</h4>
+        <table class="data">
+            <tr><th>Sustancia</th><th>Preocupación</th></tr>
+            <tr><td>Nicotina</td><td>{{ formulario.nicotinaPreocupacion|default:"No indica" }}</td></tr>
+            <tr><td>Alcohol</td><td>{{ formulario.AlcoholPreocupacion|default:"No indica" }}</td></tr>
+            <tr><td>Drogas</td><td>{{ formulario.DrogasPreocupacion|default:"No indica" }}</td></tr>
+            <tr><td>Marihuana</td><td>{{ formulario.marihuanaPreocupacion|default:"No indica" }}</td></tr>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- 4. EVALUACIÓN INICIAL (Primera Sesión Kinésica) -->
+{% if primera_sesion and primera_sesion.evaluacion_inicial %}
+<div class="card">
+    <div class="card-head bg-teal"><i class='bx bx-body'></i> 4. Evaluación Kinésica Inicial</div>
+    <div class="card-body">
+        {% with ev=primera_sesion.evaluacion_inicial %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+                <div class="field"><span class="fl">Motivo Consulta</span><span class="fv">{{ ev.motivo_consulta|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Causa Lesión</span><span class="fv">{{ ev.causa_lesion|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Mecanismo Lesión</span><span class="fv">{{ ev.mecanismo_lesion|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Fecha Lesión</span><span class="fv">{{ ev.fecha_lesion|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Objetivo Paciente</span><span class="fv">{{ ev.objetivo_paciente|default:"—" }}</span></div>
+            </div>
+            <div>
+                <div class="field"><span class="fl">Dolor Presente</span><span class="fv">{{ ev.dolor_presente|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Localización</span><span class="fv">{{ ev.dolor_localizacion|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Intensidad</span><span class="fv">{{ ev.dolor_intensidad|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Características</span><span class="fv">{{ ev.dolor_caracteristicas|default:"—" }}</span></div>
+                <div class="field"><span class="fl">Irradiación</span><span class="fv">{{ ev.dolor_irradiacion|default:"—" }}</span></div>
+            </div>
+        </div>
+
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Examen Físico</h4>
+        <div class="field"><span class="fl">Observación</span><span class="fv">{{ ev.examen_observacion|default:"—" }}</span></div>
+        <div class="field"><span class="fl">Inspección</span><span class="fv">{{ ev.examen_inspeccion|default:"—" }}</span></div>
+        <div class="field"><span class="fl">Palpación</span><span class="fv">{{ ev.examen_palpacion|default:"—" }}</span></div>
+
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Rango Articular</h4>
+        <div class="field"><span class="fl">Activo Conservados</span><span class="fv">{{ ev.rango_activo_conservados|default:"—" }}</span></div>
+        <div class="field"><span class="fl">Activo Limitados</span><span class="fv">{{ ev.rango_activo_limitados|default:"—" }}</span></div>
+
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Tests Ortopédicos</h4>
+        <div class="field"><span class="fl">Resultado</span><span class="fv">{{ ev.test_ortopedicos|default:"—" }}</span></div>
+        {% endwith %}
+
+        {% if primera_sesion.notas_clinicas %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Notas de Primera Sesión</h4>
+        <p style="font-size:11px;background:#f9fafb;padding:8px;border-radius:4px;border-left:3px solid #14b8a6">{{ primera_sesion.notas_clinicas }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 5. CUESTIONARIOS -->
+{% if psfs or groc or eq5d or barthel or screening or ena %}
+<div class="card">
+    <div class="card-head bg-amber"><i class='bx bx-spreadsheet'></i> 5. Cuestionarios Estandarizados</div>
+    <div class="card-body">
+        {% if psfs %}
+        <h4 style="font-size:11px;font-weight:700;margin:0 0 6px;color:#6b7280;text-transform:uppercase">PSFS (Escala Funcional)</h4>
+        <div class="field"><span class="fl">Actividad 1</span><span class="fv">{{ psfs.actividad_1|default:"—" }}</span></div>
+        <div class="field"><span class="fl">Actividad 2</span><span class="fv">{{ psfs.actividad_2|default:"—" }}</span></div>
+        <div class="field"><span class="fl">Actividad 3</span><span class="fv">{{ psfs.actividad_3|default:"—" }}</span></div>
+        {% if psfs.NotaCuestionarioPSFS %}<p style="font-size:10px;color:#6b7280;margin:4px 0 12px">Nota: {{ psfs.NotaCuestionarioPSFS }}</p>{% endif %}
+        {% endif %}
+
+        {% if groc %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">GROC (Cambio Global)</h4>
+        <div class="field"><span class="fl">Puntaje</span><span class="fv">{{ groc.puntajeGroc }}</span></div>
+        {% if groc.NotaGroc %}<p style="font-size:10px;color:#6b7280;margin:4px 0 12px">Nota: {{ groc.NotaGroc }}</p>{% endif %}
+        {% endif %}
+
+        {% if eq5d %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">EQ-5D (Calidad de Vida)</h4>
+        <div class="field"><span class="fl">VAS Score</span><span class="fv">{{ eq5d.vas_score }}</span></div>
+        {% endif %}
+
+        {% if barthel %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Barthel (Independencia)</h4>
+        <div class="field"><span class="fl">Puntaje Total</span><span class="fv">{{ barthel.puntaje_total }}</span></div>
+        <div class="field"><span class="fl">Grado Dependencia</span><span class="fv">{{ barthel.grado_dependencia }}</span></div>
+        {% endif %}
+
+        {% if ena %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">ENA (Escala Numérica Análoga)</h4>
+        <div class="field"><span class="fl">Puntaje por sesión</span><span class="fv">{{ ena.puntaje_obtenido_sesion }}</span></div>
+        {% endif %}
+
+        {% if screening %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#6b7280;text-transform:uppercase">Screening (Ansiedad)</h4>
+        <div class="field"><span class="fl">Puntaje Sesión</span><span class="fv">{{ screening.Puntaje_Sesion }}</span></div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- 6. REGISTRO DE SESIONES -->
+{% if sesiones %}
+<div class="card">
+    <div class="card-head bg-blue"><i class='bx bx-calendar'></i> 6. Registro de Sesiones ({{ total_sesiones }} total)</div>
+    <div class="card-body">
+        <table class="data">
+            <tr><th>#</th><th>Fecha</th><th>Tipo</th><th>Notas Clínicas</th><th>Evolución</th></tr>
+            {% for s in sesiones %}
+            <tr>
+                <td><strong>{{ s.numero_sesion }}</strong></td>
+                <td>{{ s.fecha_creacion|date:"d/m/Y" }}</td>
+                <td>
+                    {% if s.es_primera_sesion %}<span class="badge" style="background:#dbeafe;color:#1e40af">Inicial</span>
+                    {% elif s.es_sesion_final %}<span class="badge" style="background:#d1fae5;color:#065f46">Final</span>
+                    {% else %}<span class="badge" style="background:#f3f4f6;color:#374151">Seguimiento</span>{% endif %}
+                </td>
+                <td style="max-width:200px">{{ s.notas_clinicas|default:"—"|truncatewords:20 }}</td>
+                <td style="max-width:200px">{{ s.evolucion|default:"—"|truncatewords:20 }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- 7. DIAGNÓSTICO Y ALTA -->
+{% if sesion_final %}
+<div class="card">
+    <div class="card-head bg-green"><i class='bx bx-check-shield'></i> 7. Diagnóstico y Alta</div>
+    <div class="card-body">
+        <div class="field"><span class="fl">Estado al Alta</span><span class="fv">
+            <span class="badge" style="background:#d1fae5;color:#065f46">{{ sesion_final.get_estado_al_alta_display|default:"—" }}</span>
+        </span></div>
+        <div class="field"><span class="fl">Fecha de Alta</span><span class="fv">{{ sesion_final.fecha_creacion|date:"d/m/Y" }}</span></div>
+
+        {% if sesion_final.diagnostico_final %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#065f46;text-transform:uppercase">Diagnóstico Kinésico Final</h4>
+        <p style="font-size:12px;background:#ecfdf5;padding:10px;border-radius:4px;border-left:3px solid #10b981">{{ sesion_final.diagnostico_final }}</p>
+        {% endif %}
+
+        {% if sesion_final.resumen_tratamiento %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#065f46;text-transform:uppercase">Resumen del Tratamiento</h4>
+        <p style="font-size:12px;background:#f9fafb;padding:10px;border-radius:4px;border-left:3px solid #6b7280">{{ sesion_final.resumen_tratamiento }}</p>
+        {% endif %}
+
+        {% if sesion_final.logros_obtenidos %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#065f46;text-transform:uppercase">Logros Obtenidos</h4>
+        <p style="font-size:12px;background:#f9fafb;padding:10px;border-radius:4px;border-left:3px solid #3b82f6">{{ sesion_final.logros_obtenidos }}</p>
+        {% endif %}
+
+        {% if sesion_final.recomendaciones_alta %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#065f46;text-transform:uppercase">Recomendaciones al Alta</h4>
+        <p style="font-size:12px;background:#fffbeb;padding:10px;border-radius:4px;border-left:3px solid #f59e0b">{{ sesion_final.recomendaciones_alta }}</p>
+        {% endif %}
+
+        {% if sesion_final.plan_seguimiento %}
+        <h4 style="font-size:11px;font-weight:700;margin:12px 0 6px;color:#065f46;text-transform:uppercase">Plan de Seguimiento</h4>
+        <p style="font-size:12px;background:#eff6ff;padding:10px;border-radius:4px;border-left:3px solid #3b82f6">{{ sesion_final.plan_seguimiento }}</p>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- NOTAS GENERALES -->
+{% if notas and notas.notas %}
+<div class="card">
+    <div class="card-head bg-gray"><i class='bx bx-notepad'></i> Notas Clínicas Generales</div>
+    <div class="card-body">
+        <p style="font-size:12px;font-style:italic;color:#4b5563">{{ notas.notas }}</p>
+    </div>
+</div>
+{% endif %}
+
+<!-- FIRMA -->
+<div style="display:flex;justify-content:space-between;margin-top:40px;padding-top:20px">
+    <div class="firma-box">
+        <p style="font-weight:600">{% if clinico %}{{ clinico.nombre }} {{ clinico.apellido }}{% else %}Profesional Tratante{% endif %}</p>
+        <p>{% if clinico %}{{ clinico.profesion }}{% endif %}</p>
+        <p>{% if clinico and clinico.numero_registro %}Reg. {{ clinico.numero_registro }}{% endif %}</p>
+    </div>
+    <div style="text-align:right;font-size:10px;color:#9ca3af;align-self:flex-end">
+        <p>Documento generado: {% now "d/m/Y H:i" %}</p>
+        <p>Sistema KenkoMed · Ficha Clínica Electrónica</p>
+    </div>
+</div>
+
+<!-- BOTONES IMPRESIÓN -->
+<div class="no-print" style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb">
+    <button onclick="window.print()" style="background:#115b9c;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
+        <i class='bx bx-printer'></i> Imprimir Ficha Clínica
+    </button>
+</div>
+
+</div><!-- /page -->
+</body>
+</html>

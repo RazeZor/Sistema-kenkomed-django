@@ -17,7 +17,9 @@
                 </div>
                 <div class="min-w-0">
                     <h1 class="text-lg sm:text-2xl font-bold text-gray-800 truncate">
-                        {% if sesion.es_primera_sesion %}Evaluación Inicial{% else %}Sesión Kinésica #{{ sesion.numero_sesion }}{% endif %}
+                        {% if sesion.es_primera_sesion %}Evaluación Inicial
+                        {% elif sesion.es_sesion_final %}Sesión Final #{{ sesion.numero_sesion }}
+                        {% else %}Sesión Kinésica #{{ sesion.numero_sesion }}{% endif %}
                     </h1>
                     <p class="text-xs sm:text-sm text-gray-500 truncate">{{ paciente.nombre }} {{ paciente.apellido }}</p>
                 </div>
@@ -121,8 +123,13 @@
                                 </div>
                             </div>
                         </div>
-                        <span class="px-3 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
-                            {% if sesion.es_primera_sesion %}Evaluación Inicial{% else %}Sesión de Seguimiento{% endif %}
+                        <span class="px-3 py-1 text-xs font-semibold rounded-full
+                             {% if sesion.es_primera_sesion %}bg-blue-100 text-blue-700
+                             {% elif sesion.es_sesion_final %}bg-emerald-600 text-white
+                             {% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {% if sesion.es_primera_sesion %}Evaluación Inicial
+                            {% elif sesion.es_sesion_final %}Alta / Cierre
+                            {% else %}Sesión de Seguimiento{% endif %}
                         </span>
                     </div>
                 </div>
@@ -289,6 +296,58 @@
                     </div>
                 </div>
                 {% endif %}
+
+                {% if sesion.es_sesion_final %}
+                <!-- Diagnóstico y Cierre - Sesión Final -->
+                <div class="bg-white rounded-2xl shadow-sm border-2 border-emerald-200 overflow-hidden">
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-check-shield text-white'></i>
+                            </div>
+                            <h2 class="font-semibold text-white">Diagnóstico y Cierre del Tratamiento</h2>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        {% if sesion.estado_al_alta %}
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-bold text-gray-600">Estado al alta:</span>
+                            <span class="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-sm font-semibold">{{ sesion.get_estado_al_alta_display }}</span>
+                        </div>
+                        {% endif %}
+                        {% if sesion.diagnostico_final %}
+                        <div>
+                            <h4 class="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-2">Diagnóstico Kinésico Final</h4>
+                            <p class="text-sm text-gray-700 bg-emerald-50 p-4 rounded-lg border border-emerald-100 whitespace-pre-wrap">{{ sesion.diagnostico_final }}</p>
+                        </div>
+                        {% endif %}
+                        {% if sesion.resumen_tratamiento %}
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Resumen del Tratamiento</h4>
+                            <p class="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 whitespace-pre-wrap">{{ sesion.resumen_tratamiento }}</p>
+                        </div>
+                        {% endif %}
+                        {% if sesion.logros_obtenidos %}
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Logros Obtenidos</h4>
+                            <p class="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 whitespace-pre-wrap">{{ sesion.logros_obtenidos }}</p>
+                        </div>
+                        {% endif %}
+                        {% if sesion.recomendaciones_alta %}
+                        <div>
+                            <h4 class="text-xs font-bold text-amber-600 uppercase tracking-wide mb-2">Recomendaciones al Alta</h4>
+                            <p class="text-sm text-gray-700 bg-amber-50 p-4 rounded-lg border border-amber-100 whitespace-pre-wrap">{{ sesion.recomendaciones_alta }}</p>
+                        </div>
+                        {% endif %}
+                        {% if sesion.plan_seguimiento %}
+                        <div>
+                            <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-2">Plan de Seguimiento</h4>
+                            <p class="text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100 whitespace-pre-wrap">{{ sesion.plan_seguimiento }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
             </div>
 
         </div>
@@ -445,15 +504,87 @@
                         </div>
                     </div>
                 </div>
-                {% else %}
-                <div class="px-8 py-6 space-y-5">
+                {% elif sesion.es_sesion_final %}
+                <!-- Editar sesión final -->
+                <div class="px-6 py-6 space-y-5 max-h-[70vh] overflow-y-auto">
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-3 flex gap-3 text-sm text-emerald-800">
+                        <i class='bx bx-check-shield text-xl flex-shrink-0'></i>
+                        <p>Editando la <strong>Sesión Final #{{ sesion.numero_sesion }}</strong>. Puedes actualizar el diagnóstico, resumen y recomendaciones.</p>
+                    </div>
+
+                    <!-- Estado al alta -->
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2"><i class='bx bx-notepad text-medical-blue'></i> Notas Clínicas</label>
-                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/50 focus:border-medical-blue transition-all resize-none shadow-sm outline-none" name="notas_clinicas" rows="4">{{ sesion.notas_clinicas|default:"" }}</textarea>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Estado del Paciente al Alta</label>
+                        <select name="estado_al_alta" class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all bg-white">
+                            <option value="">-- Seleccione estado --</option>
+                            <option value="mejorado" {% if sesion.estado_al_alta == 'mejorado' %}selected{% endif %}>Mejorado</option>
+                            <option value="alta_medica" {% if sesion.estado_al_alta == 'alta_medica' %}selected{% endif %}>Alta Médica</option>
+                            <option value="estable" {% if sesion.estado_al_alta == 'estable' %}selected{% endif %}>Estable</option>
+                            <option value="derivado" {% if sesion.estado_al_alta == 'derivado' %}selected{% endif %}>Derivado a Especialista</option>
+                            <option value="abandono" {% if sesion.estado_al_alta == 'abandono' %}selected{% endif %}>Abandono de Tratamiento</option>
+                            <option value="sin_cambios" {% if sesion.estado_al_alta == 'sin_cambios' %}selected{% endif %}>Sin Cambios Significativos</option>
+                        </select>
+                    </div>
+
+                    <!-- Diagnóstico final -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-pulse text-emerald-600'></i> Diagnóstico Kinésico Final
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none shadow-sm outline-none" 
+                                  name="diagnostico_final" rows="4">{{ sesion.diagnostico_final|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Resumen tratamiento -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-clipboard text-emerald-600'></i> Resumen del Tratamiento
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none shadow-sm outline-none" 
+                                  name="resumen_tratamiento" rows="4">{{ sesion.resumen_tratamiento|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Logros -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-trophy text-emerald-600'></i> Logros Obtenidos
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all resize-none shadow-sm outline-none" 
+                                  name="logros_obtenidos" rows="3">{{ sesion.logros_obtenidos|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Recomendaciones -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-list-check text-amber-500'></i> Recomendaciones al Alta
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-400 transition-all resize-none shadow-sm outline-none" 
+                                  name="recomendaciones_alta" rows="3">{{ sesion.recomendaciones_alta|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Plan de seguimiento -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-calendar-check text-blue-500'></i> Plan de Seguimiento
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-medical-blue transition-all resize-none shadow-sm outline-none" 
+                                  name="plan_seguimiento" rows="3">{{ sesion.plan_seguimiento|default:"" }}</textarea>
+                    </div>
+
+                    <!-- Notas y evolución -->
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-notepad text-gray-500'></i> Notas Clínicas
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all resize-none shadow-sm outline-none" 
+                                  name="notas_clinicas" rows="3">{{ sesion.notas_clinicas|default:"" }}</textarea>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2"><i class='bx bx-trending-up text-medical-blue'></i> Evolución del Paciente</label>
-                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-medical-blue/50 focus:border-medical-blue transition-all resize-none shadow-sm outline-none" name="evolucion" rows="4">{{ sesion.evolucion|default:"" }}</textarea>
+                        <label class="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide flex items-center gap-2">
+                            <i class='bx bx-trending-up text-gray-500'></i> Evolución Final
+                        </label>
+                        <textarea class="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-400 focus:border-gray-400 transition-all resize-none shadow-sm outline-none" 
+                                  name="evolucion" rows="3">{{ sesion.evolucion|default:"" }}</textarea>
                     </div>
                 </div>
                 {% endif %}

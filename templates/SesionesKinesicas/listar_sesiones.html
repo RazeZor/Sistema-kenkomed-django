@@ -33,6 +33,10 @@
                         class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 bg-gradient-to-r from-medical-blue to-medical-blue-light text-white rounded-xl text-sm hover:from-medical-blue-dark hover:to-medical-blue active:scale-95 transition-all font-medium shadow-sm">
                     <i class='bx bx-plus'></i> <span>Nueva Sesión</span>
                 </button>
+                <a href="{% url 'sesiones_kinesicas:crear_final' %}?rut={{ paciente.rut }}" 
+                   class="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 sm:px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-500 text-white rounded-xl text-sm hover:from-emerald-700 hover:to-teal-600 active:scale-95 transition-all font-medium shadow-sm">
+                    <i class='bx bx-check-shield'></i> <span>Sesión Final</span>
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -64,26 +68,37 @@
     <!-- Hub de sesiones (Acordeones) -->
     <div class="space-y-4">
         
-        <!-- Sesiones de seguimiento -->
+        <!-- Sesiones de seguimiento y finales -->
         {% for sesion in sesiones_posteriores %}
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-200 hover:shadow-md">
-            <div class="px-4 sm:px-6 py-4 flex items-center justify-between cursor-pointer bg-gray-50 hover:bg-gray-100 active:bg-gray-200 select-none" onclick="toggleSession('sesion_{{ sesion.id }}')">
+        <div class="rounded-xl shadow-sm overflow-hidden transition-all duration-200 hover:shadow-md
+             {% if sesion.es_sesion_final %}border-2 border-emerald-200 bg-emerald-50{% else %}bg-white border border-gray-100{% endif %}">
+            <div class="px-4 sm:px-6 py-4 flex items-center justify-between cursor-pointer select-none
+                 {% if sesion.es_sesion_final %}bg-emerald-50 hover:bg-emerald-100{% else %}bg-gray-50 hover:bg-gray-100 active:bg-gray-200{% endif %}"
+                 onclick="toggleSession('sesion_{{ sesion.id }}')">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                    <div class="w-10 h-10 rounded-full bg-medical-blue text-white flex items-center justify-center font-bold shadow-sm flex-shrink-0">
-                        {{ sesion.numero_sesion }}
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-sm flex-shrink-0
+                         {% if sesion.es_sesion_final %}bg-gradient-to-r from-emerald-600 to-teal-500 text-white{% else %}bg-medical-blue text-white{% endif %}">
+                        {% if sesion.es_sesion_final %}<i class='bx bx-check-shield'></i>{% else %}{{ sesion.numero_sesion }}{% endif %}
                     </div>
                     <div class="min-w-0">
-                        <h3 class="font-bold text-gray-800 text-sm sm:text-base">Sesión #{{ sesion.numero_sesion }}</h3>
+                        <h3 class="font-bold text-sm sm:text-base
+                             {% if sesion.es_sesion_final %}text-emerald-800{% else %}text-gray-800{% endif %}">
+                            {% if sesion.es_sesion_final %}Sesión Final #{{ sesion.numero_sesion }}{% else %}Sesión #{{ sesion.numero_sesion }}{% endif %}
+                        </h3>
                         <p class="text-xs text-gray-500 truncate"><i class='bx bx-calendar'></i> {{ sesion.fecha_creacion|date:"d M Y" }} — {{ sesion.clinico.apellido }}</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0 ml-2">
+                    {% if sesion.es_sesion_final %}
+                    <span class="hidden sm:inline px-3 py-1 bg-emerald-600 text-white rounded-full text-xs font-semibold">Alta / Cierre</span>
+                    {% else %}
                     <span class="hidden sm:inline px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold">Seguimiento</span>
+                    {% endif %}
                     <i class='bx bx-chevron-down text-xl text-gray-400 transition-transform duration-300' id="icon_sesion_{{ sesion.id }}"></i>
                 </div>
             </div>
             
-            <div id="sesion_{{ sesion.id }}" class="hidden border-t border-gray-100">
+            <div id="sesion_{{ sesion.id }}" class="hidden border-t {% if sesion.es_sesion_final %}border-emerald-100{% else %}border-gray-100{% endif %}">
                 <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                         <h4 class="text-xs uppercase font-bold tracking-wider text-gray-500 mb-2 flex items-center gap-2"><i class='bx bx-notepad'></i> Notas Clínicas</h4>
@@ -93,8 +108,22 @@
                         <h4 class="text-xs uppercase font-bold tracking-wider text-medical-blue mb-2 flex items-center gap-2"><i class='bx bx-trending-up'></i> Evolución</h4>
                         <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{{ sesion.evolucion|default:"Sin evolución registrada." }}</p>
                     </div>
+                    {% if sesion.es_sesion_final %}
+                    <div class="sm:col-span-2 bg-emerald-50 p-4 rounded-xl border border-emerald-200">
+                        <h4 class="text-xs uppercase font-bold tracking-wider text-emerald-700 mb-3 flex items-center gap-2"><i class='bx bx-check-shield'></i> Diagnóstico y Cierre</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            {% if sesion.diagnostico_final %}<div><span class="font-semibold text-emerald-800">Diagnóstico:</span><p class="text-gray-700 mt-1">{{ sesion.diagnostico_final }}</p></div>{% endif %}
+                            {% if sesion.estado_al_alta %}<div><span class="font-semibold text-emerald-800">Estado al alta:</span><p class="text-gray-700 mt-1">{{ sesion.get_estado_al_alta_display }}</p></div>{% endif %}
+                            {% if sesion.resumen_tratamiento %}<div class="sm:col-span-2"><span class="font-semibold text-emerald-800">Resumen tratamiento:</span><p class="text-gray-700 mt-1">{{ sesion.resumen_tratamiento }}</p></div>{% endif %}
+                            {% if sesion.logros_obtenidos %}<div class="sm:col-span-2"><span class="font-semibold text-emerald-800">Logros:</span><p class="text-gray-700 mt-1">{{ sesion.logros_obtenidos }}</p></div>{% endif %}
+                            {% if sesion.recomendaciones_alta %}<div class="sm:col-span-2"><span class="font-semibold text-emerald-800">Recomendaciones:</span><p class="text-gray-700 mt-1">{{ sesion.recomendaciones_alta }}</p></div>{% endif %}
+                            {% if sesion.plan_seguimiento %}<div class="sm:col-span-2"><span class="font-semibold text-emerald-800">Plan de seguimiento:</span><p class="text-gray-700 mt-1">{{ sesion.plan_seguimiento }}</p></div>{% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2 sm:gap-3">
+                <div class="px-4 sm:px-6 py-3 border-t flex justify-end gap-2 sm:gap-3
+                     {% if sesion.es_sesion_final %}bg-emerald-50 border-emerald-100{% else %}bg-gray-50 border-gray-100{% endif %}">
                     <a href="{% url 'sesiones_kinesicas:ver' %}?rut={{ paciente.rut }}&numero_sesion={{ sesion.numero_sesion }}" 
                        class="flex items-center gap-1.5 text-sm text-gray-600 hover:text-medical-blue font-medium px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors">
                        <i class='bx bx-link-external'></i> <span>Ver detalle</span>

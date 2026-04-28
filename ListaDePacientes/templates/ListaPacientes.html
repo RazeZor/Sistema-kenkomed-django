@@ -33,13 +33,14 @@
                     <!-- Lista de pacientes -->
                     <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
                         <!-- Encabezado de tabla en desktop -->
-                        <div class="hidden px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-100 md:grid md:grid-cols-6 bg-gray-50">
+                        <div class="hidden px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-100 md:grid md:grid-cols-7 bg-gray-50">
                             <div>RUT</div>
                             <div>Nombre</div>
                             <div>Apellido</div>
                             <div>Teléfono</div>
                             <div>Género</div>
                             <div>Cobertura</div>
+                            <div class="text-center">Acciones</div>
                         </div>
                         
                         <!-- Filas de pacientes -->
@@ -75,10 +76,15 @@
                                             {{ paciente.cobertura_de_salud }}
                                         </span>
                                     </div>
+                                    <div class="pt-2">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="inline-flex items-center justify-center w-full gap-2 px-4 py-2 text-sm font-medium text-white transition-all rounded-lg bg-medical-blue hover:bg-medical-blue-dark">
+                                            <i class='bx bx-history'></i> Ver Historial
+                                        </a>
+                                    </div>
                                 </div>
                                 
                                 <!-- Vista desktop -->
-                                <div class="hidden px-6 py-4 md:grid md:grid-cols-6 md:items-center">
+                                <div class="hidden px-6 py-4 md:grid md:grid-cols-7 md:items-center">
                                     <div class="text-sm font-medium">{{ paciente.rut }}</div>
                                     <div class="text-sm">{{ paciente.nombre }}</div>
                                     <div class="text-sm">{{ paciente.apellido }}</div>
@@ -95,6 +101,11 @@
                                         <span class="px-2 py-1 text-xs rounded-full bg-medical-blue/5 text-medical-blue">
                                             {{ paciente.cobertura_de_salud }}
                                         </span>
+                                    </div>
+                                    <div class="flex justify-center">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white transition-all rounded-lg bg-medical-blue hover:bg-medical-blue-dark shadow-sm" title="Ver historial clínico">
+                                            <i class='bx bx-history'></i> Historial
+                                        </a>
                                     </div>
                                 </div>
                             </div>

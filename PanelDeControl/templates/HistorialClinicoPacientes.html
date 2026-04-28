@@ -197,16 +197,20 @@
                     
                     <hr class="border-gray-100">
                     
-                    <div>
+                    <div class="space-y-3">
                         {% if paciente.formulario %}
                         <a href="{% url 'informe' %}?rut={{ paciente.rut }}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                            <i class='bx bx-file-medical text-lg'></i> Mostrar Informe Completo
+                            <i class='bx bx-file-medical text-lg'></i> Informe DSS (Anamnesis)
                         </a>
                         {% else %}
                         <button type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed shadow-sm" title="Requiere completar la Evaluación Inicial">
-                            <i class='bx bx-file-medical text-lg'></i> Mostrar Informe Completo (Bloqueado)
+                            <i class='bx bx-file-medical text-lg'></i> Informe DSS (Bloqueado)
                         </button>
                         {% endif %}
+                        
+                        <a href="{% url 'fichaClinica' %}?rut={{ paciente.rut }}" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-sm">
+                            <i class='bx bx-file text-lg'></i> Ficha Clínica Profesional
+                        </a>
                     </div>
 
                     <!-- Sesiones Kinésicas - Card Mejorada -->
@@ -252,6 +256,10 @@
                                 
                                 <a id="btnNuevaSesion" href="{% url 'sesiones_kinesicas:crear_seguimiento' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-all font-semibold" style="display: none;">
                                     <i class='bx bx-plus text-lg'></i> Registrar Nueva Sesión
+                                </a>
+
+                                <a id="btnSesionFinal" href="{% url 'sesiones_kinesicas:crear_final' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-teal-500 rounded-lg hover:from-emerald-700 hover:to-teal-600 transition-all shadow-sm" style="display: none;">
+                                    <i class='bx bx-check-shield text-lg'></i> Crear Sesión Final
                                 </a>
                                 
                                 <a id="btnVerTodas" href="{% url 'sesiones_kinesicas:listar' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-medical-blue rounded-lg hover:bg-medical-blue-dark transition-all shadow-sm">
@@ -360,6 +368,7 @@
         const comboSesiones = document.getElementById('comboSesionesKinesicas');
         const btnPrimera = document.getElementById('btnPrimeraSesion');
         const btnNueva = document.getElementById('btnNuevaSesion');
+        const btnSesionFinal = document.getElementById('btnSesionFinal');
         const btnVerTodas = document.getElementById('btnVerTodas');
         const sesionesCount = document.getElementById('sesionesCount');
         const lastSessionInfo = document.getElementById('lastSessionInfo');
@@ -384,11 +393,13 @@
         if (totalSesiones === 0) {
             btnPrimera.style.display = 'flex';
             btnNueva.style.display = 'none';
+            if (btnSesionFinal) btnSesionFinal.style.display = 'none';
             noSessionsInfo.style.display = 'block';
             lastSessionInfo.style.display = 'none';
         } else {
             btnPrimera.style.display = 'none';
             btnNueva.style.display = 'flex';
+            if (btnSesionFinal) btnSesionFinal.style.display = 'flex';
             noSessionsInfo.style.display = 'none';
             lastSessionInfo.style.display = 'block';
             

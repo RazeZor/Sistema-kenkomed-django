@@ -1,0 +1,216 @@
+{% extends 'base_kenkomed.html' %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="w-12 h-12 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 flex items-center justify-center shadow-lg">
+                    <i class='bx bx-check-shield text-2xl text-white'></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">Sesión Final — Cierre de Tratamiento</h1>
+                    <p class="text-sm text-gray-500">Sesión #{{ proximo_numero }} · {{ total_sesiones }} sesiones previas registradas</p>
+                </div>
+            </div>
+            
+            <!-- Info Paciente -->
+            <div class="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-gray-100">
+                <i class='bx bx-user text-medical-blue'></i>
+                <span class="text-sm font-medium text-gray-700">{{ paciente.nombre }} {{ paciente.apellido }}</span>
+                <span class="text-xs text-gray-400">|</span>
+                <span class="text-sm text-gray-500">{{ paciente.rut }}</span>
+            </div>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% elif message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %}">
+                    <div class="flex items-center gap-2">
+                        <i class='bx {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
+                        {{ message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="rut" value="{{ rut }}">
+
+            <!-- Info última sesión -->
+            {% if ultima_sesion %}
+            <div class="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-100">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                        <i class='bx bx-history text-emerald-500'></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-emerald-800">Última sesión registrada: #{{ ultima_sesion.numero_sesion }}</p>
+                        <p class="text-xs text-emerald-600">{{ ultima_sesion.fecha_creacion|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ═══════ DIAGNÓSTICO KINÉSICO FINAL ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-pulse text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Diagnóstico Kinésico Final</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Diagnóstico kinésico al cierre del tratamiento. Incluya diagnóstico funcional, hallazgos principales y clasificación según CIF si corresponde.</p>
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none" 
+                              id="diagnostico_final" name="diagnostico_final" rows="5" required
+                              placeholder="Ej: Paciente con diagnóstico de cervicalgia mecánica crónica con componente miofascial asociado..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ RESUMEN DEL TRATAMIENTO ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-clipboard text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Resumen del Tratamiento Realizado</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Describa las intervenciones, técnicas y modalidades terapéuticas aplicadas durante todo el proceso de tratamiento.</p>
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
+                              id="resumen_tratamiento" name="resumen_tratamiento" rows="5"
+                              placeholder="Ej: Se realizaron 8 sesiones de tratamiento que incluyeron: terapia manual articular, ejercicio terapéutico progresivo, educación en neurociencia del dolor..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ LOGROS OBTENIDOS ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-trophy text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Logros y Objetivos Alcanzados</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Detalle los objetivos terapéuticos que fueron alcanzados durante el tratamiento.</p>
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
+                              id="logros_obtenidos" name="logros_obtenidos" rows="4"
+                              placeholder="Ej: Reducción del dolor de EVA 7/10 a 2/10. Recuperación de rango articular cervical completo. Reintegro laboral exitoso..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ ESTADO AL ALTA ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-amber-500 to-orange-400 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-user-check text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Estado del Paciente al Alta</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Seleccione el estado del paciente al momento del alta.</p>
+                    <select class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all bg-white" 
+                            id="estado_al_alta" name="estado_al_alta" required>
+                        <option value="">-- Seleccione estado --</option>
+                        {% for value, label in estado_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- ═══════ RECOMENDACIONES AL ALTA ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-list-check text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Recomendaciones al Alta</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Indicaciones y recomendaciones para el paciente al finalizar el tratamiento.</p>
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
+                              id="recomendaciones_alta" name="recomendaciones_alta" rows="4"
+                              placeholder="Ej: Mantener rutina de ejercicios entregada. Realizar actividad física 3 veces por semana. Consultar si reaparecen síntomas..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ PLAN DE SEGUIMIENTO ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-calendar-check text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Plan de Seguimiento</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <p class="text-sm text-gray-500 mb-3">Plan de seguimiento y controles post-alta.</p>
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-medical-blue focus:border-transparent transition-all resize-none" 
+                              id="plan_seguimiento" name="plan_seguimiento" rows="4"
+                              placeholder="Ej: Control en 1 mes. Re-evaluación funcional a los 3 meses. Derivar a traumatólogo si persiste dolor..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ NOTAS CLÍNICAS ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-gray-600 to-gray-500 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-notepad text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Notas Clínicas Adicionales</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all resize-none" 
+                              id="notas_clinicas" name="notas_clinicas" rows="3" 
+                              placeholder="Notas adicionales sobre la sesión final..."></textarea>
+                </div>
+            </div>
+
+            <!-- ═══════ EVOLUCIÓN ═══════ -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="bg-gradient-to-r from-gray-600 to-gray-500 px-6 py-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                            <i class='bx bx-trending-up text-white'></i>
+                        </div>
+                        <h2 class="font-semibold text-white">Evolución Final del Paciente</h2>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <textarea class="w-full px-4 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent transition-all resize-none" 
+                              id="evolucion" name="evolucion" rows="3" 
+                              placeholder="Evolución global del paciente durante todo el proceso..."></textarea>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex items-center gap-3">
+                <button type="submit" class="inline-flex items-center gap-2 px-8 py-3 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 to-teal-500 rounded-lg hover:from-emerald-700 hover:to-teal-600 transition-all shadow-md">
+                    <i class='bx bx-check-shield'></i> Guardar Sesión Final
+                </button>
+                <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}" class="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
+                    <i class='bx bx-x'></i> Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -80,6 +80,138 @@ def RenderInforme(request):
 
     return render(request, 'informe.html', context)
 
+
+def RenderFichaClinica(request):
+    """
+    Ficha Clínica Profesional completa.
+    Compila TODA la información del paciente: datos personales, anamnesis,
+    sesiones kinésicas, cuestionarios, diagnóstico y alta.
+    Sigue normativa chilena (Ley 20.584, normas MINSAL).
+    """
+    from SesionesKinesicas.models import SesionKinesica
+    from Login.models import (
+        CuestionarioPSFS, Groc, CuestionarioEQ_5D,
+        CuestionarioBarthel, CuestionarioScrenning, CuestionarioEvaluacionENA
+    )
+    
+    rut = request.GET.get('rut', '') or request.POST.get('rut', '')
+    paciente = get_object_or_404(Paciente, rut=rut)
+    
+    context = {
+        'paciente': paciente,
+        'encontrado': True,
+    }
+    
+    # === Datos del clínico ===
+    clinico = paciente.clinico
+    context['clinico'] = clinico
+    
+    # === Formulario Clínico (Anamnesis) ===
+    try:
+        formulario = formularioClinico.objects.get(paciente=paciente)
+        context['formulario'] = formulario
+        context['tiene_anamnesis'] = True
+        
+        # Parse JSON fields safely
+        try:
+            context['ubicacionDolor'] = json.loads(formulario.ubicacionDolor) if formulario.ubicacionDolor else []
+        except (json.JSONDecodeError, TypeError):
+            context['ubicacionDolor'] = []
+            
+        try:
+            context['dolorIntensidad'] = json.loads(formulario.dolorIntensidad) if formulario.dolorIntensidad else []
+        except (json.JSONDecodeError, TypeError):
+            context['dolorIntensidad'] = []
+            
+        try:
+            context['caracteristicasDeDolor'] = json.loads(formulario.caracteristicasDeDolor) if formulario.caracteristicasDeDolor else []
+        except (json.JSONDecodeError, TypeError):
+            context['caracteristicasDeDolor'] = []
+            
+        try:
+            context['TiposDeEnfermedades'] = json.loads(formulario.TiposDeEnfermedades) if formulario.TiposDeEnfermedades else []
+        except (json.JSONDecodeError, TypeError):
+            context['TiposDeEnfermedades'] = []
+            
+        try:
+            context['medicamentos'] = formulario.medicamentos if formulario.medicamentos else []
+        except (json.JSONDecodeError, TypeError):
+            context['medicamentos'] = []
+            
+        try:
+            context['actividades_afectadas'] = json.loads(formulario.actividades_afectadas) if formulario.actividades_afectadas else []
+        except (json.JSONDecodeError, TypeError):
+            context['actividades_afectadas'] = []
+            
+    except formularioClinico.DoesNotExist:
+        context['tiene_anamnesis'] = False
+    
+    # === Sesiones Kinésicas ===
+    sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
+    context['sesiones'] = sesiones
+    context['total_sesiones'] = sesiones.count()
+    
+    # Primera sesión (evaluación inicial)
+    primera_sesion = sesiones.filter(es_primera_sesion=True).first()
+    context['primera_sesion'] = primera_sesion
+    
+    # Sesión final (diagnóstico y alta)
+    sesion_final = sesiones.filter(es_sesion_final=True).last()
+    context['sesion_final'] = sesion_final
+    
+    # === Cuestionarios ===
+    # PSFS
+    try:
+        psfs = CuestionarioPSFS.objects.get(paciente=paciente)
+        context['psfs'] = psfs
+    except CuestionarioPSFS.DoesNotExist:
+        pass
+    
+    # GROC
+    try:
+        groc = Groc.objects.get(paciente=paciente)
+        context['groc'] = groc
+    except Groc.DoesNotExist:
+        pass
+    
+    # EQ-5D
+    try:
+        eq5d = CuestionarioEQ_5D.objects.get(paciente=paciente)
+        context['eq5d'] = eq5d
+    except CuestionarioEQ_5D.DoesNotExist:
+        pass
+    
+    # Barthel
+    try:
+        barthel = CuestionarioBarthel.objects.get(paciente=paciente)
+        context['barthel'] = barthel
+    except CuestionarioBarthel.DoesNotExist:
+        pass
+    
+    # Screening
+    try:
+        screening = CuestionarioScrenning.objects.get(paciente=paciente)
+        context['screening'] = screening
+    except CuestionarioScrenning.DoesNotExist:
+        pass
+    
+    # ENA
+    try:
+        ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
+        context['ena'] = ena
+    except CuestionarioEvaluacionENA.DoesNotExist:
+        pass
+    
+    # === Notas ===
+    from Login.models import Notas
+    try:
+        notas = Notas.objects.get(paciente=paciente)
+        context['notas'] = notas
+    except Notas.DoesNotExist:
+        pass
+    
+    return render(request, 'ficha_clinica.html', context)
+
 # funciones y algoritmo para las Respuesta de el informe 
 
 def ResultSueño(despertares, hora_acostarse, tiempo_dormirse, hora_despertar, hora_levantarse):

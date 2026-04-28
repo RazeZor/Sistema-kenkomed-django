@@ -66,6 +66,58 @@ class SesionKinesica(models.Model):
         verbose_name="Es Primera Sesión"
     )
     
+    # Indicador y campos de sesión final (NO bloquea sesiones futuras)
+    es_sesion_final = models.BooleanField(
+        default=False,
+        verbose_name="Es Sesión Final"
+    )
+    diagnostico_final = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Diagnóstico Kinésico Final",
+        help_text="Diagnóstico kinésico al cierre del tratamiento"
+    )
+    resumen_tratamiento = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Resumen del Tratamiento",
+        help_text="Resumen de las intervenciones y técnicas aplicadas"
+    )
+    logros_obtenidos = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Logros Obtenidos",
+        help_text="Objetivos terapéuticos alcanzados durante el tratamiento"
+    )
+    
+    ESTADO_ALTA_CHOICES = [
+        ('mejorado', 'Mejorado'),
+        ('alta_medica', 'Alta Médica'),
+        ('estable', 'Estable'),
+        ('derivado', 'Derivado a Especialista'),
+        ('abandono', 'Abandono de Tratamiento'),
+        ('sin_cambios', 'Sin Cambios Significativos'),
+    ]
+    estado_al_alta = models.CharField(
+        max_length=30,
+        choices=ESTADO_ALTA_CHOICES,
+        blank=True,
+        null=True,
+        verbose_name="Estado del Paciente al Alta"
+    )
+    recomendaciones_alta = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Recomendaciones al Alta",
+        help_text="Indicaciones y recomendaciones para el paciente al finalizar el tratamiento"
+    )
+    plan_seguimiento = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Plan de Seguimiento",
+        help_text="Plan de seguimiento y controles post-alta"
+    )
+    
     class Meta:
         verbose_name = "Sesión Kinésica"
         verbose_name_plural = "Sesiones Kinésicas"

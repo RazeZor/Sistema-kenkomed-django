@@ -13,6 +13,9 @@ urlpatterns = [
     # Crear sesión de seguimiento
     path('crear-seguimiento/', views.crear_sesion_seguimiento, name='crear_seguimiento'),
     
+    # Crear sesión final (cierre de tratamiento)
+    path('crear-final/', views.crear_sesion_final, name='crear_final'),
+    
     # Ver una sesión específica
     path('ver/', views.ver_sesion_kinesica, name='ver'),
     

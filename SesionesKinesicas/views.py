@@ -417,6 +417,15 @@ def editar_sesion_kinesica(request):
                 }
                 sesion.evaluacion_inicial = evaluacion_datos
             
+            # Si es sesión final, guardar sus campos específicos
+            if sesion.es_sesion_final:
+                sesion.diagnostico_final = request.POST.get('diagnostico_final', '') or sesion.diagnostico_final
+                sesion.resumen_tratamiento = request.POST.get('resumen_tratamiento', '') or sesion.resumen_tratamiento
+                sesion.logros_obtenidos = request.POST.get('logros_obtenidos', '') or sesion.logros_obtenidos
+                sesion.estado_al_alta = request.POST.get('estado_al_alta', '') or sesion.estado_al_alta
+                sesion.recomendaciones_alta = request.POST.get('recomendaciones_alta', '') or sesion.recomendaciones_alta
+                sesion.plan_seguimiento = request.POST.get('plan_seguimiento', '') or sesion.plan_seguimiento
+            
             sesion.save()
             messages.success(request, 'Sesión actualizada exitosamente.')
             from django.urls import reverse
@@ -434,6 +443,103 @@ def editar_sesion_kinesica(request):
     }
     
     return render(request, 'SesionesKinesicas/editar_sesion.html', context)
+
+
+@requiere_clinico
+def crear_sesion_final(request):
+    """
+    Crea una sesión final/de cierre del tratamiento.
+    Incluye diagnóstico kinésico, resumen, logros, estado al alta y recomendaciones.
+    NO bloquea la creación de sesiones futuras.
+    """
+    if 'nombre_clinico' not in request.session:
+        return redirect('login')
+    
+    rut_paciente = request.GET.get('rut') or request.POST.get('rut')
+    nombre_clinico = request.session['nombre_clinico']
+    rut_clinico = request.session.get('rut_clinico')
+    es_admin = request.session.get('es_admin', False)
+    
+    # Obtener el clínico
+    clinico_obj = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else None
+    
+    # Obtener el paciente
+    try:
+        if es_admin:
+            paciente = Paciente.objects.get(rut=rut_paciente)
+        else:
+            if not clinico_obj:
+                messages.error(request, 'Error: Clínico no encontrado en sesión.')
+                return redirect('historialClinico')
+            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+    except Paciente.DoesNotExist:
+        messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
+        return redirect('sesiones_kinesicas:listar')
+    
+    # Verificar que exista al menos una sesión previa
+    if not SesionKinesica.objects.filter(paciente=paciente).exists():
+        messages.error(request, 'Debe existir al menos una sesión antes de crear la sesión final.')
+        return redirect('sesiones_kinesicas:listar')
+    
+    if request.method == 'POST':
+        try:
+            # Obtener el siguiente número de sesión
+            ultima_sesion = SesionKinesica.objects.filter(
+                paciente=paciente
+            ).order_by('-numero_sesion').first()
+            nuevo_numero = (ultima_sesion.numero_sesion if ultima_sesion else 0) + 1
+            
+            notas = request.POST.get('notas_clinicas', '')
+            evolucion = request.POST.get('evolucion', '')
+            diagnostico_final = request.POST.get('diagnostico_final', '')
+            resumen_tratamiento = request.POST.get('resumen_tratamiento', '')
+            logros_obtenidos = request.POST.get('logros_obtenidos', '')
+            estado_al_alta = request.POST.get('estado_al_alta', '')
+            recomendaciones_alta = request.POST.get('recomendaciones_alta', '')
+            plan_seguimiento = request.POST.get('plan_seguimiento', '')
+            
+            # Crear la sesión final
+            sesion = SesionKinesica.objects.create(
+                paciente=paciente,
+                clinico=clinico_obj if not es_admin else Clinico.objects.first(),
+                numero_sesion=nuevo_numero,
+                es_primera_sesion=False,
+                es_sesion_final=True,
+                notas_clinicas=notas,
+                evolucion=evolucion,
+                diagnostico_final=diagnostico_final,
+                resumen_tratamiento=resumen_tratamiento,
+                logros_obtenidos=logros_obtenidos,
+                estado_al_alta=estado_al_alta,
+                recomendaciones_alta=recomendaciones_alta,
+                plan_seguimiento=plan_seguimiento,
+            )
+            
+            messages.success(request, f'Sesión final #{nuevo_numero} creada exitosamente.')
+            from django.urls import reverse
+            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={nuevo_numero}")
+            
+        except Exception as e:
+            messages.error(request, f'Error al crear la sesión final: {str(e)}')
+    
+    # Obtener info para el contexto
+    ultima_sesion = SesionKinesica.objects.filter(
+        paciente=paciente
+    ).order_by('-numero_sesion').first()
+    
+    total_sesiones = SesionKinesica.objects.filter(paciente=paciente).count()
+    
+    context = {
+        'nombre_clinico': nombre_clinico,
+        'paciente': paciente,
+        'rut': rut_paciente,
+        'ultima_sesion': ultima_sesion,
+        'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 1,
+        'total_sesiones': total_sesiones,
+        'estado_choices': SesionKinesica.ESTADO_ALTA_CHOICES,
+    }
+    
+    return render(request, 'SesionesKinesicas/crear_sesion_final.html', context)
 
 
 @csrf_exempt
@@ -458,7 +564,8 @@ def api_sesiones_paciente(request):
                 'numero_sesion': s.numero_sesion,
                 'fecha': s.fecha_creacion.strftime('%d/%m/%Y %H:%M'),
                 'es_primera': s.es_primera_sesion,
-                'tipo': 'Evaluación Inicial' if s.es_primera_sesion else f'Sesión #{s.numero_sesion}',
+                'es_final': s.es_sesion_final,
+                'tipo': 'Evaluación Inicial' if s.es_primera_sesion else ('Sesión Final' if s.es_sesion_final else f'Sesión #{s.numero_sesion}'),
             }
             for s in sesiones
         ]
