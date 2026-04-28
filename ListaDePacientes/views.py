@@ -72,7 +72,10 @@ def AgregarPacienteBasico(request):
         apellido = request.POST.get('apellido')
         fechaNacimiento_raw = request.POST.get('fechaNacimiento')
         genero = request.POST.get('genero')
-        contacto = request.POST.get('contacto', '').replace(' ', '').replace('(', '').replace(')', '').replace('-', '')
+        contacto = request.POST.get('contacto', '').replace(' ', '').replace('(', '').replace(')', '').replace('-', '').replace('+', '')
+        # Agregar prefijo chileno si solo son los 8 dígitos del celular
+        if contacto and len(contacto) <= 8 and not contacto.startswith('56'):
+            contacto = '569' + contacto
         correo = request.POST.get('correo')
         cobertura_de_salud = request.POST.get('cobertura_de_salud')
         trabajo = request.POST.get('trabajo', '')

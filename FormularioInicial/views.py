@@ -325,7 +325,9 @@ def FormularioInicial(request):
                 genero = request.POST.get('genero')
                 contacto = request.POST.get('contact')
                 correo = request.POST.get('correo')
-                contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '') if contacto else ''
+                contacto = contacto.replace(' ', '').replace('(', '').replace(')', '').replace('-', '').replace('+', '') if contacto else ''
+                if contacto and len(contacto) <= 8 and not contacto.startswith('56'):
+                    contacto = '569' + contacto
                 trabajo = request.POST.get('trabajo')
                 profesion = request.POST.get('profesion')
                 cobertura_de_salud = request.POST.get('cobertura')
@@ -501,9 +503,21 @@ def descargar_qr(request, token_id):
         buffer.seek(0)
         qr_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
         
+        # Formatear número de teléfono con código país Chile (+56)
+        telefono = token.paciente.contacto or ''
+        telefono = telefono.replace(' ', '').replace('(', '').replace(')', '').replace('-', '').replace('+', '')
+        # Si empieza con 56, ya tiene código país
+        if not telefono.startswith('56'):
+            # Si empieza con 9 (celular chileno), agregar 56
+            if telefono.startswith('9') and len(telefono) == 9:
+                telefono = '56' + telefono
+            else:
+                telefono = '56' + telefono
+        
         # Mensaje WhatsApp pre-armado
+        from urllib.parse import quote
         whatsapp_msg = f"Hola {token.paciente.nombre}, te envío el formulario médico de KenkoMed para que completes tu historial antes de tu cita. Ingresa aquí: {formulario_url}"
-        whatsapp_url = f"https://wa.me/{token.paciente.contacto}?text={whatsapp_msg.replace(' ', '%20').replace(':', '%3A').replace('/', '%2F')}"
+        whatsapp_url = f"https://wa.me/{telefono}?text={quote(whatsapp_msg)}"
         
         return render(request, 'mostrar_qr_link.html', {
             'token': token,
