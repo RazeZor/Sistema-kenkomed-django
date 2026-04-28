@@ -22,6 +22,7 @@ from CrudClinico import views as vistaClinico # Importa las vistas de la aplicac
 from FormularioInicial import views as vistaClinicos
 from informe import views as vistaInforme
 from ListaDePacientes import views as lista
+from ListaDePacientes.views import EditarPaciente
 from TiposDeFormularios import views as tiposFormularios
 from PerfilClinico import views as perfil
 from menu import views as m
@@ -48,6 +49,7 @@ urlpatterns = [
     path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
     path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
     path('panel/AgregarPaciente',lista.AgregarPacienteBasico,name='AgregarPacienteBasico'),
+    path('panel/EditarPaciente', EditarPaciente, name='editar_paciente'),
     
     # Incluir las URLs de PanelDeControl
     path('', include('PanelDeControl.urls')),

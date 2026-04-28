@@ -336,12 +336,27 @@
     </div>
 </div>
 
-<!-- BOTONES IMPRESIÓN -->
-<div class="no-print" style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid #e5e7eb">
-    <button onclick="window.print()" style="background:#115b9c;color:#fff;border:none;padding:10px 24px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit">
-        <i class='bx bx-printer'></i> Imprimir Ficha Clínica
-    </button>
+<!-- BOTONES IMPRESIÓN / PDF -->
+<div class="no-print" style="text-align:center;margin-top:24px;padding-top:20px;border-top:1px solid #e5e7eb">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center">
+        <button onclick="guardarPDF()" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;padding:11px 28px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(5,150,105,.25)">
+            <i class='bx bx-file-pdf' style="font-size:16px"></i> Guardar como PDF
+        </button>
+        <button onclick="window.print()" style="background:#115b9c;color:#fff;border:none;padding:11px 22px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:8px">
+            <i class='bx bx-printer'></i> Imprimir
+        </button>
+    </div>
+    <p id="pdf-hint" style="margin-top:10px;font-size:11px;color:#6b7280;display:none">
+        💡 En el diálogo de impresión, selecciona <strong>"Guardar como PDF"</strong> como destino y haz clic en <strong>Guardar</strong>.
+    </p>
 </div>
+
+<script>
+function guardarPDF() {
+    document.getElementById('pdf-hint').style.display = 'block';
+    setTimeout(() => window.print(), 300);
+}
+</script>
 
 </div><!-- /page -->
 </body>

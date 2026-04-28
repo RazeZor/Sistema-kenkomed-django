@@ -155,3 +155,49 @@ def AgregarPacienteBasico(request):
     return render(request, 'AgregarPaciente.html', {
         'nombre_clinico': nombre_clinico
     })
+
+
+def EditarPaciente(request):
+    """Permite al clínico editar los datos básicos de un paciente."""
+    if 'nombre_clinico' not in request.session:
+        return redirect('login')
+
+    rut = request.GET.get('rut') or request.POST.get('rut')
+    paciente = get_object_or_404(Paciente, rut=rut)
+
+    if request.method == 'POST':
+        # Actualizar campos editables (no el RUT, que es identificador único)
+        paciente.nombre = request.POST.get('nombre', paciente.nombre).strip()
+        paciente.apellido = request.POST.get('apellido', paciente.apellido).strip()
+        paciente.correo = request.POST.get('correo', paciente.correo).strip()
+        paciente.profesion = request.POST.get('profesion', paciente.profesion).strip()
+        paciente.cobertura_de_salud = request.POST.get('cobertura_de_salud', paciente.cobertura_de_salud)
+
+        # Teléfono con prefijo chileno
+        contacto_raw = request.POST.get('contacto', '').replace(' ', '').replace('+', '').replace('-', '')
+        if contacto_raw:
+            if len(contacto_raw) <= 9 and not contacto_raw.startswith('56'):
+                contacto_raw = '56' + contacto_raw
+            paciente.contacto = contacto_raw
+
+        # Género
+        genero = request.POST.get('genero')
+        if genero:
+            paciente.genero = genero
+
+        # Fecha nacimiento
+        fecha_raw = request.POST.get('fechaNacimiento')
+        if fecha_raw:
+            from FormularioInicial.views import parsear_fecha_campo
+            fecha = parsear_fecha_campo(fecha_raw, 'fecha de nacimiento', request)
+            if fecha:
+                paciente.fechaNacimiento = fecha
+
+        paciente.save()
+        messages.success(request, f'Datos de {paciente.nombre} {paciente.apellido} actualizados correctamente.')
+        return redirect(f'/panel/historialClinico/?rut={rut}')
+
+    return render(request, 'EditarPaciente.html', {
+        'paciente': paciente,
+        'nombre_clinico': request.session.get('nombre_clinico'),
+    })
