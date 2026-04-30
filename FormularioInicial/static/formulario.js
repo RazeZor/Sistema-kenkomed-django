@@ -383,29 +383,63 @@ function toggleCalidadAtencion() {
 function inicializarNavegacionSecciones() {
   const navButtons = document.querySelectorAll(".nav-section-btn")
   const sections = document.querySelectorAll(".form-section")
+  const totalSteps = navButtons.length
+  const progressFill = document.getElementById("wizardProgressFill")
+  const progressText = document.getElementById("wizardProgressText")
+  const stepIndicator = document.getElementById("stepIndicator")
+  const btnAnterior = document.getElementById("btnAnterior")
+  const btnSiguiente = document.getElementById("btnSiguiente")
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn")
+  const sidebarOverlay = document.getElementById("sidebarOverlay")
+  const sidebar = document.querySelector(".sidebar-nav")
 
-  navButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      const sectionId = this.getAttribute("data-section")
+  function getCurrentIndex() {
+    let idx = 0
+    navButtons.forEach((btn, i) => { if (btn.classList.contains("active")) idx = i })
+    return idx
+  }
 
-      navButtons.forEach((btn) => btn.classList.remove("active"))
-      this.classList.add("active")
-
-      sections.forEach((section) => section.classList.remove("active"))
-
-      const targetSection = document.getElementById(sectionId)
-      if (targetSection) {
-        targetSection.classList.add("active")
-
-        window.scrollTo({
-          top: 0,
-          behavior: "smooth",
-        })
+  function goToSection(index) {
+    if (index < 0 || index >= totalSteps) return
+    const targetBtn = navButtons[index]
+    if (targetBtn.disabled) return
+    navButtons.forEach(btn => btn.classList.remove("active"))
+    targetBtn.classList.add("active")
+    targetBtn.classList.add("visited")
+    sections.forEach(s => s.classList.remove("active"))
+    const sectionId = targetBtn.getAttribute("data-section")
+    const targetSection = document.getElementById(sectionId)
+    if (targetSection) targetSection.classList.add("active")
+    const pct = Math.round(((index + 1) / totalSteps) * 100)
+    if (progressFill) progressFill.style.width = pct + "%"
+    const label = "Paso " + (index + 1) + " de " + totalSteps
+    if (progressText) progressText.textContent = label
+    if (stepIndicator) stepIndicator.textContent = label
+    if (btnAnterior) btnAnterior.style.visibility = index === 0 ? "hidden" : "visible"
+    if (btnSiguiente) {
+      if (index === totalSteps - 1) {
+        btnSiguiente.innerHTML = '<i class="fas fa-save me-1"></i> Guardar'
+        btnSiguiente.onclick = function() { document.getElementById("Step").requestSubmit() }
+      } else {
+        btnSiguiente.innerHTML = 'Siguiente <i class="fas fa-arrow-right me-1"></i>'
+        btnSiguiente.onclick = null
       }
+    }
+    if (sidebar) sidebar.classList.remove("open")
+    if (sidebarOverlay) sidebarOverlay.classList.remove("active")
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
-      this.classList.add("visited")
-    })
+  navButtons.forEach((button, i) => {
+    button.addEventListener("click", function() { goToSection(i) })
   })
+  if (btnAnterior) btnAnterior.addEventListener("click", function() { goToSection(getCurrentIndex() - 1) })
+  if (btnSiguiente) btnSiguiente.addEventListener("click", function() { if (getCurrentIndex() < totalSteps - 1) goToSection(getCurrentIndex() + 1) })
+  if (mobileMenuBtn && sidebar && sidebarOverlay) {
+    mobileMenuBtn.addEventListener("click", function() { sidebar.classList.toggle("open"); sidebarOverlay.classList.toggle("active") })
+    sidebarOverlay.addEventListener("click", function() { sidebar.classList.remove("open"); sidebarOverlay.classList.remove("active") })
+  }
+  goToSection(0)
 }
 
 /**

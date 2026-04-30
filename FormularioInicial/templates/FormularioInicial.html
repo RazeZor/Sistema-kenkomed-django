@@ -5,15 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario de Dolor</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'styles.css' %}" />
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
-
-    <!-- JavaScript global del proyecto -->
     <link rel="stylesheet" href="{% static 'CSS/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'formulario.js' %}"></script>
 
 </head>
@@ -34,6 +31,18 @@
             {% endif %}
         </div>
     </nav>
+
+    <!-- Progress Bar -->
+    <div class="wizard-progress-bar"><div class="wizard-progress-fill" id="wizardProgressFill"></div></div>
+    <span class="wizard-progress-text" id="wizardProgressText">Paso 1 de 15</span>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="Abrir menú de secciones">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
     <main class="main-container">
         <!-- Sidebar de navegación -->
@@ -447,85 +456,77 @@
                     <div class="section-content">
                         <div class="Pagina3">  
                             <h4><strong>Lea detenidamente y selecciona las condiciones de salud que presente</strong></h4>
-                            <table id="tablaPagina3">
-                                <tr>
-                                    <th>Musculoesqueléticos</th>
-                                    <th>Neurológicos</th>
-                                    <th>Endocrinos</th>
-                                    <th>Cardiopulmonar</th>
-                                    <th>Otros</th>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Artrosis" name="TiposDeEnfermedades" />Artrosis</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Cefaleas" name="TiposDeEnfermedades" />Cefaleas</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="diabetes" name="TiposDeEnfermedades" />Diabetes</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="arritmia"  name="TiposDeEnfermedades"/>Arritmia</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Ansiedad" name="TiposDeEnfermedades"/>Ansiedad</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Artritis reumatoide"name="TiposDeEnfermedades" />Artritis reumatoide</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Accidente Vascular" name="TiposDeEnfermedades"/>Accidente Vascular</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Problemas renales" name="TiposDeEnfermedades"/>Problemas renales</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Colesterol Alto" name="TiposDeEnfermedades"/>Colesterol Alto</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Depresion"name="TiposDeEnfermedades" />Depresión</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Fibromialgia" name="TiposDeEnfermedades"/>Fibromialgia</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Hormigueos o adormecimiento" name="TiposDeEnfermedades"/>Hormigueos o adormecimiento</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Problemas de vejiga" name="TiposDeEnfermedades"/>Problemas de vejiga</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Marcapasos" name="TiposDeEnfermedades"/>Marcapasos</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Cáncer" name="TiposDeEnfermedades"/>Cáncer</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Osteoporosis" name="TiposDeEnfermedades"/>Osteoporosis</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Parkinson" name="TiposDeEnfermedades"/>Párkinson</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Problemas de hígado" name="TiposDeEnfermedades"/>Problemas de hígado</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Anemia" name="TiposDeEnfermedades"/>Anemia</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Cirugias previas" name="TiposDeEnfermedades"/>Cirugías previas</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Historia de caídas" name="TiposDeEnfermedades"/>Historia de caídas</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Epilepsia" name="TiposDeEnfermedades"/>Epilepsia</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Alteracion de tiroides" name="TiposDeEnfermedades"/>Alteración de tiroides</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Hipertension" name="TiposDeEnfermedades"/>Hipertensión</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Sindrome de fatiga cronica" name="TiposDeEnfermedades"/>Síndrome de fatiga crónica</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Dolor mandibular" name="TiposDeEnfermedades"/>Dolor mandibular</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Esclerosis múltiple" name="TiposDeEnfermedades"/>Esclerosis múltiple</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Resistencia a la insulina" name="TiposDeEnfermedades"/>Resistencia a la insulina</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Asma" name="TiposDeEnfermedades"/>Asma</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Alergias" name="TiposDeEnfermedades"/>Alergias</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Hernia discal o discopatias" name="TiposDeEnfermedades"/>Hernia discal o discopatías</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Sindrome de piernas inquietas" name="TiposDeEnfermedades"/>Síndrome de piernas inquietas</label></td>
-                                    <td></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="VIH" name="TiposDeEnfermedades"/>VIH</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Obesidad" name="TiposDeEnfermedades"/>Obesidad</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Fracturas"name="TiposDeEnfermedades" />Fracturas</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Sindrome de fatiga cronica"name="TiposDeEnfermedades" />Sindrome de fatiga crónica</label></td>
-                                    <td></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Falta de air" name="TiposDeEnfermedades"/>Falta de aire</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Trombosis" name="TiposDeEnfermedades"/>Trombosis</label></td>
-                                </tr>
-                                <tr>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Hiperlaxo"name="TiposDeEnfermedades" />Hiperlaxo</label></td>
-                                    <td></td> 
-                                    <td></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Colon irritable"name="TiposDeEnfermedades" />Colon irritable</label></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Secuela de COVID"name="TiposDeEnfermedades" />Secuela de COVID</label></td>
-                                </tr>
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td><label class="label-table"><input class="custom-checkbox" type="checkbox" value="Secuela de COVID"name="TiposDeEnfermedades" />Dermatitis nerviosas o atópicas </label></td>
-                                </tr>
-                            </table>
+
+                            <div class="chip-category">
+                                <span class="chip-category-title"><i class="fas fa-bone me-1"></i> Musculoesqueléticos</span>
+                                <div class="chip-group">
+                                    <label class="chip-label"><input type="checkbox" value="Artrosis" name="TiposDeEnfermedades"/>Artrosis</label>
+                                    <label class="chip-label"><input type="checkbox" value="Artritis reumatoide" name="TiposDeEnfermedades"/>Artritis reumatoide</label>
+                                    <label class="chip-label"><input type="checkbox" value="Fibromialgia" name="TiposDeEnfermedades"/>Fibromialgia</label>
+                                    <label class="chip-label"><input type="checkbox" value="Osteoporosis" name="TiposDeEnfermedades"/>Osteoporosis</label>
+                                    <label class="chip-label"><input type="checkbox" value="Historia de caídas" name="TiposDeEnfermedades"/>Historia de caídas</label>
+                                    <label class="chip-label"><input type="checkbox" value="Dolor mandibular" name="TiposDeEnfermedades"/>Dolor mandibular</label>
+                                    <label class="chip-label"><input type="checkbox" value="Hernia discal o discopatias" name="TiposDeEnfermedades"/>Hernia discal o discopatías</label>
+                                    <label class="chip-label"><input type="checkbox" value="Fracturas" name="TiposDeEnfermedades"/>Fracturas</label>
+                                    <label class="chip-label"><input type="checkbox" value="Hiperlaxo" name="TiposDeEnfermedades"/>Hiperlaxo</label>
+                                </div>
+                            </div>
+
+                            <div class="chip-category">
+                                <span class="chip-category-title"><i class="fas fa-brain me-1"></i> Neurológicos</span>
+                                <div class="chip-group">
+                                    <label class="chip-label"><input type="checkbox" value="Cefaleas" name="TiposDeEnfermedades"/>Cefaleas</label>
+                                    <label class="chip-label"><input type="checkbox" value="Accidente Vascular" name="TiposDeEnfermedades"/>Accidente Vascular</label>
+                                    <label class="chip-label"><input type="checkbox" value="Hormigueos o adormecimiento" name="TiposDeEnfermedades"/>Hormigueos o adormecimiento</label>
+                                    <label class="chip-label"><input type="checkbox" value="Parkinson" name="TiposDeEnfermedades"/>Párkinson</label>
+                                    <label class="chip-label"><input type="checkbox" value="Epilepsia" name="TiposDeEnfermedades"/>Epilepsia</label>
+                                    <label class="chip-label"><input type="checkbox" value="Esclerosis múltiple" name="TiposDeEnfermedades"/>Esclerosis múltiple</label>
+                                    <label class="chip-label"><input type="checkbox" value="Sindrome de piernas inquietas" name="TiposDeEnfermedades"/>Síndrome de piernas inquietas</label>
+                                    <label class="chip-label"><input type="checkbox" value="Sindrome de fatiga cronica" name="TiposDeEnfermedades"/>Síndrome de fatiga crónica</label>
+                                </div>
+                            </div>
+
+                            <div class="chip-category">
+                                <span class="chip-category-title"><i class="fas fa-flask me-1"></i> Endocrinos</span>
+                                <div class="chip-group">
+                                    <label class="chip-label"><input type="checkbox" value="diabetes" name="TiposDeEnfermedades"/>Diabetes</label>
+                                    <label class="chip-label"><input type="checkbox" value="Problemas renales" name="TiposDeEnfermedades"/>Problemas renales</label>
+                                    <label class="chip-label"><input type="checkbox" value="Problemas de vejiga" name="TiposDeEnfermedades"/>Problemas de vejiga</label>
+                                    <label class="chip-label"><input type="checkbox" value="Problemas de hígado" name="TiposDeEnfermedades"/>Problemas de hígado</label>
+                                    <label class="chip-label"><input type="checkbox" value="Alteracion de tiroides" name="TiposDeEnfermedades"/>Alteración de tiroides</label>
+                                    <label class="chip-label"><input type="checkbox" value="Resistencia a la insulina" name="TiposDeEnfermedades"/>Resistencia a la insulina</label>
+                                </div>
+                            </div>
+
+                            <div class="chip-category">
+                                <span class="chip-category-title"><i class="fas fa-heartbeat me-1"></i> Cardiopulmonar</span>
+                                <div class="chip-group">
+                                    <label class="chip-label"><input type="checkbox" value="arritmia" name="TiposDeEnfermedades"/>Arritmia</label>
+                                    <label class="chip-label"><input type="checkbox" value="Colesterol Alto" name="TiposDeEnfermedades"/>Colesterol Alto</label>
+                                    <label class="chip-label"><input type="checkbox" value="Marcapasos" name="TiposDeEnfermedades"/>Marcapasos</label>
+                                    <label class="chip-label"><input type="checkbox" value="Anemia" name="TiposDeEnfermedades"/>Anemia</label>
+                                    <label class="chip-label"><input type="checkbox" value="Hipertension" name="TiposDeEnfermedades"/>Hipertensión</label>
+                                    <label class="chip-label"><input type="checkbox" value="Asma" name="TiposDeEnfermedades"/>Asma</label>
+                                    <label class="chip-label"><input type="checkbox" value="VIH" name="TiposDeEnfermedades"/>VIH</label>
+                                    <label class="chip-label"><input type="checkbox" value="Falta de air" name="TiposDeEnfermedades"/>Falta de aire</label>
+                                    <label class="chip-label"><input type="checkbox" value="Colon irritable" name="TiposDeEnfermedades"/>Colon irritable</label>
+                                </div>
+                            </div>
+
+                            <div class="chip-category">
+                                <span class="chip-category-title"><i class="fas fa-notes-medical me-1"></i> Otros</span>
+                                <div class="chip-group">
+                                    <label class="chip-label"><input type="checkbox" value="Ansiedad" name="TiposDeEnfermedades"/>Ansiedad</label>
+                                    <label class="chip-label"><input type="checkbox" value="Depresion" name="TiposDeEnfermedades"/>Depresión</label>
+                                    <label class="chip-label"><input type="checkbox" value="Cáncer" name="TiposDeEnfermedades"/>Cáncer</label>
+                                    <label class="chip-label"><input type="checkbox" value="Cirugias previas" name="TiposDeEnfermedades"/>Cirugías previas</label>
+                                    <label class="chip-label"><input type="checkbox" value="Alergias" name="TiposDeEnfermedades"/>Alergias</label>
+                                    <label class="chip-label"><input type="checkbox" value="Obesidad" name="TiposDeEnfermedades"/>Obesidad</label>
+                                    <label class="chip-label"><input type="checkbox" value="Trombosis" name="TiposDeEnfermedades"/>Trombosis</label>
+                                    <label class="chip-label"><input type="checkbox" value="Secuela de COVID" name="TiposDeEnfermedades"/>Secuela de COVID</label>
+                                    <label class="chip-label"><input type="checkbox" value="Dermatitis nerviosas o atopicas" name="TiposDeEnfermedades"/>Dermatitis nerviosas o atópicas</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1362,10 +1363,19 @@
                 </section>
             </form>
         </div>
+
+        <!-- Wizard Bottom Navigation -->
+        <div class="wizard-bottom-nav" id="wizardBottomNav">
+            <button type="button" class="btn btn-outline-primary" id="btnAnterior" style="visibility:hidden">
+                <i class="fas fa-arrow-left me-1"></i> Anterior
+            </button>
+            <span class="step-indicator" id="stepIndicator">Paso 1 de 15</span>
+            <button type="button" class="btn btn-primary" id="btnSiguiente">
+                Siguiente <i class="fas fa-arrow-right me-1"></i>
+            </button>
+        </div>
     </main>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"></script>
+
 
 </body>
 </html>

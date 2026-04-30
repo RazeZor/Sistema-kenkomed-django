@@ -1,212 +1,630 @@
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KenkoMed | Iniciar Sesión</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>KenkoMed · Acceso Clínico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        medical: {
-                            blue: '#0284c7',
-                            'blue-light': '#38bdf8',
-                            'blue-dark': '#0369a1',
-                            green: '#10b981',
-                            red: '#ef4444',
-                            orange: '#f59e0b',
-                            teal: '#14b8a6'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- JavaScript global del proyecto -->
     <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
     <script src="{% static 'js/utils.js' %}"></script>
+
     <style>
-        .bg-blur {
+        /* ══════════════════════════════════════
+           TOKENS
+        ══════════════════════════════════════ */
+        :root {
+            /* ── Paleta Oficial KenkoMed ── */
+            --kenko-blue:    #115b9c;   /* color-primary de global.css */
+            --kenko-blue-50: #115b9c76; /* color-primary-50 */
+            --kenko-dark:    #0d4175;   /* azul más profundo (hover, paneles) */
+            --kenko-darker:  #092d52;   /* fondo oscuro del panel izquierdo */
+            --kenko-mid:     #1a6db5;   /* azul medio (accentos) */
+            --kenko-light:   #3b8fd6;   /* azul claro (glows, blobs) */
+            --kenko-teal:    #0e7ea8;   /* cian médico como acento secundario */
+            --kenko-teal-lt: #19a8d6;   /* cian claro */
+
+            /* Alias internos */
+            --navy:      var(--kenko-darker);
+            --navy-md:   var(--kenko-dark);
+            --blue:      var(--kenko-blue);
+            --teal:      var(--kenko-teal);
+            --teal-lt:   var(--kenko-teal-lt);
+            --ink:       #0f172a;
+            --ink2:      #374151;
+            --ink3:      #6b7280;
+            --line:      #dde4ed;
+            --bg-form:   #f4f7fb;
+            --white:     #ffffff;
+            --red:       #dc2626;
+            --red-lt:    #fef2f2;
+
+            --ff-display: 'Plus Jakarta Sans', sans-serif;
+            --ff-body:    'Inter', sans-serif;
+
+            --ease-out: cubic-bezier(.16,1,.3,1);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            font-family: var(--ff-body);
+            font-size: 14px;
+            line-height: 1.6;
+            color: var(--ink);
+            background: var(--navy);
+        }
+
+        /* ══════════════════════════════════════
+           SPLIT LAYOUT
+        ══════════════════════════════════════ */
+        .split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+        }
+
+        /* ── LEFT PANEL ── */
+        .left {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 52px 56px;
+        }
+
+        /* Abstract medical background */
+        .left-bg {
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 20% 80%, rgba(14,126,168,.30) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 80% at 80% 20%, rgba(17,91,156,.45) 0%, transparent 55%),
+                radial-gradient(ellipse 100% 100% at 50% 50%, rgba(9,45,82,.95) 0%, var(--navy) 100%);
+            z-index: 0;
+        }
+
+        /* Decorative grid lines */
+        .left-grid {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+            background-size: 48px 48px;
+            z-index: 1;
+        }
+
+        /* Floating blobs */
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            animation: drift 14s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+        .blob-1 { width: 320px; height: 320px; background: rgba(17,91,156,.28); top: -80px; right: -60px; animation-delay: 0s; }
+        .blob-2 { width: 240px; height: 240px; background: rgba(14,126,168,.22); bottom: 60px; left: -40px; animation-delay: -5s; }
+        .blob-3 { width: 160px; height: 160px; background: rgba(25,168,214,.18); top: 40%; left: 30%; animation-delay: -9s; }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(20px, 30px) scale(1.08); }
+        }
+
+        /* Decorative circles */
+        .deco-ring {
+            position: absolute;
+            border: 1px solid rgba(255,255,255,.06);
+            border-radius: 50%;
+            z-index: 1;
+        }
+        .ring-1 { width: 480px; height: 480px; top: -160px; right: -160px; }
+        .ring-2 { width: 280px; height: 280px; bottom: 40px; left: 40px; }
+        .ring-3 { width: 140px; height: 140px; top: 50%; left: 15%; }
+
+        .left-content { position: relative; z-index: 2; }
+
+        /* Brand mark */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .brand-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--teal), var(--teal-lt));
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            color: white;
+            box-shadow: 0 4px 20px rgba(13,143,124,.4);
+        }
+        .brand-name {
+            font-family: var(--ff-display);
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: -.3px;
+        }
+        .brand-name span { color: var(--teal-lt); }
+
+        /* Hero text */
+        .hero { padding: 0 0 0 2px; }
+        .hero-eyebrow {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--teal-lt);
+            margin-bottom: 20px;
+            opacity: .8;
+        }
+        .hero-title {
+            font-family: var(--ff-display);
+            font-size: 42px;
+            font-weight: 300;
+            color: white;
+            line-height: 1.15;
+            letter-spacing: -.5px;
+            margin-bottom: 20px;
+        }
+        .hero-title em {
+            font-style: italic;
+            color: var(--teal-lt);
+        }
+        .hero-sub {
+            font-size: 14px;
+            color: rgba(255,255,255,.5);
+            line-height: 1.7;
+            max-width: 300px;
+            font-weight: 300;
+        }
+
+        /* Stats row */
+        .stats {
+            display: flex;
+            gap: 32px;
+            position: relative;
+            z-index: 2;
+        }
+        .stat-item {}
+        .stat-num {
+            font-family: var(--ff-display);
+            font-size: 26px;
+            font-weight: 600;
+            color: white;
+            line-height: 1;
+            margin-bottom: 4px;
+        }
+        .stat-num span { color: var(--teal-lt); }
+        .stat-label { font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .5px; }
+
+        /* ── RIGHT PANEL ── */
+        .right {
+            background: var(--bg-form);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px 40px;
             position: relative;
         }
-        .bg-blur::before {
+
+        /* Subtle texture on right */
+        .right::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-image: url('{% static "image/LoginKenKommed2.png" %}');
-            background-size: cover;
-            background-position: center;
-            filter: blur(8px);
-            z-index: -2;
-            transform: scale(1.05); /* Evita bordes blancos por el blur */
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(0,0,0,.035) 1px, transparent 1px);
+            background-size: 24px 24px;
+            pointer-events: none;
         }
-        
-        .bg-blur::after {
+
+        .form-box {
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+            animation: slideUp .6s var(--ease-out) both;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form header */
+        .form-header { margin-bottom: 36px; }
+        .form-header .pre {
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .form-header .pre::before {
+            content: '';
+            display: block;
+            width: 20px; height: 2px;
+            background: var(--teal);
+            border-radius: 2px;
+        }
+        .form-header h2 {
+            font-family: var(--ff-display);
+            font-size: 30px;
+            font-weight: 400;
+            color: var(--ink);
+            letter-spacing: -.5px;
+            line-height: 1.2;
+            margin-bottom: 8px;
+        }
+        .form-header p {
+            font-size: 13px;
+            color: var(--ink3);
+            font-weight: 300;
+        }
+
+        /* Logo */
+        .form-logo {
+            width: 52px; height: 52px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        /* Error alert */
+        .alert-error {
+            background: var(--red-lt);
+            border: 1px solid #fecaca;
+            border-left: 3px solid var(--red);
+            border-radius: 8px;
+            padding: 11px 14px;
+            margin-bottom: 20px;
+            display: flex; align-items: flex-start; gap: 10px;
+        }
+        .alert-error i { color: var(--red); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+        .alert-error p { font-size: 12.5px; color: #991b1b; font-weight: 500; }
+
+        /* Field */
+        .field { margin-bottom: 18px; }
+        .field-label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--ink2);
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            margin-bottom: 7px;
+        }
+        .input-wrap {
+            position: relative;
+        }
+        .input-icon {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 17px;
+            pointer-events: none;
+            transition: color .2s;
+        }
+        .field-input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            background: var(--white);
+            border: 1.5px solid var(--line);
+            border-radius: 10px;
+            font-size: 13.5px;
+            color: var(--ink);
+            font-family: var(--ff-body);
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .field-input::placeholder { color: #c4cdd8; }
+        .field-input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 4px rgba(26,86,160,.08);
+        }
+        .field-input:focus ~ .input-icon,
+        .input-wrap:focus-within .input-icon { color: var(--blue); }
+
+        /* Password toggle */
+        .pwd-toggle {
+            position: absolute;
+            right: 13px; top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            font-size: 17px;
+            padding: 2px;
+            transition: color .2s;
+            display: flex; align-items: center;
+        }
+        .pwd-toggle:hover { color: var(--blue); }
+
+        /* Remember / forgot row */
+        .row-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .check-label {
+            display: flex; align-items: center; gap: 7px;
+            font-size: 12.5px; color: var(--ink3);
+            cursor: pointer; user-select: none;
+        }
+        .check-label input[type="checkbox"] {
+            width: 15px; height: 15px;
+            accent-color: var(--blue);
+            cursor: pointer;
+        }
+        .forgot {
+            font-size: 12.5px;
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color .2s;
+        }
+        .forgot:hover { color: var(--teal); }
+
+        /* Submit */
+        .btn-submit {
+            width: 100%;
+            padding: 14px 24px;
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-family: var(--ff-body);
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: .3px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            box-shadow: 0 4px 20px rgba(11,37,69,.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-submit::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(2, 132, 199, 0.85), rgba(3, 105, 161, 0.90));
-            z-index: -1;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(13,143,124,.25) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity .3s;
+        }
+        .btn-submit:hover {
+            background: var(--navy-md);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(11,37,69,.35);
+        }
+        .btn-submit:hover::after { opacity: 1; }
+        .btn-submit:active { transform: translateY(0); }
+        .btn-submit i { font-size: 18px; }
+
+        /* Divider */
+        .divider {
+            display: flex; align-items: center; gap: 12px;
+            margin: 20px 0 16px;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1;
+            height: 1px; background: var(--line);
+        }
+        .divider span { font-size: 10px; color: #c4cdd8; letter-spacing: 1px; text-transform: uppercase; }
+
+        /* Security badge */
+        .security-badge {
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            font-size: 11px; color: var(--ink3);
+            padding: 8px 0;
+        }
+        .security-badge i { font-size: 13px; color: var(--teal); }
+
+        /* Form footer */
+        .form-footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid var(--line);
+            text-align: center;
+            font-size: 11px;
+            color: #c4cdd8;
+            letter-spacing: .2px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .split { grid-template-columns: 1fr; }
+            .left { display: none; }
+            .right { padding: 32px 24px; }
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen bg-blur font-sans">
-    
-    <div class="w-full max-w-[420px] mx-4 relative z-10">
-        
-        <!-- Contenedor Principal -->
-        <div class="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden border border-white/20">
-            <!-- Barra superior decorativa -->
-            <div class="h-2 w-full bg-gradient-to-r from-medical-blue-light via-medical-blue to-medical-blue-dark"></div>
-            
-            <div class="p-8 sm:p-10">
-                <!-- Logo y título -->
-                <div class="mb-10 text-center">
-                    <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="KenkoMed Logo" class="h-20 mx-auto mb-5 rounded-2xl shadow-sm border border-gray-100 object-cover bg-white">
-                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Acceso Clínico</h1>
-                    <p class="text-sm text-gray-500 mt-2 font-medium">Ingrese sus credenciales para continuar</p>
-                </div>
-                
-                <form class="space-y-6" id="loginForm" method="post" action="{% url 'login' %}">
-                    {% csrf_token %}
+<body>
 
-                    {% if messages %}
-                        <div class="mb-6 space-y-2">
-                            {% for message in messages %}
-                                <div class="px-4 py-3 rounded-lg bg-red-50 border border-red-100 flex items-start gap-3">
-                                    <i class='bx bx-error-circle text-red-500 text-lg mt-0.5'></i>
-                                    <p class="font-medium text-red-700 text-sm">{{ message }}</p>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    
-                    <div class="space-y-5">
-                        <!-- RUT -->
-                        <div>
-                            <label for="rut" class="block text-sm font-semibold text-gray-700 mb-2">RUT</label>
-                            <div class="relative flex items-center">
-                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                                    <i class='bx bx-id-card text-xl'></i>
-                                </div>
-                                <input 
-                                    type="text" 
-                                    class="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-all text-sm font-medium rut-input" 
-                                    maxlength="12" 
-                                    name="rut" 
-                                    id="rut" 
-                                    placeholder="12.345.678-9" 
-                                    pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" 
-                                    title="Formato: 12.345.678-9 o 12.345.678-K" 
-                                    required
-                                />
-                            </div>
-                        </div>
-                        
-                        <!-- Contraseña -->
-                        <div>
-                            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Contraseña</label>
-                            <div class="relative flex items-center">
-                                <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-gray-400">
-                                    <i class='bx bx-lock-alt text-xl'></i>
-                                </div>
-                                <input 
-                                    type="password" 
-                                    id="password" 
-                                    name="password" 
-                                    class="w-full pl-11 pr-12 py-3.5 bg-gray-50 border border-gray-200 text-gray-900 rounded-xl focus:outline-none focus:ring-2 focus:ring-medical-blue/20 focus:border-medical-blue focus:bg-white transition-all text-sm font-medium tracking-wider" 
-                                    placeholder="••••••••" 
-                                    required
-                                >
-                                <button 
-                                    type="button" 
-                                    id="togglePassword" 
-                                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-medical-blue focus:outline-none transition-colors" 
-                                    title="Mostrar/ocultar contraseña"
-                                >
-                                    <i id="eyeIcon" class='bx bx-show text-xl'></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-center justify-between pt-2">
-                        <div class="flex items-center gap-2">
-                            <input 
-                                type="checkbox" 
-                                id="remember" 
-                                name="recordar" 
-                                class="w-4 h-4 text-medical-blue border-gray-300 rounded focus:ring-medical-blue/50 focus:ring-2 cursor-pointer"
-                            >
-                            <label for="remember" class="text-sm font-medium text-gray-600 cursor-pointer select-none">Recordarme</label>
-                        </div>
-                        <a href="#" class="text-sm font-semibold text-medical-blue hover:text-medical-blue-dark transition-colors">¿Olvidó su contraseña?</a>
-                    </div>
-                    
-                    <button 
-                        type="submit" 
-                        class="w-full px-6 py-4 mt-8 font-bold text-white transition-all rounded-xl shadow-lg shadow-medical-blue/30 bg-medical-blue hover:bg-medical-blue-dark hover:shadow-xl hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-medical-blue/30 active:translate-y-0 flex items-center justify-center gap-2"
-                    >
-                        <span>Ingresar al Sistema</span>
-                        <i class='bx bx-right-arrow-alt text-xl'></i>
-                    </button>
-                    
-                </form>
-            </div>
-            
-            <!-- Footer del form -->
-            <div class="px-8 py-5 bg-gray-50/80 border-t border-gray-100 text-center">
-                <p class="text-xs font-medium text-gray-500">
-                    Sistema Clínico de KenkoMed &copy; {% now "Y" %}
-                </p>
+<div class="split">
+
+    <!-- ═══════════ LEFT PANEL ═══════════ -->
+    <div class="left">
+        <div class="left-bg"></div>
+        <div class="left-grid"></div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+        <div class="deco-ring ring-1"></div>
+        <div class="deco-ring ring-2"></div>
+        <div class="deco-ring ring-3"></div>
+
+        <!-- Brand -->
+        <div class="left-content">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class='bx bx-plus-medical'></i>
+                </div>
+                <span class="brand-name">Kenko<span>Med</span></span>
             </div>
         </div>
-        
+
+        <!-- Hero -->
+        <div class="left-content hero">
+            <p class="hero-eyebrow">Sistema Clínico DSS</p>
+            <h1 class="hero-title">
+                Decisiones<br>
+                clínicas <em>más</em><br>
+                inteligentes.
+            </h1>
+            <p class="hero-sub">
+                Plataforma de soporte a la decisión clínica para kinesiología y terapia ocupacional. Trazabilidad total, analítica en tiempo real.
+            </p>
+        </div>
+
+        <!-- Stats -->
+        <div class="left-content">
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-num">100<span>%</span></div>
+                    <div class="stat-label">Trazabilidad</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">0<span>x</span></div>
+                    <div class="stat-label">Dato inerte</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num">DSS<span>.</span></div>
+                    <div class="stat-label">Decisión asistida</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar formateo de RUT
-            if (typeof initializeKenkomedUtils === 'function') {
-                initializeKenkomedUtils();
-            }
+    <!-- ═══════════ RIGHT PANEL ═══════════ -->
+    <div class="right">
+        <div class="form-box">
 
-            // Mostrar/Ocultar contraseña
-            const togglePassword = document.getElementById('togglePassword');
-            const password = document.getElementById('password');
-            const eyeIcon = document.getElementById('eyeIcon');
+            <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="KenkoMed" class="form-logo">
 
-            if (togglePassword && password && eyeIcon) {
-                togglePassword.addEventListener('click', function () {
-                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-                    password.setAttribute('type', type);
-                    
-                    if (type === 'password') {
-                        eyeIcon.classList.remove('bx-hide');
-                        eyeIcon.classList.add('bx-show');
-                    } else {
-                        eyeIcon.classList.remove('bx-show');
-                        eyeIcon.classList.add('bx-hide');
-                    }
-                });
-            }
+            <div class="form-header">
+                <p class="pre">Acceso Clínico</p>
+                <h2>Bienvenido de vuelta</h2>
+                <p>Ingrese sus credenciales para acceder al sistema.</p>
+            </div>
+
+            <!-- Errores Django -->
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert-error">
+                    <i class='bx bx-error-circle'></i>
+                    <p>{{ message }}</p>
+                </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" action="{% url 'login' %}" id="loginForm">
+                {% csrf_token %}
+
+                <!-- RUT -->
+                <div class="field">
+                    <label class="field-label" for="rut">RUT</label>
+                    <div class="input-wrap">
+                        <input
+                            type="text"
+                            id="rut"
+                            name="rut"
+                            class="field-input rut-input"
+                            placeholder="12.345.678-9"
+                            maxlength="12"
+                            pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}"
+                            title="Formato: 12.345.678-9 o 12.345.678-K"
+                            autocomplete="username"
+                            required
+                        />
+                        <i class='bx bx-id-card input-icon'></i>
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="field">
+                    <label class="field-label" for="password">Contraseña</label>
+                    <div class="input-wrap">
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            class="field-input"
+                            style="padding-right: 42px;"
+                            placeholder="••••••••"
+                            autocomplete="current-password"
+                            required
+                        />
+                        <i class='bx bx-lock-alt input-icon'></i>
+                        <button type="button" class="pwd-toggle" id="togglePassword" title="Mostrar contraseña">
+                            <i id="eyeIcon" class='bx bx-show'></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember / Forgot -->
+                <div class="row-meta">
+                    <label class="check-label">
+                        <input type="checkbox" name="recordar" id="remember">
+                        Recordarme
+                    </label>
+                    <a href="#" class="forgot">¿Olvidó su contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <span>Ingresar al Sistema</span>
+                    <i class='bx bx-right-arrow-alt'></i>
+                </button>
+
+                <div class="divider"><span>acceso seguro</span></div>
+
+                <div class="security-badge">
+                    <i class='bx bx-shield-quarter'></i>
+                    <span>Conexión cifrada · Datos protegidos · Solo personal autorizado</span>
+                </div>
+
+            </form>
+
+            <div class="form-footer">
+                Sistema Clínico KenkoMed &copy; {% now "Y" %} · Todos los derechos reservados
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (typeof initializeKenkomedUtils === 'function') {
+        initializeKenkomedUtils();
+    }
+
+    const toggle = document.getElementById('togglePassword');
+    const pwd    = document.getElementById('password');
+    const eye    = document.getElementById('eyeIcon');
+
+    if (toggle && pwd && eye) {
+        toggle.addEventListener('click', () => {
+            const show = pwd.type === 'password';
+            pwd.type = show ? 'text' : 'password';
+            eye.className = show ? 'bx bx-hide' : 'bx bx-show';
         });
-    </script>
+    }
+});
+</script>
+
 </body>
 </html>
