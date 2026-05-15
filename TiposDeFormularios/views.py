@@ -1020,3 +1020,141 @@ def _procesar_oswestry_post(request, paciente, clinico):
         messages.error(request, f'Error al procesar la evaluación: {str(e)}')
     
     return redirect(f"{reverse('oswestry')}?rut={paciente.rut}")
+
+
+# ==================== ESCALA FUNCIONAL EXTREMIDAD INFERIOR (LEFS) ====================
+
+def renderizar_cuestionario_lefs(request):
+    """Vista para manejar la Escala Funcional de la Extremidad Inferior (LEFS)"""
+    from .models import EvaluacionLEFS
+    
+    handler = BaseEvaluacionHandler(request)
+    
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+    
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+    
+    if request.method == 'POST':
+        return _procesar_lefs_post(request, paciente, handler.clinico)
+    
+    # Obtener evaluaciones existentes
+    evaluaciones = EvaluacionLEFS.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    evaluations_count = evaluaciones.count()
+    
+    # Preparar datos para el gráfico de evolución
+    evaluations_data = []
+    for eval in evaluaciones:
+        evaluations_data.append({
+            'fecha': eval.fecha_evaluacion.strftime('%d/%m/%Y'),
+            'puntos': eval.get_total_puntos(),
+            'porcentaje': eval.get_porcentaje_funcionalidad(),
+            'nivel': eval.get_interpretacion()['nivel']
+        })
+    
+    evaluations_json = json.dumps(evaluations_data)
+    
+    # Lista de actividades
+    actividades = [
+        "Trabajo usual, domestico o escuela",
+        "Pasatiempos, recreación o deportes",
+        "Entrar o salir del baño",
+        "Andar entre cuartos",
+        "Ponerse zapatos o calcetines",
+        "Ponerse en cuclillas",
+        "Levantar objeto del piso",
+        "Actividades ligeras domésticas",
+        "Actividades pesadas domésticas",
+        "Entrar o salir de un coche",
+        "Caminar 2 cuadras",
+        "Caminar una milla",
+        "Subir o bajar 10 escalones",
+        "Estar de pie por 1 hora",
+        "Estar sentado por 1 hora",
+        "Correr sobre suelo plano",
+        "Correr sobre suelo desigual",
+        "Hacer vueltas bruscas corriendo",
+        "Saltar",
+        "Darse la vuelta en la cama"
+    ]
+    
+    return render(request, 'CuestionarioLEFS.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluations_json': evaluations_json,
+        'evaluations_count': evaluations_count,
+        'evaluaciones': evaluaciones,
+        'actividades': actividades
+    })
+
+
+def _procesar_lefs_post(request, paciente, clinico):
+    """Procesa las acciones POST para LEFS"""
+    from .models import EvaluacionLEFS
+    
+    action = request.POST.get('action', 'guardar')
+    
+    try:
+        # Obtener los valores de las 20 actividades
+        actividades = {}
+        for i in range(1, 21):
+            campo_nombre = f'actividad_{i}'
+            valor = request.POST.get(campo_nombre)
+            
+            if valor is None or valor == '':
+                messages.error(request, f'Debe completar todas las actividades del cuestionario. Falta la actividad {i}.')
+                return redirect(f"{reverse('lefs')}?rut={paciente.rut}")
+            
+            try:
+                actividades[campo_nombre] = int(valor)
+            except ValueError:
+                messages.error(request, f'Valor inválido en la actividad {i}.')
+                return redirect(f"{reverse('lefs')}?rut={paciente.rut}")
+        
+        # Obtener notas clínicas opcionales
+        notas_clinicas = request.POST.get('notas_clinicas', '')
+        
+        # Crear nueva evaluación
+        evaluacion = EvaluacionLEFS.objects.create(
+            paciente=paciente,
+            clinico=clinico,
+            notas_clinicas=notas_clinicas,
+            actividad_1_trabajo=actividades['actividad_1'],
+            actividad_2_pasatiempos=actividades['actividad_2'],
+            actividad_3_banio=actividades['actividad_3'],
+            actividad_4_andar_cuartos=actividades['actividad_4'],
+            actividad_5_zapatos=actividades['actividad_5'],
+            actividad_6_cuclillas=actividades['actividad_6'],
+            actividad_7_levantar_objeto=actividades['actividad_7'],
+            actividad_8_actividades_ligeras=actividades['actividad_8'],
+            actividad_9_actividades_pesadas=actividades['actividad_9'],
+            actividad_10_coche=actividades['actividad_10'],
+            actividad_11_caminar_2cuadras=actividades['actividad_11'],
+            actividad_12_caminar_milla=actividades['actividad_12'],
+            actividad_13_escalones=actividades['actividad_13'],
+            actividad_14_estar_pie=actividades['actividad_14'],
+            actividad_15_estar_sentado=actividades['actividad_15'],
+            actividad_16_correr_plano=actividades['actividad_16'],
+            actividad_17_correr_desigual=actividades['actividad_17'],
+            actividad_18_vueltas_bruscas=actividades['actividad_18'],
+            actividad_19_saltar=actividades['actividad_19'],
+            actividad_20_vuelta_cama=actividades['actividad_20']
+        )
+        
+        # Obtener interpretación para el mensaje
+        interpretacion = evaluacion.get_interpretacion()
+        total = evaluacion.get_total_puntos()
+        porcentaje = evaluacion.get_porcentaje_funcionalidad()
+        
+        messages.success(
+            request, 
+            f'Evaluación LEFS guardada correctamente. '
+            f'Resultado: {total}/80 puntos ({porcentaje}%) - {interpretacion["nivel"]}'
+        )
+        
+    except Exception as e:
+        messages.error(request, f'Error al procesar la evaluación: {str(e)}')
+    
+    return redirect(f"{reverse('lefs')}?rut={paciente.rut}")

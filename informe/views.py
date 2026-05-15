@@ -552,14 +552,21 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
     Analiza los Determinantes Sociales de la Salud (DSS) basado en estilo de vida.
     Evalúa: nivel de salud percibido, calidad del sueño, percepción del peso y hábitos alimenticios.
     Proporciona recomendaciones basadas en evidencia para el clínico.
+    
+    IMPORTANTE: Solo analiza campos que tengan datos válidos (no None, no vacíos).
     """
     try:
         observaciones = []
         nivel_riesgo = "bajo"  # bajo, moderado, alto
+        campos_evaluados = 0  # Contador de campos con datos
+        campos_totales = 4  # Total de campos posibles
         
         # --- 1. Análisis del nivel de salud percibido ---
-        if nivel_salud:
-            if "muy afectada" in nivel_salud.lower() or "problemas graves" in nivel_salud.lower():
+        if nivel_salud and nivel_salud.strip():
+            campos_evaluados += 1
+            nivel_salud_lower = nivel_salud.lower().strip()
+            
+            if "muy afectada" in nivel_salud_lower or "problemas graves" in nivel_salud_lower:
                 observaciones.append({
                     "categoria": "Salud percibida muy deteriorada",
                     "hallazgo": "El paciente percibe su salud como muy afectada con problemas graves que dificultan casi todas sus actividades diarias.",
@@ -567,7 +574,7 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     "recomendacion": "Evaluación integral multidisciplinaria. Considerar derivación a salud mental por posible depresión asociada."
                 })
                 nivel_riesgo = "alto"
-            elif "muchas molestias" in nivel_salud.lower() or "limitaciones" in nivel_salud.lower():
+            elif "muchas molestias" in nivel_salud_lower or "limitaciones" in nivel_salud_lower:
                 observaciones.append({
                     "categoria": "Salud percibida deteriorada",
                     "hallazgo": "El paciente reporta muchas molestias o limitaciones que afectan significativamente su vida diaria.",
@@ -576,7 +583,7 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                 })
                 if nivel_riesgo != "alto":
                     nivel_riesgo = "moderado"
-            elif "esfuerzo constante" in nivel_salud.lower() or "molestias frecuentes" in nivel_salud.lower():
+            elif "esfuerzo constante" in nivel_salud_lower or "molestias frecuentes" in nivel_salud_lower:
                 observaciones.append({
                     "categoria": "Salud percibida regular",
                     "hallazgo": "El paciente puede realizar actividades pero con esfuerzo constante y molestias frecuentes.",
@@ -587,8 +594,11 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     nivel_riesgo = "moderado"
         
         # --- 2. Análisis de la calidad del sueño (fatiga diurna) ---
-        if frecuencia_sueno:
-            if frecuencia_sueno.lower() == "siempre":
+        if frecuencia_sueno and frecuencia_sueno.strip():
+            campos_evaluados += 1
+            frecuencia_sueno_lower = frecuencia_sueno.lower().strip()
+            
+            if frecuencia_sueno_lower == "siempre":
                 observaciones.append({
                     "categoria": "Somnolencia diurna excesiva severa",
                     "hallazgo": "El paciente siempre se siente cansado o tiene dificultad para mantenerse despierto durante tareas rutinarias.",
@@ -596,7 +606,7 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     "recomendacion": "Derivar a especialista en medicina del sueño. Evaluar Escala de Somnolencia de Epworth. Descartar apnea obstructiva del sueño."
                 })
                 nivel_riesgo = "alto"
-            elif frecuencia_sueno.lower() == "frecuentemente":
+            elif frecuencia_sueno_lower == "frecuentemente":
                 observaciones.append({
                     "categoria": "Somnolencia diurna excesiva moderada",
                     "hallazgo": "El paciente frecuentemente experimenta fatiga o somnolencia durante el día.",
@@ -607,8 +617,11 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     nivel_riesgo = "moderado"
         
         # --- 3. Análisis de la percepción del peso ---
-        if opinion_peso:
-            if "ganar mucho peso" in opinion_peso.lower():
+        if opinion_peso and opinion_peso.strip():
+            campos_evaluados += 1
+            opinion_peso_lower = opinion_peso.lower().strip()
+            
+            if "ganar mucho peso" in opinion_peso_lower:
                 observaciones.append({
                     "categoria": "Deseo de ganancia significativa de peso",
                     "hallazgo": "El paciente desea ganar mucho peso.",
@@ -617,7 +630,7 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                 })
                 if nivel_riesgo == "bajo":
                     nivel_riesgo = "moderado"
-            elif "perder mucho peso" in opinion_peso.lower():
+            elif "perder mucho peso" in opinion_peso_lower:
                 observaciones.append({
                     "categoria": "Deseo de pérdida significativa de peso",
                     "hallazgo": "El paciente desea perder mucho peso.",
@@ -628,8 +641,11 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     nivel_riesgo = "moderado"
         
         # --- 4. Análisis de hábitos alimenticios ---
-        if consumo_comida_rapida:
-            if "casi todos los dias" in consumo_comida_rapida.lower() or "casi todos los días" in consumo_comida_rapida.lower():
+        if consumo_comida_rapida and consumo_comida_rapida.strip():
+            campos_evaluados += 1
+            consumo_comida_rapida_lower = consumo_comida_rapida.lower().strip()
+            
+            if "casi todos los dias" in consumo_comida_rapida_lower or "casi todos los días" in consumo_comida_rapida_lower:
                 observaciones.append({
                     "categoria": "Patrón alimenticio de alto riesgo",
                     "hallazgo": "El paciente consume comida rápida, bebidas azucaradas o alimentos ultraprocesados casi todos los días.",
@@ -637,7 +653,7 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     "recomendacion": "Educación nutricional urgente. Promover dieta antiinflamatoria (mediterránea). Derivación a nutricionista. Evaluar factores socioeconómicos que limiten acceso a alimentación saludable."
                 })
                 nivel_riesgo = "alto"
-            elif "mas de la mitad" in consumo_comida_rapida.lower() or "más de la mitad" in consumo_comida_rapida.lower():
+            elif "mas de la mitad" in consumo_comida_rapida_lower or "más de la mitad" in consumo_comida_rapida_lower:
                 observaciones.append({
                     "categoria": "Patrón alimenticio de riesgo moderado",
                     "hallazgo": "El paciente consume alimentos ultraprocesados más de la mitad de los días.",
@@ -648,16 +664,34 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
                     nivel_riesgo = "moderado"
         
         # --- Generar reporte final ---
+        
+        # Si no se evaluó ningún campo
+        if campos_evaluados == 0:
+            return {
+                'status': 'info',
+                'title': 'Análisis de Determinantes Sociales de Salud',
+                'nivel': 'DATOS INSUFICIENTES',
+                'message': 'No se encontraron datos suficientes para realizar el análisis de DSS. El formulario de anamnesis no contiene información sobre estilo de vida.',
+                'recommendation': 'Se recomienda completar las preguntas sobre: nivel de salud percibido, calidad del sueño, percepción del peso y hábitos alimenticios para obtener un análisis completo.',
+                'observaciones': [],
+                'campos_evaluados': 0,
+                'campos_totales': campos_totales
+            }
+        
+        # Si no hay observaciones de riesgo
         if not observaciones:
             return {
                 'status': 'success',
                 'title': 'Análisis de Determinantes Sociales de Salud',
                 'nivel': 'Perfil favorable',
-                'message': 'El paciente presenta un perfil de estilo de vida favorable sin factores de riesgo significativos identificados en las áreas evaluadas (percepción de salud, sueño, peso y alimentación).',
+                'message': f'El paciente presenta un perfil de estilo de vida favorable sin factores de riesgo significativos identificados en las {campos_evaluados} área(s) evaluada(s) (de {campos_totales} posibles).',
                 'recommendation': 'Reforzar hábitos saludables actuales y mantener seguimiento preventivo.',
-                'observaciones': []
+                'observaciones': [],
+                'campos_evaluados': campos_evaluados,
+                'campos_totales': campos_totales
             }
         
+        # Determinar status según nivel de riesgo
         if nivel_riesgo == "alto":
             status = 'danger'
             titulo_riesgo = "ALTO RIESGO"
@@ -672,9 +706,11 @@ def AnalisisDSS(nivel_salud, frecuencia_sueno, opinion_peso, consumo_comida_rapi
             'status': status,
             'title': f'Análisis de Determinantes Sociales de Salud',
             'nivel': titulo_riesgo,
-            'message': f'Se identificaron {len(observaciones)} área(s) de preocupación relacionadas con el estilo de vida que pueden impactar el pronóstico y la respuesta al tratamiento:',
+            'message': f'Se identificaron {len(observaciones)} área(s) de preocupación relacionadas con el estilo de vida que pueden impactar el pronóstico y la respuesta al tratamiento. Análisis basado en {campos_evaluados} de {campos_totales} campos evaluados:',
             'observaciones': observaciones,
-            'note': 'Los determinantes sociales de salud (DSS) son factores no médicos que influyen significativamente en los resultados de salud. Abordar estos factores mediante intervenciones multidisciplinarias puede mejorar sustancialmente el pronóstico del paciente.'
+            'note': 'Los determinantes sociales de salud (DSS) son factores no médicos que influyen significativamente en los resultados de salud. Abordar estos factores mediante intervenciones multidisciplinarias puede mejorar sustancialmente el pronóstico del paciente.',
+            'campos_evaluados': campos_evaluados,
+            'campos_totales': campos_totales
         }
     
     except Exception as e:

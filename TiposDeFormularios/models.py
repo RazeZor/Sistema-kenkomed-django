@@ -2,6 +2,179 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 
+class EvaluacionLEFS(models.Model):
+    """
+    Escala Funcional de la Extremidad Inferior (LEFS)
+    20 actividades, cada una puntúa de 0-4
+    Resultado: suma total (rango 0-80)
+    Mayor puntaje = mejor función
+    """
+    
+    paciente = models.ForeignKey('Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_lefs')
+    clinico = models.ForeignKey('Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_lefs')
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+    
+    # 20 actividades del cuestionario (0-4 cada una)
+    actividad_1_trabajo = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Trabajo usual, domestico o escuela"
+    )
+    actividad_2_pasatiempos = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Pasatiempos, recreación o deportes"
+    )
+    actividad_3_banio = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Entrar o salir del baño"
+    )
+    actividad_4_andar_cuartos = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Andar entre cuartos"
+    )
+    actividad_5_zapatos = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Ponerse zapatos o calcetines"
+    )
+    actividad_6_cuclillas = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Ponerse en cuclillas"
+    )
+    actividad_7_levantar_objeto = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Levantar objeto del piso"
+    )
+    actividad_8_actividades_ligeras = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Actividades ligeras domesticas"
+    )
+    actividad_9_actividades_pesadas = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Actividades pesadas domesticas"
+    )
+    actividad_10_coche = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Entrar o salir de un coche"
+    )
+    actividad_11_caminar_2cuadras = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Caminar 2 cuadras"
+    )
+    actividad_12_caminar_milla = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Caminar una milla"
+    )
+    actividad_13_escalones = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Subir o bajar 10 escalones"
+    )
+    actividad_14_estar_pie = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Estar de pie por 1 hora"
+    )
+    actividad_15_estar_sentado = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Estar sentado por 1 hora"
+    )
+    actividad_16_correr_plano = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Correr sobre suelo plano"
+    )
+    actividad_17_correr_desigual = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Correr sobre suelo desigual"
+    )
+    actividad_18_vueltas_bruscas = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Hacer vueltas bruscas corriendo"
+    )
+    actividad_19_saltar = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Saltar"
+    )
+    actividad_20_vuelta_cama = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(4)],
+        help_text="0-4: Darse la vuelta en la cama"
+    )
+    
+    # Notas opcionales
+    notas_clinicas = models.TextField(null=True, blank=True, help_text="Observaciones clínicas adicionales")
+    
+    class Meta:
+        verbose_name = "Evaluación LEFS"
+        verbose_name_plural = "Evaluaciones LEFS"
+        ordering = ['-fecha_evaluacion']
+    
+    def __str__(self):
+        return f"LEFS - {self.paciente.nombre} ({self.fecha_evaluacion.strftime('%d/%m/%Y')})"
+    
+    def get_total_puntos(self):
+        """Calcula la suma total de las 20 actividades"""
+        total = (
+            self.actividad_1_trabajo + self.actividad_2_pasatiempos +
+            self.actividad_3_banio + self.actividad_4_andar_cuartos +
+            self.actividad_5_zapatos + self.actividad_6_cuclillas +
+            self.actividad_7_levantar_objeto + self.actividad_8_actividades_ligeras +
+            self.actividad_9_actividades_pesadas + self.actividad_10_coche +
+            self.actividad_11_caminar_2cuadras + self.actividad_12_caminar_milla +
+            self.actividad_13_escalones + self.actividad_14_estar_pie +
+            self.actividad_15_estar_sentado + self.actividad_16_correr_plano +
+            self.actividad_17_correr_desigual + self.actividad_18_vueltas_bruscas +
+            self.actividad_19_saltar + self.actividad_20_vuelta_cama
+        )
+        return total
+    
+    def get_porcentaje_funcionalidad(self):
+        """Calcula el porcentaje de funcionalidad (total/80 * 100)"""
+        return round((self.get_total_puntos() / 80) * 100, 1)
+    
+    def get_interpretacion(self):
+        """Devuelve la interpretación clínica según el puntaje"""
+        total = self.get_total_puntos()
+        
+        if total >= 72:  # 90-100%
+            return {
+                'nivel': 'Funcionalidad Excelente',
+                'rango': '72-80 puntos',
+                'descripcion': 'Mínima o ninguna limitación funcional. Paciente altamente funcional.',
+                'recomendacion': 'Mantener nivel de actividad. Prevención de lesiones.'
+            }
+        elif total >= 64:  # 80-89%
+            return {
+                'nivel': 'Funcionalidad Buena',
+                'rango': '64-71 puntos',
+                'descripcion': 'Limitaciones funcionales leves. Buen nivel de independencia.',
+                'recomendacion': 'Continuar rehabilitación. Enfoque en actividades específicas.'
+            }
+        elif total >= 48:  # 60-79%
+            return {
+                'nivel': 'Funcionalidad Moderada',
+                'rango': '48-63 puntos',
+                'descripcion': 'Limitaciones funcionales moderadas. Afecta actividades diarias.',
+                'recomendacion': 'Intensificar tratamiento. Terapia funcional dirigida.'
+            }
+        elif total >= 32:  # 40-59%
+            return {
+                'nivel': 'Funcionalidad Limitada',
+                'rango': '32-47 puntos',
+                'descripcion': 'Limitaciones funcionales significativas. Dependencia parcial.',
+                'recomendacion': 'Tratamiento intensivo. Considerar ayudas técnicas.'
+            }
+        elif total >= 16:  # 20-39%
+            return {
+                'nivel': 'Funcionalidad Severamente Limitada',
+                'rango': '16-31 puntos',
+                'descripcion': 'Limitaciones severas. Alta dependencia para actividades.',
+                'recomendacion': 'URGENTE: Evaluación especializada. Intervención multidisciplinaria.'
+            }
+        else:  # 0-19%
+            return {
+                'nivel': 'Funcionalidad Mínima',
+                'rango': '0-15 puntos',
+                'descripcion': 'Dependencia casi total. Limitación funcional extrema.',
+                'recomendacion': 'CRÍTICO: Evaluación médica urgente. Plan de cuidados integral.'
+            }
+
+
 class EvaluacionOswestry(models.Model):
     """
     Índice de Incapacidad de Oswestry (ODI)
