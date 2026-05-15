@@ -914,3 +914,109 @@ def renderizar_CuestionarioENA(request):
         'evaluations': evaluations,
         'clinico_actual': handler.clinico
     })
+
+
+# ==================== CUESTIONARIO OSWESTRY (ODI) ====================
+
+def renderizar_cuestionario_oswestry(request):
+    """Vista para manejar el cuestionario Oswestry (ODI)"""
+    from .models import EvaluacionOswestry
+    
+    handler = BaseEvaluacionHandler(request)
+    
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+    
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+    
+    if request.method == 'POST':
+        return _procesar_oswestry_post(request, paciente, handler.clinico)
+    
+    # Obtener evaluaciones existentes
+    evaluaciones = EvaluacionOswestry.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    evaluations_count = evaluaciones.count()
+    
+    # Preparar datos para el gráfico de evolución
+    evaluations_data = []
+    for eval in evaluaciones:
+        evaluations_data.append({
+            'fecha': eval.fecha_evaluacion.strftime('%d/%m/%Y'),
+            'porcentaje': eval.get_porcentaje_incapacidad(),
+            'puntos': eval.get_total_puntos(),
+            'nivel': eval.get_interpretacion()['nivel']
+        })
+    
+    evaluations_json = json.dumps(evaluations_data)
+    
+    return render(request, 'CuestionarioOswestry.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluations_json': evaluations_json,
+        'evaluations_count': evaluations_count,
+        'evaluaciones': evaluaciones
+    })
+
+
+def _procesar_oswestry_post(request, paciente, clinico):
+    """Procesa las acciones POST para Oswestry"""
+    from .models import EvaluacionOswestry
+    
+    action = request.POST.get('action', 'guardar')
+    
+    try:
+        # Obtener los valores de las 10 secciones
+        secciones = {}
+        for i in range(1, 11):
+            campo_nombre = f'seccion_{i}'
+            # Mapeo de nombres de campos del formulario
+            campo_map = {
+                'seccion_1': 'seccion_1_intensidad_dolor',
+                'seccion_2': 'seccion_2_estar_de_pie',
+                'seccion_3': 'seccion_3_cuidados_personales',
+                'seccion_4': 'seccion_4_dormir',
+                'seccion_5': 'seccion_5_levantar_peso',
+                'seccion_6': 'seccion_6_actividad_sexual',
+                'seccion_7': 'seccion_7_andar',
+                'seccion_8': 'seccion_8_vida_social',
+                'seccion_9': 'seccion_9_estar_sentado',
+                'seccion_10': 'seccion_10_viajar'
+            }
+            
+            valor = request.POST.get(campo_map[campo_nombre])
+            if valor is None or valor == '':
+                messages.error(request, f'Debe completar todas las secciones del cuestionario. Falta la sección {i}.')
+                return redirect(f"{reverse('oswestry')}?rut={paciente.rut}")
+            
+            try:
+                secciones[campo_map[campo_nombre]] = int(valor)
+            except ValueError:
+                messages.error(request, f'Valor inválido en la sección {i}.')
+                return redirect(f"{reverse('oswestry')}?rut={paciente.rut}")
+        
+        # Obtener notas clínicas opcionales
+        notas_clinicas = request.POST.get('notas_clinicas', '')
+        
+        # Crear nueva evaluación
+        evaluacion = EvaluacionOswestry.objects.create(
+            paciente=paciente,
+            clinico=clinico,
+            notas_clinicas=notas_clinicas,
+            **secciones
+        )
+        
+        # Obtener interpretación para el mensaje
+        interpretacion = evaluacion.get_interpretacion()
+        porcentaje = evaluacion.get_porcentaje_incapacidad()
+        
+        messages.success(
+            request, 
+            f'Evaluación Oswestry guardada correctamente. '
+            f'Resultado: {porcentaje}% - {interpretacion["nivel"]}'
+        )
+        
+    except Exception as e:
+        messages.error(request, f'Error al procesar la evaluación: {str(e)}')
+    
+    return redirect(f"{reverse('oswestry')}?rut={paciente.rut}")

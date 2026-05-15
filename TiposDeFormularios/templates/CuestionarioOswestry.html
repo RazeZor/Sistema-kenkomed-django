@@ -1,0 +1,807 @@
+{% extends 'base_kenkomed.html' %}
+{% load static %}
+
+{% block title %}Índice de Oswestry (ODI) - Evaluación de Incapacidad Lumbar{% endblock %}
+
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+    .question-card {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .question-card:hover {
+        border-color: #1e40af;
+        box-shadow: 0 4px 16px rgba(30, 64, 175, 0.1);
+    }
+
+    .question-number {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        background: #1e40af;
+        color: white;
+        border-radius: 50%;
+        font-weight: bold;
+        text-align: center;
+        line-height: 40px;
+        margin-right: 1rem;
+    }
+
+    .question-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
+
+    .option-label {
+        display: block;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .option-label:hover {
+        background: #f3f4f6;
+        border-color: #1e40af;
+    }
+
+    .option-label input[type="radio"] {
+        margin-right: 0.75rem;
+    }
+
+    .option-label input[type="radio"]:checked ~ span {
+        font-weight: 600;
+        color: #1e40af;
+    }
+
+    .option-label input[type="radio"]:checked {
+        accent-color: #1e40af;
+    }
+
+    .option-score {
+        display: inline-block;
+        background: #e0e7ff;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin-left: 0.5rem;
+    }
+
+    .incapacity-display {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left: 4px solid #1e40af;
+        border-radius: 12px;
+        padding: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .percentage-large {
+        font-size: 4rem;
+        font-weight: bold;
+        color: #1e40af;
+        margin-bottom: 0.5rem;
+    }
+
+    .interpretation-box {
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .interpretation-box.level-0 { border-left: 4px solid #22c55e; }
+    .interpretation-box.level-1 { border-left: 4px solid #84cc16; }
+    .interpretation-box.level-2 { border-left: 4px solid #f59e0b; }
+    .interpretation-box.level-3 { border-left: 4px solid #ef4444; }
+    .interpretation-box.level-4 { border-left: 4px solid #dc2626; }
+    .interpretation-box.level-5 { border-left: 4px solid #991b1b; }
+
+    .progress-bar {
+        width: 100%;
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #22c55e 0%, #84cc16 20%, #f59e0b 40%, #ef4444 60%, #dc2626 100%);
+        transition: width 0.3s ease;
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+    }
+{% endblock %}
+
+{% block header_title %}Índice de Incapacidad de Oswestry (ODI) - Evaluación Lumbar{% endblock %}
+
+{% block header_actions %}
+    <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors no-print">
+        <i class='bx bx-arrow-back'></i> Volver
+    </button>
+    {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<form id="csrf-form" style="display:none;">
+    {% csrf_token %}
+</form>
+
+<div class="max-w-5xl mx-auto space-y-6">
+    <!-- Dashboard de Métricas -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Total Puntos</p>
+            <h3 class="text-3xl font-bold text-medical-blue" id="totalPoints">0</h3>
+            <p class="text-xs text-gray-500 mt-1">/50 máximo</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">% Incapacidad</p>
+            <h3 class="text-3xl font-bold text-orange-500" id="percentageValue">0%</h3>
+            <p class="text-xs text-gray-500 mt-1" id="levelLabel">Sin evaluar</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Evaluaciones</p>
+            <h3 class="text-3xl font-bold text-gray-800" id="evalCount">{{ evaluations_count }}</h3>
+            <p class="text-xs text-gray-500 mt-1">en total</p>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Progresión</p>
+            <h3 class="text-3xl font-bold text-gray-800" id="trendArrow">→</h3>
+            <p class="text-xs text-gray-500 mt-1" id="trendText">sin cambios</p>
+        </div>
+    </div>
+
+    <!-- Instrucción -->
+    <div class="bg-blue-50 border-l-4 border-medical-blue rounded-r-lg p-6 shadow-sm">
+        <div class="flex items-start gap-3">
+            <i class='bx bx-info-circle text-2xl text-medical-blue flex-shrink-0'></i>
+            <div>
+                <h3 class="font-semibold text-blue-900 mb-1">Instrucciones</h3>
+                <p class="text-sm text-blue-800">Por favor, seleccione la opción que mejor describa su situación para cada pregunta. El resultado indicará su grado de incapacidad relacionada con el dolor lumbar (0% = sin incapacidad, 100% = incapacidad total).</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <form id="oswestryForm" method="POST">
+        {% csrf_token %}
+        
+        <div class="space-y-6">
+            <!-- Sección 1: Intensidad del dolor -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">1</span>
+                    Intensidad del dolor
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="0" onchange="updateResults()">
+                        <span>Puedo soportar el dolor sin necesidad de tomar calmantes <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="1" onchange="updateResults()">
+                        <span>El dolor es fuerte pero me arreglo sin tomar calmantes <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="2" onchange="updateResults()">
+                        <span>Los calmantes me alivian completamente el dolor <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="3" onchange="updateResults()">
+                        <span>Los calmantes me alivian un poco el dolor <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="4" onchange="updateResults()">
+                        <span>Los calmantes apenas me alivian el dolor <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_1_intensidad_dolor" value="5" onchange="updateResults()">
+                        <span>Los calmantes no me alivian el dolor y no los tomo <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 2: Estar de pie -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">2</span>
+                    Estar de pie
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_2_estar_de_pie" value="0" onchange="updateResults()">
+                        <span>Puedo estar de pie tanto tiempo como quiera sin que me aumente el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_2_estar_de_pie" value="1" onchange="updateResults()">
+                        <span>Puedo estar de pie tanto tiempo como quiera pero me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        
+                        <input type="radio" name="seccion_2_estar_de_pie" value="2" onchange="updateResults()">
+                        <span>El dolor me impide estar de pie más de una hora <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_2_estar_de_pie" value="3" onchange="updateResults()">
+                        <span>El dolor me impide estar de pie más de media hora <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_2_estar_de_pie" value="4" onchange="updateResults()">
+                        <span>El dolor me impide estar de pie más de 10 minutos <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_2_estar_de_pie" value="5" onchange="updateResults()">
+                        <span>El dolor me impide estar de pie <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 3: Cuidados personales -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">3</span>
+                    Cuidados personales
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="0" onchange="updateResults()">
+                        <span>Me las puedo arreglar solo sin que me aumente el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="1" onchange="updateResults()">
+                        <span>Me las puedo arreglar solo pero esto me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="2" onchange="updateResults()">
+                        <span>Lavarme, vestirme, etc, me produce dolor y tengo que hacerlo despacio y con cuidado <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="3" onchange="updateResults()">
+                        <span>Necesito alguna ayuda pero consigo hacer la mayoría de las cosas yo solo <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="4" onchange="updateResults()">
+                        <span>Necesito ayuda para hacer la mayoría de las cosas <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_3_cuidados_personales" value="5" onchange="updateResults()">
+                        <span>No puedo vestirme, me cuesta lavarme y suelo quedarme en la cama <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 4: Dormir -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">4</span>
+                    Dormir
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="0" onchange="updateResults()">
+                        <span>El dolor no me impide dormir bien <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="1" onchange="updateResults()">
+                        <span>Sólo puedo dormir si tomo pastillas <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="2" onchange="updateResults()">
+                        <span>Incluso tomando pastillas duermo menos de 6 horas <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="3" onchange="updateResults()">
+                        <span>Incluso tomando pastillas duermo menos de 4 horas <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="4" onchange="updateResults()">
+                        <span>Incluso tomando pastillas duermo menos de 2 horas <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_4_dormir" value="5" onchange="updateResults()">
+                        <span>El dolor me impide totalmente dormir <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 5: Levantar peso -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">5</span>
+                    Levantar peso
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="0" onchange="updateResults()">
+                        <span>Puedo levantar objetos pesados sin que me aumente el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="1" onchange="updateResults()">
+                        <span>Puedo levantar objetos pesados pero me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="2" onchange="updateResults()">
+                        <span>El dolor me impide levantar objetos pesados del suelo, pero puedo hacerlo si están en un sitio cómodo <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="3" onchange="updateResults()">
+                        <span>El dolor me impide levantar objetos pesados, pero sí puedo levantar objetos ligeros o medianos <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="4" onchange="updateResults()">
+                        <span>Sólo puedo levantar objetos muy ligeros <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_5_levantar_peso" value="5" onchange="updateResults()">
+                        <span>No puedo levantar ni elevar ningún objeto <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 6: Actividad sexual -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">6</span>
+                    Actividad sexual
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="0" onchange="updateResults()">
+                        <span>Mi actividad sexual es normal y no me aumenta el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="1" onchange="updateResults()">
+                        <span>Mi actividad sexual es normal pero me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="2" onchange="updateResults()">
+                        <span>Mi actividad sexual es casi normal pero me aumenta mucho el dolor <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="3" onchange="updateResults()">
+                        <span>Mi actividad sexual se ha visto muy limitada a causa del dolor <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="4" onchange="updateResults()">
+                        <span>Mi actividad sexual es casi nula a causa del dolor <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_6_actividad_sexual" value="5" onchange="updateResults()">
+                        <span>El dolor me impide todo tipo de actividad sexual <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 7: Andar -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">7</span>
+                    Andar
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="0" onchange="updateResults()">
+                        <span>El dolor no me impide andar <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="1" onchange="updateResults()">
+                        <span>El dolor me impide andar más de un kilómetro <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="2" onchange="updateResults()">
+                        <span>El dolor me impide andar más de 500 metros <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="3" onchange="updateResults()">
+                        <span>El dolor me impide andar más de 250 metros <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="4" onchange="updateResults()">
+                        <span>Sólo puedo andar con bastón o muletas <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_7_andar" value="5" onchange="updateResults()">
+                        <span>Permanezco en la cama casi todo el tiempo y tengo que ir a rastras al baño <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 8: Vida social -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">8</span>
+                    Vida social
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="0" onchange="updateResults()">
+                        <span>Mi vida social es normal y no me aumenta el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="1" onchange="updateResults()">
+                        <span>Mi vida social es normal pero me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="2" onchange="updateResults()">
+                        <span>El dolor no tiene un efecto importante en mi vida social, pero si impide mis actividades más enérgicas <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="3" onchange="updateResults()">
+                        <span>El dolor ha limitado mi vida social y no salgo tan a menudo <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="4" onchange="updateResults()">
+                        <span>El dolor ha limitado mi vida social al hogar <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_8_vida_social" value="5" onchange="updateResults()">
+                        <span>No tengo vida social a causa del dolor <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 9: Estar sentado -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">9</span>
+                    Estar sentado
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="0" onchange="updateResults()">
+                        <span>Puedo estar sentado en cualquier tipo de silla todo el tiempo que quiera <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="1" onchange="updateResults()">
+                        <span>Puedo estar sentado en mi silla favorita todo el tiempo que quiera <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="2" onchange="updateResults()">
+                        <span>El dolor me impide estar sentado más de una hora <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="3" onchange="updateResults()">
+                        <span>El dolor me impide estar sentado más de media hora <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="4" onchange="updateResults()">
+                        <span>El dolor me impide estar sentado más de 10 minutos <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_9_estar_sentado" value="5" onchange="updateResults()">
+                        <span>El dolor me impide estar sentado <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Sección 10: Viajar -->
+            <div class="question-card">
+                <div class="question-title">
+                    <span class="question-number">10</span>
+                    Viajar
+                </div>
+                <div class="space-y-2">
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="0" onchange="updateResults()">
+                        <span>Puedo viajar a cualquier sitio sin que me aumente el dolor <span class="option-score">0 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="1" onchange="updateResults()">
+                        <span>Puedo viajar a cualquier sitio, pero me aumenta el dolor <span class="option-score">1 pt</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="2" onchange="updateResults()">
+                        <span>El dolor es fuerte pero aguanto viajes de más de 2 horas <span class="option-score">2 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="3" onchange="updateResults()">
+                        <span>El dolor me limita a viajes de menos de una hora <span class="option-score">3 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="4" onchange="updateResults()">
+                        <span>El dolor me limita a viajes cortos y necesarios de menos de media hora <span class="option-score">4 pts</span></span>
+                    </label>
+                    <label class="option-label">
+                        <input type="radio" name="seccion_10_viajar" value="5" onchange="updateResults()">
+                        <span>El dolor me impide viajar excepto para ir al médico o al hospital <span class="option-score">5 pts</span></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultado de Incapacidad -->
+        <div id="incapacityResult" class="incapacity-display" style="margin-top: 3rem;">
+            <div class="percentage-large" id="incapacityPercent">0%</div>
+            <div class="text-xl font-semibold text-gray-800 mb-2" id="incapacityLevel">Sin evaluar</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <p class="text-sm text-gray-600" id="incapacityDescription">Seleccione las opciones para ver su resultado</p>
+        </div>
+
+        <!-- Interpretación Clínica -->
+        <div id="interpretationBox" class="interpretation-box level-0" style="margin-top: 2rem; display: none;">
+            <h4 class="font-semibold text-gray-900 mb-2" id="interpretationTitle">Interpretación</h4>
+            <p class="text-sm text-gray-700 mb-2" id="interpretationText">Completar la evaluación para ver la interpretación clínica</p>
+            <p class="text-xs text-gray-600 italic" id="interpretationRec"></p>
+        </div>
+
+        <!-- Gráfico de Evolución -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-8" style="display: none;" id="chartContainer">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <i class='bx bx-line-chart text-medical-blue'></i> Evolución de Incapacidad
+            </h3>
+            <div class="h-64">
+                <canvas id="oswestryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Botón Guardar -->
+        <div class="mt-8 flex justify-center gap-4 no-print">
+            <button type="submit" class="px-8 py-3 bg-medical-blue text-white rounded-lg font-semibold shadow-sm hover:bg-medical-blue-dark transition-all duration-200 flex items-center gap-2">
+                <i class='bx bx-save'></i> Guardar Evaluación
+            </button>
+            <button type="reset" class="px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold shadow-sm hover:bg-gray-300 transition-all duration-200 flex items-center gap-2">
+                <i class='bx bx-refresh'></i> Limpiar
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    let oswestryChart = null;
+    let evaluationHistory = {{ evaluations_json|safe|default:"[]" }};
+
+    const interpretationLevels = {
+        0: { level: 'Sin incapacidad', color: 'level-0', range: '0%' },
+        1: { level: 'Incapacidad mínima', color: 'level-1', range: '0-20%' },
+        2: { level: 'Incapacidad moderada', color: 'level-2', range: '20-40%' },
+        3: { level: 'Incapacidad severa', color: 'level-3', range: '40-60%' },
+        4: { level: 'Incapacidad muy severa', color: 'level-4', range: '60-80%' },
+        5: { level: 'Incapacidad total', color: 'level-5', range: '80-100%' }
+    };
+
+    function getAnsweredQuestions() {
+        let count = 0;
+        for (let i = 1; i <= 10; i++) {
+            const checked = document.querySelector(`input[name="seccion_${i}_*"]:checked`);
+            if (checked) count++;
+        }
+        return count;
+    }
+
+    function calculateTotal() {
+        let total = 0;
+        for (let i = 1; i <= 10; i++) {
+            const name = `seccion_${i}_${getFieldName(i)}`;
+            const inputs = document.querySelectorAll(`input[name="seccion_${i}_${getFieldName(i)}"]:checked`);
+            inputs.forEach(input => {
+                total += parseInt(input.value);
+            });
+        }
+        return total;
+    }
+
+    function getFieldName(i) {
+        const names = {
+            1: 'intensidad_dolor',
+            2: 'estar_de_pie',
+            3: 'cuidados_personales',
+            4: 'dormir',
+            5: 'levantar_peso',
+            6: 'actividad_sexual',
+            7: 'andar',
+            8: 'vida_social',
+            9: 'estar_sentado',
+            10: 'viajar'
+        };
+        return names[i];
+    }
+
+    function updateResults() {
+        let total = 0;
+        
+        // Calcular total
+        for (let i = 1; i <= 10; i++) {
+            const fieldName = getFieldName(i);
+            const input = document.querySelector(`input[name="seccion_${i}_${fieldName}"]:checked`);
+            if (input) {
+                total += parseInt(input.value);
+            }
+        }
+
+        // Calcular porcentaje
+        const percentage = total * 2;
+        
+        // Actualizar display
+        document.getElementById('totalPoints').textContent = total;
+        document.getElementById('percentageValue').textContent = percentage + '%';
+        document.getElementById('incapacityPercent').textContent = percentage + '%';
+        document.getElementById('progressFill').style.width = percentage + '%';
+
+        // Determinar nivel
+        let levelIndex = 0;
+        if (percentage <= 20) levelIndex = 1;
+        else if (percentage <= 40) levelIndex = 2;
+        else if (percentage <= 60) levelIndex = 3;
+        else if (percentage <= 80) levelIndex = 4;
+        else if (percentage <= 100) levelIndex = 5;
+
+        const levelData = interpretationLevels[levelIndex];
+        document.getElementById('levelLabel').textContent = levelData.level;
+        document.getElementById('incapacityLevel').textContent = levelData.level + ' (' + levelData.range + ')';
+        document.getElementById('incapacityDescription').textContent = 'Porcentaje de incapacidad: ' + percentage + '%';
+
+        // Mostrar interpretación
+        const interpretationBox = document.getElementById('interpretationBox');
+        interpretationBox.className = 'interpretation-box ' + levelData.color;
+        interpretationBox.style.display = 'block';
+
+        // Aquí iría el fetch a la vista para obtener la interpretación clínica completa
+        updateInterpretationText(percentage);
+    }
+
+    function updateInterpretationText(percentage) {
+        // Textos de interpretación según porcentaje
+        const interpretations = {
+            0: {
+                title: 'Sin Incapacidad (0%)',
+                text: 'Sin limitación funcional. Paciente funcional normal.',
+                recommendation: 'Mantener actividades normales. Reevaluar periódicamente.'
+            },
+            20: {
+                title: 'Incapacidad Mínima (0-20%)',
+                text: 'Ligeras limitaciones en actividades. Síntomas leves.',
+                recommendation: 'Continuar actividades con moderación. Educación en ergonomía.'
+            },
+            40: {
+                title: 'Incapacidad Moderada (20-40%)',
+                text: 'Limitaciones moderadas. Interfiere con algunas actividades.',
+                recommendation: 'Intensificar rehabilitación. Ajustar actividades laborales si es necesario.'
+            },
+            60: {
+                title: 'Incapacidad Severa (40-60%)',
+                text: 'Limitaciones severas. Afecta significativamente la función.',
+                recommendation: 'Tratamiento intensivo. Considerar referencias especializadas.'
+            },
+            80: {
+                title: 'Incapacidad Muy Severa (60-80%)',
+                text: 'Paciente incapacitado para la mayoría de actividades.',
+                recommendation: 'URGENCIA: Consulta con especialista. Evaluación médica completa.'
+            },
+            100: {
+                title: 'Incapacidad Total (80-100%)',
+                text: 'Incapacidad completa. Paciente confinado.',
+                recommendation: 'CRÍTICO: Evaluación médica urgente. Posible referencia quirúrgica.'
+            }
+        };
+
+        let key = 0;
+        if (percentage <= 20) key = 20;
+        else if (percentage <= 40) key = 40;
+        else if (percentage <= 60) key = 60;
+        else if (percentage <= 80) key = 80;
+        else key = 100;
+
+        const interp = interpretations[key];
+        document.getElementById('interpretationTitle').textContent = interp.title;
+        document.getElementById('interpretationText').textContent = interp.text;
+        document.getElementById('interpretationRec').textContent = '💡 ' + interp.recommendation;
+    }
+
+    // Enviar formulario
+    document.getElementById('oswestryForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const total = calculateTotal();
+
+        // Validar que se han respondido todas las preguntas
+        if (total === 0 && document.querySelectorAll('input[type="radio"]:checked').length === 0) {
+            Swal.fire('Incompleto', 'Por favor, responda todas las preguntas', 'warning');
+            return;
+        }
+
+        try {
+            const response = await fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            if (response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Evaluación Guardada',
+                    text: 'Oswestry ODI registrado correctamente',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'No se pudo guardar la evaluación', 'error');
+        }
+    });
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Si hay historial, mostrar gráfico
+        if (evaluationHistory && evaluationHistory.length > 0) {
+            document.getElementById('chartContainer').style.display = 'block';
+            updateChart();
+        }
+    });
+
+    function updateChart() {
+        const ctx = document.getElementById('oswestryChart');
+        if (!ctx || !evaluationHistory || evaluationHistory.length === 0) return;
+
+        const labels = evaluationHistory.map((_, i) => `E${i + 1}`);
+        const data = evaluationHistory.map(e => e.porcentaje);
+
+        if (oswestryChart) {
+            oswestryChart.destroy();
+        }
+
+        oswestryChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: '% Incapacidad Oswestry',
+                    data: data,
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#1e40af',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 100,
+                        ticks: { stepSize: 10, suffix: '%' }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

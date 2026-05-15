@@ -1,96 +1,119 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Escala ENA - Sistema Clínico{% endblock %}
+{% block title %}Escala ENA - Evaluación de Dolor{% endblock %}
 
-{% block extra_css %}
-    /* Custom styles for ENA */
-    .face-button img {
-        background: transparent !important;
-        mix-blend-mode: multiply;
-        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-    }
-    
-    .face-button {
-        transition: all 0.3s ease;
-        cursor: pointer;
-        background: transparent !important;
-    }
-    
-    .face-button:hover {
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    
-    .face-button.selected {
-        transform: scale(1.15);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
-        border: 3px solid #ffffff;
-        border-radius: 50%;
-    }
-    
-    .scale-container {
-        background: linear-gradient(90deg, 
-            #60a5fa 0%, #60a5fa 10%, #3b82f6 20%, #22c55e 30%, #84cc16 40%,
-            #eab308 50%, #f59e0b 60%, #f97316 70%, #ef4444 80%, #dc2626 90%, #b91c1c 100%
-        );
-        border-radius: 50px;
-        padding: 8px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    }
-    
-    .pain-level-0 { background-color: #dbeafe; color: #1e40af; }
-    .pain-level-1 { background-color: #dbeafe; color: #1e40af; }
-    .pain-level-2 { background-color: #bfdbfe; color: #1d4ed8; }
-    .pain-level-3 { background-color: #dcfce7; color: #15803d; }
-    .pain-level-4 { background-color: #dcfce7; color: #15803d; }
-    .pain-level-5 { background-color: #fef3c7; color: #d97706; }
-    .pain-level-6 { background-color: #fed7aa; color: #ea580c; }
-    .pain-level-7 { background-color: #fed7aa; color: #ea580c; }
-    .pain-level-8 { background-color: #fecaca; color: #dc2626; }
-    .pain-level-9 { background-color: #fecaca; color: #dc2626; }
-    .pain-level-10 { background-color: #fecaca; color: #b91c1c; }
-    
-    .result-display {
-        min-height: 120px;
-        transition: all 0.3s ease;
-    }
-    
-    /* Animation for active session */
-    .session-active {
-        animation: pulse 2s infinite;
-    }
-    
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.5; }
-    }
-    
-    @media print {
-        .no-print { display: none !important; }
-        .print-only { display: block !important; }
-        body { background: white !important; }
-    }
-    .print-only { display: none; }
+{% block extra_head %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
 
-{% block header_title %}Escala Numérica Análoga (ENA){% endblock %}
+{% block extra_css %}
+    /* Slider profesional */
+    .pain-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 12px;
+        border-radius: 6px;
+        background: linear-gradient(to right, 
+            #22c55e 0%, #22c55e 20%, 
+            #eab308 40%, #eab308 50%,
+            #f59e0b 60%, 
+            #ef4444 80%, #dc2626 100%
+        );
+        outline: none;
+        cursor: pointer;
+    }
+    
+    .pain-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 4px solid #1e40af;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        transition: all 0.2s;
+    }
+    
+    .pain-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 6px 16px rgba(30, 64, 175, 0.5);
+    }
+
+    .pain-slider::-moz-range-thumb {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: white;
+        border: 4px solid #1e40af;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+
+    /* Display dinámico del resultado */
+    .pain-result-box {
+        padding: 2rem;
+        border-radius: 16px;
+        text-align: center;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pain-level-0 { background: linear-gradient(135deg, #dcfce7 0%, #ccfbf1 100%); color: #15803d; border: 2px solid #22c55e; }
+    .pain-level-1 { background: linear-gradient(135deg, #dcfce7 0%, #ccfbf1 100%); color: #15803d; border: 2px solid #22c55e; }
+    .pain-level-2 { background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%); color: #854d0e; border: 2px solid #eab308; }
+    .pain-level-3 { background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%); color: #854d0e; border: 2px solid #eab308; }
+    .pain-level-4 { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #92400e; border: 2px solid #f59e0b; }
+    .pain-level-5 { background: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); color: #92400e; border: 2px solid #f59e0b; }
+    .pain-level-6 { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #7f1d1d; border: 2px solid #ef4444; }
+    .pain-level-7 { background: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%); color: #7f1d1d; border: 2px solid #ef4444; }
+    .pain-level-8 { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #7f1d1d; border: 2px solid #dc2626; }
+    .pain-level-9 { background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #7f1d1d; border: 2px solid #dc2626; }
+    .pain-level-10 { background: linear-gradient(135deg, #fecdd3 0%, #fee2e2 100%); color: #831843; border: 2px solid #be123c; }
+
+    .scale-labels {
+        display: grid;
+        grid-template-columns: repeat(11, 1fr);
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .clinical-interpretation {
+        background: #f8fafc;
+        border-left: 4px solid;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .clinical-interpretation.level-0-2 { border-left-color: #22c55e; }
+    .clinical-interpretation.level-3-4 { border-left-color: #eab308; }
+    .clinical-interpretation.level-5-6 { border-left-color: #f59e0b; }
+    .clinical-interpretation.level-7-8 { border-left-color: #ef4444; }
+    .clinical-interpretation.level-9-10 { border-left-color: #dc2626; }
+
+    @media print {
+        .no-print { display: none !important; }
+        body { background: white !important; }
+    }
+{% endblock %}
+
+{% block header_title %}Escala Numérica Análoga (ENA) - Evaluación de Dolor{% endblock %}
 
 {% block header_actions %}
-    <div class="flex items-center gap-3 no-print">
-        <div class="hidden md:flex flex-col text-right mr-2">
-            <span class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Sesión Actual</span>
-            <span id="session-info" class="text-sm font-bold text-medical-blue flex items-center justify-end gap-1">
-                <i class='bx bx-radio-circle-marked session-active text-red-500'></i> Iniciando...
-            </span>
-        </div>
-        <button onclick="newSession()" class="px-4 py-2 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 flex items-center gap-2 transition-colors">
-            <i class='bx bx-refresh'></i> Nueva Sesión
-        </button>
-        <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors">
-            <i class='bx bx-arrow-back'></i> Volver
-        </button>
-    </div>
+    <button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors no-print">
+        <i class='bx bx-arrow-back'></i> Volver
+    </button>
     {{ block.super }}
 {% endblock %}
 
@@ -99,282 +122,228 @@
     {% csrf_token %}
 </form>
 
-<div class="max-w-7xl mx-auto space-y-6">
-    <!-- Métricas -->
+<div class="max-w-6xl mx-auto space-y-6">
+    <!-- Dashboard de Métricas -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
-        <!-- Evaluaciones Hoy -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Evaluaciones Hoy</p>
-                <div class="flex items-end gap-2">
-                    <h3 class="text-2xl font-bold text-gray-800" id="today-count">0</h3>
-                </div>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-blue-50 text-medical-blue flex items-center justify-center text-2xl">
-                <i class='bx bx-bar-chart-alt-2'></i>
-            </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Evaluaciones Hoy</p>
+            <h3 class="text-2xl font-bold text-medical-blue" id="today-count">0</h3>
         </div>
-
-        <!-- Promedio Actual -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Promedio Actual</p>
-                <div class="flex items-end gap-2">
-                    <h3 class="text-2xl font-bold text-orange-500" id="average-pain">--</h3>
-                </div>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center text-2xl">
-                <i class='bx bx-line-chart'></i>
-            </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Promedio Actual</p>
+            <h3 class="text-2xl font-bold text-orange-500" id="average-pain">--</h3>
         </div>
-
-        <!-- Última Evaluación -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Última Evaluación</p>
-                <div class="flex items-end gap-2">
-                    <h3 class="text-sm font-semibold text-gray-700" id="last-evaluation">Sin registros</h3>
-                </div>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-2xl">
-                <i class='bx bx-time'></i>
-            </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Cambio vs. Inicial</p>
+            <h3 class="text-2xl font-bold text-gray-800" id="change-value">--</h3>
         </div>
-
-        <!-- Estado Actual -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center justify-between hover:-translate-y-1 transition-transform">
-            <div>
-                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Estado Último</p>
-                <div class="flex items-end gap-2">
-                    <h3 class="text-sm font-semibold text-green-600" id="current-status">Esperando...</h3>
-                </div>
-            </div>
-            <div class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center text-2xl">
-                <i class='bx bx-user-voice'></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Instrucciones -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-        <div class="w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-4 text-3xl text-medical-blue">
-            <i class='bx bx-question-mark'></i>
-        </div>
-        <h2 class="text-xl font-bold text-gray-800 mb-2">¿Cuál es su nivel de dolor actual?</h2>
-        <p class="text-gray-600 mb-4 max-w-2xl mx-auto">Seleccione el número o la carita que mejor represente la intensidad de su dolor en este momento, donde 0 es "Sin dolor" y 10 es "Dolor insoportable".</p>
-        <div class="inline-flex items-center gap-2 text-sm font-medium text-medical-blue bg-blue-50 px-4 py-2 rounded-full">
-            <i class='bx bx-bulb'></i> Use los emojis como guía visual
-        </div>
-    </div>
-
-    <!-- Escala Visual ENA -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
-        <div class="scale-container mb-10 overflow-x-auto custom-scrollbar pb-4">
-            <div class="grid grid-cols-11 gap-1 min-w-[600px]">
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="0" onclick="selectPainLevel(0)">
-                        <img src="{% static 'image/emuyfeliz.gif' %}" alt="0" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-gray-800 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">0</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="1" onclick="selectPainLevel(1)">
-                        <img src="{% static 'image/efliz.gif' %}" alt="1" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">1</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="2" onclick="selectPainLevel(2)">
-                        <img src="{% static 'image/emasomenos.gif' %}" alt="2" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-blue-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">2</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="3" onclick="selectPainLevel(3)">
-                        <img src="{% static 'image/emalmasomenos.gif' %}" alt="3" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-green-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">3</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="4" onclick="selectPainLevel(4)">
-                        <img src="{% static 'image/emogi4.gif' %}" alt="4" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-green-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">4</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="5" onclick="selectPainLevel(5)">
-                        <img src="{% static 'image/emogi5.gif' %}" alt="5" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-yellow-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">5</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="6" onclick="selectPainLevel(6)">
-                        <img src="{% static 'image/emal.gif' %}" alt="6" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-orange-400 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">6</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="7" onclick="selectPainLevel(7)">
-                        <img src="{% static 'image/emal7.gif' %}" alt="7" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-orange-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">7</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="8" onclick="selectPainLevel(8)">
-                        <img src="{% static 'image/mal8.gif' %}" alt="8" class="w-full h-full object-contain">    
-                    </button>
-                    <div class="bg-red-500 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">8</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="9" onclick="selectPainLevel(9)">
-                        <img src="{% static 'image/emogi.triste.gif' %}" alt="9" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-red-600 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">9</div>
-                </div>
-                <div class="text-center">
-                    <button class="face-button w-12 h-12 md:w-14 md:h-14 mx-auto mb-2" data-level="10" onclick="selectPainLevel(10)">
-                        <img src="{% static 'image/emal10.gif' %}" alt="10" class="w-full h-full object-contain">
-                    </button>
-                    <div class="bg-red-700 text-white text-xs md:text-sm font-bold rounded-full w-8 h-8 md:w-10 md:h-10 flex items-center justify-center mx-auto shadow-sm">10</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Descripciones cortas -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center text-sm font-medium mb-8 bg-gray-50 p-4 rounded-xl border border-gray-100">
-            <div class="text-medical-blue flex flex-col items-center">
-                <span class="text-2xl mb-1">😊</span>
-                <span>No dolor (0-2)</span>
-            </div>
-            <div class="text-green-600 flex flex-col items-center">
-                <span class="text-2xl mb-1">😐</span>
-                <span>Leve (3-4)</span>
-            </div>
-            <div class="text-yellow-600 flex flex-col items-center">
-                <span class="text-2xl mb-1">😣</span>
-                <span>Moderado (5-6)</span>
-            </div>
-            <div class="text-red-600 flex flex-col items-center">
-                <span class="text-2xl mb-1">😰</span>
-                <span>Severo (7-10)</span>
-            </div>
-        </div>
-
-        <!-- Carga de Resultado -->
-        <div id="result-display" class="result-display bg-gray-50 rounded-xl border border-gray-100 p-8 text-center flex flex-col justify-center items-center">
-            <div class="text-gray-400">
-                <i class='bx bx-pointer text-5xl mb-3'></i>
-                <div class="text-lg font-medium text-gray-700">Seleccione su nivel de dolor en la escala superior</div>
-                <div class="text-sm mt-1">El resultado aparecerá aquí antes de guardar</div>
-            </div>
-        </div>
-        
-        <!-- Guardar action -->
-        <div class="mt-8 flex justify-center no-print">
-            <button id="save-btn" onclick="savePainLevel()" disabled 
-                    class="px-8 py-3 bg-medical-blue text-white rounded-lg font-semibold shadow-sm hover:bg-medical-blue-dark disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2 text-lg">
-                <i class='bx bx-save'></i> Guardar Evaluación
-            </button>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Tendencia</p>
+            <h3 class="text-2xl font-bold text-gray-800" id="trend-arrow">→</h3>
         </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <!-- Historial (2/3 width on desktop) -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                    <i class='bx bx-history text-medical-blue'></i> Historial de Evaluaciones
+        <!-- Panel Principal -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Instrucciones -->
+            <div class="bg-blue-50 border-l-4 border-medical-blue rounded-r-lg p-6 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <i class='bx bx-info-circle text-2xl text-medical-blue flex-shrink-0'></i>
+                    <div>
+                        <h3 class="font-semibold text-blue-900 mb-1">Escala de Dolor 0-10</h3>
+                        <p class="text-sm text-blue-800">Seleccione el número que mejor represente su nivel de dolor actual, donde <strong>0 es sin dolor</strong> y <strong>10 es dolor insoportable</strong>.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Escala Interactiva -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+                <div class="mb-6">
+                    <div class="scale-labels">
+                        <span class="text-gray-600">0</span>
+                        <span class="text-gray-500">1</span>
+                        <span class="text-gray-500">2</span>
+                        <span class="text-gray-500">3</span>
+                        <span class="text-gray-500">4</span>
+                        <span class="text-gray-500">5</span>
+                        <span class="text-gray-500">6</span>
+                        <span class="text-gray-500">7</span>
+                        <span class="text-gray-500">8</span>
+                        <span class="text-gray-500">9</span>
+                        <span class="text-gray-600">10</span>
+                    </div>
+                    
+                    <input type="range" id="painSlider" class="pain-slider w-full" min="0" max="10" value="5" 
+                           oninput="updatePainDisplay()">
+                    
+                    <div class="grid grid-cols-11 gap-1 mt-3 text-center text-xs font-medium">
+                        <span class="text-green-700">Sin</span>
+                        <span></span>
+                        <span></span>
+                        <span class="text-yellow-700">Leve</span>
+                        <span></span>
+                        <span class="text-orange-700">Mod</span>
+                        <span></span>
+                        <span class="text-red-700">Severo</span>
+                        <span></span>
+                        <span></span>
+                        <span class="text-red-900">Extremo</span>
+                    </div>
+                </div>
+
+                <!-- Resultado con Interpretación Clínica -->
+                <div id="painResultDisplay" class="pain-result-box pain-level-5">
+                    <div class="text-6xl font-bold mb-2" id="painNumber">5</div>
+                    <div class="text-xl font-semibold mb-2" id="painLabel">Dolor Moderado</div>
+                    <div class="text-sm opacity-80" id="painDescription">Interfiere con algunas actividades</div>
+                </div>
+
+                <!-- Interpretación Clínica Detallada -->
+                <div id="clinicalInterpretation" class="clinical-interpretation level-5-6">
+                    <div class="flex items-start gap-3">
+                        <i class='bx bx-md text-medical-blue flex-shrink-0'></i>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 mb-1" id="clinicalTitle">Interpretación Clínica</h4>
+                            <p class="text-sm text-gray-700" id="clinicalText">El paciente reporta dolor moderado que puede afectar parcialmente el desempeño funcional.</p>
+                            <p class="text-xs text-gray-600 mt-2" id="clinicalRecommendation">Recomendación: Continuar evaluación y ajustar plan terapéutico según sea necesario.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón Guardar -->
+                <div class="mt-8 flex justify-center">
+                    <button onclick="savePainLevel()" id="saveBtn"
+                            class="px-8 py-3 bg-medical-blue text-white rounded-lg font-semibold shadow-sm hover:bg-medical-blue-dark transition-all duration-200 flex items-center gap-2">
+                        <i class='bx bx-save'></i> Guardar Evaluación
+                    </button>
+                </div>
+            </div>
+
+            <!-- Gráfico de Evolución -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class='bx bx-line-chart text-medical-blue'></i> Evolución del Dolor
                 </h3>
-                <div class="flex space-x-2">
-                    <button onclick="exportData()" class="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-md hover:bg-green-100 flex items-center gap-1 transition-colors no-print">
-                        <i class='bx bx-export'></i> Exportar
-                    </button>
-                    <button onclick="printTable()" class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-md hover:bg-gray-50 flex items-center gap-1 transition-colors no-print">
-                        <i class='bx bx-printer'></i> Imprimir
-                    </button>
+                <div class="h-64">
+                    <canvas id="painChart"></canvas>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table id="results-table" class="min-w-full">
-                    <thead class="bg-white border-b border-gray-100">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fecha / Hora</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nivel</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-1/3">Descripción</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sesión</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results-tbody" class="bg-white divide-y divide-gray-50">
-                        <!-- Llenado por javascript -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
-        <!-- Descripciones texto (1/3 width on desktop) -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <i class='bx bx-info-circle text-medical-blue'></i> Significado de Niveles
-            </h3>
-            <div class="space-y-4">
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100 mt-0.5 font-bold">😊</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">0-2 Sin dolor</h4>
-                        <p class="text-xs text-gray-500 mt-1">No interfiere con las actividades diarias normales.</p>
+            <!-- Comparativa Antes/Después -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6" id="comparisonSection" style="display: none;">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class='bx bx-transfer text-medical-blue'></i> Progreso de Tratamiento
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <p class="text-xs font-medium text-red-600 uppercase tracking-wider mb-1">Evaluación Inicial</p>
+                        <div class="text-3xl font-bold text-red-700" id="initialValue">--</div>
                     </div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 border border-green-100 mt-0.5 font-bold">😐</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">3-4 Dolor leve</h4>
-                        <p class="text-xs text-gray-500 mt-1">Molesta pero no impide realizar actividades comunes.</p>
+                    <div class="flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="text-4xl mb-2" id="progressArrow">→</div>
+                            <p class="text-xs font-semibold text-gray-600" id="progressPercent">--</p>
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-yellow-50 text-yellow-600 flex items-center justify-center shrink-0 border border-yellow-100 mt-0.5 font-bold">😣</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">5-6 Dolor moderado</h4>
-                        <p class="text-xs text-gray-500 mt-1">Empieza a interferir con algunas actividades físicas o cotidianas.</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center shrink-0 border border-orange-100 mt-0.5 font-bold">😫</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">7-8 Dolor severo</h4>
-                        <p class="text-xs text-gray-500 mt-1">Dificulta la mayoría de actividades, requiere atención inmediata.</p>
-                    </div>
-                </div>
-                <div class="flex items-start gap-3">
-                    <div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0 border border-red-100 mt-0.5 font-bold">😰</div>
-                    <div>
-                        <h4 class="text-sm font-bold text-gray-800">9-10 Dolor extremo</h4>
-                        <p class="text-xs text-gray-500 mt-1">Impide realizar cualquier actividad de forma absoluta.</p>
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <p class="text-xs font-medium text-green-600 uppercase tracking-wider mb-1">Evaluación Actual</p>
+                        <div class="text-3xl font-bold text-green-700" id="finalValue">--</div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Print Only Info -->
-<div class="print-only">
-    <div class="text-center mb-6 border-b border-gray-200 pb-4">
-        <h1 class="text-2xl font-bold text-gray-900 mb-2">Reporte ENA - Escala de Dolor</h1>
-        <p class="text-gray-600">Generado el: <span id="print-date"></span></p>
+        <!-- Panel Lateral - Historial -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+            <div class="bg-gray-50/50 px-6 py-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class='bx bx-history text-medical-blue'></i> Historial
+                </h3>
+            </div>
+            
+            <div class="p-4 flex-1 overflow-y-auto custom-scrollbar space-y-2 max-h-96">
+                <div id="historyContainer">
+                    <div class="text-center text-gray-400 py-8">
+                        <i class='bx bx-archive text-4xl mb-2 text-gray-300'></i>
+                        <p class="text-sm">Sin evaluaciones</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leyenda de Interpretación -->
+            <div class="bg-gray-50 border-t border-gray-100 p-4 space-y-3">
+                <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider">Interpretación Rápida</p>
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="text-gray-700"><strong>0-2:</strong> Sin dolor / Mínimo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <span class="text-gray-700"><strong>3-4:</strong> Leve</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <span class="text-gray-700"><strong>5-6:</strong> Moderado</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <span class="text-gray-700"><strong>7-8:</strong> Severo</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-700"></div>
+                        <span class="text-gray-700"><strong>9-10:</strong> Extremo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    let selectedLevel = null;
-    let currentSession = null;
+    let painChart = null;
     let evaluationHistory = {{ evaluations_json|safe|default:"[]" }};
-    let sessionStartTime = null;
 
-    // Helper CSRF
+    // Interpretaciones clínicas
+    const clinicalInterpretations = {
+        '0-2': {
+            label: 'Sin Dolor / Mínimo',
+            text: 'El paciente no reporta dolor significativo. El sistema está funcionando óptimamente.',
+            recommendation: 'Mantener el tratamiento actual si hay mejoría. Considerar alta si los objetivos se cumplen.'
+        },
+        '3-4': {
+            label: 'Dolor Leve',
+            text: 'Dolor mínimo que generalmente no interfiere con las actividades diarias.',
+            recommendation: 'Continuar con el protocolo actual. Evaluar tolerancia a actividades.'
+        },
+        '5-6': {
+            label: 'Dolor Moderado',
+            text: 'Dolor que interfiere parcialmente con actividades. Requiere manejo activo.',
+            recommendation: 'Revisar técnicas de tratamiento. Considerar ajustes en el plan terapéutico.'
+        },
+        '7-8': {
+            label: 'Dolor Severo',
+            text: 'Dolor considerable que limita significativamente la función. Requiere intervención intensiva.',
+            recommendation: 'Evaluación urgente. Considerar referencias a especialista. Reforzar técnicas analgesicas.'
+        },
+        '9-10': {
+            label: 'Dolor Extremo',
+            text: 'Dolor insoportable que impide prácticamente cualquier actividad. Situación crítica.',
+            recommendation: 'URGENCIA: Contactar con médico tratante. Evaluar cambios en diagnosis. Considerar hospitalización.'
+        }
+    };
+
+    function getInterpretationKey(level) {
+        if (level <= 2) return '0-2';
+        if (level <= 4) return '3-4';
+        if (level <= 6) return '5-6';
+        if (level <= 8) return '7-8';
+        return '9-10';
+    }
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -389,208 +358,273 @@
         }
         return cookieValue;
     }
+
     const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
 
-    const painDescriptions = {
-        0: { text: "Sin dolor", description: "No siente ninguna molestia", emoji: "😊", class: "pain-level-0 border border-blue-200" },
-        1: { text: "Dolor muy leve", description: "Apenas perceptible", emoji: "🙂", class: "pain-level-1 border border-blue-200" },
-        2: { text: "Dolor leve", description: "Molestia menor", emoji: "😐", class: "pain-level-2 border border-blue-300" },
-        3: { text: "Dolor leve-moderado", description: "Molestia notable pero tolerable", emoji: "😕", class: "pain-level-3 border border-green-200" },
-        4: { text: "Dolor moderado", description: "Molestia que requiere atención", emoji: "😟", class: "pain-level-4 border border-green-300" },
-        5: { text: "Dolor moderado", description: "Interfiere con algunas actividades", emoji: "😣", class: "pain-level-5 border border-yellow-200" },
-        6: { text: "Dolor moderado-severo", description: "Dificulta las actividades normales", emoji: "😖", class: "pain-level-6 border border-orange-200" },
-        7: { text: "Dolor severo", description: "Interfiere significativamente", emoji: "😫", class: "pain-level-7 border border-orange-300" },
-        8: { text: "Dolor muy severo", description: "Dificulta la mayoría de actividades", emoji: "😰", class: "pain-level-8 border border-red-200" },
-        9: { text: "Dolor extremo", description: "Casi insoportable", emoji: "😭", class: "pain-level-9 border border-red-300" },
-        10: { text: "Dolor insoportable", description: "El peor dolor imaginable", emoji: "😵", class: "pain-level-10 border border-red-400 text-white" }
-    };
+    function updatePainDisplay() {
+        const slider = document.getElementById('painSlider');
+        const level = parseInt(slider.value);
+        
+        const resultBox = document.getElementById('painResultDisplay');
+        const painNumber = document.getElementById('painNumber');
+        const painLabel = document.getElementById('painLabel');
+        const painDescription = document.getElementById('painDescription');
+        
+        // Actualizar clase según nivel
+        resultBox.className = `pain-result-box pain-level-${level}`;
+        painNumber.textContent = level;
 
-    function initializeSession() {
-        currentSession = `S${Date.now()}`;
-        sessionStartTime = new Date();
-        updateSessionInfo();
-        updateDashboard();
+        const key = getInterpretationKey(level);
+        const interp = clinicalInterpretations[key];
+        
+        painLabel.textContent = interp.label;
+        painDescription.textContent = getDynamicDescription(level);
+
+        // Actualizar interpretación clínica
+        updateClinicalInterpretation(level, key, interp);
+
+        // Actualizar color de interpretación
+        const clinicalDiv = document.getElementById('clinicalInterpretation');
+        clinicalDiv.className = `clinical-interpretation level-${key.replace('-', '-')}`;
     }
 
-    function newSession() {
-        if (confirm('¿Iniciar nueva sesión de evaluación?')) {
-            initializeSession();
-        }
+    function getDynamicDescription(level) {
+        const descriptions = {
+            0: 'Completamente libre de dolor',
+            1: 'Apenas perceptible',
+            2: 'Molestia muy ligera',
+            3: 'Leve pero tolerable',
+            4: 'Leve a moderado',
+            5: 'Moderado, interfiere parcialmente',
+            6: 'Moderado-severo',
+            7: 'Severo, interfiere significativamente',
+            8: 'Muy severo',
+            9: 'Casi insoportable',
+            10: 'Insoportable'
+        };
+        return descriptions[level] || '';
     }
 
-    function updateSessionInfo() {
-        const sessionInfo = document.getElementById('session-info');
-        if (currentSession && sessionInfo) {
-            const duration = Math.floor((new Date() - sessionStartTime) / 60000);
-            sessionInfo.innerHTML = `<i class='bx bx-radio-circle-marked session-active text-red-500'></i> ${currentSession.slice(-6)} (${duration} min)`;
-        }
+    function updateClinicalInterpretation(level, key, interp) {
+        const titleEl = document.getElementById('clinicalTitle');
+        const textEl = document.getElementById('clinicalText');
+        const recEl = document.getElementById('clinicalRecommendation');
+        
+        titleEl.textContent = `Interpretación Clínica - ${interp.label}`;
+        textEl.textContent = interp.text;
+        recEl.textContent = `${interp.recommendation}`;
     }
 
     function updateDashboard() {
         const today = new Date().toDateString();
         const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
-        const todayEvaluations = evalArr.filter(eval => new Date(eval.timestamp).toDateString() === today);
-
-        document.getElementById('today-count').textContent = todayEvaluations.length;
+        
+        // Evaluaciones hoy
+        const todayEvals = evalArr.filter(e => new Date(e.timestamp).toDateString() === today);
+        document.getElementById('today-count').textContent = todayEvals.length;
 
         if (evalArr.length > 0) {
-            const average = evalArr.reduce((sum, eval) => sum + parseInt(eval.level), 0) / evalArr.length;
-            document.getElementById('average-pain').textContent = average.toFixed(1);
+            // Promedio
+            const avg = evalArr.reduce((sum, e) => sum + parseInt(e.level), 0) / evalArr.length;
+            document.getElementById('average-pain').textContent = avg.toFixed(1);
 
-            const lastEval = evalArr[evalArr.length - 1];
-            document.getElementById('last-evaluation').textContent = new Date(lastEval.timestamp).toLocaleString('es-ES', {hour: '2-digit', minute:'2-digit', day:'2-digit', month:'2-digit'});
-
-            const pain = painDescriptions[lastEval.level];
-            if(pain) {
-                document.getElementById('current-status').innerHTML = `${pain.emoji} Nivel ${lastEval.level}`;
-                
-                let colorClass = 'text-green-600';
-                if(lastEval.level > 3) colorClass = 'text-yellow-600';
-                if(lastEval.level > 6) colorClass = 'text-red-600';
-                document.getElementById('current-status').className = `text-sm font-semibold ${colorClass}`;
+            // Cambio vs inicial
+            const initial = evalArr[0].level;
+            const final = evalArr[evalArr.length - 1].level;
+            const change = final - initial;
+            
+            const changeEl = document.getElementById('change-value');
+            if (change < 0) {
+                changeEl.textContent = `↓ ${Math.abs(change)}`;
+                changeEl.className = 'text-2xl font-bold text-green-600';
+            } else if (change > 0) {
+                changeEl.textContent = `↑ ${change}`;
+                changeEl.className = 'text-2xl font-bold text-red-600';
+            } else {
+                changeEl.textContent = '→ 0';
+                changeEl.className = 'text-2xl font-bold text-gray-800';
             }
+
+            // Tendencia
+            if (evalArr.length >= 2) {
+                const trend = final > evalArr[evalArr.length - 2].level ? '↗' : final < evalArr[evalArr.length - 2].level ? '↘' : '→';
+                document.getElementById('trend-arrow').textContent = trend;
+                const trendEl = document.getElementById('trend-arrow');
+                if (trend === '↗') trendEl.className = 'text-2xl font-bold text-red-600';
+                else if (trend === '↘') trendEl.className = 'text-2xl font-bold text-green-600';
+                else trendEl.className = 'text-2xl font-bold text-gray-800';
+            }
+
+            updateHistoryPanel(evalArr);
+            updateChart(evalArr);
+            updateComparison(evalArr, initial, final);
         }
-        updateResultsTable();
     }
 
-    function updateResultsTable() {
-        const tbody = document.getElementById('results-tbody');
-        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
+    function updateHistoryPanel(evalArr) {
+        const container = document.getElementById('historyContainer');
         if (evalArr.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-12 text-center text-gray-500 bg-gray-50/50"><div class="text-4xl mb-3 text-gray-300"><i class='bx bx-list-ul'></i></div><div class="font-medium text-gray-600">No hay evaluaciones</div><div class="text-sm">Las evaluaciones guardadas aparecerán aquí.</div></td></tr>`;
+            container.innerHTML = '<div class="text-center text-gray-400 py-8"><i class="bx bx-archive text-4xl mb-2 text-gray-300"></i><p class="text-sm">Sin evaluaciones</p></div>';
             return;
         }
 
-        tbody.innerHTML = evalArr.map((evaluation, index) => {
-            const pain = painDescriptions[evaluation.level];
-            const date = new Date(evaluation.timestamp);
+        const key = getInterpretationKey(parseInt(evalArr[evalArr.length - 1].level));
+        const latestInterp = clinicalInterpretations[key];
+
+        container.innerHTML = evalArr.slice().reverse().map((e, idx) => {
+            const date = new Date(e.timestamp);
+            const eKey = getInterpretationKey(parseInt(e.level));
+            const eInterp = clinicalInterpretations[eKey];
+            let bgColor = '';
+            if (eKey === '0-2') bgColor = 'bg-green-50 border-green-200';
+            else if (eKey === '3-4') bgColor = 'bg-yellow-50 border-yellow-200';
+            else if (eKey === '5-6') bgColor = 'bg-orange-50 border-orange-200';
+            else if (eKey === '7-8') bgColor = 'bg-red-50 border-red-200';
+            else bgColor = 'bg-red-100 border-red-300';
+
             return `
-                <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-4 py-3 text-sm font-medium text-gray-500">${index + 1}</td>
-                    <td class="px-4 py-3 text-sm text-gray-600">${date.toLocaleString('es-ES', {dateStyle: 'short', timeStyle: 'short'})}</td>
-                    <td class="px-4 py-3">
-                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${pain.class}">
-                            Nivel ${evaluation.level}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-sm text-gray-700">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">${pain.emoji}</span>
-                            <span><span class="font-medium">${pain.text}</span> — <span class="text-gray-500">${pain.description}</span></span>
-                        </div>
-                    </td>
-                    <td class="px-4 py-3 text-xs font-mono text-gray-500">${evaluation.session}</td>
-                </tr>
+                <div class="p-3 border rounded-lg ${bgColor} transition-all hover:shadow-sm">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-medium text-gray-600">${date.toLocaleString('es-ES')}</span>
+                        <span class="text-lg font-bold text-gray-800">${e.level}</span>
+                    </div>
+                    <p class="text-xs text-gray-600">${eInterp.label}</p>
+                </div>
             `;
         }).join('');
     }
 
-    function selectPainLevel(level) {
-        document.querySelectorAll('.face-button').forEach(btn => btn.classList.remove('selected'));
-        const selectedButton = document.querySelector(`[data-level="${level}"]`);
-        if(selectedButton) selectedButton.classList.add('selected');
-        
-        selectedLevel = level;
-        updateResultDisplay(level);
-        document.getElementById('save-btn').disabled = false;
+    function updateChart(evalArr) {
+        const ctx = document.getElementById('painChart');
+        if (!ctx) return;
+
+        const labels = evalArr.map((e, i) => `E${i + 1}`);
+        const data = evalArr.map(e => parseInt(e.level));
+
+        if (painChart) {
+            painChart.data.labels = labels;
+            painChart.data.datasets[0].data = data;
+            painChart.update();
+            return;
+        }
+
+        painChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Nivel de Dolor',
+                    data: data,
+                    borderColor: '#1e40af',
+                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#fff',
+                    pointBorderColor: '#1e40af',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    pointBorderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        padding: 12,
+                        displayColors: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        min: 0,
+                        max: 10,
+                        ticks: { stepSize: 1, color: '#64748b' },
+                        grid: { color: '#f1f5f9', drawBorder: false }
+                    },
+                    x: {
+                        ticks: { color: '#64748b' },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
     }
 
-    function updateResultDisplay(level) {
-        const resultDiv = document.getElementById('result-display');
-        const pain = painDescriptions[level];
+    function updateComparison(evalArr, initial, final) {
+        const comparisonSection = document.getElementById('comparisonSection');
+        if (evalArr.length < 2) {
+            comparisonSection.style.display = 'none';
+            return;
+        }
+
+        comparisonSection.style.display = 'block';
+        document.getElementById('initialValue').textContent = initial;
+        document.getElementById('finalValue').textContent = final;
+
+        const change = final - initial;
+        const percent = Math.abs((change / initial) * 100).toFixed(0);
         
-        resultDiv.className = `result-display rounded-xl p-8 text-center flex flex-col justify-center items-center shadow-inner ${pain.class}`;
-        resultDiv.innerHTML = `
-            <div class="text-6xl mb-4 animate-bounce shrink-0">${pain.emoji}</div>
-            <div class="text-3xl font-bold mb-1">Nivel ${level}</div>
-            <div class="text-lg font-semibold mb-2 opacity-90">${pain.text}</div>
-            <div class="text-sm font-medium opacity-80 max-w-sm">${pain.description}</div>
-        `;
+        if (change < 0) {
+            document.getElementById('progressArrow').innerHTML = '↓';
+            document.getElementById('progressArrow').className = 'text-4xl mb-2 text-green-600';
+            document.getElementById('progressPercent').textContent = `${percent}% Mejoría`;
+        } else if (change > 0) {
+            document.getElementById('progressArrow').innerHTML = '↑';
+            document.getElementById('progressArrow').className = 'text-4xl mb-2 text-red-600';
+            document.getElementById('progressPercent').textContent = `${percent}% Empeoramiento`;
+        } else {
+            document.getElementById('progressArrow').innerHTML = '→';
+            document.getElementById('progressArrow').className = 'text-4xl mb-2 text-gray-600';
+            document.getElementById('progressPercent').textContent = 'Sin cambios';
+        }
     }
 
     async function savePainLevel() {
-        if (selectedLevel !== null && currentSession) {
-            const pain = painDescriptions[selectedLevel];
-            const timestamp = new Date().toISOString();
+        const level = document.getElementById('painSlider').value;
+        const timestamp = new Date().toISOString();
 
-            const form = new FormData();
-            form.append('action', 'guardar');
-            form.append('level', selectedLevel);
-            form.append('description', pain.description);
-            form.append('timestamp', timestamp);
-            form.append('session', currentSession);
+        const form = new FormData();
+        form.append('action', 'guardar');
+        form.append('level', level);
+        form.append('timestamp', timestamp);
 
-            try {
-                const resp = await fetch(window.location.href, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': csrftoken },
-                    body: form
-                });
+        try {
+            const resp = await fetch(window.location.href, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken },
+                body: form
+            });
 
-                if (resp.ok) {
-                    if(typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Guardado',
-                            text: 'Evaluación guardada correctamente.',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => { window.location.reload(); });
-                    } else {
-                        window.location.reload();
-                    }
+            if (resp.ok) {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Guardado',
+                        text: 'Evaluación guardada correctamente.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => { window.location.reload(); });
                 } else {
-                    alert('Error al guardar la evaluación.');
+                    window.location.reload();
                 }
-            } catch (err) {
-                console.error(err);
-                alert('Connection error.');
+            }
+        } catch (err) {
+            console.error(err);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire('Error', 'No se pudo guardar la evaluación', 'error');
             }
         }
     }
 
-    function printTable() {
-        const dt = document.getElementById('print-date');
-        if(dt) dt.textContent = new Date().toLocaleString('es-ES');
-        window.print();
-    }
-
-    function exportData() {
-        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
-        if (evalArr.length === 0) {
-            alert('No hay datos para exportar');
-            return;
-        }
-
-        const csvContent = [
-            ['Fecha y Hora', 'Nivel', 'Descripcion', 'Sesion'],
-            ...evalArr.map(eval => [
-                new Date(eval.timestamp).toLocaleString('es-ES'),
-                eval.level,
-                `"${eval.text}"`,
-                eval.session
-            ])
-        ].map(row => row.join(',')).join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `eval_ena_${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-    }
-
-    setInterval(updateSessionInfo, 60000);
-
     document.addEventListener('DOMContentLoaded', function() {
-        const evalArr = Array.isArray(evaluationHistory) ? evaluationHistory : [];
-        if (evalArr.length > 0) {
-            currentSession = evalArr[evalArr.length - 1].session || `S${Date.now()}`;
-        } else {
-            currentSession = `S${Date.now()}`;
-        }
-        initializeSession();
+        updatePainDisplay();
+        updateDashboard();
     });
 </script>
 {% endblock %}

@@ -64,6 +64,7 @@ urlpatterns = [
     path('CuestionarioEQ_5D/',tiposFormularios.RenderizarEQ_5D,name='EQ_5D'),
     path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
     path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning"),
+    path('CuestionarioOswestry/', tiposFormularios.renderizar_cuestionario_oswestry, name='oswestry'),
     path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  # Incluir las URLs de la aplicación RecetasMedicas
 
     # URLs para sistema de formularios remotos
