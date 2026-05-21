@@ -442,6 +442,27 @@
         .btn-save:hover { background: var(--medical-blue-dark); }
         .btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        /* ── Historial button ── */
+        .btn-historial {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            background: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 0.5rem 0.875rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            text-decoration: none;
+        }
+        .btn-historial:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #15803d;
+        }
+
         .btn-row { display: flex; align-items: center; gap: 0.5rem; }
     </style>
 </head>
@@ -456,7 +477,7 @@
             </a>
             <div class="nav-brand" style="margin-left: 1rem; border-left: 1px solid var(--border); padding-left: 1.25rem;">
                 <div class="nav-icon">
-                    <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="Logo KenkoMed">
+                    <img src="{% static 'image/LogoKenKoMed.png' %}" alt="Logo KenkoMed">
                 </div>
                 <div>
                     <div class="nav-title">Agenda Médica</div>
@@ -552,10 +573,16 @@
 
             <!-- Footer -->
             <div class="modal-footer">
-                <button type="button" id="btnEliminar" onclick="eliminarReserva()" class="btn-danger" style="display:none;">
-                    <i class="bx bx-trash" style="font-size:0.875rem;"></i>
-                    Eliminar
-                </button>
+                <div class="btn-row">
+                    <button type="button" id="btnEliminar" onclick="eliminarReserva()" class="btn-danger" style="display:none;">
+                        <i class="bx bx-trash" style="font-size:0.875rem;"></i>
+                        Eliminar
+                    </button>
+                    <a id="btnHistorial" href="#" class="btn-historial" style="display:none;" title="Ver historial clínico del paciente">
+                        <i class="bx bx-file-find" style="font-size:0.9375rem;"></i>
+                        Ir al Historial
+                    </a>
+                </div>
                 <div class="btn-row" style="margin-left:auto;">
                     <button type="button" onclick="cerrarModal()" class="btn-ghost">Cancelar</button>
                     <button type="button" id="btnGuardar" onclick="guardarReserva()" class="btn-save">
@@ -622,6 +649,7 @@
             document.getElementById('modalTitle').textContent = 'Nueva consulta';
             document.getElementById('modalIcon').className = 'bx bx-plus-circle';
             document.getElementById('btnEliminar').style.display = 'none';
+            document.getElementById('btnHistorial').style.display = 'none';
             document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-check" style="font-size:1rem;"></i> Guardar';
             document.getElementById('paciente_rut').disabled = false;
 
@@ -652,6 +680,16 @@
             document.getElementById('paciente_rut').value    = event.extendedProps.paciente_id;
             document.getElementById('paciente_rut').disabled = true;
             document.getElementById('correo_paciente').value = event.extendedProps.correo || '';
+
+            // → Botón Ir al Historial
+            const btnHistorial = document.getElementById('btnHistorial');
+            const rut = event.extendedProps.paciente_id;
+            if (rut) {
+                btnHistorial.href = "{% url 'historialClinico' %}" + '?rut=' + encodeURIComponent(rut);
+                btnHistorial.style.display = '';
+            } else {
+                btnHistorial.style.display = 'none';
+            }
 
             modal.classList.add('open');
         }

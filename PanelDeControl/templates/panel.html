@@ -81,12 +81,12 @@
                     </div>
                 </div>
 
-                <!-- Ícono decorativo -->
+                <!-- Logo KenkoMed -->
                 <div class="hidden sm:flex items-center justify-center w-32 h-32 float-animation flex-shrink-0">
                     <div class="relative">
                         <div class="absolute inset-0 bg-white/10 rounded-3xl blur-xl"></div>
-                        <div class="relative w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20">
-                            <i class='bx bx-heart-circle text-5xl text-white'></i>
+                        <div class="relative w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden p-1">
+                            <img src="{% static 'image/LogoKenKoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain drop-shadow-lg">
                         </div>
                     </div>
                 </div>
@@ -322,6 +322,114 @@
     </div>
 
     {% endif %}
+
+    <!-- ============================================================ -->
+    <!-- PRÓXIMOS AGENDAMIENTOS                                        -->
+    <!-- ============================================================ -->
+    <section>
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                <i class='bx bx-calendar-event text-medical-blue'></i>
+                Próximos Agendamientos
+            </h2>
+            <a href="{% url 'calendario_reservas' %}" class="text-xs sm:text-sm text-medical-blue font-medium hover:underline flex items-center gap-1">
+                Ver calendario <i class='bx bx-chevron-right'></i>
+            </a>
+        </div>
+
+        {% if proximos_agendamientos %}
+        <div class="space-y-3">
+            {% for reserva in proximos_agendamientos %}
+            {% with es_hoy=reserva.fecha|date:'Y-m-d' %}
+            <div class="group flex items-center gap-4 p-4 bg-white border border-gray-100 rounded-2xl shadow-sm card-hover transition-all"
+                 id="reserva-{{ reserva.id }}">
+
+                <!-- Columna fecha -->
+                <div class="flex-shrink-0 w-14 sm:w-16 text-center">
+                    {% if reserva.fecha == hoy %}
+                    <div class="bg-medical-blue rounded-xl py-1.5 px-1">
+                        <p class="text-[10px] font-bold text-white/80 uppercase tracking-wider leading-none">HOY</p>
+                        <p class="text-xl font-extrabold text-white leading-tight">{{ reserva.fecha|date:'d' }}</p>
+                        <p class="text-[10px] text-white/80 uppercase font-semibold">{{ reserva.fecha|date:'M' }}</p>
+                    </div>
+                    {% else %}
+                    <div class="bg-gray-50 rounded-xl py-1.5 px-1 border border-gray-100">
+                        <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wider leading-none">{{ reserva.fecha|date:'D'|slice:'0:3'|upper }}</p>
+                        <p class="text-xl font-extrabold text-gray-800 leading-tight">{{ reserva.fecha|date:'d' }}</p>
+                        <p class="text-[10px] text-gray-400 uppercase font-semibold">{{ reserva.fecha|date:'M' }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Avatar inicial paciente -->
+                <div class="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-medical-blue to-sky-400 flex items-center justify-center text-white font-bold text-base shadow-sm">
+                    {{ reserva.paciente.nombre|slice:'0:1'|upper }}{{ reserva.paciente.apellido|slice:'0:1'|upper }}
+                </div>
+
+                <!-- Datos principales -->
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-800 text-sm truncate">
+                        {{ reserva.paciente.nombre }} {{ reserva.paciente.apellido }}
+                    </p>
+                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                        <span class="inline-flex items-center gap-1 text-xs text-gray-500">
+                            <i class='bx bx-time-five text-xs'></i>
+                            {{ reserva.hora_inicio|time:'H:i' }} &ndash; {{ reserva.hora_fin|time:'H:i' }}
+                        </span>
+                        {% if reserva.motivo %}
+                        <span class="text-gray-300 hidden sm:inline">&bull;</span>
+                        <span class="hidden sm:inline text-xs text-gray-400 truncate max-w-[120px]">{{ reserva.motivo }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Badge estado + flecha -->
+                <div class="flex items-center gap-2 flex-shrink-0">
+                    {% if reserva.estado == 'Confirmada' %}
+                    <span class="hidden xs:inline-flex items-center gap-1 px-2.5 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-100">
+                        <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        Confirmada
+                    </span>
+                    {% elif reserva.estado == 'Pendiente' %}
+                    <span class="hidden xs:inline-flex items-center gap-1 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full border border-amber-100">
+                        <span class="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+                        Pendiente
+                    </span>
+                    {% endif %}
+                    <a href="{% url 'calendario_reservas' %}" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-medical-blue hover:text-white transition-all">
+                        <i class='bx bx-chevron-right text-lg'></i>
+                    </a>
+                </div>
+            </div>
+            {% endwith %}
+            {% endfor %}
+        </div>
+
+        <!-- CTA si hay agendamientos -->
+        <div class="mt-4">
+            <a href="{% url 'calendario_reservas' %}"
+               class="flex items-center justify-center gap-2 w-full py-3 bg-white border border-gray-100 rounded-2xl text-sm font-medium text-gray-500 hover:border-medical-blue hover:text-medical-blue transition-all shadow-sm">
+                <i class='bx bx-calendar-plus'></i>
+                Ver todos en el calendario
+            </a>
+        </div>
+
+        {% else %}
+        <!-- Estado vacío -->
+        <div class="flex flex-col items-center justify-center py-12 px-6 bg-white border border-gray-100 rounded-2xl shadow-sm">
+            <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                <i class='bx bx-calendar-x text-3xl text-medical-blue opacity-60'></i>
+            </div>
+            <p class="text-gray-800 font-semibold text-base mb-1">Sin citas próximas</p>
+            <p class="text-gray-400 text-sm text-center mb-5">No tienes agendamientos para los próximos días.</p>
+            <a href="{% url 'calendario_reservas' %}"
+               class="inline-flex items-center gap-2 px-5 py-2.5 bg-medical-blue text-white text-sm font-semibold rounded-xl hover:bg-medical-blue-dark active:scale-95 transition-all shadow-sm">
+                <i class='bx bx-calendar-plus'></i>
+                Agendar Consulta
+            </a>
+        </div>
+        {% endif %}
+    </section>
 
 </div>
 {% endblock %}

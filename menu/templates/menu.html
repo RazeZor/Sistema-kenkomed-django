@@ -124,7 +124,7 @@
         <div class="flex items-center justify-center xl:justify-start h-16 px-4 border-b border-gray-100 flex-shrink-0">
             <a href="{% url 'panel' %}" class="flex items-center gap-3">
                 <div class="flex items-center justify-center w-10 h-10 xl:w-10 xl:h-10 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="KenkoMed" class="w-full h-full object-cover">
+                    <img src="{% static 'image/LogoKenKoMed.png' %}" alt="KenkoMed" class="w-full h-full object-cover">
                 </div>
                 <span class="hidden xl:block text-base font-bold text-gray-800 whitespace-nowrap">KenkoMed</span>
             </a>
@@ -139,6 +139,13 @@
                         <i class='text-lg bx bx-home'></i>
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium">Inicio</span>
+                </a>
+                
+                <a href="{% url 'calendario_reservas' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'calendario' in request.path %}nav-link-active{% endif %}">
+                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'calendario' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                        <i class='text-lg bx bx-calendar'></i>
+                    </div>
+                    <span class="hidden xl:block ml-3 text-sm font-medium">Mi Agendamiento</span>
                 </a>
 
                 <a href="{% url 'pacientes' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/ListaPacientes' in request.path %}nav-link-active{% endif %}">
@@ -167,13 +174,6 @@
                         <i class='text-lg bx bx-line-chart'></i>
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium whitespace-nowrap overflow-hidden" style="text-overflow:ellipsis;max-width:130px;">Estad. Paciente</span>
-                </a>
-
-                <a href="{% url 'calendario_reservas' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'calendario' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'calendario' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-calendar'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Calendario</span>
                 </a>
 
                 {% if es_admin %}
@@ -258,7 +258,7 @@
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-medical-blue to-medical-blue-light flex-shrink-0">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl overflow-hidden bg-white/20 flex items-center justify-center flex-shrink-0">
-                    <img src="{% static 'image/LogoKenKoMed.jpeg' %}" alt="Logo" class="w-full h-full object-cover">
+                    <img src="{% static 'image/LogoKenKoMed.png' %}" alt="Logo" class="w-full h-full object-cover">
                 </div>
                 <div>
                     <span class="text-white font-bold text-base leading-tight block">KenkoMed</span>

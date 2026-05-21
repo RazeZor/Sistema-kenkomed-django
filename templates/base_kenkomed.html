@@ -283,8 +283,15 @@
 
             <!-- Header -->
             <header id="main-header" class="flex items-center justify-between px-4 sm:px-6 bg-white border-b border-gray-100 shadow-sm">
-                <!-- Izquierda: Título de la vista -->
+                <!-- Izquierda: Logo (móvil) + Título de la vista -->
                 <div class="flex items-center gap-3 min-w-0">
+                    <!-- Logo visible solo en móvil/tablet (lg- oculta el sidebar) -->
+                    <a href="/panel/" class="lg:hidden flex-shrink-0">
+                        <div class="w-8 h-8 rounded-lg overflow-hidden bg-sky-50 flex items-center justify-center">
+                            {% load static %}
+                            <img src="{% static 'image/LogoKenKoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain">
+                        </div>
+                    </a>
                     <h1 class="text-base sm:text-lg font-semibold text-gray-800 truncate">
                         {% block header_title %}Panel Médico{% endblock %}
                     </h1>
