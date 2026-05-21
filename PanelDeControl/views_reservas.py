@@ -6,6 +6,7 @@ from datetime import datetime
 from Login.models import Reserva, Paciente, Clinico
 from django.core.mail import send_mail
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from ProyectoMainAPP.email_service import notificar_reserva_creada
 from django.conf import settings
 
 @requiere_clinico
@@ -98,31 +99,8 @@ def api_crear_reserva(request):
                 motivo=data.get('motivo', '')
             )
             
-            # Enviar correo
-            asunto = "Confirmación de Reserva Médica - KenkoMed"
-            mensaje = f"""Hola {paciente.nombre},
-
-Tu reserva con el profesional {clinico.nombre} {clinico.apellido} ({clinico.profesion}) ha sido agendada con éxito.
-
-Detalles de la cita:
-- Fecha: {reserva.fecha}
-- Hora: {reserva.hora_inicio} a {reserva.hora_fin}
-- Motivo: {reserva.motivo}
-
-Te esperamos.
-Saludos,
-KenkoMed
-"""
-            try:
-                send_mail(
-                    asunto,
-                    mensaje,
-                    settings.EMAIL_HOST_USER,
-                    [paciente.correo],
-                    fail_silently=False,
-                )
-            except Exception as e:
-                print(f"Error al enviar correo SMTP (revisa tu settings o credenciales de gmail): {e}")
+            # Enviar correo con plantilla HTML
+            notificar_reserva_creada(paciente, clinico, reserva)
                 
             return JsonResponse({'status': 'success', 'id': reserva.id})
         except Exception as e:

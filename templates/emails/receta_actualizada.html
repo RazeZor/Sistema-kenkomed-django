@@ -1,0 +1,57 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Receta médica actualizada{% endblock %}
+{% block subtitle %}Actualización de receta{% endblock %}
+
+{% block content %}
+<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
+    Receta actualizada 🔄
+</h2>
+
+<p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
+    Hola <strong>{{ paciente_nombre }}</strong>, tu receta médica ha sido actualizada con la siguiente información:
+</p>
+
+{% if medicamentos %}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+    <tr>
+        <td style="padding: 20px;">
+            <p style="margin: 0 0 10px; color: #92400e; font-size: 14px; font-weight: 600;">💊 Medicamentos actualizados:</p>
+            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ medicamentos }}</p>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+{% if indicaciones %}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+    <tr>
+        <td style="padding: 20px;">
+            <p style="margin: 0 0 10px; color: #1e40af; font-size: 14px; font-weight: 600;">📝 Indicaciones:</p>
+            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ indicaciones }}</p>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+{% if notas %}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #94a3b8; margin: 20px 0;">
+    <tr>
+        <td style="padding: 20px;">
+            <p style="margin: 0 0 10px; color: #475569; font-size: 14px; font-weight: 600;">📌 Notas:</p>
+            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ notas }}</p>
+        </td>
+    </tr>
+</table>
+{% endif %}
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef2f2; border-radius: 8px; margin: 20px 0;">
+    <tr>
+        <td style="padding: 16px 20px;">
+            <p style="margin: 0; color: #991b1b; font-size: 13px;">
+                ⚠️ <strong>Importante:</strong> Ante cualquier duda sobre los cambios en tu receta, contacta directamente a tu profesional de salud.
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

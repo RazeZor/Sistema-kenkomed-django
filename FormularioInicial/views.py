@@ -6,6 +6,7 @@ from FormularioInicial.models import TokenFormulario
 from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.urls import reverse
+from ProyectoMainAPP.email_service import notificar_nuevo_paciente, notificar_formulario_completado
 import json
 import qrcode
 from io import BytesIO
@@ -387,6 +388,9 @@ def FormularioInicial(request):
                 try:
                     paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
                     messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
+                    # Enviar correo de bienvenida al nuevo paciente y aviso al clínico
+                    if created and clinico:
+                        notificar_nuevo_paciente(paciente, clinico)
                 except Exception as e:
                     messages.error(request, f'Error al crear/actualizar paciente: {e}')
                     return render(request, 'FormularioInicial.html', context)
@@ -585,6 +589,9 @@ def formulario_publico(request, token_id):
                 
                 # Marcar token como usado
                 token.marcar_como_usado()
+                
+                # Notificar al clínico que el paciente completó el formulario
+                notificar_formulario_completado(paciente, token.clinico)
                 
                 # Limpiar sesión de verificación
                 if f'rut_verificado_{token_id}' in request.session:

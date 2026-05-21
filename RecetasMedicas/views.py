@@ -6,6 +6,7 @@ from typing import Optional, Tuple, Dict, Any
 import logging
 
 from Login.models import Paciente, Clinico, RecetaMedica
+from ProyectoMainAPP.email_service import notificar_receta_creada, notificar_receta_actualizada
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,8 @@ class RecetaService:
             )
             
             logger.info(f"Receta creada para paciente {paciente.rut} por clínico {clinico.rut}")
+            # Notificar al paciente por correo
+            notificar_receta_creada(paciente, clinico, receta)
             return True, "Receta médica creada exitosamente.", receta
             
         except ValidationError as e:
@@ -134,6 +137,8 @@ class RecetaService:
             receta.save()
             
             logger.info(f"Receta actualizada para paciente {receta.paciente.rut}")
+            # Notificar al paciente por correo
+            notificar_receta_actualizada(receta.paciente, receta)
             return True, "Receta médica actualizada correctamente."
             
         except ValidationError as e:

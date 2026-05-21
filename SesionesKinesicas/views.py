@@ -5,6 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from Login.models import Paciente, Clinico
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from ProyectoMainAPP.email_service import notificar_alta_paciente
 from .models import SesionKinesica
 import json
 from datetime import datetime
@@ -516,6 +517,9 @@ def crear_sesion_final(request):
             )
             
             messages.success(request, f'Sesión final #{nuevo_numero} creada exitosamente.')
+            # Notificar alta al paciente y clínico por correo
+            clinico_para_email = clinico_obj if clinico_obj else Clinico.objects.first()
+            notificar_alta_paciente(paciente, clinico_para_email, sesion)
             from django.urls import reverse
             return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={nuevo_numero}")
             

@@ -1,0 +1,56 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}{% if es_paciente %}Bienvenido a KenkoMed{% else %}Nuevo paciente registrado{% endif %}{% endblock %}
+
+{% block subtitle %}{% if es_paciente %}Registro de paciente{% else %}Aviso de nuevo registro{% endif %}{% endblock %}
+
+{% block content %}
+{% if es_paciente %}
+    <!-- Correo para el PACIENTE -->
+    <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
+        ¡Bienvenido/a, {{ paciente_nombre }}! 👋
+    </h2>
+
+    <p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
+        Tu registro en el sistema <strong>KenkoMed</strong> ha sido completado exitosamente.
+    </p>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdfa; border-radius: 8px; border-left: 4px solid #14b8a6; margin: 20px 0;">
+        <tr>
+            <td style="padding: 20px;">
+                <p style="margin: 0 0 8px; color: #0f766e; font-size: 14px; font-weight: 600;">Datos de tu registro:</p>
+                <p style="margin: 0 0 6px; color: #475569; font-size: 14px;">📋 <strong>RUT:</strong> {{ paciente_rut }}</p>
+                <p style="margin: 0 0 6px; color: #475569; font-size: 14px;">👤 <strong>Nombre:</strong> {{ paciente_nombre }} {{ paciente_apellido }}</p>
+                <p style="margin: 0; color: #475569; font-size: 14px;">🩺 <strong>Profesional a cargo:</strong> {{ clinico_nombre }} ({{ clinico_profesion }})</p>
+            </td>
+        </tr>
+    </table>
+
+    <p style="margin: 20px 0 0; color: #475569; font-size: 15px; line-height: 1.6;">
+        Tu profesional de salud podrá gestionar tu historial, recetas y sesiones a través de la plataforma.
+    </p>
+
+{% else %}
+    <!-- Correo para el CLÍNICO -->
+    <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
+        Nuevo paciente registrado 📋
+    </h2>
+
+    <p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
+        Hola <strong>{{ clinico_nombre }}</strong>, se ha registrado un nuevo paciente en tu lista:
+    </p>
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+        <tr>
+            <td style="padding: 20px;">
+                <p style="margin: 0 0 6px; color: #475569; font-size: 14px;">📋 <strong>RUT:</strong> {{ paciente_rut }}</p>
+                <p style="margin: 0; color: #475569; font-size: 14px;">👤 <strong>Paciente:</strong> {{ paciente_nombre }} {{ paciente_apellido }}</p>
+            </td>
+        </tr>
+    </table>
+
+    <p style="margin: 20px 0 0; color: #475569; font-size: 15px; line-height: 1.6;">
+        Ingresa al sistema para completar su historial clínico.
+    </p>
+{% endif %}
+{% endblock %}

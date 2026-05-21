@@ -1,0 +1,39 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Formulario de anamnesis completado{% endblock %}
+{% block subtitle %}Notificación al clínico{% endblock %}
+
+{% block content %}
+<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
+    Formulario completado ✅
+</h2>
+
+<p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
+    Hola <strong>{{ clinico_nombre }}</strong>, tu paciente ha completado el formulario de anamnesis remoto.
+</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e; margin: 20px 0;">
+    <tr>
+        <td style="padding: 20px;">
+            <p style="margin: 0 0 6px; color: #475569; font-size: 14px;">👤 <strong>Paciente:</strong> {{ paciente_nombre }} {{ paciente_apellido }}</p>
+            <p style="margin: 0; color: #475569; font-size: 14px;">📋 <strong>RUT:</strong> {{ paciente_rut }}</p>
+        </td>
+    </tr>
+</table>
+
+<p style="margin: 20px 0 0; color: #475569; font-size: 15px; line-height: 1.6;">
+    Los datos de anamnesis ya están disponibles en el historial clínico del paciente. Ingresa al sistema para revisarlos.
+</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 25px 0 0;">
+    <tr>
+        <td align="center">
+            <div style="display: inline-block; background: linear-gradient(135deg, #0d9488, #14b8a6); border-radius: 8px; padding: 14px 32px;">
+                <span style="color: #ffffff; font-size: 15px; font-weight: 600; text-decoration: none;">
+                    Revisar en KenkoMed →
+                </span>
+            </div>
+        </td>
+    </tr>
+</table>
+{% endblock %}
