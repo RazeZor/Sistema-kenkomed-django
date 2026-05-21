@@ -55,29 +55,29 @@
             <button type="button" class="nav-section-btn active" data-section="seccion-datos-paciente">
                 <span class="section-number">1</span>
                 <span class="section-title">
-                    Datos del Paciente 
+                    Tus Datos 
                     <span class="color: red;">* Campo Obligatorio</span>
                 </span>
                 <span class="section-status">●</span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-caracteristicas-dolor">
                 <span class="section-number">2</span>
-                <span class="section-title">Características del Dolor</span>
+                <span class="section-title">Sobre tu Molestia</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-mapa-corporal">
                 <span class="section-number">3</span>
-                <span class="section-title">Mapa Corporal</span>
+                <span class="section-title">¿Dónde te Duele?</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-causa-dolor">
                 <span class="section-number">4</span>
-                <span class="section-title">Causa del Dolor</span>
+                <span class="section-title">¿Cómo Empezó?</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-condiciones-salud">
                 <span class="section-number">5</span>
-                <span class="section-title">Condiciones de Salud</span>
+                <span class="section-title">Tu Historial Médico</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-medicamentos">
@@ -87,37 +87,37 @@
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-actividades-afectadas">
                 <span class="section-number">7</span>
-                <span class="section-title">Actividades Afectadas</span>
+                <span class="section-title">Cosas que Dejaste de Hacer</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-estilo-vida">
                 <span class="section-number">8</span>
-                <span class="section-title">Estilo de Vida</span>
+                <span class="section-title">Tus Hábitos y Actividades</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-sueno">
                 <span class="section-number">9</span>
-                <span class="section-title">Sueño</span>
+                <span class="section-title">Descanso y Sueño</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-proposito-vida">
                 <span class="section-number">10</span>
-                <span class="section-title">Propósito y Psicología</span>
+                <span class="section-title">Bienestar General</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-sustancias-nicotina">
                 <span class="section-number">11</span>
-                <span class="section-title">Consumo de Nicotina</span>
+                <span class="section-title">Uso de Tabaco/Nicotina</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-sustancias-alcohol">
                 <span class="section-number">12</span>
-                <span class="section-title">Consumo de Alcohol</span>
+                <span class="section-title">Uso de Alcohol</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-sustancias-drogas">
                 <span class="section-number">13</span>
-                <span class="section-title">Consumo de Drogas</span>
+                <span class="section-title">Uso de Sustancias</span>
                 <span class="section-status"></span>
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-sustancias-marihuana">
@@ -127,7 +127,7 @@
             </button>
             <button type="button" class="nav-section-btn" data-section="seccion-impacto-objetivos">
                 <span class="section-number">15</span>
-                <span class="section-title">Impacto y Objetivos</span>
+                <span class="section-title">Tus Metas y Objetivos</span>
                 <span class="section-status"></span>
             </button>
             </nav>
@@ -159,7 +159,7 @@
                 <!-- Sección 1: Datos del Paciente -->
                 <section class="form-section active" id="seccion-datos-paciente">
                     <div class="section-header">
-                        <h2 class="mb-4">Datos de ingreso de paciente</h2>
+                        <h2 class="mb-4">Tus datos personales</h2>
                     </div>
                     <div class="section-content">
                         {% if paciente_existente %}
@@ -245,17 +245,17 @@
                         </div>
                     </div>
                        <div class="section-header">
-                        <h2 class="mb-4">Datos de trabajo del paciente</h2>
+                        <h2 class="mb-4">Sobre tu trabajo y actividades</h2>
                     </div>
                     <div class="section-content">
                         <div class="form-group">
-                            <label class="form-label" for="Trabajo"><strong>Escriba el nombre del trabajo que realiza </strong></label>
+                            <label class="form-label" for="Trabajo"><strong>¿Cuál es tu ocupación o actividad principal?</strong></label>
                             <div class="input-group">
                                 <input type="text" class="form-control" name="profesion" id="Trabajo" placeholder="Ingrese el nombre de su trabajo" pattern="[A-Za-zÑ-ñ]{5,60}$" title="Solo letras, mínimo 5 caracteres" required/>
                             </div>
                         </div>
                         <div class="work-type-section">
-                            <p class="form-label"><strong>Seleccione el tipo de trabajo que realiza </strong></p>
+                            <p class="form-label"><strong>¿Qué tipo de trabajo realizas habitualmente? </strong></p>
             
                             <label class="work-type-label">
                                 <input class="form-check-input" type="radio" name="trabajo" value="Trabajo sedentario"/>
@@ -293,11 +293,11 @@
                 <!-- Sección 3: Características del Dolor -->
                 <section class="form-section" id="seccion-caracteristicas-dolor">
                     <div class="section-header">
-                        <h2 class="mb-4">Características de su dolor</h2>
+                        <h2 class="mb-4">Sobre tu molestia o dolor</h2>
                     </div>
                     <div class="section-content">
                         <div class="form-group">
-                            <p class="form-label"><strong>Duración de su dolor</strong></p>
+                            <p class="form-label"><strong>¿Cuánto tiempo llevas con este dolor o molestia?</strong></p>
                             <div class="btn-group" role="group" aria-label="Duración del dolor">
                                 
                                 <input type="radio" class="btn-check" name="btnradio1" id="btncheck1" autocomplete="off" value="menos de 3 meses" />
@@ -311,7 +311,7 @@
                             </div>
                         </div>
                         <div class="list-group">
-                            <p class="form-label"><strong>Seleccione las características de su dolor</strong></p>
+                            <p class="form-label"><strong>¿Cómo se siente tu dolor? (Puedes marcar varias)</strong></p>
                             <label class="list-group-item">
                                 <input class="form-check-input me-1" type="checkbox" name="caracteristicas" value="Punzante"/> Punzante (Un dolor agudo y localizado, como si te pincharan con una aguja)
                             </label>
@@ -344,13 +344,12 @@
                 <!-- Sección 4: Mapa Corporal -->
                 <section class="form-section" id="seccion-mapa-corporal">
                     <div class="section-header">
-                        <h2 class="mb-4">Mapa Corporal</h2>
+                        <h2 class="mb-4">¿Dónde te duele? (Mapa corporal)</h2>
                     </div>
                     <div class="section-content">
                         <div class="container">
                             <div class="row">
-                                <p class="form-label">Seleccione las partes del cuerpo donde sienta dolor o dificultades. Luego, elija la intensidad del dolor en la tabla de al lado, la parte sera seleccionada cuando
-                                    la zona se marque de el color correspondiente a la intensidad de dolor. Si se equivoca, puede eliminar la selección usando el botón correspondiente en la columna de acciones. UNISEX</p>
+                                <p class="form-label">Selecciona en la imagen las zonas donde sientes molestia o dolor. Luego, elige la intensidad del dolor en la tabla de al lado. La zona se marcará de color. Si te equivocas, puedes borrarlo en la columna de acciones.</p>
                                 <div class="col-md-6"> 
                                     <center>
                                         <div class="cuerpoHumano" id="cuerpoHumano">
@@ -388,11 +387,11 @@
                 <!-- Sección 5: Causa del Dolor -->
                 <section class="form-section" id="seccion-causa-dolor">
                     <div class="section-header">
-                        <h2 class="mb-4">Causa del dolor</h2>
+                        <h2 class="mb-4">¿Cómo empezó?</h2>
                     </div>
                     <div class="section-content">
                         <div class="form-group">
-                            <label class="form-label" for="causaDolor"><strong>¿Qué elemento o circunstancia relaciona usted con el comienzo de su dolor?</strong></label>
+                            <label class="form-label" for="causaDolor"><strong>¿Cómo o por qué crees que comenzó este problema?</strong></label>
                             <select class="form-select form-select-lg" name="causaDolor" id="causaDolor">
                                 <option selected>--Seleccione uno--</option>
                                 <option value="Accidente doméstico">Accidente doméstico</option>
@@ -404,7 +403,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <p class="form-label"><strong>¿Piensa usted que su dolor es resultado de un accidente laboral?</strong></p>
+                            <p class="form-label"><strong>¿Crees que tu dolor es resultado de un accidente en el trabajo?</strong></p>
                             <div class="btn-group w-100">
                                 <input type="radio" class="btn-check" name="accidenteLaboral" id="opdolor1" value="si" autocomplete="off" />
                                 <label class="btn btn-outline-primary" for="opdolor1">Si</label>
@@ -414,7 +413,7 @@
                         </div>
                         
                         <div class="form-group" id="calidadAtencionContainer" style="display: none;">
-                            <p class="form-label"><strong>¿Recibió una buena atención por la mutualidad contratada por su empresa?</strong></p>
+                            <p class="form-label"><strong>¿Recibiste buena atención por parte de la mutual de tu empresa?</strong></p>
                             <div class="btn-group w-100">
                                 <input type="radio" class="btn-check" name="calidadAtencion" id="calidadAtencion1" value="si" autocomplete="off"/>
                                 <label class="btn btn-outline-primary" for="calidadAtencion1">Si</label>
@@ -424,7 +423,7 @@
                         </div>
 
                         <div class="form-group">
-                            <p class="form-label"><strong>¿Piensa usted que su dolor es señal de un problema/enfermedad seria que no ha sido diagnosticada?</strong></p>
+                            <p class="form-label"><strong>¿Sientes que este dolor podría ser señal de algo más grave que aún no ha sido diagnosticado?</strong></p>
                             <div class="btn-group w-100">
                                 <input type="radio" class="btn-check" name="diagnosis" id="diagnosis1" autocomplete="off" value="si"/>
                                 <label class="btn btn-outline-primary" for="diagnosis1">Si</label>
@@ -435,7 +434,7 @@
                             </div>
                         </div>
                         <div class="mt-4 form-group">
-                            <p class="form-label"><strong>¿Piensa usted que hay cura para su dolor?</strong></p>
+                            <p class="form-label"><strong>¿Crees que hay cura o solución para este problema?</strong></p>
                             <div class="btn-group w-100">
                                 <input type="radio" class="btn-check" name="cure" id="cure1" autocomplete="off" value="si"/>
                                 <label class="btn btn-outline-primary" for="cure1" >Si</label>
@@ -451,11 +450,11 @@
                 <!-- Sección 6: Condiciones de Salud -->
                 <section class="form-section" id="seccion-condiciones-salud">
                     <div class="section-header">
-                        <h2 class="mb-4">Condiciones de Salud</h2>
+                        <h2 class="mb-4">Tu historial de salud</h2>
                     </div>
                     <div class="section-content">
                         <div class="Pagina3">  
-                            <h4><strong>Lea detenidamente y selecciona las condiciones de salud que presente</strong></h4>
+                            <h4><strong>Revisa esta lista y marca las enfermedades o condiciones que tengas o hayas tenido:</strong></h4>
 
                             <div class="chip-category">
                                 <span class="chip-category-title"><i class="fas fa-bone me-1"></i> Musculoesqueléticos</span>
@@ -538,7 +537,7 @@
                     </div>
                     <div class="section-content">
                         <div class="form-group">
-                            <p class="form-label"><strong>Detalla a continuación medicamentos para el dolor que usas o has usado. Marque el medicamento que le resulte más efectivo:</strong></p>
+                            <p class="form-label"><strong>¿Tomas o has tomado algún medicamento para tratar este dolor? Marca los que reconozcas:</strong></p>
                             
                             <label class="list-group-item">
                             <input class="form-check-input me-1" type="checkbox" name="medicamentos" value="Analgesicos simples" /> 
@@ -598,12 +597,12 @@
                 <!-- Sección 8: Actividades Afectadas -->
                 <section class="form-section" id="seccion-actividades-afectadas">
                     <div class="section-header">
-                        <h2 class="mb-4">Actividades Afectadas</h2>
+                        <h2 class="mb-4">¿Qué cosas has dejado de hacer?</h2>
                     </div>
                     <div class="section-content">
                         <div class="mb-3">
                             <p class="form-label"> <strong>
-                                seleccione tres actividades que realiza o que ha dejado de realizar debido a su dolor.
+                                Selecciona hasta tres cosas que se te dificultan o que has dejado de hacer por culpa de esta molestia:
                             </strong></p>
                             
                             <p class="form-label"><strong>
@@ -655,13 +654,13 @@
                 <!-- Sección 9: Estilo de Vida -->
                 <section class="form-section" id="seccion-estilo-vida">
                     <div class="section-header">
-                        <h2 class="mb-4">Estilo de Vida</h2>
+                        <h2 class="mb-4">Tus Hábitos y Actividades</h2>
                     </div>
                     <div class="section-content">
                         <div class="contenedor">
                             <div class="pregunta">
                                 <p class="form-label"><strong>
-                                    1) Por favor indique en qué rango se encuentra su nivel de salud
+                                    1) ¿Cómo sientes tu nivel de salud en general?
                                 </strong></p>
                                     <label class="label">
                                         <input type="radio" class="form-check-input" name="pregunta1_nivelDeSalud" id="Muy malo" autocomplete="off" value="No consumo drogas"/>
@@ -682,7 +681,7 @@
                         
                             <div class="pregunta">
                                 <p class="form-label"><strong>
-                                    2) Durante las últimas dos semanas, ¿con qué frecuencia se sintió cansado o tuvo dificultad para mantenerse despierto al realizar tareas rutinarias durante el día?
+                                    2) Durante las últimas dos semanas, ¿qué tan seguido te has sentido cansado(a) o con dificultad para mantenerte despierto(a) durante el día?
                                 </strong></p>
                                 <div>
                                     <label class="label">
@@ -702,7 +701,7 @@
                             
                             <div class="pregunta">
                                 <label for="" class="form-label"><strong>
-                                    3) ¿Qué opinas sobre tu peso actual?
+                                    3) ¿Cómo te sientes respecto a tu peso actual?
                                 </strong></label>
                                 <div>
                                     <label class="label">
@@ -729,8 +728,7 @@
                         </div>
                             <div class="pregunta">
                                 <label for="" class="form-label"><strong>
-                                    4) Durante las últimas dos semanas, ¿con qué frecuencia ha comido comida rápida, bebidas azucaradas (por ejemplo, soda, bebidas deportivas, jugos) o 
-                                    alimentos envasados (por ejemplo, papas fritas, dulces, galletas saladas, galletas dulces)?
+                                    4) Durante las últimas dos semanas, ¿con qué frecuencia has consumido comida rápida, bebidas azucaradas o snacks envasados?
                                 </strong> </label>
                                 <div>
                                     <label class="label">
@@ -754,11 +752,11 @@
                 <!-- Sección 10: Sueño -->
                 <section class="form-section" id="seccion-sueno">
                     <div class="section-header">
-                        <h2 class="mb-4">Formulario de Sueño</h2>
+                        <h2 class="mb-4">Descanso y Sueño</h2>
                     </div>
                     <div class="section-content">
                         <div class="mb-3">
-                            <p class="form-label"><strong>1. ¿A qué hora suele acostarse en días habituales?</strong></p>
+                            <p class="form-label"><strong>1. ¿A qué hora sueles ir a dormir en un día normal?</strong></p>
                             <div class="form-check">
                                 <label class="label">
                                 <input class="form-check-input" type="radio" name="hora_acostarse" value="antes_21">
@@ -781,7 +779,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <p class="form-label"><strong>2. ¿Cuánto tiempo tarda aproximadamente en quedarse dormido?</strong></p>
+                            <p class="form-label"><strong>2. ¿Cuánto tardas normalmente en quedarte dormido(a)?</strong></p>
                             <div class="form-check">
                                 <label class="label">
                                 <input class="form-check-input" type="radio" name="tiempo_dormirse" value="menos de 15 minutos">
@@ -804,7 +802,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <p class="form-label"><strong>3. ¿A qué hora suele despertarse habitualmente?</strong></p>
+                            <p class="form-label"><strong>3. ¿A qué hora sueles despertar por la mañana?</strong></p>
                             <div class="form-check">
                                 <label class="label">
                                 <input class="form-check-input" type="radio" name="hora_despertar" value="antes_0500">
@@ -827,7 +825,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <p class="form-label"><strong>4. ¿A qué hora se levanta definitivamente de la cama?</strong></p>
+                            <p class="form-label"><strong>4. ¿A qué hora te levantas definitivamente de la cama?</strong></p>
                             <div class="form-check">
                                 <label class="label">
                                 <input class="form-check-input" type="radio" name="hora_levantarse" value="inmediato">
@@ -850,7 +848,7 @@
                             </div>
                         </div>
                         <div class="mb-3">
-                            <p class="form-label"><strong>5. ¿Cuántas veces se despierta durante la noche por cualquier motivo?</strong></p>
+                            <p class="form-label"><strong>5. ¿Cuántas veces sueles despertar durante la noche?</strong></p>
                             <div class="form-check">
                                 <label class="label">
                                 <input class="form-check-input" type="radio" name="despertares" value="nunca">
@@ -878,14 +876,14 @@
                 <!-- Sección 11: Propósito y Psicología -->
                 <section class="form-section" id="seccion-proposito-vida">
                     <div class="section-header">
-                        <h2 class="mb-4">Propósito de Vida y Psicología</h2>
+                        <h2 class="mb-4">Bienestar General y Actividad</h2>
                     </div>
                     <div class="section-content">
                         <div class="contenedor">
                             <div class="pregunta">
                                 <label for="" class="form-label">
-                                    1) En un día normal, ¿cuántas porciones de frutas y verduras enteras comes
-                                    (1 porción equivale aproximadamente a un puñado y no incluye jugo de fruta)?
+                                    1) En un día normal, ¿cuántas porciones de frutas y verduras comes?
+                                    (Una porción equivale aproximadamente a un puñado, sin contar jugos).
                                 </label>
                                 <div>
                                     <label class="label">
@@ -900,9 +898,8 @@
                             </div>
                             <div class="pregunta">
                                 <label for="" class="form-label">
-                                    2) durante las ultimas 2 semanas, 
-                                    ¿Cuántos días hiciste ejercicio a una intensidad moderada a extenuante 
-                                    (es decir, caminar a paso ligero o movimiento suficiente para sudar un poco)?
+                                    2) Durante las últimas 2 semanas, ¿cuántos días a la semana realizaste ejercicio de intensidad moderada o alta?
+                                    (Caminar rápido o moverte lo suficiente para sudar un poco).
                                 </label>
                                 <div>
                                     <label class="label">
@@ -919,8 +916,7 @@
 
                             <div class="pregunta">
                                 <label for="" class="form-label">
-                                    3) Durante una sesión promedio, ¿cuántos minutos haces ejercicio a una intensidad moderada a intensa 
-                                    (es decir, caminar a paso ligero o moverse lo suficiente como para sudar un poco)?
+                                    3) Normalmente, ¿cuánto tiempo dura tu sesión de ejercicio?
                                 </label>
                                 <div>
                                     <label class="label">
@@ -936,7 +932,7 @@
 
                             <div class="pregunta">
                                     <label for="" class="form-label">
-                                        Sentiste que tu vida, tenia un proposito o significado
+                                        4) ¿Sientes que tienes un propósito o motivación en tu vida diaria?
                                     </label>
                                 <div>
                                     <label class="label">
@@ -955,7 +951,7 @@
                             
                             </div>
                             <div class="pregunta">
-                                    <label for="" class="form-label">¿Estuvo conectado con alguna red de apoyo (ejemplo: comunidad espiritual, amistad, familia, naturaleza, yoga o meditación)?</label>
+                                    <label for="" class="form-label">5) ¿Cuentas con alguna red de apoyo que te brinde contención (amistades, familia, comunidad espiritual, etc.)?</label>
                                     <div>
                                         <label class="label">
                                         <input type="radio" name="red_de_apoyo" class="form-check-input" id="red_de_apoyo_0" value="No estuve conectado en absoluto" />
@@ -973,7 +969,7 @@
                             </div>
                             <div class="pregunta">
                                 
-                                <label for="" class="form-label">¿Se ha sentido molesto por tener poco interés o placer en hacer las cosas?</label>
+                                <label for="" class="form-label">6) ¿Últimamente has sentido pérdida de interés o desgano por hacer las cosas que te gustan?</label>
                                 <div>
                                     <label class="label">
                                     <input type="radio" name="placer_cosas"  class="form-check-input" id="placer_cosas_0" value="No, en absoluto" />
@@ -995,7 +991,7 @@
                             </div>
                             
                             <div class="pregunta">
-                                <label for="" class="form-label">¿Se ha sentido deprimido?</label>
+                                <label for="" class="form-label">7) ¿Te has sentido desanimado(a) o triste últimamente?</label>
                                 <div>
                                     <label class="label">
                                     <input type="radio" name="deprimido" class="form-check-input" id="deprimido_0" class="opcion-radio" value="No, en absoluto" />
@@ -1018,7 +1014,7 @@
                             
                             
                             <div class="pregunta">
-                                <label for="" class="form-label">¿Se ha sentido molesto por estar nervioso, ansioso o tenso?</label>
+                                <label for="" class="form-label">8) ¿Has estado más nervioso(a), tenso(a) o ansioso(a) de lo normal?</label>
                                 
                                 <label class="label">    
                                 <input type="radio" name="preocupacion" id="preocupacionAnsiedad1" class="form-check-input" value="No estoy preocupado en absoluto" />
@@ -1044,12 +1040,12 @@
                 <!-- Sección 12: Consumo de Nicotina -->
                 <section class="form-section" id="seccion-sustancias-nicotina">
                     <div class="section-header">
-                        <h2 class="mb-4">Consumo de Nicotina</h2>
+                        <h2 class="mb-4">Uso de Tabaco y Nicotina</h2>
                     </div>
                     <div class="section-content">
                         <div class="sustanciasUsadas">
-                            <h5>¿Ha consumido nicotina durante el último año?</h5>
-                            <p class="form-label"> Nicotina (cigarrillos, cigarrillos electrónicos, entre otros) </p>
+                            <h5>¿Has consumido tabaco o nicotina durante el último año?</h5>
+                            <p class="form-label"> (Cigarrillos, vapeadores, cigarrillos electrónicos, entre otros) </p>
                             
                             <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
                                 <input type="radio" class="btn-check" name="NicotinaSiOno" id="nicotina" autocomplete="off" value="si" />
@@ -1061,7 +1057,7 @@
                             
                             <!-- Opciones adicionales -->
                             <div id="opcionesNicotina" style="display: none; margin-top: 1rem;">
-                                <p class="form-label">Si marcaste sí, ¿cuánto fumas usualmente por día?</p>
+                                <p class="form-label">Si marcaste sí, ¿con qué frecuencia lo consumes?</p>
                                 <div class="mb-3">
                                     <label class="label">
                                         <input type="radio" name="frecuenciaNicotina" id="freqNicotina1" class="form-check-input" value="Ocacionalmente" />
@@ -1076,7 +1072,7 @@
                                     Casi Todos los dias </label>
                                 </div>
                             
-                                <p class="form-label">Si marcaste sí, marca en un círculo el nivel de preocupación que tienes con respecto a tu consumo de nicotina.</p>
+                                <p class="form-label">Si marcaste sí, ¿sientes alguna preocupación respecto a tu consumo de nicotina?</p>
                                 <div>
                                     <label class="label"><input type="radio" name="preocupacionNicotina" id="preocNicotina1" class="form-check-input" value="Poco" />
                                     Me preocupa un poco</label>                    
@@ -1095,12 +1091,12 @@
                 <!-- Sección 13: Consumo de Alcohol -->
                 <section class="form-section" id="seccion-sustancias-alcohol">
                     <div class="section-header">
-                        <h2 class="mb-4">Consumo de Alcohol</h2>
+                        <h2 class="mb-4">Uso de Alcohol</h2>
                     </div>
                     <div class="section-content">
                         <div class="sustanciasUsadas">
-                            <h5>¿Ha consumido alcohol durante el último año?</h5>
-                            <p class="form-label"> Alcohol (cervezas, vino, licores) </p>
+                            <h5>¿Has consumido alcohol durante el último año?</h5>
+                            <p class="form-label"> (Cerveza, vino, destilados, licores) </p>
 
                             <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
                                 <input type="radio" class="btn-check" name="AlcoholSiOno" id="alcoholsi" autocomplete="off" value="si" />
@@ -1112,7 +1108,7 @@
                             
                             <!-- Opciones adicionales -->
                             <div id="opcionesAlcohol" style="display: none; margin-top: 1rem;">
-                                <p class="form-label">Si marcaste sí, ¿cuánto alcohol usualmente consumes?</p>
+                                <p class="form-label">Si marcaste sí, ¿con qué frecuencia sueles consumir alcohol?</p>
                                 <div class="mb-3">
                                     <label class="label"><input type="radio" name="frecuenciaAlcohol" id="freqAlcohol1" class="form-check-input" value="Ocacionalmente" />
                                     Ocasionalmente (Una vez a la semana)</label>                    
@@ -1124,7 +1120,7 @@
                                     siempre(Casi todos los dias)</label>
                                 </div>
                             
-                                <p class="form-label">Si marcaste sí, marca en un círculo el nivel de preocupación que tienes con respecto al consumo de alcohol.</p>
+                                <p class="form-label">Si marcaste sí, ¿sientes alguna preocupación respecto a tu consumo de alcohol?</p>
                                 <div>
                                     <label class="label"><input type="radio" name="preocupacionAlcohol" id="preocAlcohol1" class="form-check-input" value="Poco" /> 
                                     Me preocupa un poco</label>                    
@@ -1143,11 +1139,11 @@
                 <!-- Sección 14: Consumo de Drogas -->
                 <section class="form-section" id="seccion-sustancias-drogas">
                     <div class="section-header">
-                        <h2 class="mb-4">Consumo de Drogas Recreativas</h2>
+                        <h2 class="mb-4">Uso de Otras Sustancias</h2>
                     </div>
                     <div class="section-content">
-                        <h5>¿Ha consumido drogas recreativas durante el último año?</h5>
-                        <p class="form-label"> Drogras recreativas (cocaina, heroina, Metanfetaminas, LSD, entre otras) </p>      
+                        <h5>¿Has consumido drogas recreativas u otras sustancias en el último año?</h5>
+                        <p class="form-label"> (Cocaína, heroína, metanfetaminas, LSD, entre otras) </p>      
                         <div class="btn-group" role="group" aria-label="Basic checkbox toggle button group">
                             <input type="radio" class="btn-check" name="drogasSiOno" id="drogasi" autocomplete="off" value="si"/>
                             <label class="btn btn-outline-primary" for="drogasi">Sí</label>
@@ -1157,7 +1153,7 @@
                     
                         <!-- Opciones adicionales -->
                         <div id="opcionesDrogas" style="display: none; margin-top: 1rem;">
-                            <p class="form-label">si marcaste si, cuanta droga consumes usualmente por dia?</p> 
+                            <p class="form-label">Si marcaste sí, ¿con qué frecuencia sueles consumirlas?</p> 
                             <div class="mb-3">
             
                                 <div class="form-check">
@@ -1179,8 +1175,7 @@
 
                             </div>
                             
-                            <p class="form-label">Si marcaste si, marca en un círculo el nivel de 
-                            preocupación que tienes con respecto a el consumo de drogas.</p>    
+                            <p class="form-label">Si marcaste sí, ¿sientes preocupación respecto a este consumo?</p>    
                             <div>
                             
                                 <div class="form-check">
@@ -1257,10 +1252,10 @@
                 <!-- Sección 16: Impacto y Objetivos -->
                 <section class="form-section" id="seccion-impacto-objetivos">
                     <div class="section-header">
-                        <h2 class="mb-4">Impacto del Dolor en tus Objetivos</h2>
+                        <h2 class="mb-4">Tus Metas y Objetivos</h2>
                     </div>
                     <div class="section-content">
-                        <h3>Impacto del Dolor en tus Objetivos</h3>
+                        <h3>Tus Metas y Objetivos</h3>
                         <p class="form-label">¿Qué esperas lograr con un mejor manejo del dolor? Selecciona máximo 3 opciones.</p>
                         <div class="form-group">
                             <label class="label">
@@ -1277,7 +1272,7 @@
                             </label>
                             <label class="label">
                                 <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Explorar opciones farmacologicas."/>
-                                Hoy  me gustaria Explorar opciones Farmacologicas....
+                                Hoy me gustaría explorar opciones farmacológicas.
                             </label>
                             <label class="label">
                                 <input type="checkbox" name="preguntas2" class="opcion-checkbox" value="Explorar el manejo intervencionista (bloqueos nerviosos, infiltraciones, etc).">
@@ -1293,8 +1288,8 @@
                             </label>
                         </div>
                         <div class="motivacion">
-                            <p class="form-label"> en que areas de su estilo de vida se siente mas motivado para trabajar o recibir apoyo de acompañamiento? porfavor
-                                seleccione las 3 que considere mas importantes para usted.
+                            <p class="form-label"> ¿En qué áreas de tu estilo de vida te sientes más motivado(a) para trabajar o recibir apoyo? Por favor
+                                selecciona las 3 que consideres más importantes.
                             </p>
                             <div class="form-group">
                                 <label class="label">
@@ -1323,9 +1318,7 @@
                                 </label>
                             </div>
                             <div class="mb-3">
-                                <label for="" class="form-label">¿Cual es su principal motivacion y razon para 
-                                    querer cambiar sus habitos y mejorar su estilo de vida? seleccione la opcion que mas 
-                                refleje su situacion</label>
+                                <label for="" class="form-label">¿Cuál es tu principal motivación y razón para querer cambiar tus hábitos y mejorar tu estilo de vida? Selecciona la opción que más refleje tu situación.</label>
                                 
                                 <div class="form-group">
                                     <label class="label">
