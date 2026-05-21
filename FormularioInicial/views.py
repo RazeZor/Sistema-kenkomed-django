@@ -158,6 +158,13 @@ def validar_campos_obligatorios(datos):
     if not datos.get('cobertura_de_salud'):
         errores.append('El campo cobertura de salud es obligatorio')
     
+    # Validar correo electrónico
+    correo = datos.get('correo', '').strip()
+    if not correo:
+        errores.append('El correo electrónico es obligatorio para enviar notificaciones al paciente')
+    elif '@' not in correo or '.' not in correo.split('@')[-1]:
+        errores.append('El correo electrónico ingresado no tiene un formato válido')
+    
     # Validar trabajo
     trabajo = datos.get('trabajo', '').strip()
     if not trabajo:
@@ -390,6 +397,11 @@ def FormularioInicial(request):
                     messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
                     # Enviar correo de bienvenida al nuevo paciente y aviso al clínico
                     if created and clinico:
+                        notificar_nuevo_paciente(paciente, clinico)
+                    elif not created and clinico and correo and not getattr(paciente, 'correo', None):
+                        # Si el paciente ya existía pero ahora se le agrega correo, notificar igual
+                        paciente.correo = correo
+                        paciente.save()
                         notificar_nuevo_paciente(paciente, clinico)
                 except Exception as e:
                     messages.error(request, f'Error al crear/actualizar paciente: {e}')

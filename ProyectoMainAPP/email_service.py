@@ -8,8 +8,34 @@ from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
+from datetime import datetime, date, time
 
 logger = logging.getLogger(__name__)
+
+
+def _formatear_fecha(valor, formato):
+    """
+    Convierte de forma segura un valor (str o date/time) al formato indicado.
+    Evita el error 'str object has no attribute strftime'.
+    """
+    if not valor:
+        return ''
+    if isinstance(valor, str):
+        try:
+            # Intenta parsear como fecha ISO (YYYY-MM-DD)
+            if len(valor) == 10 and '-' in valor:
+                return datetime.strptime(valor, '%Y-%m-%d').strftime(formato)
+            # Intenta parsear como hora HH:MM o HH:MM:SS
+            if ':' in valor:
+                hora = valor[:5]  # Tomar solo HH:MM
+                return datetime.strptime(hora, '%H:%M').strftime(formato)
+        except Exception:
+            return valor  # Si no puede parsear, devuelve el string tal cual
+        return valor
+    try:
+        return valor.strftime(formato)
+    except Exception:
+        return str(valor)
 
 
 def _enviar_correo(asunto, plantilla, contexto, destinatarios):
@@ -195,9 +221,9 @@ def notificar_reserva_creada(paciente, clinico, reserva):
         'paciente_apellido': paciente.apellido,
         'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
         'clinico_profesion': clinico.profesion,
-        'fecha': reserva.fecha.strftime('%d/%m/%Y') if reserva.fecha else '',
-        'hora_inicio': reserva.hora_inicio.strftime('%H:%M') if reserva.hora_inicio else '',
-        'hora_fin': reserva.hora_fin.strftime('%H:%M') if reserva.hora_fin else '',
+        'fecha': _formatear_fecha(reserva.fecha, '%d/%m/%Y'),
+        'hora_inicio': _formatear_fecha(reserva.hora_inicio, '%H:%M'),
+        'hora_fin': _formatear_fecha(reserva.hora_fin, '%H:%M'),
         'motivo': reserva.motivo or '',
     }
 
