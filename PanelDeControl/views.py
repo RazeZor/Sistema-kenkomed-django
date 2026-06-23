@@ -4,7 +4,7 @@ from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from Login.models import (
-    Paciente, formularioClinico, tiempo, Notas, Clinico,
+    Paciente, formularioClinico, Notas, Clinico,
     CuestionarioPSFS, Groc, CuestionarioEQ_5D, CuestionarioBarthel, 
     CuestionarioScrenning, CuestionarioEvaluacionENA, Reserva
 )
@@ -13,6 +13,8 @@ from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from clinicas.utils import obtener_clinicos_de_sesion
+from Login.auditoria import registrar_acceso
 
 @requiere_clinico
 def panel(request):
@@ -25,30 +27,30 @@ def panel(request):
         clinico = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else Clinico.objects.filter(nombre=nombre_clinico).first()
         profesion = clinico.profesion if clinico else "Sin profesión"
 
-        # Obtener tiempos y calcular promedio
-        tiempos = tiempo.objects.all()
-        if tiempos.exists():
-            total_duracion = sum((t.duracion for t in tiempos), timedelta())
-            promedio_duracion = total_duracion / len(tiempos)
-            horas, resto = divmod(promedio_duracion.total_seconds(), 3600)
-            minutos, segundos = divmod(resto, 60)
-            promedio_formateado = f"{int(horas):02}:{int(minutos):02}:{int(segundos):02}"
-        else:
-            promedio_formateado = "00:00:00"
+        # Promedio estático de atención (modelo tiempo eliminado)
+        promedio_formateado = "00:30:00"
 
-        pacientes = Paciente.objects.all()
+        clinica_id = request.session.get('clinica_id')
+        if es_admin:
+            pacientes = Paciente.objects.all()
+        else:
+            if clinica_id:
+                pacientes = Paciente.objects.filter(clinica_id=clinica_id)
+            else:
+                pacientes = Paciente.objects.none()
         numeroPaciente = pacientes.count()
 
         # 🔹 Próximos agendamientos del clínico
         hoy = date.today()
         proximos_agendamientos = []
-        if clinico:
+        clinicos_ids = obtener_clinicos_de_sesion(request)
+        if clinicos_ids:
             proximos_agendamientos = list(
                 Reserva.objects.filter(
-                    clinico=clinico,
+                    clinico_id__in=clinicos_ids,
                     fecha__gte=hoy,
                     estado__in=['Confirmada', 'Pendiente']
-                ).select_related('paciente').order_by('fecha', 'hora_inicio')[:8]
+                ).select_related('paciente', 'clinico').order_by('fecha', 'hora_inicio')[:8]
             )
 
         return render(request, 'panel.html', {
@@ -126,16 +128,19 @@ def HistorialClinico(request):
                 if es_admin:
                     paciente = Paciente.objects.get(rut=rut)
                 else:
-                    if not clinico_obj:
-                        error = 'No se encontró el clínico en sesión. Inicia sesión nuevamente.'
+                    clinica_id = request.session.get('clinica_id')
+                    if not clinica_id:
+                        error = 'No se encontró una clínica activa asociada.'
                         raise Paciente.DoesNotExist()
-                    paciente = Paciente.objects.get(rut=rut, clinico=clinico_obj)
+                    paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
 
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
                 if nota_texto:
                     nota_existente.notas = nota_texto
                     nota_existente.save()
+
+                registrar_acceso(request, paciente, 'historial')
 
             except Paciente.DoesNotExist:
                 if not error:
@@ -163,6 +168,10 @@ def VerInformePacientes(request):
         if rut:
             try:
                 paciente = Paciente.objects.get(rut=rut)
+                clinica_id = request.session.get('clinica_id')
+                if not es_admin and paciente.clinica_id != clinica_id:
+                    messages.error(request, 'No tienes permisos para ver el informe de este paciente.')
+                    return redirect('panel')
                 formulario = formularioClinico.objects.get(paciente=paciente)
                 #escala Semaforo Integrada
                 semaforo = json.loads(formulario.preguntas1)
@@ -220,7 +229,7 @@ def VerInformePacientes(request):
                 
                 
                 # renderizar el informe 
-                with open('informe/templates/informe.html', 'r', encoding='utf-8') as template_file:
+                with open('PanelDeControl/templates/informe.html', 'r', encoding='utf-8') as template_file:
                     informe_template = template_file.read()
 
                 informe = informe_template.format(
@@ -789,11 +798,13 @@ def estadisticas(request):
         pacientes = Paciente.objects.all()
         formularios = formularioClinico.objects.all()
     else:
-        clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
-        if not clinico_obj:
-            return redirect('login')
-        pacientes = Paciente.objects.filter(clinico=clinico_obj)
-        formularios = formularioClinico.objects.filter(paciente__clinico=clinico_obj)
+        clinica_id = request.session.get('clinica_id')
+        if clinica_id:
+            pacientes = Paciente.objects.filter(clinica_id=clinica_id)
+            formularios = formularioClinico.objects.filter(paciente__clinica_id=clinica_id)
+        else:
+            pacientes = Paciente.objects.none()
+            formularios = formularioClinico.objects.none()
 
     # === ESTADÍSTICAS GENERALES ===
     total_pacientes = pacientes.count()
@@ -988,11 +999,11 @@ def estadisticas_paciente_view(request):
             if es_admin:
                 paciente = Paciente.objects.get(rut=rut)
             else:
-                clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
-                if not clinico_obj:
-                    context['error'] = 'Sesión inválida.'
+                clinica_id = request.session.get('clinica_id')
+                if not clinica_id:
+                    context['error'] = 'No tienes una clínica activa asociada.'
                     return render(request, 'estadisticas_paciente.html', context)
-                paciente = Paciente.objects.get(rut=rut, clinico=clinico_obj)
+                paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
                 
             context['paciente'] = paciente
             
@@ -1074,3 +1085,8 @@ def estadisticas_paciente_view(request):
             context['error'] = "No se encontró ningún paciente con ese RUT o no tienes permisos."
             
     return render(request, 'estadisticas_paciente.html', context)
+
+@requiere_clinico
+def sidebar(request):
+    return render(request, 'menu.html')
+

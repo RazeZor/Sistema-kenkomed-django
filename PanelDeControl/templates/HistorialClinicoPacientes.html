@@ -230,6 +230,15 @@
                         <a href="{% url 'fichaClinica' %}?rut={{ paciente.rut }}" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-sm">
                             <i class='bx bx-file text-lg'></i> Ficha Clínica Profesional
                         </a>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=json" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Portabilidad ARCO (JSON)">
+                                <i class='bx bx-download'></i> Exportar JSON
+                            </a>
+                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=html" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Ficha imprimible (HTML)">
+                                <i class='bx bx-printer'></i> Exportar HTML
+                            </a>
+                        </div>
                     </div>
 
                     <!-- Sesiones Kinésicas - Card Mejorada -->

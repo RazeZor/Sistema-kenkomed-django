@@ -4,52 +4,33 @@
 {% block subtitle %}Receta médica{% endblock %}
 
 {% block content %}
-<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
-    Nueva receta médica 💊
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Receta médica
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Nueva receta emitida
 </h2>
 
-<p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
-    Hola <strong>{{ paciente_nombre }}</strong>, tu profesional de salud <strong>{{ clinico_nombre }}</strong> ({{ clinico_profesion }}) te ha emitido una receta médica.
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ paciente_nombre }} {{ paciente_apellido }}</strong>,<br>
+    su profesional <strong>{{ clinico_nombre }}</strong> ({{ clinico_profesion }}) le ha emitido una receta médica.
 </p>
 
-{% if medicamentos %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-left:3px solid #115b9c;margin-bottom:20px;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #92400e; font-size: 14px; font-weight: 600;">💊 Medicamentos:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ medicamentos }}</p>
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+                Por seguridad y confidencialidad, el detalle de medicamentos e indicaciones no se envía por correo electrónico. Consulte la receta con su profesional de salud o en su próxima atención.
+            </p>
         </td>
     </tr>
 </table>
-{% endif %}
 
-{% if indicaciones %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#fff7ed;border:1px solid #fed7aa;border-radius:4px;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #1e40af; font-size: 14px; font-weight: 600;">📝 Indicaciones:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ indicaciones }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if notas %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #94a3b8; margin: 20px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #475569; font-size: 14px; font-weight: 600;">📌 Notas adicionales:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ notas }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef2f2; border-radius: 8px; margin: 20px 0;">
-    <tr>
-        <td style="padding: 16px 20px;">
-            <p style="margin: 0; color: #991b1b; font-size: 13px;">
-                ⚠️ <strong>Importante:</strong> Este correo es solo informativo. Conserva tu receta física para la compra de medicamentos. Ante cualquier duda, consulta con tu profesional de salud.
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#7c2d12;font-size:13px;line-height:1.6;">
+                <strong>Aviso:</strong> este correo solo confirma la emisión de una receta. Ante cualquier duda, consulte directamente a su profesional de salud.
             </p>
         </td>
     </tr>

@@ -1,0 +1,48 @@
+{% extends "emails/base_email.html" %}
+
+{% block title %}Cancelación de cita{% endblock %}
+{% block subtitle %}Cancelación de reserva{% endblock %}
+
+{% block content %}
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Cancelación de cita
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Su cita ha sido cancelada
+</h2>
+
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ paciente_nombre }}</strong>,<br>
+    lamentamos informarle que la siguiente cita ha sido cancelada:
+</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #dbe3ec;border-radius:4px;margin-bottom:20px;">
+    <tr>
+        <td colspan="2" style="padding:14px 20px;background-color:#f1f5f9;border-bottom:1px solid #dbe3ec;">
+            <p style="margin:0;color:#115b9c;font-size:13px;font-weight:700;letter-spacing:0.3px;">Cita cancelada</p>
+        </td>
+    </tr>
+    <tr>
+        <td width="35%" style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;">Fecha</td>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ fecha }}</td>
+    </tr>
+    <tr>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;">Horario</td>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ hora_inicio }}</td>
+    </tr>
+    <tr>
+        <td style="padding:12px 20px;color:#64748b;font-size:13px;">Profesional</td>
+        <td style="padding:12px 20px;color:#0f172a;font-size:14px;font-weight:600;">{{ clinico_nombre }}<br><span style="font-weight:400;color:#64748b;font-size:13px;">{{ clinico_profesion }}</span></td>
+    </tr>
+</table>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-left:3px solid #115b9c;">
+    <tr>
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#475569;font-size:13px;line-height:1.6;">
+                Para reagendar su atención, contacte directamente a su profesional de salud. Disculpe los inconvenientes ocasionados.
+            </p>
+        </td>
+    </tr>
+</table>
+{% endblock %}

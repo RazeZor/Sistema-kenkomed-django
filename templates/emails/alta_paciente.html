@@ -1,102 +1,53 @@
 {% extends "emails/base_email.html" %}
 
-{% block title %}{% if es_paciente %}Resumen de tu alta{% else %}Alta registrada{% endif %}{% endblock %}
-{% block subtitle %}{% if es_paciente %}Cierre de tratamiento{% else %}Notificación de alta{% endif %}{% endblock %}
+{% block title %}{% if es_paciente %}Resumen de alta{% else %}Alta registrada{% endif %}{% endblock %}
+{% block subtitle %}{% if es_paciente %}Cierre de tratamiento{% else %}Notificación clínica{% endif %}{% endblock %}
 
 {% block content %}
 {% if es_paciente %}
-    <!-- Correo para el PACIENTE -->
-    <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
-        Resumen de tu alta médica 🎉
-    </h2>
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Alta médica
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Cierre de su tratamiento
+</h2>
 
-    <p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
-        Hola <strong>{{ paciente_nombre }}</strong>, tu profesional <strong>{{ clinico_nombre }}</strong> ({{ clinico_profesion }}) ha registrado el cierre de tu tratamiento en la sesión #{{ numero_sesion }}.
-    </p>
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ paciente_nombre }} {{ paciente_apellido }}</strong>,<br>
+    su profesional <strong>{{ clinico_nombre }}</strong> ({{ clinico_profesion }}) ha registrado el cierre de su tratamiento kinésico (sesión N.º {{ numero_sesion }}).
+</p>
 
 {% else %}
-    <!-- Correo para el CLÍNICO -->
-    <h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
-        Alta registrada 📋
-    </h2>
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Alta registrada
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Alta de paciente registrada
+</h2>
 
-    <p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
-        Hola <strong>{{ clinico_nombre }}</strong>, se ha registrado el alta del paciente <strong>{{ paciente_nombre }} {{ paciente_apellido }}</strong> ({{ paciente_rut }}) en la sesión #{{ numero_sesion }}.
-    </p>
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ clinico_nombre }}</strong>,<br>
+    se registró el alta de <strong>{{ paciente_nombre }} {{ paciente_apellido }}</strong> en la sesión N.º {{ numero_sesion }}.
+</p>
 {% endif %}
 
-{% if diagnostico_final %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdfa; border-radius: 8px; border-left: 4px solid #14b8a6; margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-left:3px solid #115b9c;margin-bottom:20px;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #0f766e; font-size: 14px; font-weight: 600;">🩺 Diagnóstico kinésico final:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ diagnostico_final }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if resumen_tratamiento %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 15px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #1e40af; font-size: 14px; font-weight: 600;">📝 Resumen del tratamiento:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ resumen_tratamiento }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if logros_obtenidos %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdf4; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #166534; font-size: 14px; font-weight: 600;">🏆 Logros obtenidos:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ logros_obtenidos }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if estado_al_alta %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 15px 0;">
-    <tr>
-        <td style="padding: 12px 20px; background-color: #faf5ff; border-radius: 8px; border-left: 4px solid #a855f7;">
-            <p style="margin: 0; color: #475569; font-size: 14px;">
-                📊 <strong>Estado al alta:</strong> {{ estado_al_alta }}
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+                {% if es_paciente %}
+                El resumen clínico detallado (diagnóstico, recomendaciones y plan de seguimiento) está disponible en su centro de atención. Por seguridad, no incluimos información clínica sensible en este correo.
+                {% else %}
+                Los detalles clínicos completos están disponibles en el historial del paciente dentro de KenkoMed.
+                {% endif %}
             </p>
         </td>
     </tr>
 </table>
-{% endif %}
 
-{% if recomendaciones_alta %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 15px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #92400e; font-size: 14px; font-weight: 600;">⚠️ Recomendaciones al alta:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ recomendaciones_alta }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if plan_seguimiento %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #94a3b8; margin: 15px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #475569; font-size: 14px; font-weight: 600;">📅 Plan de seguimiento:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ plan_seguimiento }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-<p style="margin: 25px 0 0; color: #475569; font-size: 15px; line-height: 1.6;">
-    {% if es_paciente %}
-        Gracias por confiar en nosotros para tu recuperación. ¡Te deseamos lo mejor! 💪
-    {% else %}
-        Los detalles completos están disponibles en el historial del paciente dentro de KenkoMed.
-    {% endif %}
+{% if es_paciente %}
+<p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+    Gracias por confiar en su equipo de salud.
 </p>
+{% endif %}
 {% endblock %}

@@ -10,6 +10,14 @@ from .models import SesionKinesica
 import json
 from datetime import datetime
 
+def obtener_paciente_con_permiso(rut_paciente, request):
+    es_admin = request.session.get('es_admin', False)
+    if es_admin:
+        return Paciente.objects.get(rut=rut_paciente)
+    clinica_id = request.session.get('clinica_id')
+    if not clinica_id:
+        raise Paciente.DoesNotExist()
+    return Paciente.objects.get(rut=rut_paciente, clinica_id=clinica_id)
 
 @requiere_clinico
 def listar_sesiones_paciente(request):
@@ -25,18 +33,9 @@ def listar_sesiones_paciente(request):
     rut_clinico = request.session.get('rut_clinico')
     es_admin = request.session.get('es_admin', False)
     
-    # Obtener el clínico
-    clinico_obj = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else None
-    
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('historialClinico')
@@ -76,13 +75,7 @@ def crear_primera_sesion(request):
     
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -207,13 +200,7 @@ def crear_sesion_seguimiento(request):
     
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -286,13 +273,7 @@ def ver_sesion_kinesica(request):
     
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -333,13 +314,7 @@ def editar_sesion_kinesica(request):
     
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -466,13 +441,7 @@ def crear_sesion_final(request):
     
     # Obtener el paciente
     try:
-        if es_admin:
-            paciente = Paciente.objects.get(rut=rut_paciente)
-        else:
-            if not clinico_obj:
-                messages.error(request, 'Error: Clínico no encontrado en sesión.')
-                return redirect('historialClinico')
-            paciente = Paciente.objects.get(rut=rut_paciente, clinico=clinico_obj)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('sesiones_kinesicas:listar')
@@ -560,7 +529,7 @@ def api_sesiones_paciente(request):
         return JsonResponse({'error': 'RUT no proporcionado'}, status=400)
     
     try:
-        paciente = Paciente.objects.get(rut=rut_paciente)
+        paciente = obtener_paciente_con_permiso(rut_paciente, request)
         sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('-numero_sesion')
         
         sesiones_data = [

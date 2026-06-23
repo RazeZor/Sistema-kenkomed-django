@@ -1,15 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
 
-
-
-# Modelo Clínico: Representa un clínico en el sistema.
-from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
-
-from django.db import models
-from django.contrib.auth.hashers import make_password, check_password
-
 class Clinico(models.Model):
     # --- Identificación principal ---
     rut = models.CharField(max_length=12, primary_key=True, unique=True, verbose_name="RUT")
@@ -60,6 +51,8 @@ class Clinico(models.Model):
 class Paciente(models.Model):
     rut = models.CharField(max_length=12, primary_key=True, unique=True)  # Clave primaria única
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='pacientes_asignados', null=True, blank=True)
+    clinica = models.ForeignKey('clinicas.Clinica', on_delete=models.CASCADE, related_name='pacientes', null=True, blank=True)
+    clinico_creador = models.ForeignKey('Clinico', on_delete=models.SET_NULL, related_name='pacientes_creados', null=True, blank=True)
     nombre = models.CharField(max_length=50,null=True,blank=True)
     apellido = models.CharField(max_length=50)
     fechaNacimiento = models.DateField(null=True)
@@ -97,6 +90,10 @@ class Reserva(models.Model):
         verbose_name = "Reserva"
         verbose_name_plural = "Reservas"
         ordering = ['fecha', 'hora_inicio']
+        indexes = [
+            models.Index(fields=['clinico', 'fecha']),
+            models.Index(fields=['fecha', 'hora_inicio']),
+        ]
 
     def __str__(self):
         return f"Reserva: {self.paciente.nombre} con {self.clinico.nombre} el {self.fecha} a las {self.hora_inicio}"
@@ -195,12 +192,6 @@ class formularioClinico(models.Model):
     preguntas2 = models.JSONField(null=True, blank=True)
     AreasMotivacion = models.JSONField(null=True,blank=True)
     motivacion_Salud = models.TextField(null=True,blank=True)
-    
-class tiempo(models.Model):
-    duracion = models.DurationField()
-    
-    def __str__(self):
-        return f'tiempo = {self.duracion}'
     
 class Notas(models.Model):
     notas = models.TextField(null=True, blank=True)
@@ -370,4 +361,36 @@ class RecetaMedica(models.Model):
 
     def __str__(self):
         return f"receta medica de {self.paciente.nombre}"
+
+
+class AuditoriaAcceso(models.Model):
+    """Registro de accesos a fichas e historiales clínicos."""
+
+    ACCIONES = [
+        ('historial', 'Historial clínico'),
+        ('informe', 'Informe DSS'),
+        ('ficha', 'Ficha clínica'),
+        ('exportar_json', 'Exportación JSON (ARCO)'),
+        ('exportar_html', 'Exportación HTML (ARCO)'),
+    ]
+
+    paciente = models.ForeignKey('Paciente', on_delete=models.CASCADE, related_name='auditorias_acceso')
+    clinico = models.ForeignKey('Clinico', on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias_realizadas')
+    clinica = models.ForeignKey('clinicas.Clinica', on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias_acceso')
+    accion = models.CharField(max_length=20, choices=ACCIONES)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Auditoría de acceso'
+        verbose_name_plural = 'Auditorías de acceso'
+        ordering = ['-fecha']
+        indexes = [
+            models.Index(fields=['clinica', '-fecha']),
+            models.Index(fields=['paciente', '-fecha']),
+        ]
+
+    def __str__(self):
+        clinico = self.clinico.rut if self.clinico else '—'
+        return f'{self.get_accion_display()} — {self.paciente.rut} — {clinico}'
 

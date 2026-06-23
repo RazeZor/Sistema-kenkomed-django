@@ -8,7 +8,9 @@ urlpatterns = [
     path('estadisticas_paciente/', views.estadisticas_paciente_view, name='estadisticas_paciente'),
     
     # Reservas / Calendario
-    path('calendario/', views_reservas.calendario_view, name='calendario_reservas'),
+    path('calendario/', views_reservas.calendario_personal_view, name='calendario_reservas'),
+    path('calendario/personal/', views_reservas.calendario_personal_view, name='calendario_personal'),
+    path('calendario/clinica/', views_reservas.calendario_clinica_view, name='calendario_clinica'),
     path('api/reservas/', views_reservas.api_obtener_reservas, name='api_obtener_reservas'),
     path('api/reservas/crear/', views_reservas.api_crear_reserva, name='api_crear_reserva'),
     path('api/reservas/mover/<int:reserva_id>/', views_reservas.api_mover_reserva, name='api_mover_reserva'),

@@ -1,0 +1,100 @@
+{% extends 'base_kenkomed.html' %}
+
+{% block title %}Mi Centro | KenkoMed{% endblock %}
+
+{% block header_title %}Mi Centro{% endblock %}
+
+{% block content %}
+<div class="px-4 py-6 mx-auto max-w-5xl sm:px-6 lg:px-8">
+
+    {% if clinica %}
+    <div class="mb-6 overflow-hidden bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <div class="p-6 md:p-8 border-b border-gray-100 bg-gradient-to-r from-medical-blue/5 to-sky-50">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div class="flex items-start gap-4">
+                    {% if clinica.logo %}
+                    <img src="{{ clinica.logo.url }}" alt="{{ clinica.nombre }}" class="h-14 w-auto max-w-[120px] object-contain rounded-lg border border-gray-100 bg-white p-1">
+                    {% endif %}
+                    <div>
+                    <p class="text-xs font-bold tracking-wider text-medical-blue uppercase mb-1">Centro de trabajo</p>
+                    <h2 class="text-2xl font-bold text-gray-900">{{ clinica.nombre }}</h2>
+                    <p class="text-sm text-gray-500 mt-1">
+                        {% if es_centro_compartido %}
+                        Centro compartido · {{ total_miembros }} profesional{{ total_miembros|pluralize:"es" }}
+                        {% else %}
+                        Consulta individual
+                        {% endif %}
+                    </p>
+                    </div>
+                </div>
+                <span class="px-3 py-1.5 text-xs font-bold uppercase rounded-full border self-start
+                    {% if es_centro_compartido %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-amber-50 text-amber-700 border-amber-200{% endif %}">
+                    {% if es_centro_compartido %}Centro / Clínica{% else %}Individual{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3">
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-bold text-gray-500 uppercase">Profesionales</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_miembros }}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-bold text-gray-500 uppercase">Tipo</p>
+                <p class="text-lg font-semibold text-gray-900 mt-1">{{ clinica.get_tipo_display }}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-bold text-gray-500 uppercase">Ciudad</p>
+                <p class="text-lg font-semibold text-gray-900 mt-1">{{ clinica.ciudad|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <h3 class="text-lg font-bold text-gray-900">Equipo del centro</h3>
+            <p class="text-sm text-gray-500">
+                Todos comparten pacientes, historiales y agenda. Los cambios de equipo los gestiona KenkoMed.
+            </p>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for membresia in membresias %}
+            <div class="flex items-center gap-4 px-6 py-4">
+                <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-medical-blue/10 text-medical-blue font-bold">
+                    {{ membresia.clinico.nombre|slice:":1" }}{{ membresia.clinico.apellido|slice:":1" }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 truncate">
+                        {{ membresia.clinico.nombre }} {{ membresia.clinico.apellido }}
+                    </p>
+                    <p class="text-sm text-gray-500">{{ membresia.clinico.profesion }}</p>
+                </div>
+                {% if membresia.rol %}
+                <span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-blue-50 text-medical-blue border border-blue-100">
+                    {{ membresia.get_rol_display }}
+                </span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="px-6 py-8 text-center text-gray-500">No hay miembros activos en este centro.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if es_admin_clinica %}
+    <div class="mt-6 p-5 bg-white border border-gray-100 rounded-2xl shadow-sm">
+        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-2">Cumplimiento y privacidad</h3>
+        <p class="text-sm text-gray-600 mb-4">Registro de accesos a fichas clínicas de su centro (últimos 90 días).</p>
+        <a href="{% url 'auditoria_accesos' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-medical-blue rounded-lg hover:opacity-90">
+            Ver auditoría de accesos
+        </a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="p-8 text-center bg-white border border-gray-100 rounded-2xl">
+        <p class="text-gray-600">No tienes un centro asociado a tu sesión.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

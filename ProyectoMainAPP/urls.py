@@ -14,42 +14,44 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import RedirectView
 from Login import views as l
-from PanelDeControl import views as v # Importa la vista PanelDeControl desde el archivo views.py de la aplicación PanelDeControl.
-from CrudClinico import views as vistaClinico # Importa las vistas de la aplicación CrudClinico.
+from PanelDeControl import views as v 
+from PanelDeControl import views_pacientes as vp
+from PanelDeControl import views_informe as vi
+from PanelDeControl import views_privacidad as vpriv
 from FormularioInicial import views as vistaClinicos
-from informe import views as vistaInforme
-from ListaDePacientes import views as lista
-from ListaDePacientes.views import EditarPaciente
 from TiposDeFormularios import views as tiposFormularios
-from PerfilClinico import views as perfil
-from menu import views as m
-from RecetasMedicas import views as recetaViews  # Importar las vistas de la aplicación RecetasMedicas
+from RecetasMedicas import views as recetaViews
+
 urlpatterns = [
-    path('adminlfhjghjghgfnfgnhgfnhngf/', admin.site.urls), # Asocia la URL /admin/ con la vista de administración de Django.
-    path('', l.validarLogin,name='login'),  # Asocia la URL / con la vista Login.validarLogin.
-    path('panel/', v.panel, name="panel"),  # Asocia la URL /panel/ con la vista PanelDeControl.),
-    path('Ver/', vistaClinico.VerClinicos,name='ver'),
+    path('administradordjangogeneral', admin.site.urls), 
+    path('', l.validarLogin,name='login'),  
+    path('panel/', v.panel, name="panel"),  
     path('panel/FormularioInicial/', vistaClinicos.FormularioInicial,name='formularioInicial'),
     path('Cerrar/',v.cerrar_sesion,name='cerrarSesion'),
     
-    path('informe/',vistaInforme.RenderInforme,name='informe'),
-    path('ficha-clinica/',vistaInforme.RenderFichaClinica,name='fichaClinica'),
+    path('informe/', vi.RenderInforme, name='informe'),
+    path('ficha-clinica/', vi.RenderFichaClinica, name='fichaClinica'),
+    path('panel/exportar-ficha/', vpriv.exportar_ficha, name='exportar_ficha'),
+    path('panel/auditoria-accesos/', vpriv.auditoria_accesos, name='auditoria_accesos'),
+    path('privacidad-paciente/', vistaClinicos.aviso_privacidad_paciente, name='privacidad_paciente'),
 
-    path('editar/', vistaClinico.EditarClinicos, name='editar'),
-    path('eliminar_paciente/', lista.EliminarPaciente, name='eliminar'),
+    path('eliminar_paciente/', vp.EliminarPaciente, name='eliminar'),
 
-    path('menu/',m.sidebar,name='menu'),
+    path('menu/', v.sidebar, name='menu'),
+    
     #vistas derivadas del panel
-    path('panel/fichaPacientes/',v.VerInformePacientes,name='ficha'),
+    path('panel/fichaPacientes/', v.VerInformePacientes, name='ficha'),
     path('panel/historialClinico/', v.HistorialClinico, name='historialClinico'),
-    path('PerfilClinico/',perfil.RenderizarPerfil,name='perfilClinico'),
-    path('AgregarClinico/', vistaClinico.AgregarClinico,name='agregar'),
-    path('panel/ListaPacientes',lista.MostrarPacientes,name='pacientes'),
-    path('panel/AgregarPaciente',lista.AgregarPacienteBasico,name='AgregarPacienteBasico'),
-    path('panel/EditarPaciente', EditarPaciente, name='editar_paciente'),
+    path('PerfilClinico/', RedirectView.as_view(pattern_name='perfilClinico', permanent=True)),
+    path('panel/ListaPacientes', vp.MostrarPacientes, name='pacientes'),
+    path('panel/AgregarPaciente', vp.AgregarPacienteBasico, name='AgregarPacienteBasico'),
+    path('panel/EditarPaciente', vp.EditarPaciente, name='editar_paciente'),
     
     # Incluir las URLs de PanelDeControl
     path('', include('PanelDeControl.urls')),
@@ -62,11 +64,11 @@ urlpatterns = [
     path('CuestionarioENA/', tiposFormularios.renderizar_CuestionarioENA, name='ENA'),
     path('CuestionarioPSFS/', tiposFormularios.gestionar_psfs, name='gestionar_psfs'),
     path('CuestionarioEQ_5D/',tiposFormularios.RenderizarEQ_5D,name='EQ_5D'),
-    path('CuestionarioBartel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
+    path('CuestionarioBarthel/', tiposFormularios.renderizar_CuestionarioBarthel, name='bartel'),
     path("CuestionarioScrenning/",tiposFormularios.renderizar_cuestionarioScrening,name="Screnning"),
     path('CuestionarioOswestry/', tiposFormularios.renderizar_cuestionario_oswestry, name='oswestry'),
     path('CuestionarioLEFS/', tiposFormularios.renderizar_cuestionario_lefs, name='lefs'),
-    path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  # Incluir las URLs de la aplicación RecetasMedicas
+    path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  
 
     # URLs para sistema de formularios remotos
     path('generar-qr-formulario/', vistaClinicos.generar_token_formulario, name='generar_qr'),
@@ -75,4 +77,10 @@ urlpatterns = [
     path('desactivar-token/<uuid:token_id>/', vistaClinicos.desactivar_token, name='desactivar_token'),
     path('generar-formulario-remoto/', vistaClinicos.generar_token_desde_historial, name='generar_formulario_remoto'),
     
+    # URLs de clinicos e clinicas
+    path('clinicas/', include('clinicas.urls')),
+    path('clinicos/', include('clinicos.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

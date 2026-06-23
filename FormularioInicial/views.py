@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta
 import re
 from django.shortcuts import render, redirect, get_object_or_404
-from Login.models import formularioClinico, Clinico, Paciente, tiempo
-from FormularioInicial.models import TokenFormulario
+from Login.models import formularioClinico, Clinico, Paciente
+from FormularioInicial.models import TokenFormulario, ConsentimientoDatos
 from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.urls import reverse
 from ProyectoMainAPP.email_service import notificar_nuevo_paciente, notificar_formulario_completado
+from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut, paciente_pertenece_a_sesion
+from Login.auditoria import obtener_ip_cliente
 import json
 import qrcode
 from io import BytesIO
@@ -32,21 +34,6 @@ def obtener_clinico_desde_sesion(request):
     except Clinico.DoesNotExist:
         messages.error(request, 'el clinico no esta en el sistema, intenta nuevamente...')
         return (None, es_admin)
-
-def parsear_duracion_sesion(duracion_str):
-    """Convierte una cadena HH:MM:SS a un objeto tiempo 'tiempo' del modelo.
-    Retorna la instancia guardada o None si el formato es inválido.
-    """
-    if not duracion_str:
-        return None
-    try:
-        horas, minutos, segundos = map(int, duracion_str.split(':'))
-        duracion_sesion = timedelta(hours=horas, minutes=minutos, seconds=segundos)
-        nuevo_tiempo = tiempo(duracion=duracion_sesion)
-        nuevo_tiempo.save()
-        return nuevo_tiempo
-    except Exception:
-        return None
 
 def parsear_fecha_campo(fecha_str, campo_nombre, request):
     """Parsea una fecha en formato YYYY-MM-DD. Si falla, agrega mensaje y retorna None."""
@@ -194,23 +181,36 @@ def validar_campos_obligatorios(datos):
 def crear_o_actualizar_paciente(rut, defaults, clinico=None):
     """Crea o actualiza el paciente. Si se crea, asigna el clínico (si existe el campo)."""
     paciente, created = Paciente.objects.update_or_create(rut=rut, defaults=defaults)
-    if created and clinico:
+    if clinico:
         try:
             paciente.clinico = clinico
+            paciente.clinico_creador = clinico
+            # Buscar clínica activa del clínico
+            from clinicas.models import MembresiaClinica
+            membresia = MembresiaClinica.objects.filter(clinico=clinico, activo=True).first()
+            if membresia:
+                paciente.clinica = membresia.clinica
+            paciente.save()
+        except Exception as e:
+            # Si no existe el campo clinico o falla, no interrumpimos el flujo
+            print(f"Error al asociar clinica/clinico al paciente: {e}")
+    elif 'clinica_id' in defaults:
+        # Fallback si se especifica la clínica directamente
+        try:
+            paciente.clinica_id = defaults['clinica_id']
             paciente.save()
         except Exception:
-            # Si no existe el campo clinico o falla, no interrumpimos el flujo
             pass
     return paciente, created
 
 
-def construir_formulario_desde_post(request, paciente, clinico, tiempo_obj):
+def construir_formulario_desde_post(request, paciente, clinico):
     """Construye y guarda el objeto formularioClinico a partir de request.POST y objetos dados."""
     form = formularioClinico(
         paciente=paciente,
         clinico=clinico,
         fechaCreacion=datetime.now(),
-        medicamentos=json.dumps(request.POST.getlist('medicamentos')),
+        medicamentos=request.POST.getlist('medicamentos'),
 
         # pagina 2
         duracionDolor=request.POST.get('btnradio1'),
@@ -302,28 +302,19 @@ def FormularioInicial(request):
         if request.method == 'GET':
             rut = request.GET.get('rut')
             if rut:
-                try:
-                    paciente_obj = Paciente.objects.get(rut=rut)
+                paciente_obj = obtener_paciente_por_rut(request, rut)
+                if paciente_obj:
                     context['paciente_existente'] = True
                     context['paciente'] = paciente_obj
-                except Paciente.DoesNotExist:
-                    pass
 
         if request.method == 'POST':
-            # Parsear duración de sesión y crear registro tiempo
-            duracion_sesion_str = request.POST.get('duracion_sesion')
-            nuevo_tiempo = parsear_duracion_sesion(duracion_sesion_str)
-            if duracion_sesion_str and not nuevo_tiempo:
-                messages.error(request, 'Formato de duración de sesión inválido.')
-
             paciente_ya_existe = request.POST.get('paciente_ya_existe') == 'true'
 
             if paciente_ya_existe:
                 rut = request.POST.get('rut_oculto')
-                try:
-                    paciente = Paciente.objects.get(rut=rut)
-                except Paciente.DoesNotExist:
-                    messages.error(request, 'El paciente especificado no existe.')
+                paciente = obtener_paciente_por_rut(request, rut)
+                if not paciente:
+                    messages.error(request, 'El paciente especificado no existe o no pertenece a tu clínica.')
                     return render(request, 'FormularioInicial.html', context)
             else:
                 rut = request.POST.get('rut')
@@ -409,7 +400,7 @@ def FormularioInicial(request):
 
             # Construir y guardar formulario Clínico con todos los campos
             try:
-                construir_formulario_desde_post(request, paciente, clinico, nuevo_tiempo)
+                construir_formulario_desde_post(request, paciente, clinico)
                 messages.info(request, 'Formulario clínico guardado correctamente.')
             except Exception as e:
                 messages.error(request, f'Error al guardar formulario clínico: {e}')
@@ -453,6 +444,10 @@ def generar_token_formulario(request):
             except Paciente.DoesNotExist:
                 messages.error(request, 'Paciente no encontrado en el sistema')
                 return redirect('generar_qr')
+
+            if not paciente_pertenece_a_sesion(request, paciente):
+                messages.error(request, 'No tienes permisos para generar formulario para este paciente')
+                return redirect('generar_qr')
             
             # Verificar que no tenga ya formulario clínico
             if formularioClinico.objects.filter(paciente=paciente).exists():
@@ -469,12 +464,15 @@ def generar_token_formulario(request):
             return redirect('descargar_qr', token_id=token.id)
         
         # GET: Listar pacientes sin anamnesis y tokens activos
-        if es_admin:
-            pacientes_sin_anamnesis = Paciente.objects.filter(formulario__isnull=True)
+        pacientes_sin_anamnesis = filtrar_pacientes_por_sesion(request).filter(formulario__isnull=True)
+
+        clinicos_ids = obtener_clinicos_de_sesion(request)
+        if clinicos_ids:
+            tokens_activos = TokenFormulario.objects.filter(
+                clinico_id__in=clinicos_ids
+            ).order_by('-fecha_creacion')[:20]
         else:
-            pacientes_sin_anamnesis = Paciente.objects.filter(clinico=clinico, formulario__isnull=True)
-        
-        tokens_activos = TokenFormulario.objects.filter(clinico=clinico).order_by('-fecha_creacion')[:20]
+            tokens_activos = TokenFormulario.objects.none()
         
         return render(request, 'generar_qr.html', {
             'clinico': clinico,
@@ -499,7 +497,7 @@ def descargar_qr(request, token_id):
         
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        if token.clinico != clinico and not es_admin:
+        if not es_admin and not paciente_pertenece_a_sesion(request, token.paciente):
             messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
@@ -592,12 +590,32 @@ def formulario_publico(request, token_id):
         
         # PASO 2: Formulario de anamnesis
         if request.method == 'POST' and 'rut_verificacion' not in request.POST:
+            if request.POST.get('consentimiento_datos') != 'on':
+                messages.error(
+                    request,
+                    'Debe leer y aceptar el aviso de tratamiento de datos personales para enviar el formulario.',
+                )
+                return render(request, 'FormularioInicial.html', {
+                    'token': token,
+                    'es_publico': True,
+                    'es_solo_anamnesis': True,
+                    'paciente_existente': True,
+                    'paciente': paciente,
+                    'clinico': token.clinico,
+                    'clinica': paciente.clinica,
+                })
+
             try:
-                duracion_sesion_str = request.POST.get('duracion_sesion')
-                nuevo_tiempo = parsear_duracion_sesion(duracion_sesion_str)
-                
                 # Guardar formulario clínico con datos del paciente pre-existente
-                construir_formulario_desde_post(request, paciente, token.clinico, nuevo_tiempo)
+                construir_formulario_desde_post(request, paciente, token.clinico)
+
+                ConsentimientoDatos.objects.create(
+                    paciente=paciente,
+                    clinica=paciente.clinica,
+                    origen='formulario_qr',
+                    ip_address=obtener_ip_cliente(request),
+                    token=token,
+                )
                 
                 # Marcar token como usado
                 token.marcar_como_usado()
@@ -626,6 +644,7 @@ def formulario_publico(request, token_id):
             'paciente_existente': True,
             'paciente': paciente,
             'clinico': token.clinico,
+            'clinica': paciente.clinica,
         })
         
     except Exception as e:
@@ -646,7 +665,7 @@ def desactivar_token(request, token_id):
         
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        if token.clinico != clinico and not es_admin:
+        if not es_admin and not paciente_pertenece_a_sesion(request, token.paciente):
             messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
@@ -658,6 +677,11 @@ def desactivar_token(request, token_id):
     except Exception as e:
         messages.error(request, f'Error: {str(e)}')
         return redirect('generar_qr')
+
+
+def aviso_privacidad_paciente(request):
+    """Aviso público de tratamiento de datos (pacientes — formulario QR)."""
+    return render(request, 'privacidad_paciente.html')
 
 
 def generar_token_desde_historial(request):

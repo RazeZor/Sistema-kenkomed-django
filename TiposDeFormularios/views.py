@@ -49,10 +49,18 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
             return None
         
         try:
-            self.paciente = Paciente.objects.get(rut=rut)
+            es_admin = self.request.session.get('es_admin', False)
+            if es_admin:
+                self.paciente = Paciente.objects.get(rut=rut)
+            else:
+                clinica_id = self.request.session.get('clinica_id')
+                if clinica_id:
+                    self.paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
+                else:
+                    raise Paciente.DoesNotExist()
             return self.paciente
         except Paciente.DoesNotExist:
-            messages.error(self.request, 'Paciente no encontrado.')
+            messages.error(self.request, 'Paciente no encontrado o no tienes permiso de acceso.')
             return None
     
     def redirect_to_login(self):

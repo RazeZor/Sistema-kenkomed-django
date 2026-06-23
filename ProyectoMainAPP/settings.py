@@ -12,27 +12,52 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Cargar variables desde .env en desarrollo (el archivo no se commitea)
+_env_path = BASE_DIR / '.env'
+if _env_path.exists():
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(_env_path)
+    except ImportError:
+        pass
+
+
+def _env_bool(key, default=False):
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    return value.lower() in ('1', 'true', 'yes', 'on')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!+oct78wdh2u%7^q=1t*fuuxgo=sc@o5n$g=*_jvq1a=ou-+84'
+DEBUG = _env_bool('DJANGO_DEBUG', default=True)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-change-in-production'
+    else:
+        raise ImproperlyConfigured('DJANGO_SECRET_KEY es obligatorio cuando DJANGO_DEBUG=False')
 
-ALLOWED_HOSTS = [
-    '.ngrok-free.app',  # Permite todos los subdominios de ngrok-free.app
-    'localhost',
-    '127.0.0.1',
-    'software.kenkomed.cl',
-    'www.software.kenkomed.cl',
-    '*.trycloudflare.com',
-]
+_allowed_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+if _allowed_hosts:
+    ALLOWED_HOSTS = [h.strip() for h in _allowed_hosts.split(',') if h.strip()]
+else:
+    ALLOWED_HOSTS = [
+        '.ngrok-free.app',
+        'localhost',
+        '127.0.0.1',
+        'software.kenkomed.cl',
+        'www.software.kenkomed.cl',
+        '*.trycloudflare.com',
+    ]
 
 
 # Application definition
@@ -44,15 +69,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'clinicas.apps.ClinicasConfig',
+    'clinicos',
     'Login',
     'PanelDeControl',
-    'CrudClinico',
     'FormularioInicial',
     'TiposDeFormularios',	
-    'informe',
-    'ListaDePacientes',
-    'PerfilClinico',
-    'menu',
     'RecetasMedicas',
     'SesionesKinesicas',
 ]
@@ -66,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'clinicas.middleware.ClinicaMiddleware',
 ]
 
 ROOT_URLCONF = 'ProyectoMainAPP.urls'
@@ -97,12 +120,11 @@ DATABASES = {
         'NAME': os.environ.get('DB_NAME', 'my_database'),
         'USER': os.environ.get('DB_USER', 'django_user'),
         'PASSWORD': os.environ.get('DB_PASSWORD', 'my_password'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),  # 'db' en Docker, 'localhost' en local
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
+        'CONN_MAX_AGE': int(os.environ.get('DB_CONN_MAX_AGE', '60')),
     }
 }
-
-
 
 
 # Password validation
@@ -136,10 +158,10 @@ USE_TZ = True
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'kenkomedplus@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'irykslbyckmeiewn')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'kenkomedplus@gmail.com')
+EMAIL_USE_TLS = _env_bool('EMAIL_USE_TLS', default=True)
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@kenkomed.cl')
 
 
 # Static files (CSS, JavaScript, Images)
@@ -147,6 +169,8 @@ DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'kenkomedplus@gmail.co
 
 STATIC_URL = '/static/'
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
@@ -157,12 +181,26 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CSRF_TRUSTED_ORIGINS = [
-    'https://2695-2803-c600-8104-8392-89f9-6098-6dd5-84db.ngrok-free.app',
-    # Para permitir cualquier subdominio de ngrok-free.app:
-    'https://*.ngrok-free.app',
-    'https://software.kenkomed.cl',
-    'https://www.software.kenkomed.cl',
-    'https://*.trycloudflare.com',
-]
+_csrf_origins = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '')
+if _csrf_origins:
+    CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
+else:
+    CSRF_TRUSTED_ORIGINS = [
+        'https://2695-2803-c600-8104-8392-89f9-6098-6dd5-84db.ngrok-free.app',
+        'https://*.ngrok-free.app',
+        'https://software.kenkomed.cl',
+        'https://www.software.kenkomed.cl',
+        'https://*.trycloudflare.com',
+    ]
 
+# Seguridad en producción (HTTPS). En local/Docker sin TLS: SECURE_SSL_REDIRECT=False en .env
+if not DEBUG:
+    SECURE_SSL_REDIRECT = _env_bool('SECURE_SSL_REDIRECT', default=True)
+    SESSION_COOKIE_SECURE = _env_bool('SESSION_COOKIE_SECURE', default=True)
+    CSRF_COOKIE_SECURE = _env_bool('CSRF_COOKIE_SECURE', default=True)
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

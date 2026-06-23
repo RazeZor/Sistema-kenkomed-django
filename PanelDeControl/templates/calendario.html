@@ -4,10 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agenda — KenkoMed</title>
+    <title>{{ titulo_calendario }} — KenkoMed</title>
         <link rel="shortcut icon" href="{% static 'image/LogoKenkoMed.png' %}" />
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/boxicons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -147,6 +146,12 @@
             width: 100% !important;
         }
 
+        #calendar.fc-loading {
+            opacity: 0.65;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+        }
+
         /* ── FullCalendar overrides ── */
         .fc { color: var(--text-muted); }
 
@@ -234,8 +239,6 @@
             position: fixed;
             inset: 0;
             background: rgba(15, 23, 42, 0.45);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
             z-index: 9999;
             display: none;
             align-items: center;
@@ -459,7 +462,30 @@
             color: #15803d;
         }
 
-        .btn-row { display: flex; align-items: center; gap: 0.5rem; }
+        .btn-switch {
+            height: 32px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            padding: 0 0.875rem;
+            gap: 0.375rem;
+            color: var(--medical-blue);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            background: var(--blue-light);
+            border: 1px solid var(--blue-mid);
+            text-decoration: none;
+        }
+        .btn-switch:hover { background: #dbeafe; }
+        .readonly-banner {
+            background: #fffbeb;
+            border-bottom: 1px solid #fde68a;
+            color: #92400e;
+            font-size: 0.8125rem;
+            padding: 0.5rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -476,20 +502,39 @@
                     <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed">
                 </div>
                 <div>
-                    <div class="nav-title">Agenda Médica</div>
-                    <div class="nav-status">
-                        <span class="status-dot"></span>
-                        Sistema activo
+                    <div class="nav-title">{{ titulo_calendario }}</div>
+                    <div class="nav-status" style="color:var(--text-muted)">
+                        {{ subtitulo_calendario }}
                     </div>
                 </div>
             </div>
         </div>
 
-        <button onclick="abrirModalCrear()" class="btn-primary">
-            <i class="bx bx-plus" style="font-size:1rem;"></i>
-            Nueva reserva
-        </button>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            {% if es_centro_compartido %}
+                {% if modo_calendario == 'personal' %}
+                <a href="{% url 'calendario_clinica' %}" class="btn-switch">
+                    <i class="bx bx-buildings"></i> Agenda del centro
+                </a>
+                {% else %}
+                <a href="{% url 'calendario_personal' %}" class="btn-switch">
+                    <i class="bx bx-user"></i> Mi agenda
+                </a>
+                {% endif %}
+            {% endif %}
+            <button id="btnNuevaReserva" onclick="abrirModalCrear()" class="btn-primary" {% if solo_lectura %}style="display:none"{% endif %}>
+                <i class="bx bx-plus" style="font-size:1rem;"></i>
+                Nueva reserva
+            </button>
+        </div>
     </header>
+
+    {% if solo_lectura %}
+    <div class="readonly-banner">
+        <i class="bx bx-show"></i>
+        Modo solo lectura — las citas del centro no se pueden modificar. Usa <strong>Mi agenda</strong> para gestionar tus propias citas.
+    </div>
+    {% endif %}
 
     <!-- Calendar -->
     <main class="cal-wrapper">
@@ -524,11 +569,9 @@
                     <div class="form-section form-grid-2">
                         <div class="form-group">
                             <label class="form-label">Paciente <span class="req">*</span></label>
-                            <select id="paciente_rut" class="form-input" required>
+                            <input type="text" id="paciente_buscar" class="form-input" placeholder="Buscar por nombre o RUT..." autocomplete="off">
+                            <select id="paciente_rut" class="form-input" required size="1" style="margin-top:0.375rem">
                                 <option value="">Seleccione un paciente...</option>
-                                {% for p in pacientes %}
-                                <option value="{{ p.rut }}" data-correo="{{ p.correo|default:'' }}">{{ p.nombre }} {{ p.apellido }} — {{ p.rut }}</option>
-                                {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
@@ -556,6 +599,22 @@
                     </div>
 
                     <hr class="form-divider">
+
+                    {% if modo_calendario == 'clinica' and not solo_lectura %}
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Profesional <span class="req">*</span></label>
+                            <select id="clinico_rut" class="form-input" required>
+                                {% for c in clinicos %}
+                                <option value="{{ c.rut }}" {% if c.rut == rut_clinico_sesion %}selected{% endif %}>
+                                    {{ c.nombre }} {{ c.apellido }} — {{ c.profesion }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <hr class="form-divider">
+                    {% endif %}
 
                     <!-- Motivo -->
                     <div class="form-section">
@@ -591,15 +650,90 @@
         </div>
     </div>
 
+    {{ pacientes_list|json_script:"pacientes-data" }}
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
 
     <script>
+        const SOLO_LECTURA = {{ solo_lectura|yesno:"true,false" }};
+        const MODO_CALENDARIO = '{{ modo_calendario }}';
+        const EVENTS_BASE = "{% url 'api_obtener_reservas' %}";
+        const CSRF_TOKEN = getCookie('csrftoken');
+        const PACIENTES = JSON.parse(document.getElementById('pacientes-data').textContent);
+        const URL_CREAR = "{% url 'api_crear_reserva' %}";
+        const URL_MOVER = "{% url 'api_mover_reserva' 0 %}";
+        const URL_ELIMINAR = "{% url 'api_eliminar_reserva' 0 %}";
+
         let calendar;
+        let pacientesSelectListo = false;
+        let movimientoEnCurso = false;
+
+        function poblarSelectPacientes(filtro = '') {
+            const select = document.getElementById('paciente_rut');
+            const valorActual = select.value;
+            const termino = filtro.trim().toLowerCase();
+            const fragment = document.createDocumentFragment();
+            const optDefault = document.createElement('option');
+            optDefault.value = '';
+            optDefault.textContent = 'Seleccione un paciente...';
+            fragment.appendChild(optDefault);
+
+            PACIENTES.forEach(p => {
+                const label = `${p.nombre} ${p.apellido} — ${p.rut}`;
+                if (termino && !label.toLowerCase().includes(termino) && !p.rut.toLowerCase().includes(termino)) {
+                    return;
+                }
+                const opt = document.createElement('option');
+                opt.value = p.rut;
+                opt.textContent = label;
+                opt.dataset.correo = p.correo || '';
+                fragment.appendChild(opt);
+            });
+
+            select.replaceChildren(fragment);
+            if (valorActual) select.value = valorActual;
+            pacientesSelectListo = true;
+        }
+
+        function asegurarPacientesSelect() {
+            if (!pacientesSelectListo) poblarSelectPacientes();
+        }
+
+        function fetchReservas(info, successCallback, failureCallback) {
+            const url = new URL(EVENTS_BASE, window.location.origin);
+            url.searchParams.set('alcance', MODO_CALENDARIO);
+            url.searchParams.set('start', info.startStr.slice(0, 10));
+            url.searchParams.set('end', info.endStr.slice(0, 10));
+
+            fetch(url, {
+                headers: { 'Accept': 'application/json' },
+                credentials: 'same-origin',
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Error al cargar citas');
+                return res.json();
+            })
+            .then(successCallback)
+            .catch(err => failureCallback(err));
+        }
+
+        function apiPost(url, data) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN,
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify(data),
+            }).then(res => res.json());
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
-            var calendarEl = document.getElementById('calendar');
+            const calendarEl = document.getElementById('calendar');
             calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
                 locale: 'es',
@@ -607,6 +741,7 @@
                 expandRows: true,
                 stickyHeaderDates: true,
                 nowIndicator: true,
+                lazyFetching: true,
                 headerToolbar: {
                     left: 'prev,next title',
                     right: 'today dayGridMonth,timeGridWeek,timeGridDay'
@@ -616,23 +751,39 @@
                 slotDuration: '00:30:00',
                 slotLabelInterval: '01:00',
                 allDaySlot: false,
-                editable: true,
-                selectable: true,
-                selectMirror: true,
+                editable: !SOLO_LECTURA,
+                selectable: !SOLO_LECTURA,
+                selectMirror: !SOLO_LECTURA,
+                eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 dayMaxEvents: true,
-                events: "{% url 'api_obtener_reservas' %}",
-
-                select: function (info) { abrirModalCrear(info.startStr, info.endStr); },
+                loading: function (isLoading) {
+                    calendarEl.classList.toggle('fc-loading', isLoading);
+                },
+                events: fetchReservas,
+                select: function (info) {
+                    if (!SOLO_LECTURA) abrirModalCrear(info.startStr, info.endStr);
+                },
                 eventClick: function (info) { abrirModalVer(info.event); },
-                eventDrop: function (info) { actualizarFechas(info.event); },
-                eventResize: function (info) { actualizarFechas(info.event); }
+                eventDrop: function (info) {
+                    if (SOLO_LECTURA) { info.revert(); return; }
+                    actualizarFechas(info.event, info.revert);
+                },
+                eventResize: function (info) {
+                    if (SOLO_LECTURA) { info.revert(); return; }
+                    actualizarFechas(info.event, info.revert);
+                }
             });
             calendar.render();
 
             document.getElementById('paciente_rut').addEventListener('change', function (e) {
-                let option = e.target.options[e.target.selectedIndex];
-                let correoAnterior = option.getAttribute('data-correo');
-                document.getElementById('correo_paciente').value = correoAnterior || '';
+                const option = e.target.options[e.target.selectedIndex];
+                document.getElementById('correo_paciente').value = option.dataset.correo || '';
+            });
+
+            let buscarTimer;
+            document.getElementById('paciente_buscar').addEventListener('input', function (e) {
+                clearTimeout(buscarTimer);
+                buscarTimer = setTimeout(() => poblarSelectPacientes(e.target.value), 120);
             });
         });
 
@@ -640,7 +791,11 @@
         const form  = document.getElementById('reservaForm');
 
         function abrirModalCrear(startStr = '', endStr = '') {
+            asegurarPacientesSelect();
             form.reset();
+            document.getElementById('paciente_buscar').value = '';
+            poblarSelectPacientes();
+            setFormularioSoloLectura(false);
             document.getElementById('reserva_id').value = '';
             document.getElementById('modalTitle').textContent = 'Nueva consulta';
             document.getElementById('modalIcon').className = 'bx bx-plus-circle';
@@ -648,6 +803,9 @@
             document.getElementById('btnHistorial').style.display = 'none';
             document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-check" style="font-size:1rem;"></i> Guardar';
             document.getElementById('paciente_rut').disabled = false;
+            document.getElementById('paciente_buscar').disabled = false;
+            const clinicoSelect = document.getElementById('clinico_rut');
+            if (clinicoSelect) clinicoSelect.disabled = false;
 
             if (startStr) {
                 const startDate = new Date(startStr);
@@ -661,23 +819,49 @@
             modal.classList.add('open');
         }
 
-        function abrirModalVer(event) {
-            form.reset();
-            document.getElementById('reserva_id').value = event.id;
-            document.getElementById('modalTitle').textContent = 'Detalles de la consulta';
-            document.getElementById('modalIcon').className = 'bx bx-edit-alt';
-            document.getElementById('btnEliminar').style.display = '';
-            document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-save" style="font-size:1rem;"></i> Actualizar';
+        function setFormularioSoloLectura(soloLectura) {
+            const campos = ['paciente_rut', 'paciente_buscar', 'correo_paciente', 'fecha_reserva', 'hora_inicio', 'hora_fin', 'motivo_reserva'];
+            campos.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = soloLectura;
+            });
+            const clinicoSelect = document.getElementById('clinico_rut');
+            if (clinicoSelect) clinicoSelect.disabled = soloLectura;
+            document.getElementById('btnGuardar').style.display = soloLectura ? 'none' : '';
+            document.getElementById('btnEliminar').style.display = soloLectura ? 'none' : '';
+        }
 
-            document.getElementById('fecha_reserva').value   = event.start.toISOString().split('T')[0];
+        function abrirModalVer(event) {
+            asegurarPacientesSelect();
+            form.reset();
+            const esVista = SOLO_LECTURA;
+            document.getElementById('reserva_id').value = event.id;
+            document.getElementById('modalTitle').textContent = event.extendedProps.clinico_nombre
+                ? (esVista ? `Cita — ${event.extendedProps.clinico_nombre}` : `Consulta — ${event.extendedProps.clinico_nombre}`)
+                : (esVista ? 'Detalle de la cita' : 'Detalles de la consulta');
+            document.getElementById('modalIcon').className = esVista ? 'bx bx-show' : 'bx bx-edit-alt';
+            if (!esVista) {
+                document.getElementById('btnEliminar').style.display = '';
+                document.getElementById('btnGuardar').innerHTML = '<i class="bx bx-save" style="font-size:1rem;"></i> Actualizar';
+            }
+
+            document.getElementById('fecha_reserva').value   = event.startStr.slice(0, 10);
             document.getElementById('hora_inicio').value     = event.start.toTimeString().slice(0, 5);
             document.getElementById('hora_fin').value        = event.end ? event.end.toTimeString().slice(0, 5) : '';
             document.getElementById('motivo_reserva').value  = event.extendedProps.motivo || '';
             document.getElementById('paciente_rut').value    = event.extendedProps.paciente_id;
-            document.getElementById('paciente_rut').disabled = true;
+            const clinicoSelect = document.getElementById('clinico_rut');
+            if (clinicoSelect && event.extendedProps.clinico_rut) {
+                clinicoSelect.value = event.extendedProps.clinico_rut;
+            }
             document.getElementById('correo_paciente').value = event.extendedProps.correo || '';
+            setFormularioSoloLectura(esVista);
+            if (!esVista) {
+                document.getElementById('paciente_rut').disabled = true;
+                document.getElementById('paciente_buscar').disabled = true;
+                if (clinicoSelect) clinicoSelect.disabled = true;
+            }
 
-            // → Botón Ir al Historial
             const btnHistorial = document.getElementById('btnHistorial');
             const rut = event.extendedProps.paciente_id;
             if (rut) {
@@ -697,36 +881,47 @@
         function guardarReserva() {
             if (!form.checkValidity()) { form.reportValidity(); return; }
 
-            const btn    = document.getElementById('btnGuardar');
+            const btn = document.getElementById('btnGuardar');
             const oldHTML = btn.innerHTML;
             btn.innerHTML = '<i class="bx bx-loader-alt bx-spin" style="font-size:1rem;"></i> Guardando...';
-            btn.disabled  = true;
+            btn.disabled = true;
 
-            const id   = document.getElementById('reserva_id').value;
+            const id = document.getElementById('reserva_id').value;
             const data = {
+                alcance: MODO_CALENDARIO,
                 paciente_rut: document.getElementById('paciente_rut').value,
-                correo:       document.getElementById('correo_paciente').value,
-                fecha:        document.getElementById('fecha_reserva').value,
-                hora_inicio:  document.getElementById('hora_inicio').value,
-                hora_fin:     document.getElementById('hora_fin').value,
-                motivo:       document.getElementById('motivo_reserva').value
+                correo: document.getElementById('correo_paciente').value,
+                fecha: document.getElementById('fecha_reserva').value,
+                hora_inicio: document.getElementById('hora_inicio').value,
+                hora_fin: document.getElementById('hora_fin').value,
+                motivo: document.getElementById('motivo_reserva').value,
             };
+            const clinicoSelect = document.getElementById('clinico_rut');
+            if (clinicoSelect) data.clinico_rut = clinicoSelect.value;
 
-            const url = id
-                ? "{% url 'api_mover_reserva' 0 %}".replace('/0/', '/' + id + '/')
-                : "{% url 'api_crear_reserva' %}";
+            const url = id ? URL_MOVER.replace('/0/', '/' + id + '/') : URL_CREAR;
 
-            fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
+            apiPost(url, data)
             .then(response => {
                 if (response.status === 'success') {
-                    Swal.fire({ icon: 'success', title: id ? 'Reserva actualizada' : 'Cita agendada', text: id ? '' : 'Se envió la confirmación por correo.', confirmButtonColor: '#0284c7', timer: 2500, showConfirmButton: !id });
+                    if (response.event) {
+                        const existente = calendar.getEventById(String(response.event.id));
+                        if (existente) existente.remove();
+                        calendar.addEvent(response.event);
+                    } else {
+                        calendar.refetchEvents();
+                    }
                     cerrarModal();
-                    calendar.refetchEvents();
+                    if (!id) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Cita agendada',
+                            text: 'Se enviará la confirmación por correo.',
+                            confirmButtonColor: '#0284c7',
+                            timer: 2000,
+                            showConfirmButton: false,
+                        });
+                    }
                 } else {
                     Swal.fire('Error', response.message, 'error');
                 }
@@ -735,27 +930,32 @@
             .finally(() => { btn.innerHTML = oldHTML; btn.disabled = false; });
         }
 
-        function actualizarFechas(event) {
+        function actualizarFechas(event, revertFn) {
+            if (movimientoEnCurso) {
+                revertFn();
+                return;
+            }
+            movimientoEnCurso = true;
+
             const data = {
-                fecha:       event.start.toISOString().split('T')[0],
+                alcance: MODO_CALENDARIO,
+                fecha: event.startStr.slice(0, 10),
                 hora_inicio: event.start.toTimeString().slice(0, 5),
-                hora_fin:    event.end ? event.end.toTimeString().slice(0, 5) : event.start.toTimeString().slice(0, 5)
+                hora_fin: event.end ? event.end.toTimeString().slice(0, 5) : event.start.toTimeString().slice(0, 5),
             };
 
-            fetch("{% url 'api_mover_reserva' 0 %}".replace('/0/', '/' + event.id + '/'), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
+            apiPost(URL_MOVER.replace('/0/', '/' + event.id + '/'), data)
             .then(response => {
                 if (response.status !== 'success') {
                     Swal.fire('Error al mover', response.message, 'error');
-                    event.revert();
-                } else {
-                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Horario actualizado', showConfirmButton: false, timer: 1500 });
+                    revertFn();
                 }
-            });
+            })
+            .catch(() => {
+                Swal.fire('Error', 'Fallo en la conexión.', 'error');
+                revertFn();
+            })
+            .finally(() => { movimientoEnCurso = false; });
         }
 
         function eliminarReserva() {
@@ -772,23 +972,25 @@
                 cancelButtonText: 'Cancelar'
             }).then(result => {
                 if (result.isConfirmed) {
-                    fetch("{% url 'api_eliminar_reserva' 0 %}".replace('/0/', '/' + id + '/'), {
-                        method: 'POST',
-                        headers: { 'X-CSRFToken': getCookie('csrftoken') }
-                    })
-                    .then(res => res.json())
+                    apiPost(URL_ELIMINAR.replace('/0/', '/' + id + '/'), { alcance: MODO_CALENDARIO })
                     .then(response => {
                         if (response.status === 'success') {
+                            const ev = calendar.getEventById(String(id));
+                            if (ev) ev.remove();
                             cerrarModal();
-                            calendar.refetchEvents();
-                            Swal.fire({ icon: 'success', title: 'Cita eliminada', timer: 1500, showConfirmButton: false });
+                        } else {
+                            Swal.fire('Error', response.message || 'No se pudo eliminar.', 'error');
                         }
-                    });
+                    })
+                    .catch(() => Swal.fire('Error', 'Fallo en la conexión.', 'error'));
                 }
             });
         }
 
         function getCookie(name) {
+            if (name === 'csrftoken' && document.querySelector('[name=csrfmiddlewaretoken]')) {
+                return document.querySelector('[name=csrfmiddlewaretoken]').value;
+            }
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
                 const cookies = document.cookie.split(';');
@@ -803,7 +1005,6 @@
             return cookieValue;
         }
 
-        // Cerrar al hacer click fuera del modal
         modal.addEventListener('click', function (e) {
             if (e.target === modal) cerrarModal();
         });

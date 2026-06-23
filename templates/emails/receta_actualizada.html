@@ -4,52 +4,23 @@
 {% block subtitle %}Actualización de receta{% endblock %}
 
 {% block content %}
-<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
-    Receta actualizada 🔄
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Actualización de receta
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Su receta ha sido modificada
 </h2>
 
-<p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
-    Hola <strong>{{ paciente_nombre }}</strong>, tu receta médica ha sido actualizada con la siguiente información:
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ paciente_nombre }} {{ paciente_apellido }}</strong>,<br>
+    le informamos que su receta médica ha sido actualizada por su equipo de salud.
 </p>
 
-{% if medicamentos %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-left:3px solid #115b9c;margin-bottom:20px;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #92400e; font-size: 14px; font-weight: 600;">💊 Medicamentos actualizados:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ medicamentos }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if indicaciones %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #eff6ff; border-radius: 8px; border-left: 4px solid #3b82f6; margin: 20px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #1e40af; font-size: 14px; font-weight: 600;">📝 Indicaciones:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ indicaciones }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-{% if notas %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #94a3b8; margin: 20px 0;">
-    <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #475569; font-size: 14px; font-weight: 600;">📌 Notas:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6; white-space: pre-line;">{{ notas }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef2f2; border-radius: 8px; margin: 20px 0;">
-    <tr>
-        <td style="padding: 16px 20px;">
-            <p style="margin: 0; color: #991b1b; font-size: 13px;">
-                ⚠️ <strong>Importante:</strong> Ante cualquier duda sobre los cambios en tu receta, contacta directamente a tu profesional de salud.
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#475569;font-size:14px;line-height:1.6;">
+                Por confidencialidad, no enviamos medicamentos ni indicaciones clínicas por correo. Solicite el detalle actualizado directamente a su profesional antes de modificar su tratamiento.
             </p>
         </td>
     </tr>

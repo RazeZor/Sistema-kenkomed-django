@@ -419,7 +419,17 @@ function inicializarNavegacionSecciones() {
     if (btnSiguiente) {
       if (index === totalSteps - 1) {
         btnSiguiente.innerHTML = '<i class="fas fa-save me-1"></i> Guardar'
-        btnSiguiente.onclick = function() { document.getElementById("Step").requestSubmit() }
+        btnSiguiente.onclick = function() {
+          if (document.body.dataset.esPublico === "true") {
+            const cb = document.getElementById("consentimiento_datos")
+            if (cb && !cb.checked) {
+              alert("Debe leer y aceptar el aviso de tratamiento de datos personales.")
+              cb.focus()
+              return
+            }
+          }
+          document.getElementById("Step").requestSubmit()
+        }
       } else {
         btnSiguiente.innerHTML = 'Siguiente <i class="fas fa-arrow-right me-1"></i>'
         btnSiguiente.onclick = null
@@ -945,6 +955,8 @@ function inicializarFormulario() {
 
   // Deshabilitar navegación hasta completar datos personales
   const navButtons = document.querySelectorAll('.nav-section-btn');
+  const pacienteSection = document.getElementById('seccion-datos-paciente');
+  if (pacienteSection) {
   navButtons.forEach(btn => {
     if (btn.getAttribute('data-section') !== 'seccion-datos-paciente') {
       btn.disabled = true;
@@ -953,7 +965,6 @@ function inicializarFormulario() {
   });
 
   // Habilitar navegación cuando los datos personales estén completos
-  const pacienteSection = document.getElementById('seccion-datos-paciente');
   const requiredInputs = pacienteSection.querySelectorAll('input[required]');
   function checkDatosPersonalesCompletos() {
     let valid = true;
@@ -969,11 +980,36 @@ function inicializarFormulario() {
       }
     });
   }
-  requiredInputs.forEach(input => {
-    input.addEventListener('input', checkDatosPersonalesCompletos);
-    input.addEventListener('blur', checkDatosPersonalesCompletos);
-  });
-  checkDatosPersonalesCompletos();
+  if (requiredInputs.length) {
+    requiredInputs.forEach(input => {
+      input.addEventListener('input', checkDatosPersonalesCompletos);
+      input.addEventListener('blur', checkDatosPersonalesCompletos);
+    });
+    checkDatosPersonalesCompletos();
+  } else {
+    navButtons.forEach(btn => {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+    });
+  }
+  }
+
+  const formStep = document.getElementById("Step")
+  if (formStep && document.body.dataset.esPublico === "true") {
+    formStep.addEventListener("submit", function(e) {
+      const cb = document.getElementById("consentimiento_datos")
+      if (cb && !cb.checked) {
+        e.preventDefault()
+        alert("Debe leer y aceptar el aviso de tratamiento de datos personales.")
+        const navButtonsAll = document.querySelectorAll(".nav-section-btn")
+        const lastIndex = navButtonsAll.length - 1
+        if (lastIndex >= 0 && typeof goToSection === "undefined") {
+          navButtonsAll[lastIndex].click()
+        }
+        cb.focus()
+      }
+    })
+  }
 
   // Inicializar componentes del formulario
   inicializarContadorTiempo();

@@ -7,6 +7,7 @@ import logging
 
 from Login.models import Paciente, Clinico, RecetaMedica
 from ProyectoMainAPP.email_service import notificar_receta_creada, notificar_receta_actualizada
+from clinicas.utils import obtener_paciente_por_rut, paciente_pertenece_a_sesion
 
 logger = logging.getLogger(__name__)
 
@@ -37,9 +38,13 @@ class AuthService:
             return None
     
     @staticmethod
-    def verificar_permiso_paciente(paciente: Paciente, clinico: Clinico, es_admin: bool) -> bool:
+    def verificar_permiso_paciente(paciente: Paciente, clinico: Clinico, es_admin: bool, clinica_id=None) -> bool:
         """Verifica si el clínico tiene permiso para acceder al paciente"""
-        return es_admin or paciente.clinico == clinico
+        if es_admin:
+            return True
+        if clinica_id and paciente.clinica_id == clinica_id:
+            return True
+        return False
 
 
 # ========== SERVICIOS DE PACIENTE ==========
@@ -47,12 +52,14 @@ class PacienteService:
     """Servicio para operaciones relacionadas con pacientes"""
     
     @staticmethod
-    def buscar_paciente_por_rut(rut: str) -> Optional[Paciente]:
-        """Busca un paciente por RUT"""
+    def buscar_paciente_por_rut(rut: str, request=None) -> Optional[Paciente]:
+        """Busca un paciente por RUT respetando la clínica de la sesión."""
         try:
             rut = rut.strip()
             if not rut:
                 return None
+            if request is not None:
+                return obtener_paciente_por_rut(request, rut)
             return Paciente.objects.get(rut=rut)
         except ObjectDoesNotExist:
             logger.info(f"Paciente no encontrado: {rut}")
@@ -223,21 +230,22 @@ class RequestProcessor:
         self.receta_service = RecetaService()
         self.accion_handler = AccionRecetaHandler(self.receta_service)
     
-    def procesar_busqueda_paciente(self, rut: str, clinico: Clinico, es_admin: bool) -> Dict[str, Any]:
+    def procesar_busqueda_paciente(self, request, rut: str, clinico: Clinico, es_admin: bool) -> Dict[str, Any]:
         """Procesa la búsqueda de un paciente"""
         resultado = {
             'paciente': None,
             'receta': None,
             'error': None
         }
-        
-        paciente = PacienteService.buscar_paciente_por_rut(rut)
-        
+
+        clinica_id = request.session.get('clinica_id')
+        paciente = PacienteService.buscar_paciente_por_rut(rut, request=request)
+
         if not paciente:
-            resultado['error'] = "No se encontró ningún paciente con ese RUT."
+            resultado['error'] = "No se encontró ningún paciente con ese RUT en tu clínica."
             return resultado
-        
-        if not AuthService.verificar_permiso_paciente(paciente, clinico, es_admin):
+
+        if not AuthService.verificar_permiso_paciente(paciente, clinico, es_admin, clinica_id):
             resultado['error'] = "No tienes permisos para ver este paciente."
             return resultado
         
@@ -252,7 +260,7 @@ class RequestProcessor:
         accion = request.POST.get('accion', '').lower()
         
         # Buscar paciente
-        busqueda = self.procesar_busqueda_paciente(rut, clinico, es_admin)
+        busqueda = self.procesar_busqueda_paciente(request, rut, clinico, es_admin)
         if busqueda['error']:
             return busqueda
         
@@ -291,7 +299,7 @@ class RequestProcessor:
             }
         
         # Buscar paciente
-        busqueda = self.procesar_busqueda_paciente(rut, clinico, es_admin)
+        busqueda = self.procesar_busqueda_paciente(request, rut, clinico, es_admin)
         busqueda['mostrar_formulario'] = accion in ['nueva', 'editar']
         busqueda['mensaje'] = None
         

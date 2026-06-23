@@ -1,44 +1,46 @@
 {% extends "emails/base_email.html" %}
 
 {% block title %}Confirmación de cita{% endblock %}
-{% block subtitle %}Reserva de hora{% endblock %}
+{% block subtitle %}Confirmación de reserva{% endblock %}
 
 {% block content %}
-<h2 style="margin: 0 0 20px; color: #1e293b; font-size: 22px; font-weight: 600;">
-    Cita confirmada 📅
+<p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:600;letter-spacing:0.6px;text-transform:uppercase;">
+    Confirmación de cita
+</p>
+<h2 style="margin:0 0 20px;color:#0f172a;font-size:20px;font-weight:700;line-height:1.3;">
+    Su cita ha sido agendada
 </h2>
 
-<p style="margin: 0 0 16px; color: #475569; font-size: 15px; line-height: 1.6;">
-    Hola <strong>{{ paciente_nombre }}</strong>, tu cita ha sido agendada exitosamente.
+<p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
+    Estimado/a <strong style="color:#0f172a;">{{ paciente_nombre }} {{ paciente_apellido }}</strong>,<br>
+    le confirmamos que su cita ha sido registrada exitosamente en nuestro sistema.
 </p>
 
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f0fdfa; border-radius: 8px; border-left: 4px solid #14b8a6; margin: 20px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #dbe3ec;border-radius:4px;margin-bottom:20px;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 12px; color: #0f766e; font-size: 14px; font-weight: 600;">Detalles de tu cita:</p>
-            <p style="margin: 0 0 8px; color: #475569; font-size: 14px;">📅 <strong>Fecha:</strong> {{ fecha }}</p>
-            <p style="margin: 0 0 8px; color: #475569; font-size: 14px;">🕐 <strong>Hora:</strong> {{ hora_inicio }} - {{ hora_fin }}</p>
-            <p style="margin: 0; color: #475569; font-size: 14px;">🩺 <strong>Profesional:</strong> {{ clinico_nombre }} ({{ clinico_profesion }})</p>
+        <td colspan="2" style="padding:14px 20px;background-color:#f1f5f9;border-bottom:1px solid #dbe3ec;">
+            <p style="margin:0;color:#115b9c;font-size:13px;font-weight:700;letter-spacing:0.3px;">Detalles de la cita</p>
         </td>
+    </tr>
+    <tr>
+        <td width="35%" style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;vertical-align:top;">Fecha</td>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ fecha }}</td>
+    </tr>
+    <tr>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;vertical-align:top;">Horario</td>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ hora_inicio }} &ndash; {{ hora_fin }}</td>
+    </tr>
+    <tr>
+        <td style="padding:12px 20px;color:#64748b;font-size:13px;vertical-align:top;">Profesional</td>
+        <td style="padding:12px 20px;color:#0f172a;font-size:14px;font-weight:600;">{{ clinico_nombre }}<br><span style="font-weight:400;color:#64748b;font-size:13px;">{{ clinico_profesion }}</span></td>
     </tr>
 </table>
 
-{% if motivo %}
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; border-radius: 8px; border-left: 4px solid #94a3b8; margin: 15px 0;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#f8fafc;border-left:3px solid #115b9c;">
     <tr>
-        <td style="padding: 20px;">
-            <p style="margin: 0 0 10px; color: #475569; font-size: 14px; font-weight: 600;">📝 Motivo:</p>
-            <p style="margin: 0; color: #475569; font-size: 14px; line-height: 1.6;">{{ motivo }}</p>
-        </td>
-    </tr>
-</table>
-{% endif %}
-
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #fef3c7; border-radius: 8px; margin: 20px 0;">
-    <tr>
-        <td style="padding: 16px 20px;">
-            <p style="margin: 0; color: #92400e; font-size: 13px;">
-                💡 <strong>Recuerda:</strong> Si necesitas cancelar o reagendar tu cita, comunícate directamente con tu profesional de salud con anticipación.
+        <td style="padding:16px 20px;">
+            <p style="margin:0;color:#475569;font-size:13px;line-height:1.6;">
+                <strong style="color:#0f172a;">Importante:</strong> si necesita cancelar o reagendar su cita, contacte a su profesional de salud con la mayor anticipación posible.
             </p>
         </td>
     </tr>

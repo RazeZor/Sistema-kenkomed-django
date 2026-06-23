@@ -14,7 +14,7 @@
     <script src="{% static 'formulario.js' %}"></script>
 
 </head>
-<body class="bg-light">
+<body class="bg-light"{% if es_publico %} data-es-publico="true"{% endif %}>
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             {% if es_publico %}
@@ -1354,6 +1354,28 @@
                             </div>
                         </div>
                     </div>
+
+                    {% if es_publico %}
+                    <div class="mt-4 p-4 border border-blue-200 rounded-lg bg-blue-50">
+                        <h3 class="h5 mb-3"><i class="fas fa-shield-alt me-2"></i>Tratamiento de datos personales</h3>
+                        <p class="text-muted small mb-3">
+                            {% if clinica %}
+                            El centro <strong>{{ clinica.nombre }}</strong> es responsable de sus datos de salud.
+                            {% else %}
+                            Su centro de salud es responsable de sus datos de salud.
+                            {% endif %}
+                            KenkoMed procesa esta información como encargado, solo para su atención kinésica.
+                            <a href="{% url 'privacidad_paciente' %}" target="_blank" rel="noopener">Leer aviso completo</a>.
+                        </p>
+                        <label class="d-flex align-items-start gap-2">
+                            <input type="checkbox" name="consentimiento_datos" id="consentimiento_datos" value="on" required class="mt-1">
+                            <span class="small">
+                                He leído el aviso de tratamiento de datos personales y autorizo el tratamiento de mis datos
+                                de salud para los fines indicados.
+                            </span>
+                        </label>
+                    </div>
+                    {% endif %}
                 </section>
             </form>
         </div>

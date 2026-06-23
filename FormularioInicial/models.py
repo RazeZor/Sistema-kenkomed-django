@@ -45,3 +45,33 @@ class TokenFormulario(models.Model):
             paciente=paciente,
             fecha_expiracion=fecha_expiracion
         )
+
+
+class ConsentimientoDatos(models.Model):
+    """Registro de aceptación del aviso de tratamiento de datos."""
+
+    ORIGEN_CHOICES = [
+        ('formulario_qr', 'Formulario QR'),
+        ('alta_panel', 'Alta en panel'),
+    ]
+
+    paciente = models.ForeignKey('Login.Paciente', on_delete=models.CASCADE, related_name='consentimientos')
+    clinica = models.ForeignKey('clinicas.Clinica', on_delete=models.SET_NULL, null=True, blank=True)
+    origen = models.CharField(max_length=30, choices=ORIGEN_CHOICES)
+    fecha = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    token = models.ForeignKey(
+        TokenFormulario,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='consentimientos',
+    )
+
+    class Meta:
+        verbose_name = 'Consentimiento de datos'
+        verbose_name_plural = 'Consentimientos de datos'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f'{self.paciente.rut} — {self.get_origen_display()} — {self.fecha:%Y-%m-%d %H:%M}'

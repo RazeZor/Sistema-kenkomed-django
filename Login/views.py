@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 from Login.models import Clinico
 
+
 def validarLogin(request):
     try:
         if request.method == 'POST':
@@ -19,6 +20,19 @@ def validarLogin(request):
                     request.session['rut_clinico'] = clinico.rut
                     request.session['nombre_clinico'] = f"{clinico.nombre} {clinico.apellido}"
                     request.session['es_admin'] = clinico.EsAdmin
+
+                    from clinicas.models import MembresiaClinica
+                    from clinicas.signals import crear_clinica_individual
+
+                    membresia = MembresiaClinica.objects.filter(clinico=clinico, activo=True).first()
+                    if not membresia:
+                        crear_clinica_individual(clinico)
+                        membresia = MembresiaClinica.objects.filter(clinico=clinico, activo=True).first()
+
+                    if membresia:
+                        request.session['clinica_id'] = membresia.clinica.id
+                        request.session['clinica_nombre'] = membresia.clinica.nombre
+                        request.session['es_admin_clinica'] = membresia.rol == 'admin'
 
                     # Control de "recordar"
                     if recordar:
