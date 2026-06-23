@@ -1,22 +1,20 @@
 from django.shortcuts import get_object_or_404, redirect, render
+from Login.auditoria import registrar_auditoria
 from Login.models import Paciente, Clinico
 from django.core.paginator import Paginator
 from django.contrib import messages
 from FormularioInicial.views import validar_campos_obligatorios, crear_o_actualizar_paciente, parsear_fecha_campo
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
-from clinicas.utils import filtrar_pacientes_por_sesion, obtener_paciente_por_rut
+from clinicas.utils import filtrar_pacientes_por_sesion, obtener_paciente_por_rut, paciente_pertenece_a_sesion, requiere_centro_o_admin_sistema
 
 @requiere_clinico
 def MostrarPacientes(request):
     if 'nombre_clinico' in request.session:
         nombre_clinico = request.session['nombre_clinico']
         es_admin = request.session.get('es_admin', False)
+        es_admin_clinica = request.session.get('es_admin_clinica', False)
 
-        # Si es administrador del sistema general, ver todos
-        if es_admin:
-            pacientes = Paciente.objects.all()
-        else:
-            pacientes = filtrar_pacientes_por_sesion(request)
+        pacientes = filtrar_pacientes_por_sesion(request)
 
         paginacion = Paginator(pacientes, 10)  # 10 pacientes por página
         pagina = request.GET.get('page')
@@ -25,6 +23,7 @@ def MostrarPacientes(request):
         return render(request, 'ListaPacientes.html', {
             'nombre_clinico': nombre_clinico,
             'es_admin': es_admin,
+            'es_admin_clinica': es_admin_clinica,
             'paginacion_Pacientes': paginacion_Pacientes,
         })
     else:
@@ -37,13 +36,14 @@ def EliminarPaciente(request):
         rut = request.POST.get('rut')  # Obtener el RUT del paciente a eliminar
         try:
             paciente = get_object_or_404(Paciente, rut=rut)
-            # Verificar pertenencia a clínica antes de borrar
-            clinica_id = request.session.get('clinica_id')
-            es_admin = request.session.get('es_admin', False)
-            if not es_admin and paciente.clinica_id != clinica_id:
+            if not paciente_pertenece_a_sesion(request, paciente):
                 messages.error(request, 'No tienes permisos para eliminar este paciente.')
                 return redirect('pacientes')
-            
+
+            registrar_auditoria(
+                request, 'eliminacion_paciente', paciente,
+                detalle=f'Eliminó ficha de {paciente.nombre} {paciente.apellido} ({paciente.rut})',
+            )
             paciente.delete()
             messages.success(request, 'Paciente eliminado exitosamente.')
         except Exception as e:
@@ -55,6 +55,10 @@ def EliminarPaciente(request):
 def AgregarPacienteBasico(request):
     if 'nombre_clinico' not in request.session:
         return redirect('login')
+
+    if not requiere_centro_o_admin_sistema(request):
+        messages.error(request, 'Debes tener un centro asociado para registrar pacientes.')
+        return redirect('panel')
 
     nombre_clinico = request.session['nombre_clinico']
     rut_clinico = request.session.get('rut_clinico')
@@ -139,6 +143,11 @@ def AgregarPacienteBasico(request):
 
         try:
             paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+            if created:
+                registrar_auditoria(
+                    request, 'alta_paciente', paciente,
+                    detalle=f'Alta manual — {paciente.nombre} {paciente.apellido} ({paciente.rut})',
+                )
             messages.success(request, f"Paciente {nombre} {apellido} registrado exitosamente.")
             
             request.session['temp_rut_historial'] = rut
@@ -192,6 +201,10 @@ def EditarPaciente(request):
                 paciente.fechaNacimiento = fecha
 
         paciente.save()
+        registrar_auditoria(
+            request, 'edicion_paciente', paciente,
+            detalle=f'Modificó datos demográficos — {paciente.rut}',
+        )
         messages.success(request, f'Datos de {paciente.nombre} {paciente.apellido} actualizados correctamente.')
         return redirect(f'/panel/historialClinico/?rut={rut}')
 

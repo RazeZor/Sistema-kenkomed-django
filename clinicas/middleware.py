@@ -6,17 +6,23 @@ class ClinicaMiddleware:
 
     def __call__(self, request):
         if 'rut_clinico' in request.session:
-            # Si ya hay una clínica seleccionada en sesión, podemos verificar que sigue siendo válida
-            # o si no hay ninguna cargada, cargar la primera activa.
-            if 'clinica_id' not in request.session:
-                membresia = MembresiaClinica.objects.filter(
+            # Sincronizar siempre la clínica activa desde la membresía (un clínico = un centro).
+            membresia = (
+                MembresiaClinica.objects.filter(
                     clinico_id=request.session['rut_clinico'],
-                    activo=True
-                ).first()
-                if membresia:
-                    request.session['clinica_id'] = membresia.clinica.id
-                    request.session['clinica_nombre'] = membresia.clinica.nombre
-                    request.session['es_admin_clinica'] = membresia.rol == 'admin'
-        
+                    activo=True,
+                )
+                .select_related('clinica')
+                .first()
+            )
+            if membresia and membresia.clinica.activa:
+                request.session['clinica_id'] = membresia.clinica.id
+                request.session['clinica_nombre'] = membresia.clinica.nombre
+                request.session['es_admin_clinica'] = membresia.rol == 'admin'
+            else:
+                request.session.pop('clinica_id', None)
+                request.session.pop('clinica_nombre', None)
+                request.session['es_admin_clinica'] = False
+
         response = self.get_response(request)
         return response

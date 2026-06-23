@@ -77,10 +77,16 @@ class PacienteAdmin(admin.ModelAdmin):
 
 @admin.register(AuditoriaAcceso)
 class AuditoriaAccesoAdmin(admin.ModelAdmin):
-    list_display = ('fecha', 'accion', 'paciente', 'clinico', 'clinica', 'ip_address')
-    list_filter = ('accion', 'clinica', 'fecha')
-    search_fields = ('paciente__rut', 'clinico__rut', 'clinico__nombre')
-    readonly_fields = ('fecha', 'paciente', 'clinico', 'clinica', 'accion', 'ip_address')
+    list_display = (
+        'fecha', 'accion', 'paciente', 'clinico', 'clinica',
+        'es_admin_sistema', 'es_admin_centro', 'ip_address',
+    )
+    list_filter = ('accion', 'clinica', 'es_admin_sistema', 'es_admin_centro', 'fecha')
+    search_fields = ('paciente__rut', 'clinico__rut', 'clinico__nombre', 'detalle')
+    readonly_fields = (
+        'fecha', 'paciente', 'clinico', 'clinica', 'accion', 'detalle',
+        'es_admin_sistema', 'es_admin_centro', 'ip_address',
+    )
     date_hierarchy = 'fecha'
 
     def has_add_permission(self, request):

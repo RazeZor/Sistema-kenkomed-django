@@ -1,4 +1,4 @@
-"""Registro de accesos a datos sensibles de pacientes (Ley 21.719)."""
+"""Registro de accesos y cambios sobre datos sensibles (Ley 21.719)."""
 from Login.models import AuditoriaAcceso, Clinico
 
 
@@ -16,18 +16,25 @@ def _clinico_desde_sesion(request):
     return Clinico.objects.filter(rut=rut).first()
 
 
-def registrar_acceso(request, paciente, accion):
-    """Registra quién accedió a datos clínicos de un paciente."""
-    if not paciente:
-        return
+def registrar_auditoria(request, accion, paciente=None, detalle=''):
+    """Registra una acción clínica realizada por el usuario en sesión."""
     clinico = _clinico_desde_sesion(request)
     clinica_id = request.session.get('clinica_id')
-    if not clinica_id and paciente.clinica_id:
+    if not clinica_id and paciente and paciente.clinica_id:
         clinica_id = paciente.clinica_id
+
     AuditoriaAcceso.objects.create(
         paciente=paciente,
         clinico=clinico,
         clinica_id=clinica_id,
         accion=accion,
+        detalle=(detalle or '').strip()[:500],
+        es_admin_sistema=bool(request.session.get('es_admin')),
+        es_admin_centro=bool(request.session.get('es_admin_clinica')),
         ip_address=obtener_ip_cliente(request),
     )
+
+
+def registrar_acceso(request, paciente, accion, detalle=''):
+    """Alias retrocompatible; preferir registrar_auditoria."""
+    registrar_auditoria(request, accion, paciente=paciente, detalle=detalle)

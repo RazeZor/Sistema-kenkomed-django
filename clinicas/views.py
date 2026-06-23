@@ -22,5 +22,5 @@ def mi_centro(request):
         'total_miembros': membresias.count(),
         'nombre_clinico': request.session.get('nombre_clinico'),
         'es_centro_compartido': clinica and clinica.tipo == 'clinica',
-        'es_admin_clinica': request.session.get('es_admin') or request.session.get('es_admin_clinica'),
+        'es_admin_clinica': request.session.get('es_admin_clinica', False),
     })

@@ -1,4 +1,5 @@
 import json
+from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
@@ -13,8 +14,9 @@ from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
-from clinicas.utils import obtener_clinicos_de_sesion
-from Login.auditoria import registrar_acceso
+from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut
+from Login.auditoria import registrar_auditoria
+from PanelDeControl.metricas_panel import obtener_metricas_panel
 
 @requiere_clinico
 def panel(request):
@@ -22,25 +24,11 @@ def panel(request):
         nombre_clinico = request.session['nombre_clinico']
         rut_clinico = request.session.get('rut_clinico')
         es_admin = request.session.get('es_admin', False)
+        es_admin_clinica = request.session.get('es_admin_clinica', False)
 
-        # 🔹 Buscar el clínico en la base de datos
         clinico = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else Clinico.objects.filter(nombre=nombre_clinico).first()
         profesion = clinico.profesion if clinico else "Sin profesión"
 
-        # Promedio estático de atención (modelo tiempo eliminado)
-        promedio_formateado = "00:30:00"
-
-        clinica_id = request.session.get('clinica_id')
-        if es_admin:
-            pacientes = Paciente.objects.all()
-        else:
-            if clinica_id:
-                pacientes = Paciente.objects.filter(clinica_id=clinica_id)
-            else:
-                pacientes = Paciente.objects.none()
-        numeroPaciente = pacientes.count()
-
-        # 🔹 Próximos agendamientos del clínico
         hoy = date.today()
         proximos_agendamientos = []
         clinicos_ids = obtener_clinicos_de_sesion(request)
@@ -53,14 +41,16 @@ def panel(request):
                 ).select_related('paciente', 'clinico').order_by('fecha', 'hora_inicio')[:8]
             )
 
+        metricas = obtener_metricas_panel(request) if request.session.get('clinica_id') else {}
+
         return render(request, 'panel.html', {
             'nombre_clinico': nombre_clinico,
             'profesion': profesion,
             'es_admin': es_admin,
-            'promedio_formateado': promedio_formateado,
-            'numeroPaciente': numeroPaciente,
+            'es_admin_clinica': es_admin_clinica,
             'proximos_agendamientos': proximos_agendamientos,
             'hoy': hoy,
+            **metricas,
         })
     else:
         return redirect('login')
@@ -123,28 +113,24 @@ def HistorialClinico(request):
             del request.session['temp_rut_historial']
 
         if rut:
-            try:
-                # Filtrar según el tipo de usuario
-                if es_admin:
-                    paciente = Paciente.objects.get(rut=rut)
-                else:
-                    clinica_id = request.session.get('clinica_id')
-                    if not clinica_id:
-                        error = 'No se encontró una clínica activa asociada.'
-                        raise Paciente.DoesNotExist()
-                    paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
-
+            paciente = obtener_paciente_por_rut(request, rut)
+            if paciente:
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
-                if nota_texto:
+                if nota_texto is not None and request.method == 'POST':
                     nota_existente.notas = nota_texto
                     nota_existente.save()
-
-                registrar_acceso(request, paciente, 'historial')
-
-            except Paciente.DoesNotExist:
-                if not error:
-                    error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+                    registrar_auditoria(
+                        request, 'edicion_nota_clinica', paciente,
+                        detalle='Guardó o actualizó las notas del historial clínico',
+                    )
+                elif request.method == 'GET':
+                    registrar_auditoria(
+                        request, 'consulta_historial', paciente,
+                        detalle=f'Consulta historial — {paciente.rut}',
+                    )
+            else:
+                error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
 
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,
@@ -166,12 +152,15 @@ def VerInformePacientes(request):
         context = {'nombre_clinico': nombre_clinico}
 
         if rut:
+            paciente = obtener_paciente_por_rut(request, rut)
+            if not paciente:
+                messages.error(request, 'No tienes permisos para ver el informe de este paciente.')
+                return redirect('panel')
+            registrar_auditoria(
+                request, 'consulta_resumen_paciente', paciente,
+                detalle=f'Visualizó resumen en panel — {paciente.rut}',
+            )
             try:
-                paciente = Paciente.objects.get(rut=rut)
-                clinica_id = request.session.get('clinica_id')
-                if not es_admin and paciente.clinica_id != clinica_id:
-                    messages.error(request, 'No tienes permisos para ver el informe de este paciente.')
-                    return redirect('panel')
                 formulario = formularioClinico.objects.get(paciente=paciente)
                 #escala Semaforo Integrada
                 semaforo = json.loads(formulario.preguntas1)
@@ -253,7 +242,7 @@ def VerInformePacientes(request):
                 context['informe'] = informe
                 context['encontrado'] = True
 
-            except (Paciente.DoesNotExist, formularioClinico.DoesNotExist):
+            except formularioClinico.DoesNotExist:
                 context['encontrado'] = False
                 context['mensaje'] = "No se encontró el paciente o su formulario clínico"
 
@@ -785,26 +774,36 @@ def clear_session_message(request):
 
 @requiere_clinico
 def estadisticas(request):
-    """Vista para mostrar estadísticas y análisis de datos clínicos"""
-    if 'nombre_clinico' not in request.session:
-        return redirect('login')
-    
-    nombre_clinico = request.session['nombre_clinico']
-    es_admin = request.session.get('es_admin', False)
-    rut_clinico = request.session.get('rut_clinico')
+    """Estadísticas del centro activo o vista global KenkoMed (sin centro en sesión)."""
+    from clinicas.utils import (
+        filtrar_pacientes_por_sesion,
+        filtrar_por_clinica_sesion,
+        obtener_clinica_de_sesion,
+        requiere_centro_o_admin_sistema,
+    )
 
-    # Filtrar pacientes según si es admin o clínico normal
-    if es_admin:
-        pacientes = Paciente.objects.all()
-        formularios = formularioClinico.objects.all()
-    else:
-        clinica_id = request.session.get('clinica_id')
-        if clinica_id:
-            pacientes = Paciente.objects.filter(clinica_id=clinica_id)
-            formularios = formularioClinico.objects.filter(paciente__clinica_id=clinica_id)
-        else:
-            pacientes = Paciente.objects.none()
-            formularios = formularioClinico.objects.none()
+    if not requiere_centro_o_admin_sistema(request):
+        messages.error(request, 'No tienes un centro asociado para ver estadísticas.')
+        return redirect('panel')
+
+    es_admin = request.session.get('es_admin', False)
+    es_admin_clinica = request.session.get('es_admin_clinica', False)
+    clinica_id = request.session.get('clinica_id')
+    alcance_global = es_admin and not clinica_id
+
+    if not alcance_global and not es_admin_clinica:
+        messages.error(request, 'Solo los administradores del centro pueden ver las estadísticas generales.')
+        return redirect('panel')
+
+    nombre_clinico = request.session['nombre_clinico']
+    clinica = obtener_clinica_de_sesion(request)
+
+    pacientes = filtrar_pacientes_por_sesion(request)
+    formularios = filtrar_por_clinica_sesion(
+        request,
+        formularioClinico.objects.all(),
+        lookup='paciente__clinica_id',
+    )
 
     # === ESTADÍSTICAS GENERALES ===
     total_pacientes = pacientes.count()
@@ -956,6 +955,9 @@ def estadisticas(request):
     context = {
         'nombre_clinico': nombre_clinico,
         'es_admin': es_admin,
+        'alcance_global': alcance_global,
+        'clinica': clinica,
+        'clinica_nombre': clinica.nombre if clinica else 'Todos los centros',
         'total_pacientes': total_pacientes,
         'total_formularios': total_formularios,
         'distribucion_genero': json.dumps(distribucion_genero),
@@ -995,95 +997,80 @@ def estadisticas_paciente_view(request):
         rut = request.GET.get('rut')
         
     if rut:
+        paciente = obtener_paciente_por_rut(request, rut)
+        if not paciente:
+            context['error'] = 'No se encontró el paciente o no tienes permisos para verlo.'
+            return render(request, 'estadisticas_paciente.html', context)
+
+        context['paciente'] = paciente
+
+        charts_data = {
+            'psfs': {'labels': [], 'data': []},
+            'groc': {'labels': [], 'data': []},
+            'ena': {'labels': [], 'data': []},
+            'screnning': {'labels': [], 'data': []},
+        }
+
         try:
-            if es_admin:
-                paciente = Paciente.objects.get(rut=rut)
-            else:
-                clinica_id = request.session.get('clinica_id')
-                if not clinica_id:
-                    context['error'] = 'No tienes una clínica activa asociada.'
-                    return render(request, 'estadisticas_paciente.html', context)
-                paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
-                
-            context['paciente'] = paciente
-            
-            # Datos para gráficos
-            charts_data = {
-                'psfs': {'labels': [], 'data': []},
-                'groc': {'labels': [], 'data': []},
-                'ena': {'labels': [], 'data': []},
-                'screnning': {'labels': [], 'data': []},
-            }
-            
-            # 1. PSFS
-            try:
-                psfs = CuestionarioPSFS.objects.get(paciente=paciente)
-                if psfs.puntajeTotal:
-                    data_psfs = json.loads(psfs.puntajeTotal) if isinstance(psfs.puntajeTotal, str) else psfs.puntajeTotal
-                    if isinstance(data_psfs, list):
-                        def safe_int(x):
-                            try: return int(x)
-                            except: return x
-                        charts_data['psfs']['data'] = [safe_int(x) for x in data_psfs]
-                        charts_data['psfs']['labels'] = [f'Sesión {i+1}' for i in range(len(data_psfs))]
-            except CuestionarioPSFS.DoesNotExist:
-                pass
-                
-            # 2. GROC
-            try:
-                groc = Groc.objects.get(paciente=paciente)
-                if groc.puntajeGroc:
-                    data_groc = json.loads(groc.puntajeGroc) if isinstance(groc.puntajeGroc, str) else groc.puntajeGroc
-                    if isinstance(data_groc, list):
-                        raw_values = []
-                        for item in data_groc:
-                            if isinstance(item, dict):
-                                raw_values.append(item.get('puntaje'))
-                            else:
-                                raw_values.append(item)
-                        
-                        def safe_int_g(x):
-                            try: return int(x) if x is not None else None
-                            except: return x
-                        charts_data['groc']['data'] = [safe_int_g(x) for x in raw_values]
-                        charts_data['groc']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values))]
-            except Groc.DoesNotExist:
-                pass
-                
-            # 3. ENA
-            try:
-                ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
-                if ena.estado_por_sesion:
-                    data_ena = json.loads(ena.estado_por_sesion) if isinstance(ena.estado_por_sesion, str) else ena.estado_por_sesion
-                    if isinstance(data_ena, list):
-                        raw_values_e = []
-                        for item in data_ena:
-                            if isinstance(item, dict):
-                                raw_values_e.append(item.get('level'))
-                            else:
-                                raw_values_e.append(item)
-                                
-                        def safe_int_e(x):
-                            try: return int(x) if x is not None else None
-                            except: return x
-                        charts_data['ena']['data'] = [safe_int_e(x) for x in raw_values_e]
-                        charts_data['ena']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values_e))]
-            except CuestionarioEvaluacionENA.DoesNotExist:
-                pass
-                
-            # 4. Sesiones y Estadísticas Generales
-            sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
-            context['total_sesiones'] = sesiones.count()
-            if sesiones.exists():
-                context['ultima_sesion'] = sesiones.last().fecha_creacion
-            else:
-                context['ultima_sesion'] = "N/A"
-            
-            context['charts_data'] = json.dumps(charts_data)
-            
-        except Paciente.DoesNotExist:
-            context['error'] = "No se encontró ningún paciente con ese RUT o no tienes permisos."
-            
+            psfs = CuestionarioPSFS.objects.get(paciente=paciente)
+            from TiposDeFormularios.psfs_utils import psfs_chart_series
+            charts_data['psfs'] = psfs_chart_series(psfs)
+        except CuestionarioPSFS.DoesNotExist:
+            pass
+
+        try:
+            groc = Groc.objects.get(paciente=paciente)
+            if groc.puntajeGroc:
+                data_groc = json.loads(groc.puntajeGroc) if isinstance(groc.puntajeGroc, str) else groc.puntajeGroc
+                if isinstance(data_groc, list):
+                    raw_values = []
+                    for item in data_groc:
+                        if isinstance(item, dict):
+                            raw_values.append(item.get('puntaje'))
+                        else:
+                            raw_values.append(item)
+
+                    def safe_int_g(x):
+                        try:
+                            return int(x) if x is not None else None
+                        except Exception:
+                            return x
+                    charts_data['groc']['data'] = [safe_int_g(x) for x in raw_values]
+                    charts_data['groc']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values))]
+        except Groc.DoesNotExist:
+            pass
+
+        try:
+            ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
+            if ena.estado_por_sesion:
+                data_ena = json.loads(ena.estado_por_sesion) if isinstance(ena.estado_por_sesion, str) else ena.estado_por_sesion
+                if isinstance(data_ena, list):
+                    raw_values_e = []
+                    for item in data_ena:
+                        if isinstance(item, dict):
+                            raw_values_e.append(item.get('level'))
+                        else:
+                            raw_values_e.append(item)
+
+                    def safe_int_e(x):
+                        try:
+                            return int(x) if x is not None else None
+                        except Exception:
+                            return x
+                    charts_data['ena']['data'] = [safe_int_e(x) for x in raw_values_e]
+                    charts_data['ena']['labels'] = [f'Sesión {i+1}' for i in range(len(raw_values_e))]
+        except CuestionarioEvaluacionENA.DoesNotExist:
+            pass
+
+        sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
+        context['total_sesiones'] = sesiones.count()
+        if sesiones.exists():
+            context['ultima_sesion'] = sesiones.last().fecha_creacion
+        else:
+            context['ultima_sesion'] = "N/A"
+
+        context['charts_data'] = json.dumps(charts_data)
+
     return render(request, 'estadisticas_paciente.html', context)
 
 @requiere_clinico

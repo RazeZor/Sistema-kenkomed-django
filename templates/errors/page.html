@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0284c7">
+    <title>{{ status_code }} — {{ title }} | KenkoMed</title>
+    <link rel="shortcut icon" href="{% static 'images/favicon.png' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        .float-logo { animation: float 4s ease-in-out infinite; }
+        .code-shadow { text-shadow: 0 8px 30px rgba(2, 132, 199, 0.25); }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased text-gray-800 bg-gradient-to-br from-slate-50 via-blue-50/40 to-sky-100/60">
+
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-8">
+        <div class="w-full max-w-lg fade-up">
+
+            <!-- Logo -->
+            <div class="flex flex-col items-center mb-8">
+                <div class="float-logo w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-2xl shadow-lg border border-white/80 p-2 flex items-center justify-center mb-4">
+                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain">
+                </div>
+                <p class="text-sm font-semibold tracking-wide text-medical-blue-dark uppercase">Sistema clínico KenkoMed</p>
+            </div>
+
+            <!-- Card -->
+            <div class="bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-white/60 overflow-hidden">
+
+                <!-- Accent bar -->
+                <div class="h-1.5 w-full
+                    {% if accent == 'red' %}bg-gradient-to-r from-red-500 to-rose-400
+                    {% elif accent == 'amber' %}bg-gradient-to-r from-amber-500 to-yellow-400
+                    {% elif accent == 'orange' %}bg-gradient-to-r from-orange-500 to-amber-400
+                    {% else %}bg-gradient-to-r from-medical-blue to-sky-400{% endif %}">
+                </div>
+
+                <div class="px-6 sm:px-10 py-8 sm:py-10 text-center">
+
+                    <!-- Icon + code -->
+                    <div class="relative inline-flex items-center justify-center mb-6">
+                        <span class="text-7xl sm:text-8xl font-extrabold text-gray-100 code-shadow select-none">{{ status_code }}</span>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg
+                                {% if accent == 'red' %}bg-red-50 text-red-500
+                                {% elif accent == 'amber' %}bg-amber-50 text-amber-600
+                                {% elif accent == 'orange' %}bg-orange-50 text-orange-500
+                                {% else %}bg-blue-50 text-medical-blue{% endif %}">
+                                <i class="bx {{ icon }} text-3xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">{{ title }}</h1>
+                    <p class="text-sm sm:text-base text-gray-500 leading-relaxed max-w-md mx-auto">{{ subtitle }}</p>
+
+                    {% if show_detail and detail %}
+                    <div class="mt-5 text-left bg-gray-50 border border-gray-100 rounded-xl p-4">
+                        <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Detalle (solo desarrollo)</p>
+                        <p class="text-xs text-gray-600 font-mono break-all">{{ detail }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+                        {% if tiene_sesion %}
+                        <a href="{% url 'panel' %}"
+                           class="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-white bg-medical-blue rounded-xl hover:bg-medical-blue-dark shadow-sm transition-colors">
+                            <i class="bx bx-home-alt text-lg"></i>
+                            Ir al panel
+                        </a>
+                        {% else %}
+                        <a href="{% url 'login' %}"
+                           class="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-white bg-medical-blue rounded-xl hover:bg-medical-blue-dark shadow-sm transition-colors">
+                            <i class="bx bx-log-in text-lg"></i>
+                            Iniciar sesión
+                        </a>
+                        {% endif %}
+                        <button type="button" onclick="window.history.back()"
+                                class="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                            <i class="bx bx-arrow-back text-lg"></i>
+                            Volver atrás
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <p class="text-center text-xs text-gray-400 mt-6">
+                KenkoMed · Gestión clínica segura
+                <span class="mx-1">·</span>
+                Código {{ status_code }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

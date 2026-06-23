@@ -39,6 +39,7 @@ urlpatterns = [
     path('ficha-clinica/', vi.RenderFichaClinica, name='fichaClinica'),
     path('panel/exportar-ficha/', vpriv.exportar_ficha, name='exportar_ficha'),
     path('panel/auditoria-accesos/', vpriv.auditoria_accesos, name='auditoria_accesos'),
+    path('panel/auditoria-accesos/exportar-pdf/', vpriv.exportar_auditoria_pdf, name='exportar_auditoria_pdf'),
     path('privacidad-paciente/', vistaClinicos.aviso_privacidad_paciente, name='privacidad_paciente'),
 
     path('eliminar_paciente/', vp.EliminarPaciente, name='eliminar'),
@@ -81,6 +82,17 @@ urlpatterns = [
     path('clinicas/', include('clinicas.urls')),
     path('clinicos/', include('clinicos.urls')),
 ]
+
+handler400 = 'ProyectoMainAPP.error_handlers.handler400'
+handler403 = 'ProyectoMainAPP.error_handlers.handler403'
+handler404 = 'ProyectoMainAPP.error_handlers.handler404'
+handler500 = 'ProyectoMainAPP.error_handlers.handler500'
+
+if settings.DEBUG:
+    from ProyectoMainAPP.error_handlers import preview_error
+    urlpatterns += [
+        path('__preview__/error/<int:code>/', preview_error, name='preview_error'),
+    ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

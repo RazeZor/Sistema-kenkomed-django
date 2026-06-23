@@ -127,6 +127,9 @@
                     <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain">
                 </div>
                 <span class="hidden xl:block text-base font-bold text-gray-800 whitespace-nowrap">KenkoMed</span>
+                {% if clinica_nombre %}
+                <span class="hidden xl:block text-xs text-gray-500 truncate max-w-[10rem]">{{ clinica_nombre }}</span>
+                {% endif %}
             </a>
         </div>
 
@@ -148,12 +151,14 @@
                     <span class="hidden xl:block ml-3 text-sm font-medium">Mi Agenda</span>
                 </a>
 
+                {% if puede_ver_agenda_centro %}
                 <a href="{% url 'calendario_clinica' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/clinica' in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-buildings'></i>
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium">Agenda Centro</span>
                 </a>
+                {% endif %}
 
                 <a href="{% url 'pacientes' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/ListaPacientes' in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/ListaPacientes' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
@@ -176,19 +181,34 @@
                     <span class="hidden xl:block ml-3 text-sm font-medium">Mi Centro</span>
                 </a>
 
+                {% if puede_ver_estadisticas_centro or estadisticas_globales %}
                 <a href="{% url 'estadisticas' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-bar-chart-alt-2'></i>
                     </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Estadísticas</span>
+                    <span class="hidden xl:block ml-3 text-sm font-medium">
+                        {% if estadisticas_globales %}Estad. Globales{% else %}Estad. Centro{% endif %}
+                    </span>
                 </a>
+                {% endif %}
 
+                {% if puede_ver_auditoria %}
+                <a href="{% url 'auditoria_accesos' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'auditoria-accesos' in request.path %}nav-link-active{% endif %}">
+                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                        <i class='text-lg bx bx-shield-quarter'></i>
+                    </div>
+                    <span class="hidden xl:block ml-3 text-sm font-medium">Auditoría</span>
+                </a>
+                {% endif %}
+
+                {% if tiene_centro %}
                 <a href="{% url 'estadisticas_paciente' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'estadisticas_paciente' in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'estadisticas_paciente' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-line-chart'></i>
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium whitespace-nowrap overflow-hidden" style="text-overflow:ellipsis;max-width:130px;">Estad. Paciente</span>
                 </a>
+                {% endif %}
 
             </nav>
 
@@ -268,7 +288,7 @@
                 </div>
                 <div>
                     <span class="text-white font-bold text-base leading-tight block">KenkoMed</span>
-                    <span class="text-white/70 text-xs font-normal">Sistema Clínico</span>
+                    <span class="text-white/70 text-xs font-normal">{% if clinica_nombre %}{{ clinica_nombre }}{% else %}Sistema Clínico{% endif %}</span>
                 </div>
             </div>
             <button onclick="closeDrawer()" class="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all">
@@ -310,16 +330,19 @@
                 </div>
             </a>
 
+            {% if puede_ver_estadisticas_centro or estadisticas_globales %}
             <a href="{% url 'estadisticas' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-bar-chart-alt-2'></i>
                 </div>
                 <div>
-                    <span class="text-sm font-semibold">Estadísticas</span>
-                    <p class="text-xs text-gray-400 font-normal">Métricas generales</p>
+                    <span class="text-sm font-semibold">{% if estadisticas_globales %}Estad. Globales{% else %}Estad. Centro{% endif %}</span>
+                    <p class="text-xs text-gray-400 font-normal">{% if clinica_nombre %}{{ clinica_nombre }}{% else %}Métricas del sistema{% endif %}</p>
                 </div>
             </a>
+            {% endif %}
 
+            {% if tiene_centro %}
             <a href="{% url 'estadisticas_paciente' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if 'estadisticas_paciente' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if 'estadisticas_paciente' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-line-chart'></i>
@@ -329,6 +352,7 @@
                     <p class="text-xs text-gray-400 font-normal">Progreso individual</p>
                 </div>
             </a>
+            {% endif %}
 
             <a href="{% url 'mi_centro' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
@@ -350,6 +374,7 @@
                 </div>
             </a>
 
+            {% if puede_ver_agenda_centro %}
             <a href="{% url 'calendario_clinica' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-buildings'></i>
@@ -359,6 +384,19 @@
                     <p class="text-xs text-gray-400 font-normal">Todas las citas del equipo</p>
                 </div>
             </a>
+            {% endif %}
+
+            {% if puede_ver_auditoria %}
+            <a href="{% url 'auditoria_accesos' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if 'auditoria-accesos' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                    <i class='text-lg bx bx-shield-quarter'></i>
+                </div>
+                <div>
+                    <span class="text-sm font-semibold">Auditoría</span>
+                    <p class="text-xs text-gray-400 font-normal">Accesos a fichas del centro</p>
+                </div>
+            </a>
+            {% endif %}
 
         </div>
 

@@ -104,6 +104,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'clinicas.context_processors.clinica_sesion',
             ],
         },
     },
@@ -192,6 +193,8 @@ else:
         'https://www.software.kenkomed.cl',
         'https://*.trycloudflare.com',
     ]
+
+CSRF_FAILURE_VIEW = 'ProyectoMainAPP.error_handlers.csrf_failure'
 
 # Seguridad en producción (HTTPS). En local/Docker sin TLS: SECURE_SSL_REDIRECT=False en .env
 if not DEBUG:

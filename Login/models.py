@@ -364,33 +364,76 @@ class RecetaMedica(models.Model):
 
 
 class AuditoriaAcceso(models.Model):
-    """Registro de accesos a fichas e historiales clínicos."""
+    """Traza de auditoría: consultas y modificaciones sobre datos clínicos."""
 
     ACCIONES = [
-        ('historial', 'Historial clínico'),
-        ('informe', 'Informe DSS'),
-        ('ficha', 'Ficha clínica'),
-        ('exportar_json', 'Exportación JSON (ARCO)'),
-        ('exportar_html', 'Exportación HTML (ARCO)'),
+        ('consulta_historial', 'Consultó historial clínico'),
+        ('edicion_nota_clinica', 'Editó notas clínicas del historial'),
+        ('consulta_informe_dss', 'Visualizó informe DSS (anamnesis)'),
+        ('consulta_ficha_profesional', 'Visualizó ficha clínica profesional'),
+        ('consulta_resumen_paciente', 'Visualizó resumen del paciente en panel'),
+        ('alta_paciente', 'Registró nuevo paciente'),
+        ('edicion_paciente', 'Modificó datos demográficos del paciente'),
+        ('eliminacion_paciente', 'Eliminó ficha de paciente'),
+        ('exportacion_arco_json', 'Exportó ficha completa (ARCO — JSON)'),
+        ('exportacion_arco_html', 'Exportó ficha completa (ARCO — HTML)'),
+        ('reserva_crear', 'Creó cita / reserva'),
+        ('reserva_modificar', 'Modificó cita / reserva'),
+        ('reserva_eliminar', 'Eliminó cita / reserva'),
+        ('exportacion_auditoria_pdf', 'Exportó registro de auditoría (PDF)'),
     ]
 
-    paciente = models.ForeignKey('Paciente', on_delete=models.CASCADE, related_name='auditorias_acceso')
-    clinico = models.ForeignKey('Clinico', on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias_realizadas')
-    clinica = models.ForeignKey('clinicas.Clinica', on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias_acceso')
-    accion = models.CharField(max_length=20, choices=ACCIONES)
+    paciente = models.ForeignKey(
+        'Paciente', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='auditorias_acceso',
+    )
+    clinico = models.ForeignKey(
+        'Clinico', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='auditorias_realizadas',
+    )
+    clinica = models.ForeignKey(
+        'clinicas.Clinica', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='auditorias_acceso',
+    )
+    accion = models.CharField(max_length=40, choices=ACCIONES)
+    detalle = models.TextField(blank=True, default='')
+    es_admin_sistema = models.BooleanField(default=False, verbose_name='Admin KenkoMed')
+    es_admin_centro = models.BooleanField(default=False, verbose_name='Admin del centro')
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'Auditoría de acceso'
-        verbose_name_plural = 'Auditorías de acceso'
+        verbose_name = 'Registro de auditoría clínica'
+        verbose_name_plural = 'Registros de auditoría clínica'
         ordering = ['-fecha']
         indexes = [
             models.Index(fields=['clinica', '-fecha']),
             models.Index(fields=['paciente', '-fecha']),
+            models.Index(fields=['clinico', '-fecha']),
         ]
 
     def __str__(self):
+        rut_pac = self.paciente.rut if self.paciente else '—'
         clinico = self.clinico.rut if self.clinico else '—'
-        return f'{self.get_accion_display()} — {self.paciente.rut} — {clinico}'
+        return f'{self.get_accion_display()} — {rut_pac} — {clinico}'
+
+    def profesional_display(self):
+        if not self.clinico:
+            if self.es_admin_sistema:
+                return 'Administrador KenkoMed (sesión sin perfil clínico)'
+            return '—'
+        nombre = f'{self.clinico.nombre} {self.clinico.apellido}'
+        etiquetas = []
+        if self.es_admin_sistema:
+            etiquetas.append('Admin KenkoMed')
+        if self.es_admin_centro:
+            etiquetas.append('Admin centro')
+        if etiquetas:
+            return f'{nombre} ({", ".join(etiquetas)})'
+        return nombre
+
+    def paciente_display(self):
+        if not self.paciente:
+            return '—'
+        return f'{self.paciente.nombre} {self.paciente.apellido} ({self.paciente.rut})'
 

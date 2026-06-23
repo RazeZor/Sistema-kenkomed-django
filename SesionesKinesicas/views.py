@@ -6,18 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 from Login.models import Paciente, Clinico
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from ProyectoMainAPP.email_service import notificar_alta_paciente
+from clinicas.utils import obtener_paciente_por_rut
 from .models import SesionKinesica
 import json
 from datetime import datetime
 
 def obtener_paciente_con_permiso(rut_paciente, request):
-    es_admin = request.session.get('es_admin', False)
-    if es_admin:
-        return Paciente.objects.get(rut=rut_paciente)
-    clinica_id = request.session.get('clinica_id')
-    if not clinica_id:
-        raise Paciente.DoesNotExist()
-    return Paciente.objects.get(rut=rut_paciente, clinica_id=clinica_id)
+    return obtener_paciente_por_rut(request, rut_paciente)
 
 @requiere_clinico
 def listar_sesiones_paciente(request):
@@ -36,6 +31,8 @@ def listar_sesiones_paciente(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('historialClinico')
@@ -76,6 +73,8 @@ def crear_primera_sesion(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -201,6 +200,8 @@ def crear_sesion_seguimiento(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -274,6 +275,8 @@ def ver_sesion_kinesica(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -315,6 +318,8 @@ def editar_sesion_kinesica(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('listar_sesiones_kinesicas')
@@ -442,6 +447,8 @@ def crear_sesion_final(request):
     # Obtener el paciente
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
+        if not paciente:
+            raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('sesiones_kinesicas:listar')

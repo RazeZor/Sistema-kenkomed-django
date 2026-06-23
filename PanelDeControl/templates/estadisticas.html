@@ -127,8 +127,13 @@
     <div class="flex items-center gap-2">
         <i class='text-2xl bx bx-bar-chart-alt-2 text-primary-600'></i>
         <div class="flex flex-col">
-            <span>Panel de Estadísticas Clínicas</span>
-            <span class="text-sm text-slate-500 font-normal">Análisis integral de datos de pacientes</span>
+            {% if alcance_global %}
+            <span>Estadísticas globales — KenkoMed</span>
+            <span class="text-sm text-slate-500 font-normal">Todos los centros del sistema</span>
+            {% else %}
+            <span>Estadísticas — {{ clinica_nombre }}</span>
+            <span class="text-sm text-slate-500 font-normal">Datos solo de tu centro de trabajo</span>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

@@ -6,7 +6,7 @@ import json
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from clinicas.utils import obtener_paciente_por_rut
 from clinicas.branding import url_logo_clinica
-from Login.auditoria import registrar_acceso
+from Login.auditoria import registrar_auditoria
 
 
 def _parse_json_list(value):
@@ -32,7 +32,10 @@ def RenderInforme(request):
     if not paciente:
         return HttpResponseForbidden("No tienes permisos para ver el informe de este paciente.")
 
-    registrar_acceso(request, paciente, 'informe')
+    registrar_auditoria(
+        request, 'consulta_informe_dss', paciente,
+        detalle=f'Visualización informe DSS — {paciente.rut}',
+    )
 
     try:
         formulario = formularioClinico.objects.get(paciente=paciente)
@@ -125,7 +128,11 @@ def RenderFichaClinica(request):
     if not paciente:
         return HttpResponseForbidden("No tienes permisos para ver la ficha clínica de este paciente.")
 
-    registrar_acceso(request, paciente, 'ficha')
+    if not getattr(request, 'auditoria_suprimida', False):
+        registrar_auditoria(
+            request, 'consulta_ficha_profesional', paciente,
+            detalle=f'Visualización ficha clínica profesional — {paciente.rut}',
+        )
 
     rut_sesion = request.session.get('rut_clinico')
     clinico_emisor = Clinico.objects.filter(rut=rut_sesion).first() if rut_sesion else None

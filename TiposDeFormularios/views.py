@@ -9,6 +9,7 @@ from Login.models import CuestionarioEvaluacionENA
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
+from clinicas.utils import obtener_paciente_por_rut
 
 
 class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en el codigo
@@ -43,25 +44,15 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
         return True
     
     def obtener_paciente(self):
-        """Obtiene el paciente del RUT en GET o POST"""
+        """Obtiene el paciente del RUT en GET o POST, respetando la clínica de sesión."""
         rut = self.request.GET.get('rut', '') or self.request.POST.get('rut', '')
         if not rut:
             return None
-        
-        try:
-            es_admin = self.request.session.get('es_admin', False)
-            if es_admin:
-                self.paciente = Paciente.objects.get(rut=rut)
-            else:
-                clinica_id = self.request.session.get('clinica_id')
-                if clinica_id:
-                    self.paciente = Paciente.objects.get(rut=rut, clinica_id=clinica_id)
-                else:
-                    raise Paciente.DoesNotExist()
-            return self.paciente
-        except Paciente.DoesNotExist:
+
+        self.paciente = obtener_paciente_por_rut(self.request, rut)
+        if not self.paciente:
             messages.error(self.request, 'Paciente no encontrado o no tienes permiso de acceso.')
-            return None
+        return self.paciente
     
     def redirect_to_login(self):
         """Redirección común al login"""
@@ -151,13 +142,17 @@ def gestionar_psfs(request):
         return HttpResponse('Paciente no encontrado', status=404)
     
     cuestionario = CuestionarioPSFS.objects.filter(paciente=paciente).first()
+    if cuestionario:
+        from TiposDeFormularios.psfs_utils import repair_psfs_stored_totals
+        repair_psfs_stored_totals(cuestionario)
     
     if request.method == 'POST':
         return _procesar_psfs_post(request, paciente, cuestionario)
     
     # Preparar datos para renderizado
     sesiones = _obtener_sesiones_psfs(cuestionario) if cuestionario else []
-    
+    ultima = sesiones[-1] if sesiones else None
+
     return render(request, 'CuestionarioPSFS.html', {
         'rut': paciente.rut,
         'actividad1': cuestionario.actividad_1 if cuestionario else '',
@@ -165,158 +160,109 @@ def gestionar_psfs(request):
         'actividad3': cuestionario.actividad_3 if cuestionario else '',
         'sesiones': sesiones,
         'evaluacion_existente': cuestionario is not None,
-        'nota': cuestionario.NotaCuestionarioPSFS if cuestionario else None
+        'nota': cuestionario.NotaCuestionarioPSFS if cuestionario else None,
+        'rango1': ultima['actividad_1'] if ultima else 5,
+        'rango2': ultima['actividad_2'] if ultima else 5,
+        'rango3': ultima['actividad_3'] if ultima else 5,
     })
 
 
 def _procesar_psfs_post(request, paciente, cuestionario):
-    """Procesa las acciones POST para PSFS con actividades manuales"""
-    print("\n=== INICIO _procesar_psfs_post ===")
-    print(f"Método: {request.method}")
-    print(f"Datos POST: {request.POST}")
-    
+    """Procesa las acciones POST para PSFS con actividades manuales."""
+    from TiposDeFormularios.psfs_utils import (
+        append_psfs_scores,
+        initial_psfs_scores,
+        replace_last_psfs_session,
+        scores_from_post,
+    )
+
     action = request.POST.get('action', '')
-    print(f"Acción: {action}")
-    
-    # Obtener actividades del formulario
+
     actividad_1 = request.POST.get('actividad_1', '').strip()
     actividad_2 = request.POST.get('actividad_2', '').strip()
     actividad_3 = request.POST.get('actividad_3', '').strip()
-    
-    print(f"Actividades recibidas: {actividad_1}, {actividad_2}, {actividad_3}")
-    
-    # Validar que se hayan ingresado las actividades si es una nueva evaluación
+
     if action == 'guardar' and not all([actividad_1, actividad_2, actividad_3]):
-        error_msg = "Debe ingresar las tres actividades para continuar."
-        print(error_msg)
-        messages.error(request, error_msg)
+        messages.error(request, 'Debe ingresar las tres actividades para continuar.')
         return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
-    
-    # Manejar la acción de guardar nota (tanto para 'GuardarNota' como para cuando solo se envía 'notes')
+
     if action == 'GuardarNota' or 'notes' in request.POST:
         notaPSFS = request.POST.get('notes', '').strip()
         if not notaPSFS and 'nota_adicional' in request.POST:
             notaPSFS = request.POST.get('nota_adicional', '').strip()
-            
+
         if not notaPSFS:
-            messages.error(request, "No se proporcionó ninguna nota para guardar.")
+            messages.error(request, 'No se proporcionó ninguna nota para guardar.')
         elif _actualizar_nota_psfs(paciente, notaPSFS):
-            messages.success(request, "Nota guardada correctamente.")
+            messages.success(request, 'Nota guardada correctamente.')
         else:
-            messages.error(request, "Error al guardar la nota. Asegúrese de que el cuestionario existe.")
+            messages.error(request, 'Error al guardar la nota. Asegúrese de que el cuestionario existe.')
         return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
-    
-    # Obtener puntajes solo si no es una acción de guardar nota
-    puntajes = {
-        'actividad_1': request.POST.getlist('rango1'),
-        'actividad_2': request.POST.getlist('rango2'),
-        'actividad_3': request.POST.getlist('rango3'),
-        'total': request.POST.getlist('total_score')
-    }
-    
-    print(f"Puntajes recibidos: {puntajes}")
+
+    puntajes = scores_from_post(request.POST)
     notaPSFS = request.POST.get('nota_adicional', '')
-    
+
+    if action in ('guardar', 'actualizar') and not any(
+        puntajes[k] for k in ('actividad_1', 'actividad_2', 'actividad_3')
+    ):
+        messages.error(request, 'Debe asignar puntaje a las tres actividades antes de guardar.')
+        return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
+
     try:
         if action == 'guardar':
-            # Crear nueva evaluación
+            scores = initial_psfs_scores(puntajes)
             CuestionarioPSFS.objects.create(
                 paciente=paciente,
                 fecha_creacion=datetime.now().date(),
                 actividad_1=actividad_1,
                 actividad_2=actividad_2,
                 actividad_3=actividad_3,
-                puntaje_actividad_1=json.dumps(puntajes['actividad_1']),
-                puntaje_actividad_2=json.dumps(puntajes['actividad_2']),
-                puntaje_actividad_3=json.dumps(puntajes['actividad_3']),
-                puntajeTotal=json.dumps(puntajes['total']),
-                NotaCuestionarioPSFS=notaPSFS
+                NotaCuestionarioPSFS=notaPSFS,
+                **scores,
             )
-            messages.success(request, "Cuestionario guardado correctamente.")
-            
+            messages.success(request, 'Cuestionario guardado correctamente.')
+
         elif action == 'actualizar':
-            # Actualizar evaluación existente
             if not cuestionario:
                 cuestionario = get_object_or_404(CuestionarioPSFS, paciente=paciente)
-            
-            # Actualizar actividades si se proporcionaron
+
             if actividad_1:
                 cuestionario.actividad_1 = actividad_1
             if actividad_2:
                 cuestionario.actividad_2 = actividad_2
             if actividad_3:
                 cuestionario.actividad_3 = actividad_3
-                
-            _actualizar_puntajes_psfs(cuestionario, puntajes)
-            
-            # Actualizar la nota si se proporcionó
+
+            nueva_sesion = request.POST.get('nueva_sesion') in ('1', 'on', 'true')
+            if nueva_sesion:
+                append_psfs_scores(cuestionario, puntajes)
+                messages.success(request, 'Nueva sesión de seguimiento registrada.')
+            else:
+                replace_last_psfs_session(cuestionario, puntajes)
+                messages.success(request, 'Evaluación actualizada correctamente.')
+
             if 'nota_adicional' in request.POST:
                 cuestionario.NotaCuestionarioPSFS = notaPSFS
-                
+
             cuestionario.save()
-            messages.success(request, "Cuestionario actualizado correctamente.")
-            
+
     except Exception as e:
-        messages.error(request, f"Error al procesar el cuestionario: {str(e)}")
-        
+        messages.error(request, f'Error al procesar el cuestionario: {str(e)}')
+
     return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
 
 
 def _actualizar_puntajes_psfs(cuestionario, nuevos_puntajes):
-    """Actualiza los puntajes PSFS existentes"""
-    campos = {
-        'puntaje_actividad_1': 'actividad_1',
-        'puntaje_actividad_2': 'actividad_2', 
-        'puntaje_actividad_3': 'actividad_3',
-        'puntajeTotal': 'total'
-    }
-    
-    for campo_db, campo_form in campos.items():
-        puntajes_actuales = json.loads(getattr(cuestionario, campo_db) or '[]')
-        puntajes_actuales.extend(nuevos_puntajes[campo_form])
-        setattr(cuestionario, campo_db, json.dumps(puntajes_actuales))
-    
+    """Compatibilidad: delega en append_psfs_scores."""
+    from TiposDeFormularios.psfs_utils import append_psfs_scores
+    append_psfs_scores(cuestionario, nuevos_puntajes)
     cuestionario.save()
 
 
 def _obtener_sesiones_psfs(cuestionario):
-    """Obtiene las sesiones formateadas para PSFS"""
-    if not cuestionario:
-        return []
-    
-    sesiones = []
-    try:
-        # Obtener todos los puntajes de las actividades
-        puntajes_1 = json.loads(cuestionario.puntaje_actividad_1 or '[]')
-        puntajes_2 = json.loads(cuestionario.puntaje_actividad_2 or '[]')
-        puntajes_3 = json.loads(cuestionario.puntaje_actividad_3 or '[]')
-        totales = json.loads(cuestionario.puntajeTotal or '[]')
-        
-        # Determinar el número de sesiones (máxima longitud entre los arrays)
-        num_sesiones = max(len(puntajes_1), len(puntajes_2), len(puntajes_3), len(totales))
-        
-        # Crear una sesión para cada conjunto de puntajes
-        for i in range(num_sesiones):
-            # Obtener los puntajes para esta sesión o usar 0 si no existen
-            p1 = int(puntajes_1[i]) if i < len(puntajes_1) else 0
-            p2 = int(puntajes_2[i]) if i < len(puntajes_2) else 0
-            p3 = int(puntajes_3[i]) if i < len(puntajes_3) else 0
-            total = float(totales[i]) if i < len(totales) else 0
-            
-            sesiones.append({
-                'numero': i + 1,
-                'puntaje_1': p1,
-                'puntaje_2': p2,
-                'puntaje_3': p3,
-                'total': total,
-                'fecha': cuestionario.fecha_creacion.strftime('%d/%m/%Y')
-            })
-            
-    except (json.JSONDecodeError, ValueError) as e:
-        print(f"Error al procesar los puntajes PSFS: {e}")
-        return []
-    
-    return sesiones
+    """Obtiene las sesiones formateadas para PSFS."""
+    from TiposDeFormularios.psfs_utils import build_psfs_sessions
+    return build_psfs_sessions(cuestionario)
 
 
 def _actualizar_nota_psfs(paciente, nota):

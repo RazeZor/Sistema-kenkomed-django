@@ -7,7 +7,13 @@ from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.urls import reverse
 from ProyectoMainAPP.email_service import notificar_nuevo_paciente, notificar_formulario_completado
-from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut, paciente_pertenece_a_sesion
+from clinicas.utils import (
+    filtrar_pacientes_por_sesion,
+    filtrar_tokens_formulario_por_sesion,
+    obtener_clinicos_de_sesion,
+    obtener_paciente_por_rut,
+    paciente_pertenece_a_sesion,
+)
 from Login.auditoria import obtener_ip_cliente
 import json
 import qrcode
@@ -466,13 +472,7 @@ def generar_token_formulario(request):
         # GET: Listar pacientes sin anamnesis y tokens activos
         pacientes_sin_anamnesis = filtrar_pacientes_por_sesion(request).filter(formulario__isnull=True)
 
-        clinicos_ids = obtener_clinicos_de_sesion(request)
-        if clinicos_ids:
-            tokens_activos = TokenFormulario.objects.filter(
-                clinico_id__in=clinicos_ids
-            ).order_by('-fecha_creacion')[:20]
-        else:
-            tokens_activos = TokenFormulario.objects.none()
+        tokens_activos = filtrar_tokens_formulario_por_sesion(request).order_by('-fecha_creacion')[:20]
         
         return render(request, 'generar_qr.html', {
             'clinico': clinico,
@@ -497,7 +497,7 @@ def descargar_qr(request, token_id):
         
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        if not es_admin and not paciente_pertenece_a_sesion(request, token.paciente):
+        if not paciente_pertenece_a_sesion(request, token.paciente):
             messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
@@ -665,7 +665,7 @@ def desactivar_token(request, token_id):
         
         token = get_object_or_404(TokenFormulario, id=token_id)
         
-        if not es_admin and not paciente_pertenece_a_sesion(request, token.paciente):
+        if not paciente_pertenece_a_sesion(request, token.paciente):
             messages.error(request, 'No tienes permisos')
             return redirect('panel')
         
