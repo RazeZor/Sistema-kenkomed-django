@@ -11,6 +11,11 @@ from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
 from clinicas.utils import obtener_paciente_por_rut
 from Login.auditoria import auditar_cuestionario_consulta, auditar_cuestionario_edicion
+from TiposDeFormularios.escala_hooks import (
+    redirect_cuestionario,
+    sincronizar_numero_sesion_kine,
+    vincular_escala_a_sesion,
+)
 
 
 class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en el codigo
@@ -53,6 +58,8 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
         self.paciente = obtener_paciente_por_rut(self.request, rut)
         if not self.paciente:
             messages.error(self.request, 'Paciente no encontrado o no tienes permiso de acceso.')
+        else:
+            sincronizar_numero_sesion_kine(self.request, self.paciente)
         return self.paciente
     
     def redirect_to_login(self):
@@ -76,7 +83,7 @@ def RenderizarGROC(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
-    # Verificar evaluación existente
+    sincronizar_numero_sesion_kine(request, paciente)
     evaluacion_existente = Groc.objects.filter(paciente=paciente).exists()
     puntajes = []
     NotaGroc = "el Paciente No tiene Notas"
@@ -119,6 +126,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
                 puntajeGroc=[{'puntaje': int(puntajeGroc)}]
             )
             auditar_cuestionario_edicion(request, paciente, 'GROC', 'nueva evaluación')
+            vincular_escala_a_sesion(request, paciente, 'groc', f'Puntaje: {puntajeGroc}', 'GROK')
             messages.success(request, "Evaluación registrada correctamente.")
             
         elif action == 'actualizar':
@@ -129,6 +137,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
                 evaluacion.puntajeGroc = [{'puntaje': int(puntajeGroc)}]
             evaluacion.save()
             auditar_cuestionario_edicion(request, paciente, 'GROC', 'nueva sesión')
+            vincular_escala_a_sesion(request, paciente, 'groc', f'Puntaje: {puntajeGroc}', 'GROK')
             messages.success(request, "Evaluación actualizada correctamente.")
             
         elif action == 'GuardarNota':
@@ -237,6 +246,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
             )
             auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nueva evaluación')
             messages.success(request, 'Cuestionario guardado correctamente.')
+            _vincular_psfs_a_sesion(request, paciente)
 
         elif action == 'actualizar':
             if not cuestionario:
@@ -259,6 +269,8 @@ def _procesar_psfs_post(request, paciente, cuestionario):
                 auditar_cuestionario_edicion(request, paciente, 'PSFS', 'actualización de sesión')
                 messages.success(request, 'Evaluación actualizada correctamente.')
 
+            _vincular_psfs_a_sesion(request, paciente)
+
             if 'nota_adicional' in request.POST:
                 cuestionario.NotaCuestionarioPSFS = notaPSFS
 
@@ -267,7 +279,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
     except Exception as e:
         messages.error(request, f'Error al procesar el cuestionario: {str(e)}')
 
-    return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
+    return redirect_cuestionario(request, 'gestionar_psfs', paciente.rut)
 
 
 def _actualizar_puntajes_psfs(cuestionario, nuevos_puntajes):
@@ -281,6 +293,18 @@ def _obtener_sesiones_psfs(cuestionario):
     """Obtiene las sesiones formateadas para PSFS."""
     from TiposDeFormularios.psfs_utils import build_psfs_sessions
     return build_psfs_sessions(cuestionario)
+
+
+def _vincular_psfs_a_sesion(request, paciente):
+    cuestionario = CuestionarioPSFS.objects.filter(paciente=paciente).first()
+    if not cuestionario:
+        return
+    sesiones = _obtener_sesiones_psfs(cuestionario)
+    if not sesiones:
+        return
+    ultima = sesiones[-1]
+    total = ultima.get('total', '-')
+    vincular_escala_a_sesion(request, paciente, 'psfs', f'Total: {total}', 'gestionar_psfs')
 
 
 def _actualizar_nota_psfs(paciente, nota):
@@ -342,6 +366,8 @@ def _procesar_eq5d_post(request, paciente, clinico):
                 request, paciente, 'EQ-5D',
                 'nueva evaluación' if action == 'guardar' else 'nueva sesión',
             )
+            vas = request.POST.get('vasScore', '')
+            vincular_escala_a_sesion(request, paciente, 'eq5d', f'EVA: {vas}', 'EQ_5D')
         
         messages.success(request, f'El cuestionario se ha {"guardado" if action == "guardar" else "actualizado"} correctamente.')
         
@@ -502,11 +528,13 @@ def _procesar_barthel_post(request, paciente, clinico):
             if action == 'guardar':
                 _crear_barthel(paciente, clinico, datos, total, grado, notaBarthel)
                 auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva evaluación')
+                vincular_escala_a_sesion(request, paciente, 'barthel', f'Puntaje: {total}, {grado}', 'bartel')
                 messages.success(request, f"Cuestionario Barthel guardado correctamente. Puntaje: {total}, Grado: {grado}")
             
             elif action == 'actualizar':
                 _actualizar_barthel(paciente, datos, total, grado)
                 auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva sesión')
+                vincular_escala_a_sesion(request, paciente, 'barthel', f'Puntaje: {total}, {grado}', 'bartel')
                 messages.success(request, f"Cuestionario Barthel actualizado correctamente. Puntaje: {total}, Grado: {grado}")
         
         elif action == 'GuardarNota':
@@ -519,7 +547,7 @@ def _procesar_barthel_post(request, paciente, clinico):
     except Exception as e:
         messages.error(request, f"Error al procesar el cuestionario: {str(e)}")
     
-    return redirect(f"{reverse('bartel')}?rut={paciente.rut}")
+    return redirect_cuestionario(request, 'bartel', paciente.rut)
 
 
 def _procesar_datos_barthel(request):
@@ -755,6 +783,7 @@ def _procesar_screening_post(request, paciente, clinico):
                 Nota_CuestionarioScrenning=nota
             )
             auditar_cuestionario_edicion(request, paciente, 'Screening (Örebro)', 'nueva evaluación')
+            vincular_escala_a_sesion(request, paciente, 'screening', f'Puntaje: {puntaje_sesion}', 'Screnning')
             messages.success(request, "Cuestionario de screening guardado correctamente.")
 
         elif action == 'actualizar':
@@ -767,6 +796,7 @@ def _procesar_screening_post(request, paciente, clinico):
                 cuestionario.Nota_CuestionarioScrenning = nota
                 cuestionario.save()
                 auditar_cuestionario_edicion(request, paciente, 'Screening (Örebro)', 'actualización')
+                vincular_escala_a_sesion(request, paciente, 'screening', f'Puntaje: {puntaje_sesion}', 'Screnning')
                 messages.success(request, "Cuestionario de screening actualizado correctamente.")
             except CuestionarioScrenning.DoesNotExist:
                 messages.error(request, "No existe una evaluación previa para actualizar.")
@@ -865,6 +895,7 @@ def renderizar_CuestionarioENA(request):
                     cuestionario.save()
 
                 auditar_cuestionario_edicion(request, paciente, 'ENA', 'nueva evaluación')
+                vincular_escala_a_sesion(request, paciente, 'ena', f'Nivel: {level}/10', 'ENA')
                 messages.success(request, 'Evaluación guardada correctamente.')
 
             elif action == 'delete':
@@ -1002,6 +1033,11 @@ def _procesar_oswestry_post(request, paciente, clinico):
         porcentaje = evaluacion.get_porcentaje_incapacidad()
 
         auditar_cuestionario_edicion(request, paciente, 'Oswestry (ODI)', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'oswestry',
+            f'{porcentaje}% — {interpretacion["nivel"]}',
+            'oswestry',
+        )
         
         messages.success(
             request, 
@@ -1012,7 +1048,7 @@ def _procesar_oswestry_post(request, paciente, clinico):
     except Exception as e:
         messages.error(request, f'Error al procesar la evaluación: {str(e)}')
     
-    return redirect(f"{reverse('oswestry')}?rut={paciente.rut}")
+    return redirect_cuestionario(request, 'oswestry', paciente.rut)
 
 
 # ==================== ESCALA FUNCIONAL EXTREMIDAD INFERIOR (LEFS) ====================
@@ -1143,6 +1179,11 @@ def _procesar_lefs_post(request, paciente, clinico):
         porcentaje = evaluacion.get_porcentaje_funcionalidad()
 
         auditar_cuestionario_edicion(request, paciente, 'LEFS', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'lefs',
+            f'{total}/80 ({porcentaje}%) — {interpretacion["nivel"]}',
+            'lefs',
+        )
         
         messages.success(
             request, 
@@ -1153,4 +1194,4 @@ def _procesar_lefs_post(request, paciente, clinico):
     except Exception as e:
         messages.error(request, f'Error al procesar la evaluación: {str(e)}')
     
-    return redirect(f"{reverse('lefs')}?rut={paciente.rut}")
+    return redirect_cuestionario(request, 'lefs', paciente.rut)

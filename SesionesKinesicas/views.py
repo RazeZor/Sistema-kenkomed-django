@@ -8,12 +8,32 @@ from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from ProyectoMainAPP.email_service import notificar_alta_paciente
 from Login.auditoria import registrar_auditoria
 from clinicas.utils import obtener_paciente_por_rut
-from .models import SesionKinesica
+from .session_inputs import evaluacion_inicial_desde_post, validar_post_sesion_kinesica
+from .models import SesionKinesica, RegistroEscalaSesion
+from .escalas_sesion import obtener_escalas_agrupadas_por_numero, urls_escalas_para_sesion
 import json
 from datetime import datetime
 
 def obtener_paciente_con_permiso(rut_paciente, request):
     return obtener_paciente_por_rut(request, rut_paciente)
+
+
+def _rechazar_texto_marcado(request, post, *, incluir_evaluacion=False, incluir_final=False):
+    """Muestra errores y retorna True si hay HTML/CSS/JS en campos de texto."""
+    errores = validar_post_sesion_kinesica(
+        post,
+        incluir_evaluacion=incluir_evaluacion,
+        incluir_final=incluir_final,
+    )
+    if not errores:
+        return False
+    for err in errores:
+        messages.error(request, err)
+    messages.error(
+        request,
+        'No se guardó la sesión. Los campos clínicos deben ser texto plano, sin HTML, CSS ni JavaScript.',
+    )
+    return True
 
 @requiere_clinico
 def listar_sesiones_paciente(request):
@@ -41,7 +61,12 @@ def listar_sesiones_paciente(request):
     # Obtener todas las sesiones del paciente
     sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('-numero_sesion')
     primera_sesion = sesiones.filter(es_primera_sesion=True).first()
-    sesiones_posteriores = sesiones.filter(es_primera_sesion=False)
+    sesiones_posteriores = list(sesiones.filter(es_primera_sesion=False))
+    escalas_por_numero = obtener_escalas_agrupadas_por_numero(paciente)
+    if primera_sesion:
+        primera_sesion.escalas_en_sesion = escalas_por_numero.get(primera_sesion.numero_sesion, [])
+    for s in sesiones_posteriores:
+        s.escalas_en_sesion = escalas_por_numero.get(s.numero_sesion, [])
     
     context = {
         'nombre_clinico': nombre_clinico,
@@ -91,66 +116,14 @@ def crear_primera_sesion(request):
         return redirect('listar_sesiones_kinesicas', rut=rut_paciente)
     
     if request.method == 'POST':
+        if _rechazar_texto_marcado(request, request.POST, incluir_evaluacion=True):
+            return render(request, 'SesionesKinesicas/crear_primera_sesion.html', {
+                'nombre_clinico': nombre_clinico,
+                'paciente': paciente,
+                'rut': rut_paciente,
+            })
         try:
-            # Recopilar datos del formulario
-            evaluacion_datos = {
-                # ANAMNESIS
-                'motivo_consulta': request.POST.get('motivo_consulta', ''),
-                'causa_lesion': request.POST.get('causa_lesion', ''),
-                'mecanismo_lesion': request.POST.get('mecanismo_lesion', ''),
-                'manejo_abordaje': request.POST.get('manejo_abordaje', ''),
-                'fecha_lesion': request.POST.get('fecha_lesion', ''),
-                'fecha_control_medico': request.POST.get('fecha_control_medico', ''),
-                'alteraciones_funcionales': request.POST.get('alteraciones_funcionales', ''),
-                'objetivo_paciente': request.POST.get('objetivo_paciente', ''),
-                
-                # EVALUACIÓN DEL DOLOR
-                'dolor_presente': request.POST.get('dolor_presente', ''),
-                'dolor_antiguedad': request.POST.get('dolor_antiguedad', ''),
-                'dolor_localizacion': request.POST.get('dolor_localizacion', ''),
-                'dolor_intensidad': request.POST.get('dolor_intensidad', ''),
-                'dolor_caracteristicas': request.POST.get('dolor_caracteristicas', ''),
-                'dolor_irradiacion': request.POST.get('dolor_irradiacion', ''),
-                
-                # EVALUACIÓN POSTURAL
-                'postura_plano_frontal_anterior': request.POST.get('postura_plano_frontal_anterior', ''),
-                'postura_plano_frontal_posterior': request.POST.get('postura_plano_frontal_posterior', ''),
-                'postura_plano_sagital': request.POST.get('postura_plano_sagital', ''),
-                
-                # EXAMEN FÍSICO
-                'examen_observacion': request.POST.get('examen_observacion', ''),
-                'examen_inspeccion': request.POST.get('examen_inspeccion', ''),
-                'examen_palpacion': request.POST.get('examen_palpacion', ''),
-                
-                # RANGO ARTICULAR ACTIVO
-                'rango_activo_conservados': request.POST.get('rango_activo_conservados', ''),
-                'rango_activo_limitados': request.POST.get('rango_activo_limitados', ''),
-                
-                # RANGO ARTICULAR PASIVO
-                'rango_pasivo_mmss_derecha': request.POST.get('rango_pasivo_mmss_derecha', ''),
-                'rango_pasivo_mmss_izquierda': request.POST.get('rango_pasivo_mmss_izquierda', ''),
-                'rango_pasivo_mmii_derecha': request.POST.get('rango_pasivo_mmii_derecha', ''),
-                'rango_pasivo_mmii_izquierda': request.POST.get('rango_pasivo_mmii_izquierda', ''),
-                
-                # FUNCIÓN MUSCULAR
-                'funcion_muscular_superiores': request.POST.get('funcion_muscular_superiores', ''),
-                'funcion_muscular_inferiores': request.POST.get('funcion_muscular_inferiores', ''),
-                
-                # PRUEBAS FUNCIONALES ACTIVAS
-                'movimiento_squat_overhead': request.POST.get('movimiento_squat_overhead', ''),
-                'movimiento_single_leg_squat': request.POST.get('movimiento_single_leg_squat', ''),
-                'movimiento_drop_test': request.POST.get('movimiento_drop_test', ''),
-                'movimiento_salto_cajon': request.POST.get('movimiento_salto_cajon', ''),
-                
-                # EVALUACIÓN DE MOVIMIENTO CON CARGA
-                'movimiento_carga_squat_press': request.POST.get('movimiento_carga_squat_press', ''),
-                'movimiento_carga_split_deadlift': request.POST.get('movimiento_carga_split_deadlift', ''),
-                'movimiento_carga_turkish_get_up': request.POST.get('movimiento_carga_turkish_get_up', ''),
-                
-                # TEST ORTOPÉDICOS
-                'test_ortopedicos': request.POST.get('test_ortopedicos', ''),
-            }
-            
+            evaluacion_datos = evaluacion_inicial_desde_post(request.POST)
             notas = request.POST.get('notas_clinicas', '')
             evolucion = request.POST.get('evolucion', '')
             
@@ -223,6 +196,17 @@ def crear_sesion_seguimiento(request):
         return redirect('crear_primera_sesion_kinesica', rut=rut_paciente)
     
     if request.method == 'POST':
+        if _rechazar_texto_marcado(request, request.POST):
+            ultima_sesion = SesionKinesica.objects.filter(
+                paciente=paciente
+            ).order_by('-numero_sesion').first()
+            return render(request, 'SesionesKinesicas/crear_sesion_seguimiento.html', {
+                'nombre_clinico': nombre_clinico,
+                'paciente': paciente,
+                'rut': rut_paciente,
+                'ultima_sesion': ultima_sesion,
+                'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 2,
+            })
         try:
             # Obtener el siguiene número de sesión
             ultima_sesion = SesionKinesica.objects.filter(
@@ -304,11 +288,17 @@ def ver_sesion_kinesica(request):
         numero_sesion=numero_sesion
     )
     
+    escalas_en_sesion = RegistroEscalaSesion.objects.filter(
+        sesion_kinesica=sesion
+    ).order_by('-fecha_registro')
+    
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
         'sesion': sesion,
         'es_primera_sesion': sesion.es_primera_sesion,
+        'escalas_en_sesion': escalas_en_sesion,
+        'urls_escalas': urls_escalas_para_sesion(paciente.rut, sesion.numero_sesion),
     }
 
     registrar_auditoria(
@@ -353,6 +343,19 @@ def editar_sesion_kinesica(request):
     )
     
     if request.method == 'POST':
+        if _rechazar_texto_marcado(
+            request,
+            request.POST,
+            incluir_evaluacion=sesion.es_primera_sesion,
+            incluir_final=sesion.es_sesion_final,
+        ):
+            return render(request, 'SesionesKinesicas/editar_sesion.html', {
+                'nombre_clinico': nombre_clinico,
+                'paciente': paciente,
+                'sesion': sesion,
+                'es_primera_sesion': sesion.es_primera_sesion,
+                'rut': rut_paciente,
+            })
         try:
             # Actualizar notas y evolución (campos comunes a todas las sesiones)
             sesion.notas_clinicas = request.POST.get('notas_clinicas', '')
@@ -360,64 +363,7 @@ def editar_sesion_kinesica(request):
             
             # Si es la primera sesión, actualizar también la evaluación inicial
             if sesion.es_primera_sesion:
-                evaluacion_datos = {
-                    # ANAMNESIS
-                    'motivo_consulta': request.POST.get('motivo_consulta', ''),
-                    'causa_lesion': request.POST.get('causa_lesion', ''),
-                    'mecanismo_lesion': request.POST.get('mecanismo_lesion', ''),
-                    'manejo_abordaje': request.POST.get('manejo_abordaje', ''),
-                    'fecha_lesion': request.POST.get('fecha_lesion', ''),
-                    'fecha_control_medico': request.POST.get('fecha_control_medico', ''),
-                    'alteraciones_funcionales': request.POST.get('alteraciones_funcionales', ''),
-                    'objetivo_paciente': request.POST.get('objetivo_paciente', ''),
-                    
-                    # EVALUACIÓN DEL DOLOR
-                    'dolor_presente': request.POST.get('dolor_presente', ''),
-                    'dolor_antiguedad': request.POST.get('dolor_antiguedad', ''),
-                    'dolor_localizacion': request.POST.get('dolor_localizacion', ''),
-                    'dolor_intensidad': request.POST.get('dolor_intensidad', ''),
-                    'dolor_caracteristicas': request.POST.get('dolor_caracteristicas', ''),
-                    'dolor_irradiacion': request.POST.get('dolor_irradiacion', ''),
-                    
-                    # EVALUACIÓN POSTURAL
-                    'postura_plano_frontal_anterior': request.POST.get('postura_plano_frontal_anterior', ''),
-                    'postura_plano_frontal_posterior': request.POST.get('postura_plano_frontal_posterior', ''),
-                    'postura_plano_sagital': request.POST.get('postura_plano_sagital', ''),
-                    
-                    # EXAMEN FÍSICO
-                    'examen_observacion': request.POST.get('examen_observacion', ''),
-                    'examen_inspeccion': request.POST.get('examen_inspeccion', ''),
-                    'examen_palpacion': request.POST.get('examen_palpacion', ''),
-                    
-                    # RANGO ARTICULAR ACTIVO
-                    'rango_activo_conservados': request.POST.get('rango_activo_conservados', ''),
-                    'rango_activo_limitados': request.POST.get('rango_activo_limitados', ''),
-                    
-                    # RANGO ARTICULAR PASIVO
-                    'rango_pasivo_mmss_derecha': request.POST.get('rango_pasivo_mmss_derecha', ''),
-                    'rango_pasivo_mmss_izquierda': request.POST.get('rango_pasivo_mmss_izquierda', ''),
-                    'rango_pasivo_mmii_derecha': request.POST.get('rango_pasivo_mmii_derecha', ''),
-                    'rango_pasivo_mmii_izquierda': request.POST.get('rango_pasivo_mmii_izquierda', ''),
-                    
-                    # FUNCIÓN MUSCULAR
-                    'funcion_muscular_superiores': request.POST.get('funcion_muscular_superiores', ''),
-                    'funcion_muscular_inferiores': request.POST.get('funcion_muscular_inferiores', ''),
-                    
-                    # PRUEBAS FUNCIONALES ACTIVAS
-                    'movimiento_squat_overhead': request.POST.get('movimiento_squat_overhead', ''),
-                    'movimiento_single_leg_squat': request.POST.get('movimiento_single_leg_squat', ''),
-                    'movimiento_drop_test': request.POST.get('movimiento_drop_test', ''),
-                    'movimiento_salto_cajon': request.POST.get('movimiento_salto_cajon', ''),
-                    
-                    # EVALUACIÓN DE MOVIMIENTO CON CARGA
-                    'movimiento_carga_squat_press': request.POST.get('movimiento_carga_squat_press', ''),
-                    'movimiento_carga_split_deadlift': request.POST.get('movimiento_carga_split_deadlift', ''),
-                    'movimiento_carga_turkish_get_up': request.POST.get('movimiento_carga_turkish_get_up', ''),
-                    
-                    # TEST ORTOPÉDICOS
-                    'test_ortopedicos': request.POST.get('test_ortopedicos', ''),
-                }
-                sesion.evaluacion_inicial = evaluacion_datos
+                sesion.evaluacion_inicial = evaluacion_inicial_desde_post(request.POST)
             
             # Si es sesión final, guardar sus campos específicos
             if sesion.es_sesion_final:
@@ -484,6 +430,20 @@ def crear_sesion_final(request):
         return redirect('sesiones_kinesicas:listar')
     
     if request.method == 'POST':
+        if _rechazar_texto_marcado(request, request.POST, incluir_final=True):
+            ultima_sesion = SesionKinesica.objects.filter(
+                paciente=paciente
+            ).order_by('-numero_sesion').first()
+            total_sesiones = SesionKinesica.objects.filter(paciente=paciente).count()
+            return render(request, 'SesionesKinesicas/crear_sesion_final.html', {
+                'nombre_clinico': nombre_clinico,
+                'paciente': paciente,
+                'rut': rut_paciente,
+                'ultima_sesion': ultima_sesion,
+                'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 1,
+                'total_sesiones': total_sesiones,
+                'estado_choices': SesionKinesica.ESTADO_ALTA_CHOICES,
+            })
         try:
             # Obtener el siguiente número de sesión
             ultima_sesion = SesionKinesica.objects.filter(

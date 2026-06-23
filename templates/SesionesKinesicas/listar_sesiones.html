@@ -121,6 +121,7 @@
                         </div>
                     </div>
                     {% endif %}
+                    {% include 'SesionesKinesicas/partials/escalas_sesion.html' with escalas=sesion.escalas_en_sesion full_width=True only %}
                 </div>
                 <div class="px-4 sm:px-6 py-3 border-t flex justify-end gap-2 sm:gap-3
                      {% if sesion.es_sesion_final %}bg-emerald-50 border-emerald-100{% else %}bg-gray-50 border-gray-100{% endif %}">
@@ -176,6 +177,7 @@
                          <h4 class="text-xs uppercase font-bold tracking-wider text-gray-500 mb-2 flex items-center gap-2"><i class='bx bx-body'></i> Resumen Físico</h4>
                          <p class="text-sm text-gray-700">Fuerza, rango articular y tests funcionales documentados. Para ver los detalles completos, abre la vista detallada de la evaluación.</p>
                     </div>
+                    {% include 'SesionesKinesicas/partials/escalas_sesion.html' with escalas=primera_sesion.escalas_en_sesion only %}
                 </div>
                 <div class="px-6 py-3 bg-blue-50/50 border-t border-blue-100 flex justify-end gap-3">
                     <a href="{% url 'sesiones_kinesicas:ver' %}?rut={{ paciente.rut }}&numero_sesion={{ primera_sesion.numero_sesion }}" class="text-sm text-gray-600 hover:text-medical-blue font-medium px-3 py-1.5"><i class='bx bx-link-external'></i> Ver formato completo</a>

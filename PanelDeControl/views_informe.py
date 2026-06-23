@@ -6,6 +6,7 @@ import json
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from clinicas.utils import obtener_paciente_por_rut
 from clinicas.branding import url_logo_clinica
+from django.utils.html import escape
 from Login.auditoria import registrar_auditoria
 
 
@@ -72,8 +73,8 @@ def RenderInforme(request):
 
         min_len = min(len(ubicacionDolor), len(intensidadDolor))
         for i in range(min_len):
-            ubicacion = ubicacionDolor[i]
-            intensidad = intensidadDolor[i]
+            ubicacion = escape(str(ubicacionDolor[i]))
+            intensidad = escape(str(intensidadDolor[i]))
             ubicacion_intensidad_list += f"<li>{ubicacion} - {intensidad}</li>"
 
         if len(ubicacionDolor) != len(intensidadDolor):

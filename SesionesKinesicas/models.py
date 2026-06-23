@@ -117,7 +117,7 @@ class SesionKinesica(models.Model):
         verbose_name="Plan de Seguimiento",
         help_text="Plan de seguimiento y controles post-alta"
     )
-    
+
     class Meta:
         verbose_name = "Sesión Kinésica"
         verbose_name_plural = "Sesiones Kinésicas"
@@ -141,3 +141,45 @@ class SesionKinesica(models.Model):
         if ultima_sesion:
             return ultima_sesion.numero_sesion + 1
         return 1
+
+
+class RegistroEscalaSesion(models.Model):
+    """Registro de escalas/cuestionarios aplicados durante una sesión kinésica."""
+
+    TIPOS_ESCALA = [
+        ('psfs', 'PSFS'),
+        ('groc', 'GROC'),
+        ('eq5d', 'EQ-5D'),
+        ('barthel', 'Barthel'),
+        ('ena', 'ENA'),
+        ('screening', 'Screening Örebro'),
+        ('oswestry', 'Oswestry ODI'),
+        ('lefs', 'LEFS'),
+    ]
+
+    paciente = models.ForeignKey(
+        Paciente,
+        on_delete=models.CASCADE,
+        related_name='registros_escalas_sesion',
+    )
+    sesion_kinesica = models.ForeignKey(
+        SesionKinesica,
+        on_delete=models.CASCADE,
+        related_name='registros_escalas',
+    )
+    tipo_escala = models.CharField(max_length=20, choices=TIPOS_ESCALA)
+    resumen = models.CharField(max_length=255)
+    url_name = models.CharField(max_length=40, blank=True, default='')
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Escala aplicada en sesión'
+        verbose_name_plural = 'Escalas aplicadas en sesiones'
+        ordering = ['-fecha_registro']
+        indexes = [
+            models.Index(fields=['paciente', '-fecha_registro']),
+            models.Index(fields=['sesion_kinesica', '-fecha_registro']),
+        ]
+
+    def __str__(self):
+        return f'{self.get_tipo_escala_display()} — Sesión #{self.sesion_kinesica.numero_sesion}'

@@ -73,6 +73,28 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Aplicar escalas en esta sesión -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3.5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-bar-chart-alt-2 text-white text-sm'></i>
+                            </div>
+                            <h3 class="font-semibold text-white text-sm">Aplicar escalas</h3>
+                        </div>
+                    </div>
+                    <div class="p-3 space-y-1 max-h-64 overflow-y-auto">
+                        {% for item in urls_escalas %}
+                        <a href="{{ item.url }}" target="_blank"
+                           class="flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-800 transition-colors"
+                           title="{{ item.descripcion }}">
+                            <span class="font-medium">{{ item.nombre }}</span>
+                            <i class='bx bx-link-external text-gray-400'></i>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
     
                 <!-- Info de Sesion -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -345,6 +367,23 @@
                             <p class="text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100 whitespace-pre-wrap">{{ sesion.plan_seguimiento }}</p>
                         </div>
                         {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Escalas aplicadas en esta sesión -->
+                {% if escalas_en_sesion %}
+                <div class="bg-white rounded-2xl shadow-sm border border-purple-100 overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                                <i class='bx bx-bar-chart-alt-2 text-white'></i>
+                            </div>
+                            <h2 class="font-semibold text-white">Escalas aplicadas en esta sesión</h2>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        {% include 'SesionesKinesicas/partials/escalas_sesion.html' with escalas=escalas_en_sesion bare=True only %}
                     </div>
                 </div>
                 {% endif %}

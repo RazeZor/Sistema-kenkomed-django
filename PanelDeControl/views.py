@@ -15,6 +15,7 @@ from datetime import datetime, timedelta, date
 import time 
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut
+from django.utils.html import escape
 from Login.auditoria import registrar_auditoria
 from PanelDeControl.metricas_panel import obtener_metricas_panel
 
@@ -209,8 +210,8 @@ def VerInformePacientes(request):
                 ubicacion_intensidad_list = ""
                 min_len = min(len(ubicacionDolor), len(intensidadDolor))
                 for i in range(min_len):
-                    ubicacion = ubicacionDolor[i]
-                    intensidad = intensidadDolor[i]
+                    ubicacion = escape(str(ubicacionDolor[i]))
+                    intensidad = escape(str(intensidadDolor[i]))
                     ubicacion_intensidad_list += f"<li><strong>{ubicacion}:</strong> {intensidad}</li>\n"
                 if len(ubicacionDolor) != len(intensidadDolor):
                     ubicacion_intensidad_list += "<li><strong>Error:</strong> Las listas no coinciden en longitud</li>\n"
