@@ -6,6 +6,7 @@ from typing import Optional, Tuple, Dict, Any
 import logging
 
 from Login.models import Paciente, Clinico, RecetaMedica
+from Login.auditoria import registrar_auditoria
 from ProyectoMainAPP.email_service import notificar_receta_creada, notificar_receta_actualizada
 from clinicas.utils import obtener_paciente_por_rut, paciente_pertenece_a_sesion
 
@@ -275,6 +276,18 @@ class RequestProcessor:
         }
         
         resultado_accion = self.accion_handler.ejecutar(accion, paciente, clinico, receta, datos)
+
+        if resultado_accion['mensaje'] and not resultado_accion['error']:
+            accion_audit = {
+                'crear': 'receta_crear',
+                'editar': 'receta_editar',
+                'eliminar': 'receta_eliminar',
+            }.get(accion)
+            if accion_audit:
+                registrar_auditoria(
+                    request, accion_audit, paciente,
+                    detalle=f'Receta médica — acción: {accion}',
+                )
         
         return {
             'paciente': paciente,
@@ -302,6 +315,11 @@ class RequestProcessor:
         busqueda = self.procesar_busqueda_paciente(request, rut, clinico, es_admin)
         busqueda['mostrar_formulario'] = accion in ['nueva', 'editar']
         busqueda['mensaje'] = None
+        if busqueda.get('paciente'):
+            registrar_auditoria(
+                request, 'consulta_receta', busqueda['paciente'],
+                detalle=f'Consultó receta médica — {busqueda["paciente"].rut}',
+            )
         
         return busqueda
 

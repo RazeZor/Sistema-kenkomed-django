@@ -14,7 +14,7 @@ from clinicas.utils import (
     obtener_paciente_por_rut,
     paciente_pertenece_a_sesion,
 )
-from Login.auditoria import obtener_ip_cliente
+from Login.auditoria import obtener_ip_cliente, registrar_auditoria
 import json
 import qrcode
 from io import BytesIO
@@ -312,6 +312,10 @@ def FormularioInicial(request):
                 if paciente_obj:
                     context['paciente_existente'] = True
                     context['paciente'] = paciente_obj
+                    registrar_auditoria(
+                        request, 'consulta_formulario_inicial', paciente_obj,
+                        detalle=f'Accedió a anamnesis DSS — {paciente_obj.rut}',
+                    )
 
         if request.method == 'POST':
             paciente_ya_existe = request.POST.get('paciente_ya_existe') == 'true'
@@ -407,6 +411,10 @@ def FormularioInicial(request):
             # Construir y guardar formulario Clínico con todos los campos
             try:
                 construir_formulario_desde_post(request, paciente, clinico)
+                registrar_auditoria(
+                    request, 'edicion_anamnesis', paciente,
+                    detalle=f'Anamnesis DSS guardada desde panel — {paciente.rut}',
+                )
                 messages.info(request, 'Formulario clínico guardado correctamente.')
             except Exception as e:
                 messages.error(request, f'Error al guardar formulario clínico: {e}')
@@ -465,6 +473,11 @@ def generar_token_formulario(request):
             
             # Crear nuevo token
             token = TokenFormulario.crear_token(clinico, paciente, dias_expiracion)
+
+            registrar_auditoria(
+                request, 'qr_generar', paciente,
+                detalle=f'Generó formulario remoto QR — expira en {dias_expiracion} días',
+            )
             
             messages.success(request, f'Formulario remoto generado para {paciente.nombre} {paciente.apellido}')
             return redirect('descargar_qr', token_id=token.id)
@@ -616,6 +629,11 @@ def formulario_publico(request, token_id):
                     ip_address=obtener_ip_cliente(request),
                     token=token,
                 )
+
+                registrar_auditoria(
+                    request, 'formulario_qr_enviado', paciente,
+                    detalle=f'Paciente completó anamnesis vía QR — {paciente.rut}',
+                )
                 
                 # Marcar token como usado
                 token.marcar_como_usado()
@@ -670,6 +688,10 @@ def desactivar_token(request, token_id):
             return redirect('panel')
         
         token.desactivar()
+        registrar_auditoria(
+            request, 'qr_desactivar', token.paciente,
+            detalle=f'Desactivó formulario remoto — {token.paciente.rut}',
+        )
         messages.success(request, f'Formulario de {token.paciente.nombre} {token.paciente.apellido} desactivado')
         
         return redirect('generar_qr')
@@ -711,6 +733,11 @@ def generar_token_desde_historial(request):
     TokenFormulario.objects.filter(paciente=paciente, activo=True).update(activo=False)
     
     token = TokenFormulario.crear_token(clinico, paciente, dias_expiracion=7)
+
+    registrar_auditoria(
+        request, 'qr_generar', paciente,
+        detalle='Generó formulario remoto QR desde historial clínico',
+    )
     
     return redirect('descargar_qr', token_id=token.id)
 

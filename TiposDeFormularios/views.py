@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
 from clinicas.utils import obtener_paciente_por_rut
+from Login.auditoria import auditar_cuestionario_consulta, auditar_cuestionario_edicion
 
 
 class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en el codigo
@@ -58,6 +59,14 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
         """Redirección común al login"""
         return redirect('login')
 
+    def auditar_consulta(self, nombre_cuestionario):
+        if self.paciente:
+            auditar_cuestionario_consulta(self.request, self.paciente, nombre_cuestionario)
+
+    def auditar_edicion(self, nombre_cuestionario, subaccion=''):
+        if self.paciente:
+            auditar_cuestionario_edicion(self.request, self.paciente, nombre_cuestionario, subaccion)
+
 
 def RenderizarGROC(request):
     """Vista refactorizada para GROC"""
@@ -79,7 +88,8 @@ def RenderizarGROC(request):
     
     if request.method == 'POST':
         return _procesar_groc_post(request, paciente, evaluacion_existente)
-    
+
+    auditar_cuestionario_consulta(request, paciente, 'GROC')
     return render(request, 'GROC.html', {
         'rut': paciente.rut,
         'paciente': paciente,
@@ -108,6 +118,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
                 NotaGroc=NotaGroc,
                 puntajeGroc=[{'puntaje': int(puntajeGroc)}]
             )
+            auditar_cuestionario_edicion(request, paciente, 'GROC', 'nueva evaluación')
             messages.success(request, "Evaluación registrada correctamente.")
             
         elif action == 'actualizar':
@@ -117,12 +128,14 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
             else:
                 evaluacion.puntajeGroc = [{'puntaje': int(puntajeGroc)}]
             evaluacion.save()
+            auditar_cuestionario_edicion(request, paciente, 'GROC', 'nueva sesión')
             messages.success(request, "Evaluación actualizada correctamente.")
             
         elif action == 'GuardarNota':
             evaluacion = get_object_or_404(Groc, paciente=paciente)
             evaluacion.NotaGroc = NotaGroc
             evaluacion.save()
+            auditar_cuestionario_edicion(request, paciente, 'GROC', 'nota clínica')
             messages.success(request, "Nota actualizada correctamente.")
             
     except ValueError:
@@ -153,6 +166,7 @@ def gestionar_psfs(request):
     sesiones = _obtener_sesiones_psfs(cuestionario) if cuestionario else []
     ultima = sesiones[-1] if sesiones else None
 
+    handler.auditar_consulta('PSFS')
     return render(request, 'CuestionarioPSFS.html', {
         'rut': paciente.rut,
         'actividad1': cuestionario.actividad_1 if cuestionario else '',
@@ -194,6 +208,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
         if not notaPSFS:
             messages.error(request, 'No se proporcionó ninguna nota para guardar.')
         elif _actualizar_nota_psfs(paciente, notaPSFS):
+            auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nota clínica')
             messages.success(request, 'Nota guardada correctamente.')
         else:
             messages.error(request, 'Error al guardar la nota. Asegúrese de que el cuestionario existe.')
@@ -220,6 +235,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
                 NotaCuestionarioPSFS=notaPSFS,
                 **scores,
             )
+            auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nueva evaluación')
             messages.success(request, 'Cuestionario guardado correctamente.')
 
         elif action == 'actualizar':
@@ -236,9 +252,11 @@ def _procesar_psfs_post(request, paciente, cuestionario):
             nueva_sesion = request.POST.get('nueva_sesion') in ('1', 'on', 'true')
             if nueva_sesion:
                 append_psfs_scores(cuestionario, puntajes)
+                auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nueva sesión de seguimiento')
                 messages.success(request, 'Nueva sesión de seguimiento registrada.')
             else:
                 replace_last_psfs_session(cuestionario, puntajes)
+                auditar_cuestionario_edicion(request, paciente, 'PSFS', 'actualización de sesión')
                 messages.success(request, 'Evaluación actualizada correctamente.')
 
             if 'nota_adicional' in request.POST:
@@ -297,7 +315,8 @@ def RenderizarEQ_5D(request):
         return _procesar_eq5d_post(request, paciente, handler.clinico)
     
     puntajes_por_sesion = _obtener_puntajes_eq5d(paciente)
-    
+
+    handler.auditar_consulta('EQ-5D')
     return render(request, 'CuestionarioEQ-5D.html', {
         'rut': paciente.rut,
         'puntajes_por_sesion': puntajes_por_sesion,
@@ -317,6 +336,12 @@ def _procesar_eq5d_post(request, paciente, clinico):
             
         elif action == 'guardar':
             _crear_eq5d(request, paciente, clinico)
+
+        if action in ('guardar', 'actualizar'):
+            auditar_cuestionario_edicion(
+                request, paciente, 'EQ-5D',
+                'nueva evaluación' if action == 'guardar' else 'nueva sesión',
+            )
         
         messages.success(request, f'El cuestionario se ha {"guardado" if action == "guardar" else "actualizado"} correctamente.')
         
@@ -445,7 +470,8 @@ def renderizar_CuestionarioBarthel(request):
         cuestionario_existente = CuestionarioBarthel.objects.filter(paciente=paciente).first()
         if cuestionario_existente:
             sesiones = _obtener_sesiones_barthel(cuestionario_existente)
-    
+
+    handler.auditar_consulta('Barthel')
     return render(request, "CuestionarioBarthel.html", {
         "pacientes": pacientes,
         "clinicos": clinicos,
@@ -475,16 +501,19 @@ def _procesar_barthel_post(request, paciente, clinico):
             
             if action == 'guardar':
                 _crear_barthel(paciente, clinico, datos, total, grado, notaBarthel)
+                auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva evaluación')
                 messages.success(request, f"Cuestionario Barthel guardado correctamente. Puntaje: {total}, Grado: {grado}")
             
             elif action == 'actualizar':
                 _actualizar_barthel(paciente, datos, total, grado)
+                auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva sesión')
                 messages.success(request, f"Cuestionario Barthel actualizado correctamente. Puntaje: {total}, Grado: {grado}")
         
         elif action == 'GuardarNota':
             cuestionario = get_object_or_404(CuestionarioBarthel, paciente=paciente)
             cuestionario.NotaCuestionarioBarthel = notaBarthel
             cuestionario.save()
+            auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nota clínica')
             messages.success(request, "Nota actualizada correctamente.")
         
     except Exception as e:
@@ -641,6 +670,7 @@ def renderizar_cuestionarioScrening(request):
     # Si existe la evaluación actual, generar alerta
     alerta = generar_alerta(cuestionario_actual.Puntaje_Sesion) if cuestionario_actual else None
 
+    handler.auditar_consulta('Screening (Örebro)')
     return render(request, "CuestionarioScrenning.html", {
         'rut': paciente.rut,
         'paciente': paciente,
@@ -724,6 +754,7 @@ def _procesar_screening_post(request, paciente, clinico):
                 Puntaje_Sesion=puntaje_sesion,
                 Nota_CuestionarioScrenning=nota
             )
+            auditar_cuestionario_edicion(request, paciente, 'Screening (Örebro)', 'nueva evaluación')
             messages.success(request, "Cuestionario de screening guardado correctamente.")
 
         elif action == 'actualizar':
@@ -735,6 +766,7 @@ def _procesar_screening_post(request, paciente, clinico):
                 cuestionario.Puntaje_Sesion = puntaje_sesion
                 cuestionario.Nota_CuestionarioScrenning = nota
                 cuestionario.save()
+                auditar_cuestionario_edicion(request, paciente, 'Screening (Örebro)', 'actualización')
                 messages.success(request, "Cuestionario de screening actualizado correctamente.")
             except CuestionarioScrenning.DoesNotExist:
                 messages.error(request, "No existe una evaluación previa para actualizar.")
@@ -832,6 +864,7 @@ def renderizar_CuestionarioENA(request):
                     cuestionario.estado_por_sesion = estado
                     cuestionario.save()
 
+                auditar_cuestionario_edicion(request, paciente, 'ENA', 'nueva evaluación')
                 messages.success(request, 'Evaluación guardada correctamente.')
 
             elif action == 'delete':
@@ -842,6 +875,7 @@ def renderizar_CuestionarioENA(request):
                     estado.pop(index)
                     cuestionario.estado_por_sesion = estado
                     cuestionario.save()
+                    auditar_cuestionario_edicion(request, paciente, 'ENA', f'eliminó evaluación índice {index}')
                     messages.success(request, 'Evaluación eliminada.')
                 else:
                     messages.error(request, 'Índice no válido para eliminar.')
@@ -850,6 +884,7 @@ def renderizar_CuestionarioENA(request):
                 if cuestionario:
                     cuestionario.estado_por_sesion = []
                     cuestionario.save()
+                auditar_cuestionario_edicion(request, paciente, 'ENA', 'limpieza de historial')
                 messages.success(request, 'Historial limpiado.')
 
         except Exception as e:
@@ -861,6 +896,7 @@ def renderizar_CuestionarioENA(request):
     import json as _json
     evaluations_json = _json.dumps(evaluations)
 
+    handler.auditar_consulta('ENA')
     return render(request, "CuestionarioENA.html", {
         'rut': paciente.rut,
         'paciente': paciente,
@@ -903,7 +939,8 @@ def renderizar_cuestionario_oswestry(request):
         })
     
     evaluations_json = json.dumps(evaluations_data)
-    
+
+    handler.auditar_consulta('Oswestry (ODI)')
     return render(request, 'CuestionarioOswestry.html', {
         'rut': paciente.rut,
         'paciente': paciente,
@@ -963,6 +1000,8 @@ def _procesar_oswestry_post(request, paciente, clinico):
         # Obtener interpretación para el mensaje
         interpretacion = evaluacion.get_interpretacion()
         porcentaje = evaluacion.get_porcentaje_incapacidad()
+
+        auditar_cuestionario_edicion(request, paciente, 'Oswestry (ODI)', 'nueva evaluación')
         
         messages.success(
             request, 
@@ -1033,7 +1072,8 @@ def renderizar_cuestionario_lefs(request):
         "Saltar",
         "Darse la vuelta en la cama"
     ]
-    
+
+    handler.auditar_consulta('LEFS')
     return render(request, 'CuestionarioLEFS.html', {
         'rut': paciente.rut,
         'paciente': paciente,
@@ -1101,6 +1141,8 @@ def _procesar_lefs_post(request, paciente, clinico):
         interpretacion = evaluacion.get_interpretacion()
         total = evaluacion.get_total_puntos()
         porcentaje = evaluacion.get_porcentaje_funcionalidad()
+
+        auditar_cuestionario_edicion(request, paciente, 'LEFS', 'nueva evaluación')
         
         messages.success(
             request, 

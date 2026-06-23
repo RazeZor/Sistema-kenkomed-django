@@ -6,6 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from Login.models import Paciente, Clinico
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from ProyectoMainAPP.email_service import notificar_alta_paciente
+from Login.auditoria import registrar_auditoria
 from clinicas.utils import obtener_paciente_por_rut
 from .models import SesionKinesica
 import json
@@ -50,6 +51,11 @@ def listar_sesiones_paciente(request):
         'hay_sesiones': sesiones.exists(),
         'total_sesiones': sesiones.count(),
     }
+
+    registrar_auditoria(
+        request, 'consulta_lista_sesiones_kine', paciente,
+        detalle=f'Listado sesiones kinésicas — {paciente.rut}',
+    )
     
     return render(request, 'SesionesKinesicas/listar_sesiones.html', context)
 
@@ -158,6 +164,11 @@ def crear_primera_sesion(request):
                 notas_clinicas=notas,
                 evolucion=evolucion,
             )
+
+            registrar_auditoria(
+                request, 'alta_sesion_kine', paciente,
+                detalle='Sesión kinésica inicial (#1)',
+            )
             
             messages.success(request, 'Primera sesión kinésica creada exitosamente.')
             from django.urls import reverse
@@ -231,6 +242,11 @@ def crear_sesion_seguimiento(request):
                 notas_clinicas=notas,
                 evolucion=evolucion,
             )
+
+            registrar_auditoria(
+                request, 'alta_sesion_kine', paciente,
+                detalle=f'Sesión kinésica de seguimiento (#{nuevo_numero})',
+            )
             
             messages.success(request, f'Sesión #{nuevo_numero} creada exitosamente.')
             from django.urls import reverse
@@ -294,6 +310,11 @@ def ver_sesion_kinesica(request):
         'sesion': sesion,
         'es_primera_sesion': sesion.es_primera_sesion,
     }
+
+    registrar_auditoria(
+        request, 'consulta_sesion_kine', paciente,
+        detalle=f'Sesión kinésica #{numero_sesion}',
+    )
     
     return render(request, 'SesionesKinesicas/ver_sesion.html', context)
 
@@ -408,6 +429,10 @@ def editar_sesion_kinesica(request):
                 sesion.plan_seguimiento = request.POST.get('plan_seguimiento', '') or sesion.plan_seguimiento
             
             sesion.save()
+            registrar_auditoria(
+                request, 'edicion_sesion_kine', paciente,
+                detalle=f'Editó sesión kinésica #{numero_sesion}',
+            )
             messages.success(request, 'Sesión actualizada exitosamente.')
             from django.urls import reverse
             return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={numero_sesion}")
@@ -490,6 +515,11 @@ def crear_sesion_final(request):
                 estado_al_alta=estado_al_alta,
                 recomendaciones_alta=recomendaciones_alta,
                 plan_seguimiento=plan_seguimiento,
+            )
+
+            registrar_auditoria(
+                request, 'alta_sesion_kine', paciente,
+                detalle=f'Sesión kinésica final (#{nuevo_numero})',
             )
             
             messages.success(request, f'Sesión final #{nuevo_numero} creada exitosamente.')

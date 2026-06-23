@@ -85,6 +85,11 @@ def auditoria_accesos(request):
     registros = _queryset_auditoria(request, dias)
     clinica = obtener_clinica_de_sesion(request)
 
+    registrar_auditoria(
+        request, 'consulta_auditoria', paciente=None,
+        detalle=f'Consultó auditoría — últimos {dias} días',
+    )
+
     return render(request, 'auditoria_accesos.html', {
         'registros': registros,
         'clinica': clinica,

@@ -798,6 +798,11 @@ def estadisticas(request):
     nombre_clinico = request.session['nombre_clinico']
     clinica = obtener_clinica_de_sesion(request)
 
+    registrar_auditoria(
+        request, 'consulta_estadisticas_centro', paciente=None,
+        detalle=f'Estadísticas del centro — {clinica.nombre if clinica else "global"}',
+    )
+
     pacientes = filtrar_pacientes_por_sesion(request)
     formularios = filtrar_por_clinica_sesion(
         request,
@@ -1003,6 +1008,11 @@ def estadisticas_paciente_view(request):
             return render(request, 'estadisticas_paciente.html', context)
 
         context['paciente'] = paciente
+
+        registrar_auditoria(
+            request, 'consulta_estadisticas_paciente', paciente,
+            detalle=f'Estadísticas individuales — {paciente.rut}',
+        )
 
         charts_data = {
             'psfs': {'labels': [], 'data': []},

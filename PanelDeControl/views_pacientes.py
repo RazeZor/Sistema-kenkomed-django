@@ -20,6 +20,11 @@ def MostrarPacientes(request):
         pagina = request.GET.get('page')
         paginacion_Pacientes = paginacion.get_page(pagina)
 
+        registrar_auditoria(
+            request, 'consulta_lista_pacientes', paciente=None,
+            detalle='Consultó listado de pacientes del centro',
+        )
+
         return render(request, 'ListaPacientes.html', {
             'nombre_clinico': nombre_clinico,
             'es_admin': es_admin,

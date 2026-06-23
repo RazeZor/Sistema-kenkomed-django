@@ -38,3 +38,19 @@ def registrar_auditoria(request, accion, paciente=None, detalle=''):
 def registrar_acceso(request, paciente, accion, detalle=''):
     """Alias retrocompatible; preferir registrar_auditoria."""
     registrar_auditoria(request, accion, paciente=paciente, detalle=detalle)
+
+
+def auditar_cuestionario_consulta(request, paciente, nombre):
+    registrar_auditoria(
+        request, 'consulta_cuestionario', paciente,
+        detalle=str(nombre).strip()[:500],
+    )
+
+
+def auditar_cuestionario_edicion(request, paciente, nombre, subaccion=''):
+    nombre = str(nombre).strip()
+    detalle = f'{nombre} — {subaccion}' if subaccion else nombre
+    registrar_auditoria(
+        request, 'edicion_cuestionario', paciente,
+        detalle=detalle.strip()[:500],
+    )

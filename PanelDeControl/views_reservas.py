@@ -181,6 +181,10 @@ def _validar_solapamiento(clinico, fecha, hora_inicio, hora_fin, excluir_id=None
 
 @requiere_clinico
 def calendario_personal_view(request):
+    registrar_auditoria(
+        request, 'consulta_calendario', paciente=None,
+        detalle='Agenda personal',
+    )
     return render(request, 'calendario.html', _contexto_calendario(request, 'personal'))
 
 
@@ -197,6 +201,10 @@ def calendario_clinica_view(request):
     if not es_admin and not es_compartido:
         messages.error(request, 'No tienes acceso a la agenda del centro.')
         return redirect('calendario_personal')
+    registrar_auditoria(
+        request, 'consulta_calendario', paciente=None,
+        detalle='Agenda del centro',
+    )
     return render(request, 'calendario.html', _contexto_calendario(request, 'clinica'))
 
 
