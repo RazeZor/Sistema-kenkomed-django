@@ -198,20 +198,11 @@
                 <div class="p-6 space-y-6">
                     
                     <div class="space-y-3">
-                        <label for="formulario" class="block text-sm font-medium text-gray-700">Completar formulario de evaluación</label>
-                        <select id="formulario" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-medical-blue focus:border-medical-blue block w-full p-2.5 outline-none">
-                            <option value="{% url 'gestionar_psfs' %}">PSFS (Escala Funcional)</option>
-                            <option value="{% url 'GROK' %}">GROC (Cambio Global)</option>
-                            <option value="{% url 'EQ_5D' %}">EQ-5D Y EVA (Calidad de Vida)</option>
-                            <option value="{% url 'bartel' %}">Barthel (Discapacidad)</option> 
-                            <option value="{% url 'ENA' %}">ENA (Escala Numérica análoga)</option>
-                            <option value="{% url 'Screnning' %}">Screening (Cuestionario Ansiedad)</option>
-                            <option value="{% url 'oswestry' %}">Oswestry ODI (Incapacidad Lumbar)</option>
-                            <option value="{% url 'lefs' %}">LEFS (Funcionalidad Extremidad Inferior)</option>
-                        </select>
-                        <button type="button" onclick="abrirFormularioEvaluacion()" id="agregarFormulario" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-medical-blue bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors">
-                            <i class='bx bx-plus-circle'></i> Abrir Formulario
-                        </button>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">Escalas a aplicar</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Elija el paquete según el caso clínico y abra la escala correspondiente.</p>
+                        </div>
+                        {% include 'SesionesKinesicas/partials/paquetes_escalas_aplicar.html' with paquetes_escalas=paquetes_escalas prefix='hist' only %}
                     </div>
                     
                     <hr class="border-gray-100">
@@ -348,49 +339,7 @@
                 comboSesiones.dispatchEvent(new Event('change'));
             }
         }
-
-        // Evento select para cambiar estilos (opcional, no afecta la navepgacion)
-        const formSelect = document.getElementById('formulario');
-        const addBtn = document.getElementById('agregarFormulario');
-
-        if (formSelect && addBtn) {
-            formSelect.addEventListener('change', function() {
-                if (formSelect.value) {
-                    addBtn.style.opacity = '1';
-                } else {
-                    addBtn.style.opacity = '0.5';
-                }
-            });
-        }
     });
-
-    // Función global bulletproof para el botón click
-    function abrirFormularioEvaluacion() {
-        const formSelect = document.getElementById('formulario');
-        const rutElement = document.getElementById('rut');
-        
-        if (!formSelect || !rutElement || !rutElement.textContent.trim()) {
-            if(typeof Swal !== 'undefined') {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Atención',
-                    text: 'Asegúrese de seleccionar un formulario y tener un paciente cargado.'
-                });
-            } else {
-                alert('Asegúrese de seleccionar un formulario y tener un paciente cargado.');
-            }
-            return false;
-        }
-
-        const rut = rutElement.textContent.trim();
-        const url = formSelect.value;
-        
-        if (url) {
-            window.open(url + "?rut=" + encodeURIComponent(rut), '_blank');
-        }
-        return false;
-    }
-
 
     function configurarSesionesKinesicas(rut) {
         const comboSesiones = document.getElementById('comboSesionesKinesicas');

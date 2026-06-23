@@ -3,16 +3,89 @@ from django.urls import reverse
 
 from .models import RegistroEscalaSesion, SesionKinesica
 
-ESCALAS_MENU = (
-    ('psfs', 'PSFS', 'gestionar_psfs', 'Escala funcional específica del paciente'),
-    ('groc', 'GROC', 'GROK', 'Cambio global percibido'),
-    ('eq5d', 'EQ-5D', 'EQ_5D', 'Calidad de vida y EVA'),
-    ('barthel', 'Barthel', 'bartel', 'Índice de Barthel'),
-    ('ena', 'ENA', 'ENA', 'Escala numérica análoga'),
-    ('screening', 'Screening', 'Screnning', 'Screening Örebro'),
-    ('oswestry', 'Oswestry ODI', 'oswestry', 'Incapacidad lumbar'),
-    ('lefs', 'LEFS', 'lefs', 'Funcionalidad extremidad inferior'),
+ESCALAS_POR_CODIGO = {
+    'psfs': ('PSFS', 'gestionar_psfs', 'Función específica del paciente (0–10)'),
+    'groc': ('GROC', 'GROK', 'Cambio global percibido'),
+    'eq5d': ('EQ-5D', 'EQ_5D', 'Calidad de vida y escala visual analógica'),
+    'barthel': ('Barthel', 'bartel', 'Autonomía en actividades diarias'),
+    'ena': ('ENA', 'ENA', 'Intensidad del dolor (0–10)'),
+    'screening': ('Screening Örebro', 'Screnning', 'Riesgo de cronificación'),
+    'oswestry': ('Oswestry ODI', 'oswestry', 'Incapacidad por dolor lumbar'),
+    'lefs': ('LEFS', 'lefs', 'Función de extremidad inferior'),
+}
+
+ESCALAS_PAQUETES = (
+    {
+        'id': 'dolor_seguimiento',
+        'titulo': 'Dolor y seguimiento',
+        'descripcion': 'Lo más usado en cada sesión de control',
+        'icono': 'bx-pulse',
+        'escalas': ('ena', 'groc', 'psfs'),
+    },
+    {
+        'id': 'columna_lumbar',
+        'titulo': 'Columna lumbar',
+        'descripcion': 'Pacientes con dolor lumbar o lumbociática',
+        'icono': 'bx-body',
+        'escalas': ('oswestry', 'screening'),
+    },
+    {
+        'id': 'extremidad_inferior',
+        'titulo': 'Extremidad inferior',
+        'descripcion': 'Rodilla, cadera, tobillo y marcha',
+        'icono': 'bx-run',
+        'escalas': ('lefs',),
+    },
+    {
+        'id': 'calidad_vida',
+        'titulo': 'Calidad de vida y autonomía',
+        'descripcion': 'Bienestar global y actividades cotidianas',
+        'icono': 'bx-heart',
+        'escalas': ('eq5d', 'barthel'),
+    },
 )
+
+# Compatibilidad con código que usaba la tupla plana
+ESCALAS_MENU = tuple(
+    (codigo, meta[0], meta[1], meta[2])
+    for codigo, meta in ESCALAS_POR_CODIGO.items()
+)
+
+
+def _item_escala(codigo, paciente_rut, numero_sesion=None):
+    meta = ESCALAS_POR_CODIGO.get(codigo)
+    if not meta:
+        return None
+    nombre, url_name, descripcion = meta
+    url = f"{reverse(url_name)}?rut={paciente_rut}"
+    if numero_sesion is not None:
+        url += f'&numero_sesion={numero_sesion}'
+    return {
+        'codigo': codigo,
+        'nombre': nombre,
+        'descripcion': descripcion,
+        'url': url,
+    }
+
+
+def paquetes_escalas_para_paciente(paciente_rut, numero_sesion=None):
+    """Paquetes de escalas con título y enlaces listos para la UI."""
+    paquetes = []
+    for paquete in ESCALAS_PAQUETES:
+        escalas = []
+        for codigo in paquete['escalas']:
+            item = _item_escala(codigo, paciente_rut, numero_sesion)
+            if item:
+                escalas.append(item)
+        if escalas:
+            paquetes.append({
+                'id': paquete['id'],
+                'titulo': paquete['titulo'],
+                'descripcion': paquete['descripcion'],
+                'icono': paquete.get('icono', 'bx-bar-chart-alt-2'),
+                'escalas': escalas,
+            })
+    return paquetes
 
 
 def numero_sesion_desde_request(request, rut_paciente=None):
@@ -97,13 +170,8 @@ def anotar_escalas_en_sesiones(paciente, sesiones):
 
 
 def urls_escalas_para_sesion(paciente_rut, numero_sesion):
-    """Enlaces para aplicar escalas vinculadas a una sesión."""
+    """Lista plana de escalas (compatibilidad). Preferir paquetes_escalas_para_paciente."""
     items = []
-    for codigo, nombre, url_name, descripcion in ESCALAS_MENU:
-        items.append({
-            'codigo': codigo,
-            'nombre': nombre,
-            'descripcion': descripcion,
-            'url': f"{reverse(url_name)}?rut={paciente_rut}&numero_sesion={numero_sesion}",
-        })
+    for paquete in paquetes_escalas_para_paciente(paciente_rut, numero_sesion):
+        items.extend(paquete['escalas'])
     return items

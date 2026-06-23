@@ -1,0 +1,46 @@
+{% if paquetes_escalas %}
+<div class="space-y-2 {% if compact %}max-h-72 overflow-y-auto{% endif %}">
+    {% for paquete in paquetes_escalas %}
+    <div class="border border-gray-100 rounded-xl overflow-hidden bg-white">
+        <button type="button"
+                class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-purple-50/60 transition-colors"
+                onclick="togglePaqueteEscala('{{ prefix }}_paquete_{{ paquete.id }}', '{{ prefix }}_icon_{{ paquete.id }}')"
+                aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+            <div class="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center flex-shrink-0">
+                <i class='bx {{ paquete.icono }} text-lg'></i>
+            </div>
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-gray-800 leading-tight">{{ paquete.titulo }}</p>
+                <p class="text-[11px] text-gray-500 truncate">{{ paquete.descripcion }}</p>
+            </div>
+            <i class='bx {% if forloop.first %}bx-chevron-up{% else %}bx-chevron-down{% endif %} text-gray-400 text-lg flex-shrink-0 transition-transform'
+               id="{{ prefix }}_icon_{{ paquete.id }}"></i>
+        </button>
+        <div id="{{ prefix }}_paquete_{{ paquete.id }}"
+             class="border-t border-gray-100 bg-gray-50/50 {% if not forloop.first %}hidden{% endif %}">
+            {% for escala in paquete.escalas %}
+            <a href="{{ escala.url }}" target="_blank"
+               class="flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-900 transition-colors border-b border-gray-100 last:border-b-0"
+               title="{{ escala.descripcion }}">
+                <span>
+                    <span class="font-medium">{{ escala.nombre }}</span>
+                    <span class="block text-[11px] text-gray-500">{{ escala.descripcion }}</span>
+                </span>
+                <i class='bx bx-link-external text-gray-400 flex-shrink-0'></i>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    function togglePaqueteEscala(panelId, iconId) {
+        const panel = document.getElementById(panelId);
+        const icon = document.getElementById(iconId);
+        if (!panel || !icon) return;
+        const hidden = panel.classList.toggle('hidden');
+        icon.classList.toggle('bx-chevron-down', hidden);
+        icon.classList.toggle('bx-chevron-up', !hidden);
+    }
+</script>
+{% endif %}

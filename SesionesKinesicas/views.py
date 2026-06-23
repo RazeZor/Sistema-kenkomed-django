@@ -10,7 +10,7 @@ from Login.auditoria import registrar_auditoria
 from clinicas.utils import obtener_paciente_por_rut
 from .session_inputs import evaluacion_inicial_desde_post, validar_post_sesion_kinesica
 from .models import SesionKinesica, RegistroEscalaSesion
-from .escalas_sesion import obtener_escalas_agrupadas_por_numero, urls_escalas_para_sesion
+from .escalas_sesion import obtener_escalas_agrupadas_por_numero, paquetes_escalas_para_paciente
 import json
 from datetime import datetime
 
@@ -298,7 +298,7 @@ def ver_sesion_kinesica(request):
         'sesion': sesion,
         'es_primera_sesion': sesion.es_primera_sesion,
         'escalas_en_sesion': escalas_en_sesion,
-        'urls_escalas': urls_escalas_para_sesion(paciente.rut, sesion.numero_sesion),
+        'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut, sesion.numero_sesion),
     }
 
     registrar_auditoria(

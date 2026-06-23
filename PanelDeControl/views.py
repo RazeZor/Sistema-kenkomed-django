@@ -10,6 +10,7 @@ from Login.models import (
     CuestionarioScrenning, CuestionarioEvaluacionENA, Reserva
 )
 from SesionesKinesicas.models import SesionKinesica
+from SesionesKinesicas.escalas_sesion import paquetes_escalas_para_paciente
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
@@ -136,7 +137,8 @@ def HistorialClinico(request):
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,
             'error': error,
-            'nota': nota_existente.notas if nota_existente else ''
+            'nota': nota_existente.notas if nota_existente else '',
+            'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut) if paciente else [],
         })
     else:
         return redirect('login')

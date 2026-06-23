@@ -74,25 +74,21 @@
                     </div>
                 </div>
 
-                <!-- Aplicar escalas en esta sesión -->
+                <!-- Escalas a aplicar por paquete -->
                 <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="bg-gradient-to-r from-purple-600 to-indigo-600 px-5 py-3.5">
                         <div class="flex items-center gap-2">
                             <div class="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
                                 <i class='bx bx-bar-chart-alt-2 text-white text-sm'></i>
                             </div>
-                            <h3 class="font-semibold text-white text-sm">Aplicar escalas</h3>
+                            <div>
+                                <h3 class="font-semibold text-white text-sm">Escalas a aplicar</h3>
+                                <p class="text-[11px] text-white/80">Por paquete según el caso</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="p-3 space-y-1 max-h-64 overflow-y-auto">
-                        {% for item in urls_escalas %}
-                        <a href="{{ item.url }}" target="_blank"
-                           class="flex items-center justify-between gap-2 px-3 py-2 text-sm text-gray-700 rounded-lg hover:bg-purple-50 hover:text-purple-800 transition-colors"
-                           title="{{ item.descripcion }}">
-                            <span class="font-medium">{{ item.nombre }}</span>
-                            <i class='bx bx-link-external text-gray-400'></i>
-                        </a>
-                        {% endfor %}
+                    <div class="p-3">
+                        {% include 'SesionesKinesicas/partials/paquetes_escalas_aplicar.html' with paquetes_escalas=paquetes_escalas prefix='sesion' compact=True only %}
                     </div>
                 </div>
     
