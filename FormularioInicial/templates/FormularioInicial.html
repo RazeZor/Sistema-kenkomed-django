@@ -5,16 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Formulario de Dolor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'styles.css' %}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/global.css' %}">
     <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'formulario.js' %}"></script>
-
 </head>
-<body class="bg-light"{% if es_publico %} data-es-publico="true"{% endif %}>
+<body class="bg-light"{% if es_publico %} data-es-publico="true"{% endif %}{% if modo_edicion %} data-modo-edicion="true"{% endif %}>
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
             {% if es_publico %}
@@ -134,7 +133,7 @@
             <div class="sidebar-footer">
                 <!-- Botón de submit del formulario -->
                 <button type="submit" form="Step" class="btn btn-primary btn-lg w-100">
-                    <i class="fas fa-save me-2"></i>Guardar Formulario
+                    <i class="fas fa-save me-2"></i>{% if modo_edicion %}Actualizar Anamnesis{% else %}Guardar Formulario{% endif %}
                 </button>
             </div>
         </aside>
@@ -155,6 +154,16 @@
                 {% endfor %}
 
                 <input type="hidden" name="duracion_sesion" id="duracionSesionInput" value="00:00:00">
+                {% if modo_edicion %}
+                <input type="hidden" name="editar_anamnesis" value="true">
+                {% endif %}
+                
+                {% if modo_edicion %}
+                <div class="alert alert-info mb-4">
+                    <h4 class="alert-heading"><i class="fas fa-user-md me-2"></i> Modo edición — Anamnesis</h4>
+                    <p class="mb-0">Está revisando y actualizando la anamnesis de <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong>. Los cambios quedarán registrados en auditoría.</p>
+                </div>
+                {% endif %}
                 
                 <!-- Sección 1: Datos del Paciente -->
                 <section class="form-section active" id="seccion-datos-paciente">
@@ -163,19 +172,28 @@
                     </div>
                     <div class="section-content">
                         {% if paciente_existente %}
+                        {% if modo_edicion %}
+                        <div class="alert alert-warning mt-4 mb-4 p-4 rounded shadow-sm border border-warning">
+                            <h4 class="alert-heading"><i class="fas fa-edit me-2"></i> Anamnesis existente</h4>
+                            <p>Los datos guardados de <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong> se han cargado. Puede corregir, completar secciones faltantes y guardar los cambios.</p>
+                            {% if formulario_existente.fechaCreacion %}
+                            <p class="mb-0 small text-muted">Registrada el {{ formulario_existente.fechaCreacion|date:"d/m/Y H:i" }}</p>
+                            {% endif %}
+                        </div>
+                        {% else %}
                         <div class="alert alert-success mt-4 mb-4 p-4 rounded shadow-sm border border-success">
                             <h4 class="alert-heading"><i class="fas fa-check-circle me-2"></i> Datos Pre-registrados</h4>
-                            <p>Los datos demográficos de <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong> (RUT: {{ paciente.rut }}) ya se encuentran registrados en el sistema.</p>
+                            <p>Los datos demográficos de <strong>{{ paciente.nombre }} {{ paciente.apellido }}</strong> ({{ paciente.identificacion_display }}) ya se encuentran registrados en el sistema.</p>
                             <hr>
                             <p class="mb-0">Puede continuar directamente con la evaluación clínica utilizando el menú lateral o presionando "Siguiente".</p>
                         </div>
+                        {% endif %}
                         <input type="hidden" name="paciente_ya_existe" value="true">
                         <input type="hidden" name="rut_oculto" value="{{ paciente.rut }}">
                         {% else %}
                         <div class="row">
-                            <div class="col-md-6 form-group">
-                                <label class="form-label" for="rut">Rut</label>
-                                <input type="text" class="rut-input form-control" maxlength="12" name="rut" id="rut" placeholder="Ejemplo: 21.222.899-3" pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}" title="Formato: 12.345.678-9 o 12.345.678-K" required/>
+                            <div class="col-md-12 form-group">
+                                {% include 'partials/campo_identificacion_paciente.html' with prefix='fi_' select_class='form-control' input_class='form-control identificacion-input' label_class='form-label' %}
                             </div>
                     
                             <div class="col-md-6 form-group">
@@ -228,6 +246,12 @@
                     
                                     <input type="radio" class="btn-check" name="cobertura" id="isapre1" autocomplete="off" value="isapre"/>
                                     <label class="btn btn-outline-primary" for="isapre1">Isapre</label>
+
+                                    <input type="radio" class="btn-check" name="cobertura" id="particular1" autocomplete="off" value="particular"/>
+                                    <label class="btn btn-outline-primary" for="particular1">Particular</label>
+
+                                    <input type="radio" class="btn-check" name="cobertura" id="extranjero1" autocomplete="off" value="extranjero"/>
+                                    <label class="btn btn-outline-primary" for="extranjero1">Extranjero / sin previsión</label>
 
                                     <input type="radio" class="btn-check" name="cobertura" id="otro" autocomplete="off" value="otro"/>
                                     <label class="btn btn-outline-primary" for="otro">Otro</label>
@@ -1392,6 +1416,12 @@
         </div>
     </main>
 
+    {% if anamnesis_prefill %}
+    {{ anamnesis_prefill|json_script:"anamnesis-prefill-data" }}
+    {% endif %}
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" defer></script>
+    <script src="{% static 'js/identificacion.js' %}" defer></script>
+    <script src="{% static 'formulario.js' %}" defer></script>
 </body>
 </html>

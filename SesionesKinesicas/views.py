@@ -11,8 +11,10 @@ from clinicas.utils import obtener_paciente_por_rut
 from .session_inputs import evaluacion_inicial_desde_post, validar_post_sesion_kinesica
 from .models import SesionKinesica, RegistroEscalaSesion
 from .escalas_sesion import obtener_escalas_agrupadas_por_numero, paquetes_escalas_para_paciente
+from TiposDeFormularios.escalas_graficos import graficos_para_registros_sesion
 import json
 from datetime import datetime
+
 
 def obtener_paciente_con_permiso(rut_paciente, request):
     return obtener_paciente_por_rut(request, rut_paciente)
@@ -67,6 +69,15 @@ def listar_sesiones_paciente(request):
         primera_sesion.escalas_en_sesion = escalas_por_numero.get(primera_sesion.numero_sesion, [])
     for s in sesiones_posteriores:
         s.escalas_en_sesion = escalas_por_numero.get(s.numero_sesion, [])
+        s.graficos_escalas = graficos_para_registros_sesion(paciente, s.escalas_en_sesion)
+        s.graficos_escalas_json = json.dumps(s.graficos_escalas, ensure_ascii=False)
+    if primera_sesion:
+        primera_sesion.graficos_escalas = graficos_para_registros_sesion(
+            paciente, primera_sesion.escalas_en_sesion,
+        )
+        primera_sesion.graficos_escalas_json = json.dumps(
+            primera_sesion.graficos_escalas, ensure_ascii=False,
+        )
     
     context = {
         'nombre_clinico': nombre_clinico,
@@ -292,12 +303,16 @@ def ver_sesion_kinesica(request):
         sesion_kinesica=sesion
     ).order_by('-fecha_registro')
     
+    graficos_escalas = graficos_para_registros_sesion(paciente, escalas_en_sesion)
+
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
         'sesion': sesion,
         'es_primera_sesion': sesion.es_primera_sesion,
         'escalas_en_sesion': escalas_en_sesion,
+        'graficos_escalas': graficos_escalas,
+        'graficos_escalas_json': json.dumps(graficos_escalas, ensure_ascii=False),
         'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut, sesion.numero_sesion),
     }
 

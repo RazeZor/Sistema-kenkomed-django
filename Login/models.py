@@ -49,7 +49,25 @@ class Clinico(models.Model):
 
 # Modelo Paciente: Representa a un paciente en el sistema.
 class Paciente(models.Model):
-    rut = models.CharField(max_length=12, primary_key=True, unique=True)  # Clave primaria única
+    TIPO_RUT_CHILE = 'rut_chile'
+    TIPO_PASAPORTE = 'pasaporte'
+    TIPO_DNI_EXTRANJERO = 'dni_extranjero'
+    TIPO_OTRO = 'otro'
+    TIPOS_DOCUMENTO = [
+        (TIPO_RUT_CHILE, 'RUT chileno'),
+        (TIPO_PASAPORTE, 'Pasaporte'),
+        (TIPO_DNI_EXTRANJERO, 'DNI / Documento extranjero'),
+        (TIPO_OTRO, 'Otro documento'),
+    ]
+
+    rut = models.CharField(max_length=32, primary_key=True, unique=True, verbose_name='Identificador')
+    tipo_documento = models.CharField(
+        max_length=20, choices=TIPOS_DOCUMENTO, default=TIPO_RUT_CHILE,
+        verbose_name='Tipo de documento',
+    )
+    pais_documento = models.CharField(
+        max_length=3, blank=True, default='', verbose_name='País emisión documento',
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='pacientes_asignados', null=True, blank=True)
     clinica = models.ForeignKey('clinicas.Clinica', on_delete=models.CASCADE, related_name='pacientes', null=True, blank=True)
     clinico_creador = models.ForeignKey('Clinico', on_delete=models.SET_NULL, related_name='pacientes_creados', null=True, blank=True)
@@ -68,6 +86,27 @@ class Paciente(models.Model):
     
     def __str__(self):
         return f'{self.nombre} {self.apellido} ({self.rut})'
+
+    def identificacion_display(self):
+        from Login.identificacion_utils import formatear_identificacion_display
+        return formatear_identificacion_display(self)
+
+    def edad(self, fecha_referencia=None):
+        """Edad en años completos a partir de fechaNacimiento."""
+        from datetime import date
+
+        if not self.fechaNacimiento:
+            return None
+        ref = fecha_referencia or date.today()
+        nac = self.fechaNacimiento
+        años = ref.year - nac.year - ((ref.month, ref.day) < (nac.month, nac.day))
+        return años if años >= 0 else None
+
+    def edad_display(self):
+        edad = self.edad()
+        if edad is None:
+            return '—'
+        return f'{edad} años'
 
 # Modelo Reserva: Representa una hora agendada en el calendario
 class Reserva(models.Model):

@@ -1,0 +1,10 @@
+{% if evaluations_count %}
+<div class="section-card no-print">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+        <i class='bx bx-line-chart text-medical-blue'></i> {{ chart_title|default:"Evolución Gráfica" }}
+    </h3>
+    <div class="h-64">
+        <canvas id="{{ chart_canvas_id }}"></canvas>
+    </div>
+</div>
+{% endif %}

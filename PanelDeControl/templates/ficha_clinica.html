@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ficha Clínica — {{ paciente.nombre }} {{ paciente.apellido }} — {{ paciente.rut }}</title>
+    <title>Ficha Clínica — {{ paciente.nombre }} {{ paciente.apellido }} — {{ paciente.identificacion_display }}</title>
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -227,8 +227,8 @@
                 <div class="hv">{{ paciente.nombre }} {{ paciente.apellido }}</div>
             </div>
             <div>
-                <div class="hl">RUT</div>
-                <div class="hv">{{ paciente.rut }}</div>
+                <div class="hl">Identificación</div>
+                <div class="hv">{{ paciente.identificacion_display }}</div>
             </div>
             <div>
                 <div class="hl">Centro / Clínica</div>
@@ -256,8 +256,9 @@
     <div class="card-body grid-2">
         <div>
             <div class="field"><span class="fl">Nombre</span><span class="fv">{{ paciente.nombre }} {{ paciente.apellido }}</span></div>
-            <div class="field"><span class="fl">RUT</span><span class="fv">{{ paciente.rut }}</span></div>
-            <div class="field"><span class="fl">Fecha nacimiento</span><span class="fv">{{ paciente.fechaNacimiento|default:"—" }}</span></div>
+            <div class="field"><span class="fl">Identificación</span><span class="fv">{{ paciente.identificacion_display }}</span></div>
+            <div class="field"><span class="fl">Fecha nacimiento</span><span class="fv">{% if paciente.fechaNacimiento %}{{ paciente.fechaNacimiento|date:"d/m/Y" }}{% else %}—{% endif %}</span></div>
+            <div class="field"><span class="fl">Edad</span><span class="fv">{{ paciente.edad_display }}</span></div>
             <div class="field"><span class="fl">Género</span><span class="fv">{{ paciente.genero|default:"—" }}</span></div>
         </div>
         <div>
@@ -295,7 +296,12 @@
 <!-- 3. ANAMNESIS -->
 {% if tiene_anamnesis %}
 <div class="card">
-    <div class="card-head bg-purple"><i class='bx bx-conversation'></i> 3. Anamnesis</div>
+    <div class="card-head bg-purple" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <span><i class='bx bx-conversation'></i> 3. Anamnesis</span>
+        <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" style="font-size:11px;color:#fff;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">
+            <i class='bx bx-edit'></i> Editar
+        </a>
+    </div>
     <div class="card-body">
         <div class="grid-2">
             <div>

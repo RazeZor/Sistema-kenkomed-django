@@ -18,7 +18,7 @@
         </a>
         <div>
             <h1 class="text-xl font-bold text-gray-800">Editar datos de paciente</h1>
-            <p class="text-sm text-gray-500">RUT: <strong>{{ paciente.rut }}</strong> · Los campos en gris no son editables</p>
+            <p class="text-sm text-gray-500">Identificación: <strong>{{ paciente.identificacion_display }}</strong> · Los campos en gris no son editables</p>
         </div>
     </div>
 
@@ -40,10 +40,10 @@
                 <h2 class="font-bold text-white text-sm flex items-center gap-2"><i class='bx bx-id-card'></i> Identificación Personal</h2>
             </div>
             <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <!-- RUT (no editable) -->
+                <!-- Identificación (no editable) -->
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">RUT (no editable)</label>
-                    <input type="text" value="{{ paciente.rut }}" disabled
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Identificación (no editable)</label>
+                    <input type="text" value="{{ paciente.identificacion_display }}" disabled
                            class="w-full px-3 py-2.5 text-sm bg-gray-100 border border-gray-200 rounded-lg text-gray-400 cursor-not-allowed">
                 </div>
                 <!-- Fecha nacimiento -->

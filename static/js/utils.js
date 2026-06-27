@@ -158,6 +158,12 @@ function inicializarFormatoRUT() {
     const inputs = document.querySelectorAll('.rut-input');
     
     inputs.forEach(input => {
+        // No aplicar validación RUT a campos de documento extranjero ni bloques gestionados por identificacion.js
+        if (input.disabled) return;
+        if (input.classList.contains('identificacion-input-extranjero')) return;
+        if (input.closest('[data-identificacion-managed="true"]') && input.classList.contains('identificacion-input-rut') && input.offsetParent === null) return;
+        if (input.closest('.campo-identificacion-paciente') && input.classList.contains('identificacion-input-extranjero')) return;
+
         // Evitar listeners duplicados verificando si ya está configurado
         if (input.dataset.rutConfigured) return;
         input.dataset.rutConfigured = 'true';
@@ -370,9 +376,11 @@ function setupPasswordToggle(passwordInputId, toggleButtonId) {
  * Inicializa todos los sistemas: RUT moderno, RUT legacy, etc.
  */
 function initializeUtils() {
-    // Inicializar sistema moderno de RUT
+    if (typeof inicializarIdentificacionPaciente === 'function') {
+        inicializarIdentificacionPaciente();
+    }
     inicializarFormatoRUT();
-    
+
     // Inicializar sistema legacy para compatibilidad con código existente
     inicializarValidacionRutLegacy();
 }

@@ -1,0 +1,53 @@
+{% if graficos_escalas %}
+<div class="{% if full_width %}sm:col-span-2 {% endif %}mt-4 space-y-4">
+    <h4 class="text-xs uppercase font-bold tracking-wider text-purple-700 flex items-center gap-2">
+        <i class='bx bx-line-chart'></i> Evolución de escalas
+    </h4>
+    {% for bloque in graficos_escalas %}
+    <div class="bg-white rounded-xl border border-purple-100 p-4 shadow-sm">
+        <p class="text-sm font-semibold text-gray-800 mb-3">{{ bloque.nombre }}</p>
+        <div class="h-44">
+            <canvas id="{{ bloque.canvas_id }}{% if suffix %}_{{ suffix }}{% endif %}"></canvas>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+    const bloques = {{ graficos_escalas_json|safe }};
+    const suffix = '{{ suffix|default:"" }}';
+    bloques.forEach(function(bloque) {
+        const canvasId = bloque.canvas_id + (suffix ? '_' + suffix : '');
+        const ctx = document.getElementById(canvasId);
+        if (!ctx || !bloque.config.labels || !bloque.config.labels.length) return;
+        const cfg = bloque.config;
+        const datasets = (cfg.datasets || []).map(function(ds) {
+            return Object.assign({
+                fill: ds.fill !== false,
+                tension: 0.3,
+                borderWidth: 2,
+                pointRadius: 4,
+            }, ds);
+        });
+        new Chart(ctx, {
+            type: 'line',
+            data: { labels: cfg.labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: datasets.length > 1, position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                scales: {
+                    y: {
+                        min: cfg.ymin !== undefined ? cfg.ymin : undefined,
+                        max: cfg.ymax !== undefined ? cfg.ymax : undefined,
+                        ticks: { font: { size: 10 } },
+                    },
+                    x: { ticks: { font: { size: 9 }, maxRotation: 45 } },
+                },
+            },
+        });
+    });
+})();
+</script>
+{% endif %}

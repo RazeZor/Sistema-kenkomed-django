@@ -20,9 +20,9 @@
         background-color: #f9fafb !important;
         transition: all 0.2s ease-in-out !important;
         background-image: none !important;
-        background-repeat: none !important;
-        background-position: none !important;
-        background-size: none !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: auto !important;
     }
 
     input[type="text"]:focus, input[type="date"]:focus {

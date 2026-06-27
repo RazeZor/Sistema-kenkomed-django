@@ -969,7 +969,10 @@ def renderizar_cuestionario_oswestry(request):
             'nivel': eval.get_interpretacion()['nivel']
         })
     
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente
+
     evaluations_json = json.dumps(evaluations_data)
+    chart_config = obtener_graficos_paciente(paciente).get('oswestry', {})
 
     handler.auditar_consulta('Oswestry (ODI)')
     return render(request, 'CuestionarioOswestry.html', {
@@ -977,7 +980,8 @@ def renderizar_cuestionario_oswestry(request):
         'paciente': paciente,
         'evaluations_json': evaluations_json,
         'evaluations_count': evaluations_count,
-        'evaluaciones': evaluaciones
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
     })
 
 
@@ -1083,9 +1087,11 @@ def renderizar_cuestionario_lefs(request):
             'nivel': eval.get_interpretacion()['nivel']
         })
     
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente
+
     evaluations_json = json.dumps(evaluations_data)
-    
-    # Lista de actividades
+    chart_config = obtener_graficos_paciente(paciente).get('lefs', {})
+
     actividades = [
         "Trabajo usual, domestico o escuela",
         "Pasatiempos, recreación o deportes",
@@ -1115,7 +1121,8 @@ def renderizar_cuestionario_lefs(request):
         'paciente': paciente,
         'evaluations_json': evaluations_json,
         'evaluations_count': evaluations_count,
-        'evaluaciones': evaluaciones,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
         'actividades': actividades
     })
 
@@ -1195,3 +1202,170 @@ def _procesar_lefs_post(request, paciente, clinico):
         messages.error(request, f'Error al procesar la evaluación: {str(e)}')
     
     return redirect_cuestionario(request, 'lefs', paciente.rut)
+
+
+# ==================== QUICKDASH ====================
+
+def renderizar_cuestionario_quickdash(request):
+    from .models import EvaluacionQuickDASH
+    from .quickdash_data import ESCALAS_RESPUESTA, QUICKDASH_INSTRUCCIONES, QUICKDASH_PREGUNTAS
+
+    handler = BaseEvaluacionHandler(request)
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+
+    if request.method == 'POST':
+        return _procesar_quickdash_post(request, paciente, handler.clinico)
+
+    evaluaciones = EvaluacionQuickDASH.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
+    chart_config = obtener_graficos_paciente(paciente).get('quickdash', {})
+    preguntas_ctx = [
+        {
+            'campo': campo,
+            'texto': texto,
+            'opciones': ESCALAS_RESPUESTA[tipo_escala],
+        }
+        for campo, texto, tipo_escala in QUICKDASH_PREGUNTAS
+    ]
+    handler.auditar_consulta('QuickDASH')
+    return render(request, 'CuestionarioQuickDASH.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'preguntas': preguntas_ctx,
+        'instrucciones': QUICKDASH_INSTRUCCIONES,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'evaluations_count': evaluaciones.count(),
+        'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'quickdash'), ensure_ascii=False),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+    })
+
+
+def _procesar_quickdash_post(request, paciente, clinico):
+    from .models import EvaluacionQuickDASH
+    from .quickdash_data import CAMPOS_QUICKDASH
+
+    try:
+        datos = {}
+        for campo in CAMPOS_QUICKDASH:
+            valor = request.POST.get(campo)
+            if valor is None or valor == '':
+                messages.error(request, 'Debe completar las 11 preguntas del QuickDASH.')
+                return redirect_cuestionario(request, 'quickdash', paciente.rut)
+            datos[campo] = int(valor)
+
+        evaluacion = EvaluacionQuickDASH.objects.create(
+            paciente=paciente,
+            clinico=clinico,
+            notas_clinicas=request.POST.get('notas_clinicas', ''),
+            **datos,
+        )
+        interp = evaluacion.get_interpretacion()
+        pct = interp.get('porcentaje', 0)
+
+        auditar_cuestionario_edicion(request, paciente, 'QuickDASH', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'quickdash',
+            f'{pct}% — {interp["nivel"]}',
+            'quickdash',
+        )
+        messages.success(
+            request,
+            f'QuickDASH guardado. Resultado: {pct}% de discapacidad — {interp["nivel"]}',
+        )
+    except (ValueError, TypeError):
+        messages.error(request, 'Valores inválidos en el cuestionario.')
+    except Exception as e:
+        messages.error(request, f'Error al procesar QuickDASH: {e}')
+
+    return redirect_cuestionario(request, 'quickdash', paciente.rut)
+
+
+# ==================== WOMAC ====================
+
+def renderizar_cuestionario_womac(request):
+    from .models import EvaluacionWOMAC
+    from .womac_data import WOMAC_ETIQUETAS, WOMAC_INSTRUCCIONES, WOMAC_SECCIONES
+
+    handler = BaseEvaluacionHandler(request)
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+
+    if request.method == 'POST':
+        return _procesar_womac_post(request, paciente, handler.clinico)
+
+    evaluaciones = EvaluacionWOMAC.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
+    chart_config = obtener_graficos_paciente(paciente).get('womac', {})
+    items_flat = []
+    n = 1
+    for sec in WOMAC_SECCIONES:
+        for i, texto in enumerate(sec['items']):
+            items_flat.append({
+                'num': n,
+                'texto': texto,
+                'seccion': sec if i == 0 else None,
+            })
+            n += 1
+    handler.auditar_consulta('WOMAC')
+    return render(request, 'CuestionarioWOMAC.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'items': items_flat,
+        'etiquetas': WOMAC_ETIQUETAS,
+        'instrucciones': WOMAC_INSTRUCCIONES,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'evaluations_count': evaluaciones.count(),
+        'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'womac'), ensure_ascii=False),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+    })
+
+
+def _procesar_womac_post(request, paciente, clinico):
+    from .models import EvaluacionWOMAC
+    from .womac_data import WOMAC_TOTAL_ITEMS
+
+    try:
+        respuestas = []
+        for i in range(1, WOMAC_TOTAL_ITEMS + 1):
+            valor = request.POST.get(f'item_{i}')
+            if valor is None or valor == '':
+                messages.error(request, f'Debe completar las 24 preguntas del WOMAC (falta ítem {i}).')
+                return redirect_cuestionario(request, 'womac', paciente.rut)
+            v = int(valor)
+            if v < 0 or v > 4:
+                raise ValueError('rango')
+            respuestas.append(v)
+
+        evaluacion = EvaluacionWOMAC.objects.create(
+            paciente=paciente,
+            clinico=clinico,
+            respuestas=respuestas,
+            notas_clinicas=request.POST.get('notas_clinicas', ''),
+        )
+        interp = evaluacion.get_interpretacion()
+
+        auditar_cuestionario_edicion(request, paciente, 'WOMAC', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'womac',
+            f'{interp["total"]}/96 — {interp["nivel"]}',
+            'womac',
+        )
+        messages.success(
+            request,
+            f'WOMAC guardado. Total {interp["total"]}/96 — {interp["nivel"]}',
+        )
+    except ValueError:
+        messages.error(request, 'Valores inválidos en el cuestionario WOMAC.')
+    except Exception as e:
+        messages.error(request, f'Error al procesar WOMAC: {e}')
+
+    return redirect_cuestionario(request, 'womac', paciente.rut)

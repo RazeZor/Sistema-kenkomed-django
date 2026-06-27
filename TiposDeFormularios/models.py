@@ -308,3 +308,134 @@ class EvaluacionOswestry(models.Model):
                 'recomendacion': 'CRÍTICO: Evaluación médica urgente. Posible referencia quirúrgica.'
             }
 
+
+class EvaluacionQuickDASH(models.Model):
+    """
+    QuickDASH — discapacidad de hombro, codo y mano.
+    11 ítems (escala 1–5). Puntuación: ((promedio) - 1) × 25 = % discapacidad.
+    Requiere al menos 10 ítems completados.
+    """
+
+    paciente = models.ForeignKey(
+        'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_quickdash',
+    )
+    clinico = models.ForeignKey(
+        'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_quickdash',
+    )
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+    notas_clinicas = models.TextField(null=True, blank=True)
+
+    pregunta_1 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_2 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_3 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_4 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_5 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_6 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_7 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_8 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_9 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_10 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    pregunta_11 = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+
+    class Meta:
+        verbose_name = 'Evaluación QuickDASH'
+        verbose_name_plural = 'Evaluaciones QuickDASH'
+        ordering = ['-fecha_evaluacion']
+
+    def __str__(self):
+        return f'QuickDASH - {self.paciente.nombre} ({self.fecha_evaluacion.strftime("%d/%m/%Y")})'
+
+    def _valores(self):
+        from .quickdash_data import CAMPOS_QUICKDASH
+        return [getattr(self, c) for c in CAMPOS_QUICKDASH]
+
+    def get_porcentaje_discapacidad(self):
+        valores = self._valores()
+        n = len(valores)
+        if n < 10:
+            return None
+        promedio = sum(valores) / n
+        return round((promedio - 1) * 25, 1)
+
+    def get_interpretacion(self):
+        pct = self.get_porcentaje_discapacidad()
+        if pct is None:
+            return {'nivel': 'Incompleto', 'descripcion': 'Faltan ítems para calcular.'}
+        if pct <= 20:
+            nivel = 'Discapacidad leve'
+        elif pct <= 40:
+            nivel = 'Discapacidad moderada'
+        elif pct <= 60:
+            nivel = 'Discapacidad severa'
+        else:
+            nivel = 'Discapacidad muy severa'
+        return {
+            'nivel': nivel,
+            'porcentaje': pct,
+            'descripcion': f'Puntuación QuickDASH: {pct}% de discapacidad (mayor = peor).',
+        }
+
+
+class EvaluacionWOMAC(models.Model):
+    """
+    WOMAC — dolor, rigidez y función en artrosis de rodilla/cadera.
+    24 ítems (0–4). Total 0–96; mayor puntuación = peor afectación.
+    """
+
+    paciente = models.ForeignKey(
+        'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_womac',
+    )
+    clinico = models.ForeignKey(
+        'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_womac',
+    )
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+    respuestas = models.JSONField(help_text='Lista de 24 enteros (0–4) en orden WOMAC')
+    notas_clinicas = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Evaluación WOMAC'
+        verbose_name_plural = 'Evaluaciones WOMAC'
+        ordering = ['-fecha_evaluacion']
+
+    def __str__(self):
+        return f'WOMAC - {self.paciente.nombre} ({self.fecha_evaluacion.strftime("%d/%m/%Y")})'
+
+    def get_puntaje_dolor(self):
+        return sum(self.respuestas[0:5])
+
+    def get_puntaje_rigidez(self):
+        return sum(self.respuestas[5:7])
+
+    def get_puntaje_funcion(self):
+        return sum(self.respuestas[7:24])
+
+    def get_total_puntos(self):
+        return sum(self.respuestas)
+
+    def get_porcentaje_afectacion(self):
+        return round((self.get_total_puntos() / 96) * 100, 1)
+
+    def get_interpretacion(self):
+        total = self.get_total_puntos()
+        if total <= 24:
+            nivel = 'Afectación ligera'
+        elif total <= 48:
+            nivel = 'Afectación moderada'
+        elif total <= 72:
+            nivel = 'Afectación intensa'
+        else:
+            nivel = 'Afectación muy intensa'
+        return {
+            'nivel': nivel,
+            'total': total,
+            'dolor': self.get_puntaje_dolor(),
+            'rigidez': self.get_puntaje_rigidez(),
+            'funcion': self.get_puntaje_funcion(),
+            'porcentaje': self.get_porcentaje_afectacion(),
+            'descripcion': (
+                f'Total {total}/96 — Dolor {self.get_puntaje_dolor()}/20, '
+                f'Rigidez {self.get_puntaje_rigidez()}/8, '
+                f'Función {self.get_puntaje_funcion()}/68.'
+            ),
+        }
+

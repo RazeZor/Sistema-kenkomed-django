@@ -34,7 +34,7 @@
                     <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
                         <!-- Encabezado de tabla en desktop -->
                         <div class="hidden px-6 py-3 text-xs font-medium tracking-wider text-gray-500 uppercase border-b border-gray-100 md:grid md:grid-cols-7 bg-gray-50">
-                            <div>RUT</div>
+                            <div>RUT / ID</div>
                             <div>Nombre</div>
                             <div>Apellido</div>
                             <div>Teléfono</div>
@@ -50,8 +50,8 @@
                                 <!-- Vista móvil -->
                                 <div class="p-4 space-y-2 md:hidden">
                                     <div class="flex items-center justify-between">
-                                        <span class="text-xs font-medium text-gray-500">RUT:</span>
-                                        <span class="text-sm font-medium">{{ paciente.rut }}</span>
+                                        <span class="text-xs font-medium text-gray-500">Identificación:</span>
+                                        <span class="text-sm font-medium">{{ paciente.identificacion_display }}</span>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <span class="text-xs font-medium text-gray-500">Nombre:</span>
@@ -85,7 +85,7 @@
                                 
                                 <!-- Vista desktop -->
                                 <div class="hidden px-6 py-4 md:grid md:grid-cols-7 md:items-center">
-                                    <div class="text-sm font-medium">{{ paciente.rut }}</div>
+                                    <div class="text-sm font-medium">{{ paciente.identificacion_display }}</div>
                                     <div class="text-sm">{{ paciente.nombre }}</div>
                                     <div class="text-sm">{{ paciente.apellido }}</div>
                                     <div class="flex items-center text-sm text-gray-600">

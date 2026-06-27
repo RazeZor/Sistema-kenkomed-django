@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EvaluacionOswestry, EvaluacionLEFS
+from .models import EvaluacionOswestry, EvaluacionLEFS, EvaluacionQuickDASH, EvaluacionWOMAC
 
 @admin.register(EvaluacionLEFS)
 class EvaluacionLEFSAdmin(admin.ModelAdmin):
@@ -82,3 +82,15 @@ class EvaluacionOswestryAdmin(admin.ModelAdmin):
         interp = obj.get_interpretacion()
         return f"{interp['nivel']} ({interp['rango']}): {interp['descripcion']}"
     get_interpretacion_display.short_description = 'Interpretación Completa'
+
+
+@admin.register(EvaluacionQuickDASH)
+class EvaluacionQuickDASHAdmin(admin.ModelAdmin):
+    list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'get_porcentaje_discapacidad')
+    search_fields = ('paciente__nombre', 'paciente__rut')
+
+
+@admin.register(EvaluacionWOMAC)
+class EvaluacionWOMACAdmin(admin.ModelAdmin):
+    list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'get_total_puntos')
+    search_fields = ('paciente__nombre', 'paciente__rut')

@@ -1,0 +1,65 @@
+.section-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.item-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.item-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+}
+
+.item-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: #0284c7;
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.radio-scale label span.scale-btn {
+    display: block;
+    text-align: center;
+    font-size: 0.7rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 0.5rem 0.35rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: #f9fafb;
+}
+
+.radio-scale input[type="radio"]:checked + span.scale-btn {
+    border-color: #0284c7;
+    background: #eff6ff;
+    font-weight: 600;
+    color: #0369a1;
+}
+
+.result-display {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+@media print {
+    .no-print { display: none !important; }
+}

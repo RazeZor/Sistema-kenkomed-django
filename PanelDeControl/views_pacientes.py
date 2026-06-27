@@ -3,7 +3,14 @@ from Login.auditoria import registrar_auditoria
 from Login.models import Paciente, Clinico
 from django.core.paginator import Paginator
 from django.contrib import messages
-from FormularioInicial.views import validar_campos_obligatorios, crear_o_actualizar_paciente, parsear_fecha_campo
+from FormularioInicial.views import (
+    validar_campos_obligatorios,
+    crear_o_actualizar_paciente,
+    parsear_fecha_campo,
+    _datos_identificacion_desde_post,
+    _identificador_canonico_desde_post,
+)
+from Login.identificacion_context import contexto_identificacion_paciente
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from clinicas.utils import filtrar_pacientes_por_sesion, obtener_paciente_por_rut, paciente_pertenece_a_sesion, requiere_centro_o_admin_sistema
 
@@ -77,8 +84,11 @@ def AgregarPacienteBasico(request):
             return redirect('login')
         clinico = None
 
+    ctx_base = {'nombre_clinico': nombre_clinico, **contexto_identificacion_paciente()}
+
     if request.method == 'POST':
-        rut = request.POST.get('rut')
+        tipo_doc, pais_doc, numero_doc = _datos_identificacion_desde_post(request.POST)
+        identificador, tipo_doc, pais_doc = _identificador_canonico_desde_post(request.POST)
         nombre = request.POST.get('nombre')
         apellido = request.POST.get('apellido')
         fechaNacimiento_raw = request.POST.get('fechaNacimiento')
@@ -98,12 +108,15 @@ def AgregarPacienteBasico(request):
         # Validaciones de fechas usando las funciones importadas
         fechaNacimiento = parsear_fecha_campo(fechaNacimiento_raw, 'fecha de nacimiento', request)
         if fechaNacimiento is None:
-            return render(request, 'AgregarPaciente.html', {'nombre_clinico': nombre_clinico})
+            return render(request, 'AgregarPaciente.html', ctx_base)
             
         LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request) if LicenciaInicio_raw else None
 
         datos_para_validar = {
-            'rut': rut,
+            'tipo_documento': tipo_doc,
+            'pais_documento': pais_doc,
+            'numero_documento': numero_doc,
+            'rut': numero_doc,
             'nombre': nombre,
             'apellido': apellido,
             'fechaNacimiento': fechaNacimiento,
@@ -126,7 +139,7 @@ def AgregarPacienteBasico(request):
         if errores_filtrados:
             for e in errores_filtrados:
                 messages.error(request, e)
-            return render(request, 'AgregarPaciente.html', {'nombre_clinico': nombre_clinico})
+            return render(request, 'AgregarPaciente.html', ctx_base)
 
         clinica_id = request.session.get('clinica_id')
 
@@ -147,24 +160,25 @@ def AgregarPacienteBasico(request):
         }
 
         try:
-            paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
+            paciente, created = crear_o_actualizar_paciente(
+                identificador, defaults, clinico=clinico,
+                tipo_documento=tipo_doc, pais_documento=pais_doc,
+            )
             if created:
                 registrar_auditoria(
                     request, 'alta_paciente', paciente,
-                    detalle=f'Alta manual — {paciente.nombre} {paciente.apellido} ({paciente.rut})',
+                    detalle=f'Alta manual — {paciente.nombre} {paciente.apellido} ({paciente.identificacion_display()})',
                 )
             messages.success(request, f"Paciente {nombre} {apellido} registrado exitosamente.")
             
-            request.session['temp_rut_historial'] = rut
+            request.session['temp_rut_historial'] = paciente.rut
             return redirect('historialClinico')
 
         except Exception as e:
             messages.error(request, f'Error al registrar paciente: {e}')
-            return render(request, 'AgregarPaciente.html', {'nombre_clinico': nombre_clinico})
+            return render(request, 'AgregarPaciente.html', ctx_base)
 
-    return render(request, 'AgregarPaciente.html', {
-        'nombre_clinico': nombre_clinico
-    })
+    return render(request, 'AgregarPaciente.html', ctx_base)
 
 
 @requiere_clinico
@@ -216,4 +230,5 @@ def EditarPaciente(request):
     return render(request, 'EditarPaciente.html', {
         'paciente': paciente,
         'nombre_clinico': request.session.get('nombre_clinico'),
+        **contexto_identificacion_paciente(paciente),
     })

@@ -1,0 +1,64 @@
+{% load static %}
+<div class="campo-identificacion-paciente{% if root_class %} {{ root_class }}{% endif %} space-y-3" data-prefix="{{ prefix|default:'' }}" data-input-name="{{ input_name|default:'numero_documento' }}">
+    <div class="{% if grid_class %}{{ grid_class }}{% else %}grid grid-cols-1 md:grid-cols-2 gap-4{% endif %}">
+        <div>
+            <label class="{% if label_class %}{{ label_class }}{% else %}block text-sm font-medium text-gray-700 mb-1{% endif %}" for="{{ prefix }}tipo_documento">
+                Tipo de documento <span class="text-red-500">*</span>
+            </label>
+            <select name="tipo_documento" id="{{ prefix }}tipo_documento" class="{% if select_class %}{{ select_class }}{% else %}w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white{% endif %} identificacion-tipo" required>
+                {% for codigo, etiqueta in tipos_documento %}
+                <option value="{{ codigo }}" {% if tipo_documento_actual == codigo %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="identificacion-pais-wrap" id="{{ prefix }}pais_wrap" style="{% if tipo_documento_actual == 'rut_chile' or not tipo_documento_actual %}display:none{% endif %}">
+            <label class="{% if label_class %}{{ label_class }}{% else %}block text-sm font-medium text-gray-700 mb-1{% endif %}" for="{{ prefix }}pais_documento">
+                País de emisión <span class="text-red-500 identificacion-pais-req">*</span>
+            </label>
+            <input type="search"
+                   class="{% if select_class %}{{ select_class }}{% else %}w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white{% endif %} identificacion-pais-busqueda mb-1"
+                   placeholder="Buscar país…"
+                   autocomplete="off"
+                   aria-label="Buscar país">
+            <select name="pais_documento" id="{{ prefix }}pais_documento" class="{% if select_class %}{{ select_class }}{% else %}w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white{% endif %} identificacion-pais">
+                {% for codigo, etiqueta in paises_documento %}
+                <option value="{{ codigo }}" {% if pais_documento_actual == codigo %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    {# Campo RUT chileno (formato y validación módulo 11) #}
+    <div class="identificacion-wrap-rut">
+        <label class="{% if label_class %}{{ label_class }}{% else %}block text-sm font-medium text-gray-700 mb-1{% endif %}" for="{{ prefix }}numero_rut">
+            RUT <span class="text-red-500">*</span>
+        </label>
+        <input type="text"
+               name="{{ input_name|default:'numero_documento' }}"
+               id="{{ prefix }}numero_rut"
+               class="{% if input_class %}{{ input_class }}{% else %}w-full border border-gray-300 rounded-lg p-2.5 text-sm{% endif %} identificacion-input-rut rut-input"
+               maxlength="12"
+               placeholder="12.345.678-9"
+               value="{% if tipo_documento_actual == 'rut_chile' or not tipo_documento_actual %}{{ numero_documento_actual|default:'' }}{% endif %}"
+               required
+               autocomplete="off"
+               inputmode="numeric">
+        <p class="text-xs text-gray-500 mt-1">Formato chileno: 12.345.678-9</p>
+    </div>
+
+    {# Campo documento extranjero (alfanumérico, sin validación RUT) #}
+    <div class="identificacion-wrap-extranjero" style="{% if tipo_documento_actual == 'rut_chile' or not tipo_documento_actual %}display:none{% endif %}">
+        <label class="{% if label_class %}{{ label_class }}{% else %}block text-sm font-medium text-gray-700 mb-1{% endif %}" for="{{ prefix }}numero_extranjero">
+            <span class="identificacion-label-numero">{% if label_numero %}{{ label_numero }}{% else %}N° documento{% endif %}</span> <span class="text-red-500">*</span>
+        </label>
+        <input type="text"
+               id="{{ prefix }}numero_extranjero"
+               class="{% if input_class %}{{ input_class }}{% else %}w-full border border-gray-300 rounded-lg p-2.5 text-sm{% endif %} identificacion-input-extranjero"
+               maxlength="24"
+               placeholder="Ej: AB1234567"
+               value="{% if tipo_documento_actual != 'rut_chile' and tipo_documento_actual %}{{ numero_documento_actual|default:'' }}{% endif %}"
+               autocomplete="off"
+               {% if tipo_documento_actual == 'rut_chile' or not tipo_documento_actual %}disabled{% else %}name="{{ input_name|default:'numero_documento' }}" required{% endif %}>
+        <p class="text-xs text-gray-500 mt-1 identificacion-ayuda">Letras y números, 4–24 caracteres</p>
+    </div>
+</div>

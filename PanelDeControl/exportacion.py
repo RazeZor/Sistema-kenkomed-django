@@ -19,7 +19,7 @@ from Login.models import (
     Reserva,
 )
 from SesionesKinesicas.models import SesionKinesica
-from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry
+from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH, EvaluacionWOMAC
 
 
 def _serializar_valor(valor):
@@ -104,6 +104,12 @@ def exportar_paciente_json(paciente):
     )
     cuestionarios['oswestry'] = _queryset_a_lista(
         EvaluacionOswestry.objects.filter(paciente=paciente).order_by('-fecha_evaluacion')
+    )
+    cuestionarios['quickdash'] = _queryset_a_lista(
+        EvaluacionQuickDASH.objects.filter(paciente=paciente).order_by('-fecha_evaluacion')
+    )
+    cuestionarios['womac'] = _queryset_a_lista(
+        EvaluacionWOMAC.objects.filter(paciente=paciente).order_by('-fecha_evaluacion')
     )
     data['cuestionarios'] = cuestionarios
 

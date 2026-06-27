@@ -15,6 +15,17 @@ from clinicas.utils import (
     paciente_pertenece_a_sesion,
 )
 from Login.auditoria import obtener_ip_cliente, registrar_auditoria
+from Login.identificacion_context import contexto_identificacion_paciente
+from Login.identificacion_utils import (
+    TIPO_RUT_CHILE,
+    identificacion_ya_existe,
+    identificacion_coincide_con_paciente,
+    normalizar_identificador,
+    resolver_paciente_por_identificacion,
+    validar_identificacion,
+    validar_rut_chileno,
+)
+from FormularioInicial.anamnesis_utils import guardar_anamnesis_desde_post, prefill_desde_formulario
 import json
 import qrcode
 from io import BytesIO
@@ -50,43 +61,20 @@ def parsear_fecha_campo(fecha_str, campo_nombre, request):
         return None
 
 def validar_rut(rut):
-    """Valida un RUT chileno con o sin puntos y con guion."""
-    # Eliminar puntos y guiones, y convertir a mayúsculas
-    rut = str(rut).replace('.', '').replace('-', '').upper()
-    
-    # Verificar longitud mínima
-    if len(rut) < 2:
-        return False
-    
-    # Separar números y dígito verificador
-    cuerpo = rut[:-1]
-    dv = rut[-1]
-    
-    # Validar que el cuerpo sean solo dígitos
-    if not cuerpo.isdigit():
-        return False
-    
-    # Validar dígito verificador
-    suma = 0
-    multiplo = 2
-    
-    # Calcular dígito verificador esperado
-    for c in reversed(cuerpo):
-        suma += int(c) * multiplo
-        multiplo += 1
-        if multiplo == 8:
-            multiplo = 2
-    
-    resto = suma % 11
-    dv_esperado = str(11 - resto)
-    
-    # Casos especiales
-    if dv_esperado == '11':
-        dv_esperado = '0'
-    elif dv_esperado == '10':
-        dv_esperado = 'K'
-    
-    return dv == dv_esperado
+    """Compatibilidad: delega en validación RUT chileno."""
+    return validar_rut_chileno(rut)
+
+
+def _datos_identificacion_desde_post(post):
+    tipo = post.get('tipo_documento', TIPO_RUT_CHILE)
+    pais = post.get('pais_documento', '')
+    numero = (post.get('numero_documento') or post.get('rut') or '').strip()
+    return tipo, pais, numero
+
+
+def _identificador_canonico_desde_post(post):
+    tipo, pais, numero = _datos_identificacion_desde_post(post)
+    return normalizar_identificador(tipo, numero, pais), tipo, pais
 
 def validar_telefono(telefono):
     """Valida que el teléfono tenga el formato correcto."""
@@ -106,18 +94,22 @@ def validar_telefono(telefono):
     
     return True
 
-def validar_campos_obligatorios(datos):
+def validar_campos_obligatorios(datos, permitir_existente=False):
     """Recibe un dict con valores y devuelve una lista de errores por campos vacíos o inválidos."""
     errores = []
     
-    # Validar RUT
-    rut = datos.get('rut', '')
-    if not rut:
-        errores.append('El campo RUT es obligatorio')
-    elif not validar_rut(rut):
-        errores.append('El RUT ingresado no es válido')
-    elif Paciente.objects.filter(rut=rut).exists():
-        errores.append('El RUT ya existe en el sistema')
+    # Validar documento de identidad
+    tipo_doc = datos.get('tipo_documento', TIPO_RUT_CHILE)
+    pais_doc = datos.get('pais_documento', '')
+    numero_doc = (datos.get('numero_documento') or datos.get('rut', '')).strip()
+    if not numero_doc:
+        errores.append('El número de documento es obligatorio')
+    else:
+        ok, msg = validar_identificacion(tipo_doc, numero_doc, pais_doc)
+        if not ok:
+            errores.append(msg)
+        elif not permitir_existente and identificacion_ya_existe(tipo_doc, numero_doc, pais_doc):
+            errores.append('Este documento ya está registrado en el sistema')
     
     # Validar nombre y apellido
     nombre = datos.get('nombre', '').strip()
@@ -184,8 +176,11 @@ def validar_campos_obligatorios(datos):
     
     return errores
 
-def crear_o_actualizar_paciente(rut, defaults, clinico=None):
-    """Crea o actualiza el paciente. Si se crea, asigna el clínico (si existe el campo)."""
+def crear_o_actualizar_paciente(rut, defaults, clinico=None, tipo_documento=TIPO_RUT_CHILE, pais_documento=''):
+    """Crea o actualiza el paciente. `rut` es el identificador canónico."""
+    defaults = dict(defaults)
+    defaults['tipo_documento'] = tipo_documento
+    defaults['pais_documento'] = pais_documento or ''
     paciente, created = Paciente.objects.update_or_create(rut=rut, defaults=defaults)
     if clinico:
         try:
@@ -211,83 +206,27 @@ def crear_o_actualizar_paciente(rut, defaults, clinico=None):
 
 
 def construir_formulario_desde_post(request, paciente, clinico):
-    """Construye y guarda el objeto formularioClinico a partir de request.POST y objetos dados."""
-    form = formularioClinico(
-        paciente=paciente,
-        clinico=clinico,
-        fechaCreacion=datetime.now(),
-        medicamentos=request.POST.getlist('medicamentos'),
-
-        # pagina 2
-        duracionDolor=request.POST.get('btnradio1'),
-        caracteristicasDeDolor=json.dumps(request.POST.getlist('caracteristicas')),
-
-        # pagina 3 esquema
-        ubicacionDolor=json.dumps(request.POST.getlist('ubicacionDolor')),
-        dolorIntensidad=json.dumps(request.POST.getlist('intensidad')),
-
-        # pagina 4
-        causaDolor=request.POST.get('causaDolor'),
-        accidenteLaboral=json.dumps(request.POST.getlist('accidenteLaboral')),
-        calidadAtencion=request.POST.get('calidadAtencion'),
-        opinionProblemaEnfermeda=request.POST.get('diagnosis'),
-        opinionCuraDolor=request.POST.get('cure'),
-
-        # pagina 5
-        TiposDeEnfermedades=json.dumps(request.POST.getlist('TiposDeEnfermedades')),
-
-        # pagina 7
-        actividades_afectadas=json.dumps(request.POST.getlist('actividades_afectadas')),
-        parametros=json.dumps(request.POST.getlist('parametros')),
-
-        # pagina8
-        pregunta1_nivelDeSalud=request.POST.get('pregunta1_nivelDeSalud'),
-        pregunta3_frecuencia_De_Suenio=request.POST.get('op3'),
-        pregunta4_opinion_peso_actual=request.POST.get('pregunta4_opinion_peso_actual'),
-        pregunta5_ConsumoComidaRapida=request.POST.get('op5'),
-
-        # pagina 8.5 sueño
-        hora_acostarse=request.POST.get('hora_acostarse'),
-        tiempo_dormirse=request.POST.get('tiempo_dormirse'),
-        hora_despertar=request.POST.get('hora_despertar'),
-        hora_levantarse=request.POST.get('hora_levantarse'),
-        despertares=request.POST.get('despertares'),
-
-        # pagina 9
-        pregunta6_PorcionesDeFrutas=request.POST.get('op6'),
-        pregunta7_ejercicioDias=request.POST.get('op7'),
-        pregunta8_minutosPorEjercicios=request.POST.get('op8'),
-
-        # salud mental y motivación
-        proposito=request.POST.get('proposito'),
-        red_de_apoyo=request.POST.get('red_de_apoyo'),
-        placer_cosas=request.POST.get('placer_cosas'),
-        deprimido=request.POST.get('deprimido'),
-        ansioso=request.POST.get('ansioso'),
-        preocupacion=request.POST.get('preocupacion'),
-
-        # consumo sustancias
-        NicotinaSiOno=request.POST.get('NicotinaSiOno'),
-        condicionNicotina=request.POST.get('frecuenciaNicotina'),
-        nicotinaPreocupacion=request.POST.get('preocupacionNicotina'),
-        AlcoholSiOno=request.POST.get('AlcoholSiOno'),
-        condicionAlcohol=request.POST.get('frecuenciaAlcohol'),
-        AlcoholPreocupacion=request.POST.get('preocupacionAlcohol'),
-        drogasSiOno=request.POST.get('drogasSiOno'),
-        condicionDrogas=request.POST.get('CantidadDrogras'),
-        DrogasPreocupacion=request.POST.get('DrogasPreocupacion'),
-        marihuanaSiOno=request.POST.get('marihuanaSiOno'),
-        condicionMarihuana=request.POST.get('frecuenciaMarihuana'),
-        marihuanaPreocupacion=request.POST.get('marihuanaPreocupacion'),
-
-        # preguntas de motivación
-        preguntas2=json.dumps(request.POST.getlist('preguntas2')),
-        AreasMotivacion=json.dumps(request.POST.getlist('motivacion')),
-        motivacion_Salud=request.POST.get('motivacion_Salud'),
-    )
-
-    form.save()
+    """Construye y guarda el objeto formularioClinico a partir de request.POST."""
+    form, _ = guardar_anamnesis_desde_post(request, paciente, clinico)
     return form
+
+
+def _contexto_anamnesis_paciente(paciente):
+    """Contexto extra cuando el clínico abre el formulario con un paciente."""
+    ctx = {
+        'paciente_existente': True,
+        'paciente': paciente,
+        'modo_edicion': False,
+    }
+    ctx.update(contexto_identificacion_paciente(paciente))
+    try:
+        form = formularioClinico.objects.get(paciente=paciente)
+        ctx['modo_edicion'] = True
+        ctx['formulario_existente'] = form
+        ctx['anamnesis_prefill'] = prefill_desde_formulario(form)
+    except formularioClinico.DoesNotExist:
+        pass
+    return ctx
 
 # --------------------------
 # Vista principal
@@ -303,18 +242,21 @@ def FormularioInicial(request):
         if not clinico and not es_admin:
             return redirect('login')
 
-        context = {}
+        context = contexto_identificacion_paciente()
         
         if request.method == 'GET':
             rut = request.GET.get('rut')
             if rut:
                 paciente_obj = obtener_paciente_por_rut(request, rut)
                 if paciente_obj:
-                    context['paciente_existente'] = True
-                    context['paciente'] = paciente_obj
+                    context.update(_contexto_anamnesis_paciente(paciente_obj))
                     registrar_auditoria(
                         request, 'consulta_formulario_inicial', paciente_obj,
-                        detalle=f'Accedió a anamnesis DSS — {paciente_obj.rut}',
+                        detalle=(
+                            f'Accedió a editar anamnesis — {paciente_obj.rut}'
+                            if context.get('modo_edicion')
+                            else f'Accedió a anamnesis DSS — {paciente_obj.rut}'
+                        ),
                     )
 
         if request.method == 'POST':
@@ -330,6 +272,8 @@ def FormularioInicial(request):
                 rut = request.POST.get('rut')
                 nombre = request.POST.get('nombre')
                 apellido = request.POST.get('apellido')
+                tipo_doc, pais_doc, numero_doc = _datos_identificacion_desde_post(request.POST)
+                identificador, tipo_doc, pais_doc = _identificador_canonico_desde_post(request.POST)
                 fechaNacimiento_raw = request.POST.get('fechaNac')
                 genero = request.POST.get('genero')
                 contacto = request.POST.get('contact')
@@ -357,7 +301,10 @@ def FormularioInicial(request):
                 LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request) if LicenciaInicio_raw else None
 
                 datos_para_validar = {
-                    'rut': rut,
+                    'tipo_documento': tipo_doc,
+                    'pais_documento': pais_doc,
+                    'numero_documento': numero_doc,
+                    'rut': numero_doc,
                     'nombre': nombre,
                     'apellido': apellido,
                     'fechaNacimiento': fechaNacimiento,
@@ -372,7 +319,7 @@ def FormularioInicial(request):
                     'LicenciaDias': LicenciaDias,
                 }
 
-                errores = validar_campos_obligatorios(datos_para_validar)
+                errores = validar_campos_obligatorios(datos_para_validar, permitir_existente=True)
                 if errores:
                     for e in errores:
                         messages.error(request, e)
@@ -394,8 +341,11 @@ def FormularioInicial(request):
                 }
 
                 try:
-                    paciente, created = crear_o_actualizar_paciente(rut, defaults, clinico=clinico)
-                    messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {rut}")
+                    paciente, created = crear_o_actualizar_paciente(
+                        identificador, defaults, clinico=clinico,
+                        tipo_documento=tipo_doc, pais_documento=pais_doc,
+                    )
+                    messages.info(request, f"Paciente {'creado' if created else 'actualizado'}: {paciente.identificacion_display()}")
                     # Enviar correo de bienvenida al nuevo paciente y aviso al clínico
                     if created and clinico:
                         notificar_nuevo_paciente(paciente, clinico)
@@ -410,16 +360,29 @@ def FormularioInicial(request):
 
             # Construir y guardar formulario Clínico con todos los campos
             try:
-                construir_formulario_desde_post(request, paciente, clinico)
+                es_edicion_previa = request.POST.get('editar_anamnesis') == 'true'
+                form, fue_edicion = guardar_anamnesis_desde_post(request, paciente, clinico)
                 registrar_auditoria(
                     request, 'edicion_anamnesis', paciente,
-                    detalle=f'Anamnesis DSS guardada desde panel — {paciente.rut}',
+                    detalle=(
+                        f'Anamnesis actualizada por clínico — {paciente.rut}'
+                        if fue_edicion or es_edicion_previa
+                        else f'Anamnesis DSS guardada desde panel — {paciente.rut}'
+                    ),
                 )
-                messages.info(request, 'Formulario clínico guardado correctamente.')
+                messages.success(
+                    request,
+                    'Anamnesis actualizada correctamente.' if fue_edicion else 'Formulario clínico guardado correctamente.',
+                )
             except Exception as e:
                 messages.error(request, f'Error al guardar formulario clínico: {e}')
+                if paciente:
+                    context.update(_contexto_anamnesis_paciente(paciente))
                 return render(request, 'FormularioInicial.html', context)
-            
+
+            if request.POST.get('editar_anamnesis') == 'true' or request.POST.get('paciente_ya_existe') == 'true':
+                return redirect(f"{reverse('historialClinico')}?rut={paciente.rut}")
+
             request.session['show_success_message'] = 'Paciente guardado exitosamente.'
             return redirect('panel')
 
@@ -575,31 +538,32 @@ def formulario_publico(request, token_id):
         
         paciente = token.paciente
         
-        # PASO 1: Verificación de RUT
+        # PASO 1: Verificación de identidad
         rut_verificado = request.session.get(f'rut_verificado_{token_id}', False)
+        es_rut = getattr(paciente, 'tipo_documento', TIPO_RUT_CHILE) == TIPO_RUT_CHILE
+        ctx_verificacion = {
+            'token': token,
+            'nombre_paciente': paciente.nombre,
+            'es_rut_chile': es_rut,
+            'identificacion_hint': paciente.identificacion_display(),
+        }
         
         if not rut_verificado:
             if request.method == 'POST' and 'rut_verificacion' in request.POST:
                 rut_input = request.POST.get('rut_verificacion', '').strip()
-                # Normalizar ambos RUTs para comparar
-                rut_normalizado = rut_input.replace('.', '').replace('-', '').upper()
-                rut_paciente = paciente.rut.replace('.', '').replace('-', '').upper()
                 
-                if rut_normalizado == rut_paciente:
+                if identificacion_coincide_con_paciente(paciente, rut_input):
                     request.session[f'rut_verificado_{token_id}'] = True
                     rut_verificado = True
                 else:
-                    messages.error(request, 'El RUT ingresado no coincide con el registro. Verifica e intenta nuevamente.')
-                    return render(request, 'formulario_verificar_rut.html', {
-                        'token': token,
-                        'nombre_paciente': paciente.nombre,
-                    })
+                    messages.error(
+                        request,
+                        'El documento ingresado no coincide con el registro. Verifica e intenta nuevamente.',
+                    )
+                    return render(request, 'formulario_verificar_rut.html', ctx_verificacion)
             
             if not rut_verificado:
-                return render(request, 'formulario_verificar_rut.html', {
-                    'token': token,
-                    'nombre_paciente': paciente.nombre,
-                })
+                return render(request, 'formulario_verificar_rut.html', ctx_verificacion)
         
         # PASO 2: Formulario de anamnesis
         if request.method == 'POST' and 'rut_verificacion' not in request.POST:

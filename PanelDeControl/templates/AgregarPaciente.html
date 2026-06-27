@@ -263,7 +263,7 @@
             {% endfor %}
         {% endif %}
 
-        <form method="POST" action="{% url 'AgregarPacienteBasico' %}">
+        <form method="POST" action="{% url 'AgregarPacienteBasico' %}" onsubmit="return typeof validarFormularioIdentificacion === 'function' ? validarFormularioIdentificacion(this) : true;">
             {% csrf_token %}
 
             <!-- SECCIÓN 1: IDENTIFICACIÓN -->
@@ -273,18 +273,16 @@
                 </div>
                 <div class="section-body">
 
+                    <div style="margin-bottom:16px;">
+                        {% include 'partials/campo_identificacion_paciente.html' with prefix='ap_' select_class='field-input' input_class='field-input identificacion-input' label_class='field-label' %}
+                    </div>
+
                     <div class="field-grid-2">
-                        <div>
-                            <label class="field-label" for="rut">RUT <span class="req">*</span></label>
-                            <input type="text" class="field-input rut-input" maxlength="12" name="rut" id="rut"
-                                   placeholder="21.222.899-3"
-                                   pattern="[0-9]{1,2}\.[0-9]{3}\.[0-9]{3}-[0-9Kk]{1}"
-                                   title="Formato: 12.345.678-9" required/>
-                        </div>
                         <div>
                             <label class="field-label" for="fechaNacimiento">Fecha de Nacimiento <span class="req">*</span></label>
                             <input type="date" id="fechaNacimiento" name="fechaNacimiento" class="field-input" required/>
                         </div>
+                        <div></div>
                     </div>
 
                     <div class="field-grid-2">
@@ -362,6 +360,10 @@
                             <label class="radio-pill">
                                 <input type="radio" name="cobertura_de_salud" value="Particular" required/>
                                 <span class="radio-pill-label">Particular</span>
+                            </label>
+                            <label class="radio-pill">
+                                <input type="radio" name="cobertura_de_salud" value="Extranjero sin previsión" required/>
+                                <span class="radio-pill-label">Extranjero / sin previsión</span>
                             </label>
                             <label class="radio-pill">
                                 <input type="radio" name="cobertura_de_salud" value="Otro" required/>
@@ -446,5 +448,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/identificacion.js' %}"></script>
 <script src="{% static 'js/utils.js' %}"></script>
 {% endblock %}

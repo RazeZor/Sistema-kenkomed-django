@@ -28,7 +28,7 @@
             <!-- Info Paciente -->
             <div class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-white rounded-full shadow-sm border border-gray-100">
                 <i class='bx bx-id-card text-medical-blue text-sm'></i>
-                <span class="text-xs sm:text-sm text-gray-500">{{ paciente.rut }}</span>
+                <span class="text-xs sm:text-sm text-gray-500">{{ paciente.identificacion_display }}</span>
             </div>
         </div>
 
@@ -380,6 +380,7 @@
                     </div>
                     <div class="p-6">
                         {% include 'SesionesKinesicas/partials/escalas_sesion.html' with escalas=escalas_en_sesion bare=True only %}
+                        {% include 'SesionesKinesicas/partials/graficos_escalas_sesion.html' with graficos_escalas=graficos_escalas graficos_escalas_json=graficos_escalas_json suffix=sesion.numero_sesion only %}
                     </div>
                 </div>
                 {% endif %}

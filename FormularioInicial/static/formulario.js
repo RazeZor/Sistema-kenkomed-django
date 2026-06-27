@@ -140,6 +140,10 @@ function inicializarFormatoRUT() {
   const inputs = document.querySelectorAll(".rut-input")
 
   inputs.forEach((input) => {
+    if (input.disabled) return
+    if (input.classList.contains("identificacion-input-extranjero")) return
+    if (input.closest(".campo-identificacion-paciente") && input.classList.contains("identificacion-input-rut") && input.offsetParent === null) return
+
     if (input.dataset.rutConfigured) return
     input.dataset.rutConfigured = "true"
 
@@ -212,14 +216,35 @@ function configurarRUT(config) {
 }
 
 // ============================================================================
-// SECCIÓN 3: FUNCIONES DE COMPATIBILIDAD LEGACY
+// SECCIÓN 2.5: INPUT DE IDENTIFICACIÓN (RUT o documento extranjero)
 // ============================================================================
+
+function obtenerInputIdentificacion() {
+  const bloque = document.querySelector('.campo-identificacion-paciente')
+  if (bloque && typeof window.validarFormularioIdentificacion === 'function') {
+    const tipo = bloque.querySelector('.identificacion-tipo')?.value || 'rut_chile'
+    if (tipo === 'rut_chile') {
+      return bloque.querySelector('.identificacion-input-rut')
+    }
+    return bloque.querySelector('.identificacion-input-extranjero')
+  }
+  return (
+    document.querySelector('.identificacion-input-rut:not([disabled])') ||
+    document.querySelector('.identificacion-input-extranjero:not([disabled])') ||
+    document.getElementById('rut') ||
+    document.querySelector('[name="numero_documento"]')
+  )
+}
+
+function tieneCampoIdentificacionNuevo() {
+  return !!document.querySelector('.campo-identificacion-paciente')
+}
 
 /**
  * Maneja el evento de entrada de texto en el campo RUT (versión legacy)
  */
 function manejarRutLegacy(rutInput = null, mensajeError = null) {
-  if (!rutInput) rutInput = document.getElementById("rut")
+  if (!rutInput) rutInput = obtenerInputIdentificacion()
   if (!mensajeError) mensajeError = document.getElementById("mensaje-error")
 
   if (!rutInput) return
@@ -241,7 +266,7 @@ function manejarRutLegacy(rutInput = null, mensajeError = null) {
  * Maneja el evento de pérdida de foco en el campo RUT (versión legacy)
  */
 function onBlurRutLegacy(rutInput = null, mensajeError = null) {
-  if (!rutInput) rutInput = document.getElementById("rut")
+  if (!rutInput) rutInput = obtenerInputIdentificacion()
   if (!mensajeError) mensajeError = document.getElementById("mensaje-error")
 
   if (!rutInput) return
@@ -287,7 +312,8 @@ function manejarRut() {
   if (typeof manejarRutLegacy === "function") {
     manejarRutLegacy()
   } else {
-    var rutInput = document.getElementById("rut")
+    var rutInput = obtenerInputIdentificacion()
+    if (!rutInput) return
     var rut = rutInput.value
     var mensajeError = document.getElementById("mensaje-error")
 
@@ -317,7 +343,8 @@ function onBlurRut() {
   if (typeof onBlurRutLegacy === "function") {
     onBlurRutLegacy()
   } else {
-    var rutInput = document.getElementById("rut")
+    var rutInput = obtenerInputIdentificacion()
+    if (!rutInput) return
     var rut = rutInput.value
     var mensajeError = document.getElementById("mensaje-error")
 
@@ -562,20 +589,19 @@ function actualizarColorParte(elemento, intensidad) {
 }
 
 /**
- * Muestra el selector de intensidad de dolor para una parte del cuerpo
+ * Agrega una fila al mapa de dolor (opcionalmente con intensidad precargada).
  */
-function mostrarSelectorIntensidad(nombreParte, elemento) {
+function agregarFilaMapaDolor(nombreParte, intensidadPreset) {
   const minitablita = document.getElementById("minitablita")
-  if (!minitablita) return
+  if (!minitablita) return false
+
+  const elemento = elementosPorNombre[nombreParte]
+  if (!elemento) return false
 
   const filaExistente = Array.from(document.querySelectorAll("#minitablita tr")).find(
-    (tr) => tr.cells[0].textContent === nombreParte,
+    (tr) => tr.cells[0] && tr.cells[0].textContent === nombreParte,
   )
-
-  if (filaExistente) {
-    alert("Esta parte del cuerpo ya ha sido seleccionada")
-    return
-  }
+  if (filaExistente) return false
 
   const intensidades = ["Baja", "Media", "Alta"]
   const tr = document.createElement("tr")
@@ -591,7 +617,7 @@ function mostrarSelectorIntensidad(nombreParte, elemento) {
             </select>
         </td>
         <td>
-            <button class="btn btn-danger btn-sm eliminar-fila">Eliminar</button>
+            <button type="button" class="btn btn-danger btn-sm eliminar-fila">Eliminar</button>
         </td>
     `
 
@@ -600,6 +626,11 @@ function mostrarSelectorIntensidad(nombreParte, elemento) {
     actualizarColorParte(elemento, e.target.value)
   })
 
+  if (intensidadPreset) {
+    select.value = String(intensidadPreset).toLowerCase()
+    actualizarColorParte(elemento, select.value)
+  }
+
   const btnEliminar = tr.querySelector("button")
   btnEliminar.addEventListener("click", () => {
     tr.remove()
@@ -607,6 +638,17 @@ function mostrarSelectorIntensidad(nombreParte, elemento) {
   })
 
   minitablita.appendChild(tr)
+  return true
+}
+
+/**
+ * Muestra el selector de intensidad de dolor para una parte del cuerpo
+ */
+function mostrarSelectorIntensidad(nombreParte, elemento) {
+  const agregado = agregarFilaMapaDolor(nombreParte, null)
+  if (!agregado) {
+    alert("Esta parte del cuerpo ya ha sido seleccionada")
+  }
 }
 
 // ============================================================================
@@ -925,11 +967,13 @@ function setupPasswordToggle(passwordInputId, toggleButtonId) {
  * Función principal que inicializa todos los componentes del formulario
  */
 function inicializarFormulario() {
-  // Inicializar validación de RUT
-  const rutInput = document.getElementById("rut")
-  if (rutInput) {
-    rutInput.addEventListener("blur", onBlurRut)
-    rutInput.addEventListener("input", manejarRut)
+  // Inicializar validación de identificación (legacy RUT o nuevo selector)
+  if (!tieneCampoIdentificacionNuevo()) {
+    const rutInput = obtenerInputIdentificacion()
+    if (rutInput) {
+      rutInput.addEventListener("blur", onBlurRut)
+      rutInput.addEventListener("input", manejarRut)
+    }
   }
 
 
@@ -1019,14 +1063,106 @@ function inicializarFormulario() {
   inicializarLimitacionSelecciones();
   inicializarParametrosActividades();
   inicializarCamposCondicionales();
+  aplicarPrefillAnamnesis();
+}
+
+/**
+ * Precarga respuestas guardadas cuando el clínico edita una anamnesis existente.
+ */
+function aplicarPrefillAnamnesis() {
+  const prefillEl = document.getElementById("anamnesis-prefill-data")
+  if (!prefillEl) return
+
+  let data
+  try {
+    data = JSON.parse(prefillEl.textContent)
+  } catch (e) {
+    console.warn("No se pudo leer prefill de anamnesis", e)
+    return
+  }
+
+  if (document.body.dataset.modoEdicion === "true") {
+    document.querySelectorAll(".nav-section-btn").forEach((btn) => {
+      btn.disabled = false
+      btn.classList.remove("disabled")
+    })
+  }
+
+  Object.entries(data.text || {}).forEach(([name, value]) => {
+    if (!value) return
+    document.querySelectorAll(`[name="${name}"]`).forEach((el) => {
+      if (el.type === "radio" || el.type === "checkbox") return
+      el.value = value
+    })
+  })
+
+  Object.entries(data.selects || {}).forEach(([name, value]) => {
+    const el = document.querySelector(`select[name="${name}"]`)
+    if (el && value) el.value = value
+  })
+
+  Object.entries(data.radios || {}).forEach(([name, value]) => {
+    if (!value) return
+    document.querySelectorAll(`input[type="radio"][name="${name}"]`).forEach((el) => {
+      if (String(el.value).trim() === String(value).trim()) {
+        el.checked = true
+      }
+    })
+  })
+
+  Object.entries(data.checks || {}).forEach(([name, values]) => {
+    ;(values || []).forEach((value) => {
+      document.querySelectorAll(`input[type="checkbox"][name="${name}"]`).forEach((el) => {
+        if (String(el.value).trim() === String(value).trim()) {
+          el.checked = true
+        }
+      })
+    })
+  })
+
+  ;(data.mapa_dolor || []).forEach((item) => {
+    if (item && item.zona) {
+      agregarFilaMapaDolor(item.zona, item.intensidad || "")
+    }
+  })
+
+  ;(data.actividades_afectadas || []).forEach((value) => {
+    document.querySelectorAll('input[type="checkbox"][name="actividades_afectadas"]').forEach((el) => {
+      if (String(el.value).trim() === String(value).trim()) {
+        el.checked = true
+        el.dispatchEvent(new Event("change", { bubbles: true }))
+      }
+    })
+  })
+
+  setTimeout(() => {
+  ;(data.parametros || []).forEach((valor, index) => {
+    const checkedActs = Array.from(
+      document.querySelectorAll('input[type="checkbox"][name="actividades_afectadas"]:checked'),
+    )
+    const act = checkedActs[index]
+    if (!act || !act.id) return
+    const paramName = `parametros_${act.id}`
+    document.querySelectorAll(`input[type="radio"][name="${paramName}"]`).forEach((el) => {
+      if (String(el.value).trim() === String(valor).trim()) {
+        el.checked = true
+      }
+    })
+  })
+  }, 100)
 }
 
 /**
  * Función principal de inicialización de utilidades
  */
 function initializeUtils() {
-  inicializarFormatoRUT()
-  inicializarValidacionRutLegacy()
+  if (typeof inicializarIdentificacionPaciente === "function") {
+    inicializarIdentificacionPaciente()
+  }
+  if (!tieneCampoIdentificacionNuevo()) {
+    inicializarFormatoRUT()
+    inicializarValidacionRutLegacy()
+  }
 }
 
 // ============================================================================
@@ -1040,6 +1176,12 @@ document.addEventListener("DOMContentLoaded", function() {
   var form = document.getElementById('Step');
   if (form) {
     form.addEventListener('submit', function(e) {
+      if (!document.querySelector('input[name="paciente_ya_existe"]')) {
+        if (typeof validarFormularioIdentificacion === 'function' && !validarFormularioIdentificacion(form)) {
+          e.preventDefault();
+          return;
+        }
+      }
       // Validación HTML5 automática
       if (!form.checkValidity()) {
         e.preventDefault();
@@ -1135,7 +1277,10 @@ window.addEventListener("load", () => {
   }
 
   setTimeout(() => {
-    if (typeof inicializarFormatoRUT === "function") {
+    if (typeof inicializarIdentificacionPaciente === "function") {
+      inicializarIdentificacionPaciente()
+    }
+    if (!tieneCampoIdentificacionNuevo() && typeof inicializarFormatoRUT === "function") {
       inicializarFormatoRUT()
     }
   }, 100)
@@ -1178,6 +1323,8 @@ window.inicializarLimitacionSelecciones = inicializarLimitacionSelecciones
 window.inicializarParametrosActividades = inicializarParametrosActividades
 window.inicializarCamposCondicionales = inicializarCamposCondicionales
 window.inicializarContadorTiempo = inicializarContadorTiempo
+window.agregarFilaMapaDolor = agregarFilaMapaDolor
+window.aplicarPrefillAnamnesis = aplicarPrefillAnamnesis
 window.inicializarFormulario = inicializarFormulario
 
 // Utilidades de UI

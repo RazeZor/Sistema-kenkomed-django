@@ -87,17 +87,14 @@ def filtrar_reservas_por_sesion(request, queryset=None):
     return queryset.none()
 
 
-def obtener_paciente_por_rut(request, rut):
-    from Login.models import Paciente
+def obtener_paciente_por_rut(request, rut, tipo_documento=None, pais_documento=None):
+    """Busca paciente por RUT o documento extranjero (con variantes legacy)."""
+    from Login.identificacion_utils import resolver_paciente_por_identificacion
 
     if not rut:
         return None
-    try:
-        paciente = Paciente.objects.get(rut=rut)
-    except Paciente.DoesNotExist:
-        return None
-
-    if paciente_pertenece_a_sesion(request, paciente):
+    paciente = resolver_paciente_por_identificacion(rut, tipo_documento, pais_documento)
+    if paciente and paciente_pertenece_a_sesion(request, paciente):
         return paciente
     return None
 

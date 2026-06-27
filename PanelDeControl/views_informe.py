@@ -117,7 +117,7 @@ def RenderFichaClinica(request):
     sesiones kinésicas, cuestionarios, diagnóstico y alta.
     """
     from SesionesKinesicas.models import SesionKinesica
-    from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry
+    from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH, EvaluacionWOMAC
     from Login.models import (
         Clinico, CuestionarioPSFS, Groc, CuestionarioEQ_5D,
         CuestionarioBarthel, CuestionarioScrenning, CuestionarioEvaluacionENA,
@@ -245,6 +245,12 @@ def RenderFichaClinica(request):
     )
     context['evaluaciones_oswestry'] = list(
         EvaluacionOswestry.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
+    )
+    context['evaluaciones_quickdash'] = list(
+        EvaluacionQuickDASH.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
+    )
+    context['evaluaciones_womac'] = list(
+        EvaluacionWOMAC.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
     )
 
     try:

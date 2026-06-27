@@ -155,6 +155,8 @@ class RegistroEscalaSesion(models.Model):
         ('screening', 'Screening Örebro'),
         ('oswestry', 'Oswestry ODI'),
         ('lefs', 'LEFS'),
+        ('quickdash', 'QuickDASH'),
+        ('womac', 'WOMAC'),
     ]
 
     paciente = models.ForeignKey(

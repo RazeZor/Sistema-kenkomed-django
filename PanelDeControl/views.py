@@ -15,6 +15,7 @@ from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from Login.identificacion_context import contexto_identificacion_paciente
 from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut
 from django.utils.html import escape
 from Login.auditoria import registrar_auditoria
@@ -102,9 +103,13 @@ def HistorialClinico(request):
             clinico_obj = Clinico.objects.filter(rut=rut_clinico).first()
 
         rut = None
+        tipo_doc = None
+        pais_doc = None
         nota_texto = None
         if request.method == 'POST':
-            rut = request.POST.get('rutsito')
+            rut = request.POST.get('rutsito', '').strip()
+            tipo_doc = request.POST.get('tipo_documento')
+            pais_doc = request.POST.get('pais_documento')
             nota_texto = request.POST.get('nota')
         elif request.method == 'GET':
             rut = request.GET.get('rut')
@@ -115,8 +120,11 @@ def HistorialClinico(request):
             del request.session['temp_rut_historial']
 
         if rut:
-            paciente = obtener_paciente_por_rut(request, rut)
+            paciente = obtener_paciente_por_rut(
+                request, rut, tipo_documento=tipo_doc, pais_documento=pais_doc,
+            )
             if paciente:
+                rut = paciente.rut
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
                 if nota_texto is not None and request.method == 'POST':
@@ -129,16 +137,22 @@ def HistorialClinico(request):
                 elif request.method == 'GET':
                     registrar_auditoria(
                         request, 'consulta_historial', paciente,
-                        detalle=f'Consulta historial — {paciente.rut}',
+                        detalle=f'Consulta historial — {paciente.identificacion_display()}',
                     )
             else:
-                error = "No se encontró ningún paciente con ese RUT o no tienes permisos para verlo."
+                error = "No se encontró ningún paciente con ese documento o no tienes permisos para verlo."
 
+        ctx_ident = contexto_identificacion_paciente(paciente)
+        if not paciente and request.method == 'POST' and rut:
+            ctx_ident['tipo_documento_actual'] = tipo_doc or 'rut_chile'
+            ctx_ident['pais_documento_actual'] = pais_doc or ''
+            ctx_ident['numero_documento_actual'] = rut
         return render(request, 'HistorialClinicoPacientes.html', {
             'paciente': paciente,
             'error': error,
             'nota': nota_existente.notas if nota_existente else '',
             'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut) if paciente else [],
+            **ctx_ident,
         })
     else:
         return redirect('login')

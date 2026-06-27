@@ -12,6 +12,8 @@ ESCALAS_POR_CODIGO = {
     'screening': ('Screening Örebro', 'Screnning', 'Riesgo de cronificación'),
     'oswestry': ('Oswestry ODI', 'oswestry', 'Incapacidad por dolor lumbar'),
     'lefs': ('LEFS', 'lefs', 'Función de extremidad inferior'),
+    'quickdash': ('QuickDASH', 'quickdash', 'Discapacidad hombro, codo y mano'),
+    'womac': ('WOMAC', 'womac', 'Artrosis rodilla/cadera: dolor, rigidez y función'),
 }
 
 ESCALAS_PAQUETES = (
@@ -34,7 +36,14 @@ ESCALAS_PAQUETES = (
         'titulo': 'Extremidad inferior',
         'descripcion': 'Rodilla, cadera, tobillo y marcha',
         'icono': 'bx-run',
-        'escalas': ('lefs',),
+        'escalas': ('lefs', 'womac'),
+    },
+    {
+        'id': 'mmss_hombro',
+        'titulo': 'Hombro, codo y mano',
+        'descripcion': 'Discapacidad de extremidad superior',
+        'icono': 'bx-hand',
+        'escalas': ('quickdash',),
     },
     {
         'id': 'calidad_vida',

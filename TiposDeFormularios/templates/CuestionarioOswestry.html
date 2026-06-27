@@ -8,129 +8,33 @@
 {% endblock %}
 
 {% block extra_css %}
+{% include 'partials/escala_cuestionario_estilos.html' %}
+<style>
     .question-card {
         background: white;
-        border: 2px solid #e5e7eb;
+        border: 1px solid #f1f5f9;
         border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        transition: all 0.3s ease;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
     }
-
-    .question-card:hover {
-        border-color: #1e40af;
-        box-shadow: 0 4px 16px rgba(30, 64, 175, 0.1);
-    }
-
     .question-number {
-        display: inline-block;
-        width: 40px;
-        height: 40px;
-        background: #1e40af;
-        color: white;
-        border-radius: 50%;
-        font-weight: bold;
-        text-align: center;
-        line-height: 40px;
-        margin-right: 1rem;
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; background: #0284c7; color: white;
+        border-radius: 50%; font-weight: bold; font-size: 0.875rem; margin-right: 0.75rem;
     }
-
-    .question-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
-
+    .question-title { font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 1rem; }
     .option-label {
-        display: block;
-        padding: 0.75rem;
-        margin-bottom: 0.5rem;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 2px solid #e5e7eb;
-        background: #f9fafb;
+        display: block; padding: 0.65rem 0.75rem; margin-bottom: 0.4rem;
+        border-radius: 8px; cursor: pointer; border: 2px solid #e5e7eb; background: #f9fafb;
     }
-
-    .option-label:hover {
-        background: #f3f4f6;
-        border-color: #1e40af;
-    }
-
-    .option-label input[type="radio"] {
-        margin-right: 0.75rem;
-    }
-
-    .option-label input[type="radio"]:checked ~ span {
-        font-weight: 600;
-        color: #1e40af;
-    }
-
-    .option-label input[type="radio"]:checked {
-        accent-color: #1e40af;
-    }
-
+    .option-label:hover { background: #f0f9ff; border-color: #0284c7; }
     .option-score {
-        display: inline-block;
-        background: #e0e7ff;
-        color: #1e40af;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 0.875rem;
-        margin-left: 0.5rem;
+        display: inline-block; background: #e0f2fe; color: #0369a1;
+        padding: 0.15rem 0.5rem; border-radius: 999px; font-weight: 600; font-size: 0.75rem; margin-left: 0.35rem;
     }
-
-    .incapacity-display {
-        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-        border-left: 4px solid #1e40af;
-        border-radius: 12px;
-        padding: 2rem;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    .percentage-large {
-        font-size: 4rem;
-        font-weight: bold;
-        color: #1e40af;
-        margin-bottom: 0.5rem;
-    }
-
-    .interpretation-box {
-        background: white;
-        border: 2px solid #e5e7eb;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    .interpretation-box.level-0 { border-left: 4px solid #22c55e; }
-    .interpretation-box.level-1 { border-left: 4px solid #84cc16; }
-    .interpretation-box.level-2 { border-left: 4px solid #f59e0b; }
-    .interpretation-box.level-3 { border-left: 4px solid #ef4444; }
-    .interpretation-box.level-4 { border-left: 4px solid #dc2626; }
-    .interpretation-box.level-5 { border-left: 4px solid #991b1b; }
-
-    .progress-bar {
-        width: 100%;
-        height: 12px;
-        background: #e5e7eb;
-        border-radius: 6px;
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #22c55e 0%, #84cc16 20%, #f59e0b 40%, #ef4444 60%, #dc2626 100%);
-        transition: width 0.3s ease;
-    }
-
-    @media print {
-        .no-print { display: none !important; }
-    }
+    .progress-bar { width: 100%; height: 10px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin: 0.75rem 0; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444); transition: width 0.3s; }
+</style>
 {% endblock %}
 
 {% block header_title %}Índice de Incapacidad de Oswestry (ODI) - Evaluación Lumbar{% endblock %}
@@ -143,51 +47,32 @@
 {% endblock %}
 
 {% block content %}
-<form id="csrf-form" style="display:none;">
-    {% csrf_token %}
-</form>
+<div class="max-w-7xl mx-auto space-y-6">
+    {% include 'partials/escala_paciente_banner.html' %}
 
-<div class="max-w-5xl mx-auto space-y-6">
-    <!-- Dashboard de Métricas -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Total Puntos</p>
-            <h3 class="text-3xl font-bold text-medical-blue" id="totalPoints">0</h3>
-            <p class="text-xs text-gray-500 mt-1">/50 máximo</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">% Incapacidad</p>
-            <h3 class="text-3xl font-bold text-orange-500" id="percentageValue">0%</h3>
-            <p class="text-xs text-gray-500 mt-1" id="levelLabel">Sin evaluar</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Evaluaciones</p>
-            <h3 class="text-3xl font-bold text-gray-800" id="evalCount">{{ evaluations_count }}</h3>
-            <p class="text-xs text-gray-500 mt-1">en total</p>
-        </div>
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:-translate-y-1 transition-transform">
-            <p class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Progresión</p>
-            <h3 class="text-3xl font-bold text-gray-800" id="trendArrow">→</h3>
-            <p class="text-xs text-gray-500 mt-1" id="trendText">sin cambios</p>
-        </div>
-    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <form id="oswestryForm" method="POST">
+                {% csrf_token %}
+                <div class="section-card space-y-5">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                <i class='bx bx-task text-medical-blue'></i> Evaluación Oswestry (ODI)
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">Seleccione la opción que mejor describa la situación del paciente en cada sección.</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-medical-blue" id="percentageValue">0%</div>
+                            <div class="text-xs text-gray-500 font-medium tracking-wide uppercase">Incapacidad</div>
+                        </div>
+                    </div>
 
-    <!-- Instrucción -->
-    <div class="bg-blue-50 border-l-4 border-medical-blue rounded-r-lg p-6 shadow-sm">
-        <div class="flex items-start gap-3">
-            <i class='bx bx-info-circle text-2xl text-medical-blue flex-shrink-0'></i>
-            <div>
-                <h3 class="font-semibold text-blue-900 mb-1">Instrucciones</h3>
-                <p class="text-sm text-blue-800">Por favor, seleccione la opción que mejor describa su situación para cada pregunta. El resultado indicará su grado de incapacidad relacionada con el dolor lumbar (0% = sin incapacidad, 100% = incapacidad total).</p>
-            </div>
-        </div>
-    </div>
+                    <div class="bg-blue-50 border-l-4 border-medical-blue rounded-r-lg p-4 text-sm text-blue-800">
+                        Resultado: suma de puntos × 2 = % incapacidad (0% sin incapacidad, 100% incapacidad total).
+                    </div>
 
-    <!-- Formulario -->
-    <form id="oswestryForm" method="POST">
-        {% csrf_token %}
-        
-        <div class="space-y-6">
+        <div class="space-y-4">
             <!-- Sección 1: Intensidad del dolor -->
             <div class="question-card">
                 <div class="question-title">
@@ -530,43 +415,36 @@
             </div>
         </div>
 
-        <!-- Resultado de Incapacidad -->
-        <div id="incapacityResult" class="incapacity-display" style="margin-top: 3rem;">
-            <div class="percentage-large" id="incapacityPercent">0%</div>
-            <div class="text-xl font-semibold text-gray-800 mb-2" id="incapacityLevel">Sin evaluar</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-            </div>
-            <p class="text-sm text-gray-600" id="incapacityDescription">Seleccione las opciones para ver su resultado</p>
+                    <div class="result-display">
+                        <div class="text-4xl font-bold text-medical-blue mb-1" id="incapacityPercent">0%</div>
+                        <div class="text-sm font-semibold text-gray-700 mb-2" id="incapacityLevel">Sin evaluar</div>
+                        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 0%"></div></div>
+                        <p class="text-sm text-gray-500" id="incapacityDescription">Complete las 10 secciones</p>
+                        <p class="text-xs text-gray-400 mt-2">Puntos: <span id="totalPoints">0</span>/50 · <span id="levelLabel">—</span></p>
+                    </div>
+
+                    <div id="interpretationBox" class="bg-amber-50 border border-amber-100 rounded-lg p-4 text-sm" style="display: none;">
+                        <h4 class="font-semibold text-gray-900 mb-1" id="interpretationTitle">Interpretación</h4>
+                        <p class="text-gray-700 mb-1" id="interpretationText"></p>
+                        <p class="text-gray-600 italic text-xs" id="interpretationRec"></p>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 pt-2 border-t border-gray-100 no-print">
+                        <button type="submit" class="px-5 py-2.5 bg-medical-blue text-white rounded-lg hover:bg-medical-blue-dark text-sm font-medium transition-colors flex items-center gap-2">
+                            <i class='bx bx-save'></i> Guardar Evaluación
+                        </button>
+                        <button type="reset" class="px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 text-sm font-medium transition-colors flex items-center gap-2">
+                            <i class='bx bx-refresh'></i> Limpiar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            {% include 'partials/escala_evolucion_chart.html' with chart_canvas_id='oswestryChart' chart_title='Evolución de Incapacidad' %}
         </div>
 
-        <!-- Interpretación Clínica -->
-        <div id="interpretationBox" class="interpretation-box level-0" style="margin-top: 2rem; display: none;">
-            <h4 class="font-semibold text-gray-900 mb-2" id="interpretationTitle">Interpretación</h4>
-            <p class="text-sm text-gray-700 mb-2" id="interpretationText">Completar la evaluación para ver la interpretación clínica</p>
-            <p class="text-xs text-gray-600 italic" id="interpretationRec"></p>
-        </div>
-
-        <!-- Gráfico de Evolución -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-8" style="display: none;" id="chartContainer">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <i class='bx bx-line-chart text-medical-blue'></i> Evolución de Incapacidad
-            </h3>
-            <div class="h-64">
-                <canvas id="oswestryChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Botón Guardar -->
-        <div class="mt-8 flex justify-center gap-4 no-print">
-            <button type="submit" class="px-8 py-3 bg-medical-blue text-white rounded-lg font-semibold shadow-sm hover:bg-medical-blue-dark transition-all duration-200 flex items-center gap-2">
-                <i class='bx bx-save'></i> Guardar Evaluación
-            </button>
-            <button type="reset" class="px-8 py-3 bg-gray-200 text-gray-800 rounded-lg font-semibold shadow-sm hover:bg-gray-300 transition-all duration-200 flex items-center gap-2">
-                <i class='bx bx-refresh'></i> Limpiar
-            </button>
-        </div>
-    </form>
+        {% include 'partials/escala_historial_sidebar.html' with escala_tipo='oswestry' %}
+    </div>
 </div>
 {% endblock %}
 
@@ -574,7 +452,8 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     let oswestryChart = null;
-    let evaluationHistory = {{ evaluations_json|safe|default:"[]" }};
+    const evaluationHistory = {{ evaluations_json|safe|default:"[]" }};
+    const chartConfig = {{ chart_config_json|default:"{}"|safe }};
 
     const interpretationLevels = {
         0: { level: 'Sin incapacidad', color: 'level-0', range: '0%' },
@@ -658,7 +537,6 @@
 
         // Mostrar interpretación
         const interpretationBox = document.getElementById('interpretationBox');
-        interpretationBox.className = 'interpretation-box ' + levelData.color;
         interpretationBox.style.display = 'block';
 
         // Aquí iría el fetch a la vista para obtener la interpretación clínica completa
@@ -752,56 +630,48 @@
         }
     });
 
-    // Inicializar
     document.addEventListener('DOMContentLoaded', function() {
-        // Si hay historial, mostrar gráfico
         if (evaluationHistory && evaluationHistory.length > 0) {
-            document.getElementById('chartContainer').style.display = 'block';
-            updateChart();
+            const vals = evaluationHistory.map(e => e.porcentaje);
+            const prom = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+            const promEl = document.getElementById('historial-promedio');
+            if (promEl) promEl.textContent = prom + '%';
+            if (vals.length >= 2) {
+                const tEl = document.getElementById('historial-tendencia');
+                if (tEl) {
+                    const mejora = vals[vals.length - 1] < vals[vals.length - 2];
+                    const empeora = vals[vals.length - 1] > vals[vals.length - 2];
+                    tEl.textContent = mejora ? '↗' : empeora ? '↘' : '→';
+                    tEl.className = 'text-xl font-bold ' + (mejora ? 'text-green-600' : empeora ? 'text-red-600' : 'text-gray-600');
+                }
+            }
         }
-    });
-
-    function updateChart() {
         const ctx = document.getElementById('oswestryChart');
-        if (!ctx || !evaluationHistory || evaluationHistory.length === 0) return;
-
-        const labels = evaluationHistory.map((_, i) => `E${i + 1}`);
-        const data = evaluationHistory.map(e => e.porcentaje);
-
-        if (oswestryChart) {
-            oswestryChart.destroy();
-        }
-
-        oswestryChart = new Chart(ctx, {
+        if (!ctx || !chartConfig.labels || !chartConfig.labels.length) return;
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: labels,
-                datasets: [{
-                    label: '% Incapacidad Oswestry',
-                    data: data,
-                    borderColor: '#1e40af',
-                    backgroundColor: 'rgba(30, 64, 175, 0.1)',
-                    fill: true,
-                    tension: 0.3,
-                    borderWidth: 3,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#1e40af',
-                    pointBorderWidth: 2
-                }]
+                labels: chartConfig.labels,
+                datasets: (chartConfig.datasets || []).map(ds => Object.assign({
+                    fill: true, tension: 0.35, borderWidth: 2, pointRadius: 4,
+                    pointBackgroundColor: '#fff', pointBorderWidth: 2,
+                }, ds)),
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
-                        min: 0,
-                        max: 100,
-                        ticks: { stepSize: 10, suffix: '%' }
-                    }
-                }
-            }
+                    y: { min: 0, max: 100, grid: { color: '#f1f5f9' }, ticks: { callback: v => v + '%' } },
+                    x: { grid: { display: false }, ticks: { maxRotation: 45, font: { size: 10 } } },
+                },
+            },
         });
+    });
+
+    function updateChart() {
+        /* mantenido por compatibilidad; gráfico se inicializa en DOMContentLoaded */
     }
 </script>
 {% endblock %}
