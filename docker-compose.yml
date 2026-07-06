@@ -11,11 +11,11 @@ services:
       MYSQL_USER: django_user
       MYSQL_PASSWORD: my_password
     ports:
-      - "3307:3306"
+      - "127.0.0.1:3307:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "django_user", "-pmy_password"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "django_user", "-pmy_password" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -30,13 +30,10 @@ services:
       db:
         condition: service_healthy
     command: >
-      sh -c "
-      while ! python -c 'import socket; s=socket.socket(); s.connect((\"db\", 3306))' 2>/dev/null; do
+      sh -c " while ! python -c 'import socket; s=socket.socket(); s.connect((\"db\", 3306))' 2>/dev/null; do
         echo 'Esperando que la base de datos este lista...';
         sleep 3;
-      done;
-      python manage.py collectstatic --noinput &&
-      uvicorn ProyectoMainAPP.asgi:application --host 0.0.0.0 --port 8000 --workers 4"
+      done; python manage.py collectstatic --noinput && uvicorn ProyectoMainAPP.asgi:application --host 0.0.0.0 --port 8000 --workers 4"
     expose:
       - "8000"
     environment:
@@ -63,7 +60,7 @@ services:
     container_name: nginx_proxy
     restart: always
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - static_volume:/app/staticfiles
