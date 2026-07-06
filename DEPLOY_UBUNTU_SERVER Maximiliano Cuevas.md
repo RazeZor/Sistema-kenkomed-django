@@ -212,11 +212,14 @@ Debes ver algo asi:
 
 ```
 NAME         IMAGE                  STATUS          PORTS
-mysql_db     mysql:8.0              Up (healthy)    0.0.0.0:3306->3306/tcp
-django_app   kenkomed-django-web    Up              0.0.0.0:8000->8000/tcp
+mysql_db     mysql:8.0              Up (healthy)    0.0.0.0:3307->3306/tcp
+django_app   kenkomed-django-web    Up              8000/tcp
+nginx_proxy  nginx:alpine           Up              0.0.0.0:80->80/tcp
 ```
 
 > El contenedor `mysql_db` DEBE decir "Up (healthy)" — no solo "Up". Si dice "starting" espera unos segundos y vuelve a verificar.
+> Django (`django_app`) no está expuesto directamente a internet, sino que es accedido a través del puerto `80` de `nginx_proxy`.
+
 
 ### 5.3 — Ver los logs para diagnosticar problemas
 
@@ -294,7 +297,7 @@ exit()
 ### 7.1 — Probar en el mismo servidor
 
 ```bash
-curl http://localhost:8000
+curl http://localhost
 ```
 
 Si recibes HTML de respuesta, el sistema esta corriendo.
@@ -310,8 +313,9 @@ ip addr show | grep "inet " | grep -v 127.0.0.1
 Luego desde tu PC abre en el navegador:
 
 ```
-http://192.168.1.XXX:8000
+http://192.168.1.XXX
 ```
+
 
 ---
 
@@ -368,9 +372,10 @@ credentials-file: /home/TU_USUARIO/.cloudflared/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxx
 
 ingress:
   - hostname: kenkomed.tudominio.cl
-    service: http://127.0.0.1:8000
+    service: http://127.0.0.1:80   # Apunta a Nginx (puerto 80)
   - service: http_status:404
 ```
+
 
 Para guardar: `Ctrl+O` luego `Enter` luego `Ctrl+X`
 
@@ -401,7 +406,7 @@ Debes ver `Active: active (running)`.
 Si no tienes dominio propio y solo quieres probar:
 
 ```bash
-cloudflared tunnel --url http://localhost:8000
+cloudflared tunnel --url http://localhost
 ```
 
 Esto genera automaticamente una URL publica temporal:
@@ -457,8 +462,8 @@ docker compose restart web
 # 1. Contenedores corriendo
 docker compose ps
 
-# 2. Django responde en localhost
-curl -I http://localhost:8000
+# 2. El sistema responde en localhost (Nginx)
+curl -I http://localhost
 
 # 3. Cloudflare tunnel activo
 sudo systemctl status cloudflared
@@ -550,18 +555,18 @@ sudo systemctl restart cloudflared
 ```
 
 ### Error 502 Bad Gateway en Cloudflare
-Este error indica que el túnel funciona, pero no encuentra a Django escuchando en el puerto 8000.
-1. Revisa tu `config.yml` y asegúrate de usar `127.0.0.1` en vez de `localhost`.
+Este error indica que el túnel funciona, pero no encuentra a Nginx escuchando en el puerto 80 (o Nginx no puede comunicarse con Uvicorn en el puerto 8000).
+1. Revisa tu `config.yml` y asegúrate de usar el puerto `80` en lugar del `8000`.
 2. Puede que Django siga esperando que arranque la Base de Datos. Revisa los logs internos del sistema:
    ```bash
    docker compose logs web
    docker compose restart web
    ```
 
-### Puerto 8000 bloqueado por firewall de Ubuntu
+### Puerto 80 bloqueado por firewall de Ubuntu
 ```bash
 sudo ufw status
-sudo ufw allow from 192.168.0.0/16 to any port 8000
+sudo ufw allow from 192.168.0.0/16 to any port 80
 # Para Cloudflare Tunnel NO necesitas abrir puertos hacia internet
 ```
 
