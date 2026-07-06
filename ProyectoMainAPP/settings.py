@@ -56,6 +56,8 @@ else:
         '127.0.0.1',
         'software.kenkomed.cl',
         'www.software.kenkomed.cl',
+        'app.kenkomed.cl',
+        '*.kenkomed.cl',
         '*.trycloudflare.com',
     ]
 
@@ -193,6 +195,8 @@ else:
         'https://*.ngrok-free.app',
         'https://software.kenkomed.cl',
         'https://www.software.kenkomed.cl',
+        'https://app.kenkomed.cl',
+        'https://*.kenkomed.cl',
         'https://*.trycloudflare.com',
     ]
 
