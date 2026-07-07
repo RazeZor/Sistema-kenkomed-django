@@ -111,6 +111,9 @@ def AgregarPacienteBasico(request):
             return render(request, 'AgregarPaciente.html', ctx_base)
             
         LicenciaInicio = parsear_fecha_campo(LicenciaInicio_raw, 'fecha de inicio de licencia', request) if LicenciaInicio_raw else None
+        LicenciaFin = parsear_fecha_campo(LicenciaFin_raw, 'fecha de fin de licencia', request) if LicenciaFin_raw else None
+        if (LicenciaInicio_raw and LicenciaInicio is None) or (LicenciaFin_raw and LicenciaFin is None):
+            return render(request, 'AgregarPaciente.html', ctx_base)
 
         datos_para_validar = {
             'tipo_documento': tipo_doc,
@@ -133,8 +136,11 @@ def AgregarPacienteBasico(request):
         
         errores = validar_campos_obligatorios(datos_para_validar)
         
-        # Filtramos errores de licencia si decidieron dejarlo pelado
-        errores_filtrados = [e for e in errores if 'licencia' not in e.lower() and 'trabajo' not in e.lower() and 'profesión' not in e.lower()]
+        # Alta manual: trabajo, profesión, licencia y correo son opcionales
+        errores_filtrados = [
+            e for e in errores
+            if not any(k in e.lower() for k in ('licencia', 'trabajo', 'profesión', 'profesion', 'correo'))
+        ]
         
         if errores_filtrados:
             for e in errores_filtrados:
@@ -154,8 +160,8 @@ def AgregarPacienteBasico(request):
             'trabajo': trabajo,
             'profesion': profesion,
             'LicenciaInicio': LicenciaInicio,
-            'LicenciaFin': LicenciaFin_raw if LicenciaFin_raw else None,
-            'LicenciaDias': LicenciaDias,
+            'LicenciaFin': LicenciaFin,
+            'LicenciaDias': LicenciaDias or '',
             'clinica_id': clinica_id,
         }
 
