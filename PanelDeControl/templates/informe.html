@@ -567,7 +567,10 @@
             <!-- Contenedor resultados DSS -->
             <div id="dss-content" style="display:none;">
 
-                <!-- ── Escala Semáforo ── -->
+                <!-- ── Temporalidad del dolor ── -->
+                {% include "partials/dss_result.html" with dss=mensajeDuracion %}
+
+                <!-- ── Estilo de vida / determinantes ── -->
                 {% if mensajeDSS %}
                     {% if mensajeDSS.status == 'danger' %}
                     <div class="alert-card risk">
@@ -745,6 +748,12 @@
                     {% endif %}
                 {% endif %}
 
+                <!-- ── Expectativa de cura ── -->
+                {% include "partials/dss_result.html" with dss=mensajeCreenciaCura %}
+
+                <!-- ── Factores psicosociales ── -->
+                {% include "partials/dss_result.html" with dss=mensajePsicosocial %}
+
                 <!-- ── Evitativo / Persistente ── -->
                 {% if mensajeEVPER %}
                     {% if mensajeEVPER.status == 'danger' %}
@@ -823,16 +832,8 @@
                     {% endif %}
                 {% endif %}
 
-                <!-- ── Apoyo psicológico ── -->
-                {% if mensajeApoyo %}
-                <div class="alert-card risk">
-                    <div class="alert-icon">!</div>
-                    <div class="alert-body">
-                        <h3>Apoyo Psicológico Requerido</h3>
-                        <p>{{ mensajeApoyo }}</p>
-                    </div>
-                </div>
-                {% endif %}
+                <!-- ── Consumo de sustancias ── -->
+                {% include "partials/dss_result.html" with dss=mensajeSustancias %}
 
             </div><!-- /dss-content -->
         </div><!-- /dss-section -->

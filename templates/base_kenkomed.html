@@ -193,8 +193,138 @@
                 box-shadow: none;
             }
             .card-hover:active {
-                transform: scale(0.98);
+                transform: none;
                 box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            }
+        }
+
+        /* ============================================================ */
+        /*  BUTTONS — estilo clínico formal                              */
+        /* ============================================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            line-height: 1.25;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+            cursor: pointer;
+            text-decoration: none;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+        .btn:focus-visible {
+            outline: 2px solid #0284c7;
+            outline-offset: 2px;
+        }
+        .btn:disabled, .btn[disabled], .btn.disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background-color: #0369a1;
+            border-color: #075985;
+        }
+        .btn-primary:hover {
+            background-color: #0284c7;
+            border-color: #0369a1;
+        }
+
+        .btn-secondary {
+            color: #334155;
+            background-color: #fff;
+            border-color: #cbd5e1;
+        }
+        .btn-secondary:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .btn-outline {
+            color: #0369a1;
+            background-color: #fff;
+            border-color: #0284c7;
+        }
+        .btn-outline:hover {
+            background-color: #f0f9ff;
+            border-color: #0369a1;
+        }
+
+        .btn-danger {
+            color: #b91c1c;
+            background-color: #fff;
+            border-color: #fecaca;
+        }
+        .btn-danger:hover {
+            background-color: #fef2f2;
+            border-color: #f87171;
+        }
+
+        .btn-warning {
+            color: #92400e;
+            background-color: #fff;
+            border-color: #fcd34d;
+        }
+        .btn-warning:hover {
+            background-color: #fffbeb;
+            border-color: #f59e0b;
+        }
+
+        .btn-success {
+            color: #047857;
+            background-color: #fff;
+            border-color: #10b981;
+        }
+        .btn-success:hover {
+            background-color: #ecfdf5;
+            border-color: #059669;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-block {
+            width: 100%;
+        }
+
+        /* Botones sobre fondos oscuros (hero del panel) */
+        .btn-on-dark {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.35);
+            box-shadow: none;
+        }
+        .btn-on-dark:hover {
+            background-color: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-on-dark-primary {
+            color: #0369a1;
+            background-color: #fff;
+            border-color: #e2e8f0;
+        }
+        .btn-on-dark-primary:hover {
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+        }
+
+        @media (max-width: 768px) {
+            .btn-touch {
+                min-height: 44px;
+                padding-top: 0.625rem;
+                padding-bottom: 0.625rem;
             }
         }
 
@@ -307,7 +437,7 @@
                         <span class="absolute w-2 h-2 rounded-full top-2 right-2 bg-medical-red ring-2 ring-white"></span>
                     </button>
                     <a href="{% url 'perfilClinico' %}" class="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-gray-50 transition-all" aria-label="Mi perfil">
-                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-gradient-to-r from-medical-blue to-medical-blue-light flex-shrink-0">
+                        <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-medical-blue-dark flex-shrink-0">
                             <i class='bx bx-user text-sm'></i>
                         </div>
                         <span class="hidden sm:block text-sm font-medium text-gray-700">Mi Perfil</span>

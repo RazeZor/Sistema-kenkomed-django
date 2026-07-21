@@ -63,17 +63,17 @@
                     <!-- Acciones rápidas -->
                     <div class="flex flex-wrap gap-2 mt-5">
                         <a href="{% url 'AgregarPacienteBasico' %}"
-                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-medical-blue bg-white rounded-xl hover:bg-blue-50 active:scale-95 transition-all shadow-sm btn-touch">
+                           class="btn btn-on-dark-primary btn-touch">
                             <i class='bx bx-user-plus text-base'></i>
                             <span>Nuevo Paciente</span>
                         </a>
                         <a href="{% url 'historialClinico' %}"
-                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-white/15 border border-white/30 rounded-xl hover:bg-white/25 active:scale-95 transition-all btn-touch">
+                           class="btn btn-on-dark btn-touch">
                             <i class='bx bx-search-alt text-base'></i>
                             <span>Buscar Historial</span>
                         </a>
                         <a href="{% url 'generar_qr' %}"
-                           class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-purple-500/80 border border-purple-400/30 rounded-xl hover:bg-purple-500 active:scale-95 transition-all btn-touch">
+                           class="btn btn-on-dark btn-touch">
                             <i class='bx bx-send text-base'></i>
                             <span class="hidden xs:inline">Formularios Remotos</span>
                             <span class="xs:hidden">Remoto</span>
@@ -371,7 +371,7 @@
             <p class="text-gray-800 font-semibold text-base mb-1">Sin citas próximas</p>
             <p class="text-gray-400 text-sm text-center mb-5">No tienes agendamientos para los próximos días.</p>
             <a href="{% url 'calendario_personal' %}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 bg-medical-blue text-white text-sm font-semibold rounded-xl hover:bg-medical-blue-dark active:scale-95 transition-all shadow-sm">
+               class="btn btn-primary">
                 <i class='bx bx-calendar-plus'></i>
                 Agendar Consulta
             </a>

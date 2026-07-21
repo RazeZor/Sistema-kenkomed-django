@@ -1,0 +1,65 @@
+{% if dss %}
+    {% if dss.status == 'danger' %}
+    <div class="alert-card risk">
+        <div class="alert-icon">!</div>
+        <div class="alert-body">
+            <h3>{{ dss.title }}</h3>
+            <p>{{ dss.message }}</p>
+            {% if dss.implication %}<p><strong>Implicación:</strong> {{ dss.implication }}</p>{% endif %}
+            {% if dss.items %}<ul>{% for item in dss.items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+            {% if dss.bullets %}<ul>{% for bullet in dss.bullets %}<li>{{ bullet }}</li>{% endfor %}</ul>{% endif %}
+            {% if dss.recommendation %}
+            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ dss.recommendation }}</div>
+            {% endif %}
+            {% if dss.recommendations %}
+            <div class="rec-box">
+                <strong>Recomendaciones:</strong>
+                <ul style="margin-top:4px;">{% for rec in dss.recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% elif dss.status == 'warning' %}
+    <div class="alert-card warn">
+        <div class="alert-icon">⚠</div>
+        <div class="alert-body">
+            <h3>{{ dss.title }}</h3>
+            <p>{{ dss.message }}</p>
+            {% if dss.implication %}<p><strong>Implicación:</strong> {{ dss.implication }}</p>{% endif %}
+            {% if dss.items %}<ul>{% for item in dss.items %}<li>{{ item }}</li>{% endfor %}</ul>{% endif %}
+            {% if dss.bullets %}<ul>{% for bullet in dss.bullets %}<li>{{ bullet }}</li>{% endfor %}</ul>{% endif %}
+            {% if dss.recommendation %}
+            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ dss.recommendation }}</div>
+            {% endif %}
+            {% if dss.recommendations %}
+            <div class="rec-box">
+                <strong>Recomendaciones:</strong>
+                <ul style="margin-top:4px;">{% for rec in dss.recommendations %}<li>{{ rec }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% elif dss.status == 'info' %}
+    <div class="alert-card info">
+        <div class="alert-icon">i</div>
+        <div class="alert-body">
+            <h3>{{ dss.title }}</h3>
+            <p>{{ dss.message }}</p>
+            {% if dss.recommendation %}
+            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ dss.recommendation }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% elif dss.status == 'success' %}
+    <div class="alert-card ok">
+        <div class="alert-icon">✓</div>
+        <div class="alert-body">
+            <h3>{{ dss.title }}</h3>
+            <p>{{ dss.message }}</p>
+            {% if dss.recommendation %}
+            <div class="rec-box"><i class='bx bx-check'></i> <strong>Recomendación:</strong> {{ dss.recommendation }}</div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% endif %}

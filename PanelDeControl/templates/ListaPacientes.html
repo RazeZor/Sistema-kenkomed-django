@@ -24,7 +24,7 @@
                         </div>
                         
                         <!-- Botón para agregar paciente -->
-                        <a href="{% url 'AgregarPacienteBasico' %}" class="inline-flex items-center px-4 py-2.5 bg-medical-blue text-white rounded-lg text-sm font-medium transition-all hover:bg-medical-blue-dark">
+                        <a href="{% url 'AgregarPacienteBasico' %}" class="btn btn-primary">
                             <i class='mr-2 bx bx-user-plus'></i>
                             <span>Nuevo Paciente</span>
                         </a>
@@ -77,7 +77,7 @@
                                         </span>
                                     </div>
                                     <div class="pt-2">
-                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="inline-flex items-center justify-center w-full gap-2 px-4 py-2 text-sm font-medium text-white transition-all rounded-lg bg-medical-blue hover:bg-medical-blue-dark">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-primary btn-block">
                                             <i class='bx bx-history'></i> Ver Historial
                                         </a>
                                     </div>
@@ -103,7 +103,7 @@
                                         </span>
                                     </div>
                                     <div class="flex justify-center">
-                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white transition-all rounded-lg bg-medical-blue hover:bg-medical-blue-dark shadow-sm" title="Ver historial clínico">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm" title="Ver historial clínico">
                                             <i class='bx bx-history'></i> Historial
                                         </a>
                                     </div>

@@ -128,6 +128,10 @@
                             <span class="text-sm font-medium text-gray-700">Particular</span>
                         </label>
                         <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all">
+                            <input type="radio" name="cobertura_de_salud" value="Extranjero sin previsión" {% if paciente.cobertura_de_salud == 'Extranjero sin previsión' %}checked{% endif %} class="accent-emerald-600">
+                            <span class="text-sm font-medium text-gray-700">Extranjero / sin previsión</span>
+                        </label>
+                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all">
                             <input type="radio" name="cobertura_de_salud" value="Otro" {% if paciente.cobertura_de_salud == 'Otro' %}checked{% endif %} class="accent-emerald-600">
                             <span class="text-sm font-medium text-gray-700">Otro</span>
                         </label>
@@ -151,13 +155,11 @@
 
         <!-- Acciones -->
         <div class="flex items-center justify-between pb-6">
-            <a href="/panel/historialClinico/?rut={{ paciente.rut }}"
-               class="inline-flex items-center gap-2 px-5 py-2.5 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all font-medium">
+            <a href="/panel/historialClinico/?rut={{ paciente.rut }}" class="btn btn-secondary">
                 <i class='bx bx-x'></i> Cancelar
             </a>
-            <button type="submit"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
-                <i class='bx bx-save'></i> Guardar Cambios
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-save'></i> Guardar cambios
             </button>
         </div>
     </form>
