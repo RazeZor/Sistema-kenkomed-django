@@ -5,7 +5,7 @@
 {% block header_title %}Mi Perfil{% endblock %}
 
 {% block header_actions %}
-<button type="button" onclick="openEditModal()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white transition-all rounded-lg bg-medical-blue hover:bg-medical-blue-dark shadow-sm">
+<button type="button" onclick="openEditModal()" class="btn btn-primary">
     <i class='bx bx-edit-alt'></i>
     Editar perfil
 </button>
@@ -330,8 +330,7 @@
                 {% endif %}
             </div>
             <div class="px-5 py-4 bg-emerald-50/60 border-t border-emerald-100 flex flex-wrap gap-3">
-                <a href="{% url 'mi_centro' %}"
-                   class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-emerald-800 bg-white border border-emerald-200 rounded-lg hover:bg-emerald-50 transition-all">
+                <a href="{% url 'mi_centro' %}" class="btn btn-outline btn-sm">
                     <i class='bx bx-group'></i> Ver equipo completo
                 </a>
                 {% if puede_ver_auditoria %}
@@ -424,12 +423,10 @@
                 </div>
             </div>
             <div class="flex justify-end gap-3 p-6 border-t border-gray-100 bg-gray-50 rounded-b-2xl">
-                <button type="button" onclick="closeEditModal()"
-                        class="px-5 py-2.5 text-sm font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
                     Cancelar
                 </button>
-                <button type="submit"
-                        class="px-5 py-2.5 text-sm font-bold text-white bg-medical-blue rounded-lg hover:bg-medical-blue-dark flex items-center gap-2">
+                <button type="submit" class="btn btn-primary">
                     <i class='bx bx-save'></i> Guardar
                 </button>
             </div>
