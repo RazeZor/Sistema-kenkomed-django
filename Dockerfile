@@ -25,5 +25,5 @@ COPY . .
 # Expone el puerto donde corre el servidor de Django
 EXPOSE 8000
 
-# Comando para iniciar el servidor de Django
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Comando para iniciar el servidor de Django con Uvicorn
+CMD ["uvicorn", "ProyectoMainAPP.asgi:application", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
