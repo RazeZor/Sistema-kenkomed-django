@@ -11,9 +11,14 @@ class SesionKinesica(models.Model):
     
     # Relaciones
     paciente = models.ForeignKey(
-        Paciente, 
-        on_delete=models.CASCADE, 
+        Paciente,
+        on_delete=models.CASCADE,
         related_name='sesiones_kinesicas'
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='sesiones_kinesicas',
     )
     clinico = models.ForeignKey(
         Clinico, 
@@ -122,9 +127,10 @@ class SesionKinesica(models.Model):
         verbose_name = "Sesión Kinésica"
         verbose_name_plural = "Sesiones Kinésicas"
         ordering = ['-numero_sesion']
-        unique_together = ('paciente', 'numero_sesion')
+        unique_together = ('ciclo', 'numero_sesion')
         indexes = [
             models.Index(fields=['paciente', '-numero_sesion']),
+            models.Index(fields=['ciclo', '-numero_sesion']),
             models.Index(fields=['clinico', 'fecha_creacion']),
         ]
     
@@ -133,11 +139,16 @@ class SesionKinesica(models.Model):
         return f"{sesion_type} #{self.numero_sesion} - {self.paciente.nombre} {self.paciente.apellido} ({self.fecha_creacion.strftime('%d/%m/%Y')})"
     
     def get_siguiente_numero_sesion(self):
-        """Retorna el número que debería tener la siguiente sesión"""
-        ultima_sesion = SesionKinesica.objects.filter(
-            paciente=self.paciente
-        ).order_by('-numero_sesion').first()
-        
+        """Retorna el número que debería tener la siguiente sesión en el ciclo."""
+        if self.ciclo_id:
+            ultima_sesion = SesionKinesica.objects.filter(
+                ciclo=self.ciclo
+            ).order_by('-numero_sesion').first()
+        else:
+            ultima_sesion = SesionKinesica.objects.filter(
+                paciente=self.paciente
+            ).order_by('-numero_sesion').first()
+
         if ultima_sesion:
             return ultima_sesion.numero_sesion + 1
         return 1
@@ -161,6 +172,11 @@ class RegistroEscalaSesion(models.Model):
 
     paciente = models.ForeignKey(
         Paciente,
+        on_delete=models.CASCADE,
+        related_name='registros_escalas_sesion',
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
         on_delete=models.CASCADE,
         related_name='registros_escalas_sesion',
     )

@@ -10,6 +10,14 @@ from django.utils.html import escape
 from Login.auditoria import registrar_auditoria
 
 
+def _ciclo_y_formulario(request, paciente):
+    from ciclos_clinicos.services import obtener_ciclo_desde_request
+    from ciclos_clinicos.clinical_data import formulario_del_ciclo
+    ciclo = obtener_ciclo_desde_request(request, paciente, crear_si_ausente=False)
+    formulario = formulario_del_ciclo(ciclo) if ciclo else None
+    return ciclo, formulario
+
+
 def _parse_json_list(value):
     """Normaliza un JSONField que puede venir como lista, string JSON o texto plano."""
     if not value:
@@ -39,7 +47,9 @@ def RenderInforme(request):
     )
 
     try:
-        formulario = formularioClinico.objects.get(paciente=paciente)
+        ciclo, formulario = _ciclo_y_formulario(request, paciente)
+        if not formulario:
+            raise formularioClinico.DoesNotExist()
         
         opinionproblemaEnfermead = CreenciaDolor(formulario.opinionProblemaEnfermeda)
         
@@ -98,6 +108,7 @@ def RenderInforme(request):
         
         context = {
             'paciente': paciente,
+            'ciclo': ciclo,
             'formulario': formulario,
             'medicamentos': _parse_json_list(formulario.medicamentos),
             'ubicacion_intensidad': ubicacion_intensidad_list,
@@ -159,9 +170,11 @@ def RenderFichaClinica(request):
         clinico_emisor = paciente.clinico_creador
 
     clinica = paciente.clinica
+    ciclo, _ = _ciclo_y_formulario(request, paciente)
 
     context = {
         'paciente': paciente,
+        'ciclo': ciclo,
         'clinica': clinica,
         'clinico': paciente.clinico_creador,
         'clinico_emisor': clinico_emisor,
@@ -172,7 +185,9 @@ def RenderFichaClinica(request):
 
     # === Formulario Clínico (Anamnesis) ===
     try:
-        formulario = formularioClinico.objects.get(paciente=paciente)
+        ciclo, formulario = _ciclo_y_formulario(request, paciente)
+        if not formulario:
+            raise formularioClinico.DoesNotExist()
         context['formulario'] = formulario
         context['tiene_anamnesis'] = True
 
@@ -221,55 +236,64 @@ def RenderFichaClinica(request):
         context['tiene_anamnesis'] = False
 
     # === Sesiones Kinésicas ===
-    sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
+    if ciclo:
+        sesiones = SesionKinesica.objects.filter(ciclo=ciclo).order_by('numero_sesion')
+    else:
+        sesiones = SesionKinesica.objects.none()
     context['sesiones'] = sesiones
     context['total_sesiones'] = sesiones.count()
     context['primera_sesion'] = sesiones.filter(es_primera_sesion=True).first()
     context['sesion_final'] = sesiones.filter(es_sesion_final=True).last()
 
-    # === Cuestionarios ===
-    try:
-        context['psfs'] = CuestionarioPSFS.objects.get(paciente=paciente)
-    except CuestionarioPSFS.DoesNotExist:
-        pass
+    # === Cuestionarios (por ciclo) ===
+    if ciclo:
+        try:
+            context['psfs'] = CuestionarioPSFS.objects.get(ciclo=ciclo)
+        except CuestionarioPSFS.DoesNotExist:
+            pass
 
-    try:
-        context['groc'] = Groc.objects.get(paciente=paciente)
-    except Groc.DoesNotExist:
-        pass
+        try:
+            context['groc'] = Groc.objects.get(ciclo=ciclo)
+        except Groc.DoesNotExist:
+            pass
 
-    try:
-        context['eq5d'] = CuestionarioEQ_5D.objects.get(paciente=paciente)
-    except CuestionarioEQ_5D.DoesNotExist:
-        pass
+        try:
+            context['eq5d'] = CuestionarioEQ_5D.objects.get(ciclo=ciclo)
+        except CuestionarioEQ_5D.DoesNotExist:
+            pass
 
-    try:
-        context['barthel'] = CuestionarioBarthel.objects.get(paciente=paciente)
-    except CuestionarioBarthel.DoesNotExist:
-        pass
+        try:
+            context['barthel'] = CuestionarioBarthel.objects.get(ciclo=ciclo)
+        except CuestionarioBarthel.DoesNotExist:
+            pass
 
-    try:
-        context['screening'] = CuestionarioScrenning.objects.get(paciente=paciente)
-    except CuestionarioScrenning.DoesNotExist:
-        pass
+        try:
+            context['screening'] = CuestionarioScrenning.objects.get(ciclo=ciclo)
+        except CuestionarioScrenning.DoesNotExist:
+            pass
 
-    try:
-        context['ena'] = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
-    except CuestionarioEvaluacionENA.DoesNotExist:
-        pass
+        try:
+            context['ena'] = CuestionarioEvaluacionENA.objects.get(ciclo=ciclo)
+        except CuestionarioEvaluacionENA.DoesNotExist:
+            pass
 
-    context['evaluaciones_lefs'] = list(
-        EvaluacionLEFS.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
-    )
-    context['evaluaciones_oswestry'] = list(
-        EvaluacionOswestry.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
-    )
-    context['evaluaciones_quickdash'] = list(
-        EvaluacionQuickDASH.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
-    )
-    context['evaluaciones_womac'] = list(
-        EvaluacionWOMAC.objects.filter(paciente=paciente).select_related('clinico').order_by('-fecha_evaluacion')
-    )
+        context['evaluaciones_lefs'] = list(
+            EvaluacionLEFS.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
+        context['evaluaciones_oswestry'] = list(
+            EvaluacionOswestry.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
+        context['evaluaciones_quickdash'] = list(
+            EvaluacionQuickDASH.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
+        context['evaluaciones_womac'] = list(
+            EvaluacionWOMAC.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
+    else:
+        context['evaluaciones_lefs'] = []
+        context['evaluaciones_oswestry'] = []
+        context['evaluaciones_quickdash'] = []
+        context['evaluaciones_womac'] = []
 
     try:
         context['receta'] = RecetaMedica.objects.select_related('clinico').get(paciente=paciente)

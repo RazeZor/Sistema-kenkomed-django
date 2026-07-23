@@ -8,9 +8,19 @@ from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from ProyectoMainAPP.email_service import notificar_alta_paciente
 from Login.auditoria import registrar_auditoria
 from clinicas.utils import obtener_paciente_por_rut
+from ciclos_clinicos.context_helpers import contexto_ciclo_para_template
 from .session_inputs import evaluacion_inicial_desde_post, validar_post_sesion_kinesica
 from .models import SesionKinesica, RegistroEscalaSesion
-from .escalas_sesion import obtener_escalas_agrupadas_por_numero, paquetes_escalas_para_paciente
+from .escalas_sesion import obtener_escalas_agrupadas_por_numero, paquetes_escalas_para_ciclo
+from .ciclo_helpers import (
+    asegurar_editable,
+    filtrar_sesiones,
+    finalizar_ciclo_si_sesion_final,
+    redirect_listar,
+    redirect_ver,
+    resolver_ciclo,
+)
+from .ux_helpers import contexto_tratamiento_ux
 from TiposDeFormularios.escalas_graficos import graficos_para_registros_sesion
 import json
 from datetime import datetime
@@ -37,6 +47,13 @@ def _rechazar_texto_marcado(request, post, *, incluir_evaluacion=False, incluir_
     )
     return True
 
+
+def _ctx_tratamiento(request, paciente, ciclo, sesiones_qs=None):
+    if sesiones_qs is None and ciclo:
+        sesiones_qs = filtrar_sesiones(ciclo)
+    return contexto_tratamiento_ux(request, paciente, ciclo, sesiones_qs)
+
+
 @requiere_clinico
 def listar_sesiones_paciente(request):
     """
@@ -50,6 +67,7 @@ def listar_sesiones_paciente(request):
     nombre_clinico = request.session['nombre_clinico']
     rut_clinico = request.session.get('rut_clinico')
     es_admin = request.session.get('es_admin', False)
+    clinico_obj = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else None
     
     # Obtener el paciente
     try:
@@ -60,32 +78,34 @@ def listar_sesiones_paciente(request):
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
         return redirect('historialClinico')
     
-    # Obtener todas las sesiones del paciente
-    sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('-numero_sesion')
+    ciclo = resolver_ciclo(request, paciente, clinico_obj)
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico seleccionado.')
+        return redirect('historialClinico')
+    
+    sesiones = filtrar_sesiones(ciclo)
+    sesiones_timeline = list(filtrar_sesiones(ciclo, ascendente=True))
     primera_sesion = sesiones.filter(es_primera_sesion=True).first()
     sesiones_posteriores = list(sesiones.filter(es_primera_sesion=False))
-    escalas_por_numero = obtener_escalas_agrupadas_por_numero(paciente)
-    if primera_sesion:
-        primera_sesion.escalas_en_sesion = escalas_por_numero.get(primera_sesion.numero_sesion, [])
-    for s in sesiones_posteriores:
+    tiene_sesion_final = sesiones.filter(es_sesion_final=True).exists()
+    escalas_por_numero = obtener_escalas_agrupadas_por_numero(ciclo)
+    for s in sesiones_timeline:
         s.escalas_en_sesion = escalas_por_numero.get(s.numero_sesion, [])
-        s.graficos_escalas = graficos_para_registros_sesion(paciente, s.escalas_en_sesion)
-        s.graficos_escalas_json = json.dumps(s.graficos_escalas, ensure_ascii=False)
-    if primera_sesion:
-        primera_sesion.graficos_escalas = graficos_para_registros_sesion(
-            paciente, primera_sesion.escalas_en_sesion,
-        )
-        primera_sesion.graficos_escalas_json = json.dumps(
-            primera_sesion.graficos_escalas, ensure_ascii=False,
-        )
     
+    ctx_ciclo = contexto_ciclo_para_template(ciclo, paciente)
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
+        'ciclo': ciclo,
         'primera_sesion': primera_sesion,
         'sesiones_posteriores': sesiones_posteriores,
+        'sesiones_timeline': sesiones_timeline,
         'hay_sesiones': sesiones.exists(),
         'total_sesiones': sesiones.count(),
+        'tiene_sesion_final': tiene_sesion_final,
+        'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo),
+        **ctx_ciclo,
+        **_ctx_tratamiento(request, paciente, ciclo, sesiones),
     }
 
     registrar_auditoria(
@@ -119,12 +139,20 @@ def crear_primera_sesion(request):
             raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
-        return redirect('listar_sesiones_kinesicas')
+        return redirect(redirect_listar(rut_paciente or ''))
     
-    # Verificar que no exista una primera sesión
-    if SesionKinesica.objects.filter(paciente=paciente, es_primera_sesion=True).exists():
-        messages.warning(request, 'Este paciente ya tiene una sesión inicial. Crea una sesión de seguimiento.')
-        return redirect('listar_sesiones_kinesicas', rut=rut_paciente)
+    ciclo = resolver_ciclo(request, paciente, clinico_obj, crear_si_ausente=True)
+    if not ciclo:
+        messages.error(request, 'No se pudo iniciar el ciclo clínico.')
+        return redirect('historialClinico')
+    
+    if not asegurar_editable(request, ciclo):
+        return redirect(redirect_listar(rut_paciente, ciclo))
+    
+    # Verificar que no exista una primera sesión en este ciclo
+    if filtrar_sesiones(ciclo).filter(es_primera_sesion=True).exists():
+        messages.warning(request, 'Este ciclo ya tiene una sesión inicial. Crea una sesión de seguimiento.')
+        return redirect(redirect_listar(rut_paciente, ciclo))
     
     if request.method == 'POST':
         if _rechazar_texto_marcado(request, request.POST, incluir_evaluacion=True):
@@ -141,7 +169,8 @@ def crear_primera_sesion(request):
             # Crear la sesión
             sesion = SesionKinesica.objects.create(
                 paciente=paciente,
-                clinico=clinico_obj if not es_admin else Clinico.objects.first(),  # Fallback para admin
+                ciclo=ciclo,
+                clinico=clinico_obj if not es_admin else Clinico.objects.first(),
                 numero_sesion=1,
                 es_primera_sesion=True,
                 evaluacion_inicial=evaluacion_datos,
@@ -155,8 +184,7 @@ def crear_primera_sesion(request):
             )
             
             messages.success(request, 'Primera sesión kinésica creada exitosamente.')
-            from django.urls import reverse
-            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion=1")
+            return redirect(redirect_ver(rut_paciente, 1, ciclo))
             
         except Exception as e:
             messages.error(request, f'Error al crear la sesión: {str(e)}')
@@ -166,12 +194,15 @@ def crear_primera_sesion(request):
                 'rut': rut_paciente,
             })
     
+    sesiones = filtrar_sesiones(ciclo)
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
         'rut': rut_paciente,
+        **contexto_ciclo_para_template(ciclo, paciente),
+        **_ctx_tratamiento(request, paciente, ciclo, sesiones),
     }
-    
+
     return render(request, 'SesionesKinesicas/crear_primera_sesion.html', context)
 
 
@@ -199,38 +230,44 @@ def crear_sesion_seguimiento(request):
             raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
-        return redirect('listar_sesiones_kinesicas')
+        return redirect(redirect_listar(rut_paciente or ''))
     
-    # Verificar que exista una primera sesión
-    if not SesionKinesica.objects.filter(paciente=paciente, es_primera_sesion=True).exists():
-        messages.error(request, 'Primero debes crear una sesión inicial.')
-        return redirect('crear_primera_sesion_kinesica', rut=rut_paciente)
+    ciclo = resolver_ciclo(request, paciente, clinico_obj, crear_si_ausente=True)
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico activo.')
+        return redirect('historialClinico')
+    
+    sesiones_ciclo = filtrar_sesiones(ciclo)
+    if not sesiones_ciclo.filter(es_primera_sesion=True).exists():
+        messages.error(request, 'Primero debes crear una sesión inicial en este ciclo.')
+        from django.urls import reverse
+        url = f"{reverse('sesiones_kinesicas:crear_primera')}?rut={rut_paciente}&ciclo_id={ciclo.id}"
+        return redirect(url)
+    
+    if not asegurar_editable(request, ciclo):
+        return redirect(redirect_listar(rut_paciente, ciclo))
     
     if request.method == 'POST':
         if _rechazar_texto_marcado(request, request.POST):
-            ultima_sesion = SesionKinesica.objects.filter(
-                paciente=paciente
-            ).order_by('-numero_sesion').first()
+            ultima_sesion = sesiones_ciclo.first()
             return render(request, 'SesionesKinesicas/crear_sesion_seguimiento.html', {
                 'nombre_clinico': nombre_clinico,
                 'paciente': paciente,
                 'rut': rut_paciente,
                 'ultima_sesion': ultima_sesion,
                 'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 2,
+                **contexto_ciclo_para_template(ciclo, paciente),
             })
         try:
-            # Obtener el siguiene número de sesión
-            ultima_sesion = SesionKinesica.objects.filter(
-                paciente=paciente
-            ).order_by('-numero_sesion').first()
+            ultima_sesion = sesiones_ciclo.first()
             nuevo_numero = (ultima_sesion.numero_sesion if ultima_sesion else 0) + 1
             
             notas = request.POST.get('notas_clinicas', '')
             evolucion = request.POST.get('evolucion', '')
             
-            # Crear la sesión de seguimiento
-            sesion = SesionKinesica.objects.create(
+            SesionKinesica.objects.create(
                 paciente=paciente,
+                ciclo=ciclo,
                 clinico=clinico_obj if not es_admin else Clinico.objects.first(),
                 numero_sesion=nuevo_numero,
                 es_primera_sesion=False,
@@ -244,25 +281,25 @@ def crear_sesion_seguimiento(request):
             )
             
             messages.success(request, f'Sesión #{nuevo_numero} creada exitosamente.')
-            from django.urls import reverse
-            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={nuevo_numero}")
+            return redirect(redirect_ver(rut_paciente, nuevo_numero, ciclo))
             
         except Exception as e:
             messages.error(request, f'Error al crear la sesión: {str(e)}')
     
-    # Obtener la última sesión para mostrar información
-    ultima_sesion = SesionKinesica.objects.filter(
-        paciente=paciente
-    ).order_by('-numero_sesion').first()
-    
+    ultima_sesion = sesiones_ciclo.first()
+    proximo_numero = (ultima_sesion.numero_sesion + 1) if ultima_sesion else 2
+
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
         'rut': rut_paciente,
         'ultima_sesion': ultima_sesion,
-        'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 2,
+        'proximo_numero': proximo_numero,
+        'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo, proximo_numero),
+        **contexto_ciclo_para_template(ciclo, paciente),
+        **_ctx_tratamiento(request, paciente, ciclo, sesiones_ciclo),
     }
-    
+
     return render(request, 'SesionesKinesicas/crear_sesion_seguimiento.html', context)
 
 
@@ -290,21 +327,26 @@ def ver_sesion_kinesica(request):
             raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
-        return redirect('listar_sesiones_kinesicas')
+        return redirect(redirect_listar(rut_paciente or ''))
     
-    # Obtener la sesión
+    ciclo = resolver_ciclo(request, paciente, clinico_obj)
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico seleccionado.')
+        return redirect('historialClinico')
+    
     sesion = get_object_or_404(
         SesionKinesica,
-        paciente=paciente,
-        numero_sesion=numero_sesion
+        ciclo=ciclo,
+        numero_sesion=numero_sesion,
     )
     
     escalas_en_sesion = RegistroEscalaSesion.objects.filter(
         sesion_kinesica=sesion
     ).order_by('-fecha_registro')
     
-    graficos_escalas = graficos_para_registros_sesion(paciente, escalas_en_sesion)
+    graficos_escalas = graficos_para_registros_sesion(ciclo, escalas_en_sesion)
 
+    ctx_ciclo = contexto_ciclo_para_template(ciclo, paciente)
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
@@ -313,7 +355,10 @@ def ver_sesion_kinesica(request):
         'escalas_en_sesion': escalas_en_sesion,
         'graficos_escalas': graficos_escalas,
         'graficos_escalas_json': json.dumps(graficos_escalas, ensure_ascii=False),
-        'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut, sesion.numero_sesion),
+        'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo, sesion.numero_sesion),
+        'abrir_edicion': request.GET.get('edit') == '1',
+        **ctx_ciclo,
+        **_ctx_tratamiento(request, paciente, ciclo, filtrar_sesiones(ciclo)),
     }
 
     registrar_auditoria(
@@ -348,29 +393,32 @@ def editar_sesion_kinesica(request):
             raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
-        return redirect('listar_sesiones_kinesicas')
+        return redirect(redirect_listar(rut_paciente or ''))
     
-    # Obtener la sesión
+    ciclo = resolver_ciclo(request, paciente, clinico_obj)
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico seleccionado.')
+        return redirect('historialClinico')
+    
     sesion = get_object_or_404(
         SesionKinesica,
-        paciente=paciente,
-        numero_sesion=numero_sesion
+        ciclo=ciclo,
+        numero_sesion=numero_sesion,
     )
+
+    if request.method == 'GET':
+        return redirect(f"{redirect_ver(rut_paciente, numero_sesion, ciclo)}&edit=1")
     
     if request.method == 'POST':
+        if not asegurar_editable(request, ciclo):
+            return redirect(redirect_ver(rut_paciente, numero_sesion, ciclo))
         if _rechazar_texto_marcado(
             request,
             request.POST,
             incluir_evaluacion=sesion.es_primera_sesion,
             incluir_final=sesion.es_sesion_final,
         ):
-            return render(request, 'SesionesKinesicas/editar_sesion.html', {
-                'nombre_clinico': nombre_clinico,
-                'paciente': paciente,
-                'sesion': sesion,
-                'es_primera_sesion': sesion.es_primera_sesion,
-                'rut': rut_paciente,
-            })
+            return redirect(f"{redirect_ver(rut_paciente, numero_sesion, ciclo)}&edit=1")
         try:
             # Actualizar notas y evolución (campos comunes a todas las sesiones)
             sesion.notas_clinicas = request.POST.get('notas_clinicas', '')
@@ -395,21 +443,12 @@ def editar_sesion_kinesica(request):
                 detalle=f'Editó sesión kinésica #{numero_sesion}',
             )
             messages.success(request, 'Sesión actualizada exitosamente.')
-            from django.urls import reverse
-            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={numero_sesion}")
+            return redirect(redirect_ver(rut_paciente, numero_sesion, ciclo))
             
         except Exception as e:
             messages.error(request, f'Error al actualizar la sesión: {str(e)}')
     
-    context = {
-        'nombre_clinico': nombre_clinico,
-        'paciente': paciente,
-        'sesion': sesion,
-        'es_primera_sesion': sesion.es_primera_sesion,
-        'rut': rut_paciente,
-    }
-    
-    return render(request, 'SesionesKinesicas/editar_sesion.html', context)
+    return redirect(redirect_ver(rut_paciente, numero_sesion, ciclo))
 
 
 @requiere_clinico
@@ -437,33 +476,36 @@ def crear_sesion_final(request):
             raise Paciente.DoesNotExist()
     except Paciente.DoesNotExist:
         messages.error(request, 'Paciente no encontrado o no tienes permiso de acceso.')
-        return redirect('sesiones_kinesicas:listar')
+        return redirect(redirect_listar(rut_paciente or ''))
     
-    # Verificar que exista al menos una sesión previa
-    if not SesionKinesica.objects.filter(paciente=paciente).exists():
+    ciclo = resolver_ciclo(request, paciente, clinico_obj, crear_si_ausente=True)
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico activo.')
+        return redirect('historialClinico')
+    
+    sesiones_ciclo = filtrar_sesiones(ciclo)
+    if not sesiones_ciclo.exists():
         messages.error(request, 'Debe existir al menos una sesión antes de crear la sesión final.')
-        return redirect('sesiones_kinesicas:listar')
+        return redirect(redirect_listar(rut_paciente, ciclo))
+    
+    if not asegurar_editable(request, ciclo):
+        return redirect(redirect_listar(rut_paciente, ciclo))
     
     if request.method == 'POST':
         if _rechazar_texto_marcado(request, request.POST, incluir_final=True):
-            ultima_sesion = SesionKinesica.objects.filter(
-                paciente=paciente
-            ).order_by('-numero_sesion').first()
-            total_sesiones = SesionKinesica.objects.filter(paciente=paciente).count()
+            ultima_sesion = sesiones_ciclo.first()
             return render(request, 'SesionesKinesicas/crear_sesion_final.html', {
                 'nombre_clinico': nombre_clinico,
                 'paciente': paciente,
                 'rut': rut_paciente,
                 'ultima_sesion': ultima_sesion,
                 'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 1,
-                'total_sesiones': total_sesiones,
+                'total_sesiones': sesiones_ciclo.count(),
                 'estado_choices': SesionKinesica.ESTADO_ALTA_CHOICES,
+                **contexto_ciclo_para_template(ciclo, paciente),
             })
         try:
-            # Obtener el siguiente número de sesión
-            ultima_sesion = SesionKinesica.objects.filter(
-                paciente=paciente
-            ).order_by('-numero_sesion').first()
+            ultima_sesion = sesiones_ciclo.first()
             nuevo_numero = (ultima_sesion.numero_sesion if ultima_sesion else 0) + 1
             
             notas = request.POST.get('notas_clinicas', '')
@@ -475,9 +517,9 @@ def crear_sesion_final(request):
             recomendaciones_alta = request.POST.get('recomendaciones_alta', '')
             plan_seguimiento = request.POST.get('plan_seguimiento', '')
             
-            # Crear la sesión final
             sesion = SesionKinesica.objects.create(
                 paciente=paciente,
+                ciclo=ciclo,
                 clinico=clinico_obj if not es_admin else Clinico.objects.first(),
                 numero_sesion=nuevo_numero,
                 es_primera_sesion=False,
@@ -492,38 +534,37 @@ def crear_sesion_final(request):
                 plan_seguimiento=plan_seguimiento,
             )
 
+            finalizar_ciclo_si_sesion_final(request, sesion, clinico_obj)
+
             registrar_auditoria(
                 request, 'alta_sesion_kine', paciente,
                 detalle=f'Sesión kinésica final (#{nuevo_numero})',
             )
             
-            messages.success(request, f'Sesión final #{nuevo_numero} creada exitosamente.')
-            # Notificar alta al paciente y clínico por correo
+            messages.success(request, f'Sesión final #{nuevo_numero} creada exitosamente. Ciclo clínico finalizado.')
             clinico_para_email = clinico_obj if clinico_obj else Clinico.objects.first()
             notificar_alta_paciente(paciente, clinico_para_email, sesion)
-            from django.urls import reverse
-            return redirect(f"{reverse('sesiones_kinesicas:ver')}?rut={rut_paciente}&numero_sesion={nuevo_numero}")
+            return redirect(redirect_ver(rut_paciente, nuevo_numero, ciclo))
             
         except Exception as e:
             messages.error(request, f'Error al crear la sesión final: {str(e)}')
     
-    # Obtener info para el contexto
-    ultima_sesion = SesionKinesica.objects.filter(
-        paciente=paciente
-    ).order_by('-numero_sesion').first()
-    
-    total_sesiones = SesionKinesica.objects.filter(paciente=paciente).count()
-    
+    ultima_sesion = sesiones_ciclo.first()
+    proximo_numero = (ultima_sesion.numero_sesion + 1) if ultima_sesion else 1
+
     context = {
         'nombre_clinico': nombre_clinico,
         'paciente': paciente,
         'rut': rut_paciente,
         'ultima_sesion': ultima_sesion,
-        'proximo_numero': (ultima_sesion.numero_sesion + 1) if ultima_sesion else 1,
-        'total_sesiones': total_sesiones,
+        'proximo_numero': proximo_numero,
+        'total_sesiones': sesiones_ciclo.count(),
         'estado_choices': SesionKinesica.ESTADO_ALTA_CHOICES,
+        'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo, proximo_numero),
+        **contexto_ciclo_para_template(ciclo, paciente),
+        **_ctx_tratamiento(request, paciente, ciclo, sesiones_ciclo),
     }
-    
+
     return render(request, 'SesionesKinesicas/crear_sesion_final.html', context)
 
 
@@ -542,7 +583,14 @@ def api_sesiones_paciente(request):
     
     try:
         paciente = obtener_paciente_con_permiso(rut_paciente, request)
-        sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('-numero_sesion')
+        if not paciente:
+            raise Paciente.DoesNotExist()
+        rut_clinico = request.session.get('rut_clinico')
+        clinico_obj = Clinico.objects.filter(rut=rut_clinico).first() if rut_clinico else None
+        ciclo = resolver_ciclo(request, paciente, clinico_obj)
+        if not ciclo:
+            return JsonResponse({'error': 'Sin ciclo clínico'}, status=404)
+        sesiones = filtrar_sesiones(ciclo)
         
         sesiones_data = [
             {

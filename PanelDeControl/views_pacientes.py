@@ -176,6 +176,13 @@ def AgregarPacienteBasico(request):
                     detalle=f'Alta manual — {paciente.nombre} {paciente.apellido} ({paciente.identificacion_display()})',
                 )
             messages.success(request, f"Paciente {nombre} {apellido} registrado exitosamente.")
+
+            from ciclos_clinicos.services import iniciar_nuevo_ciclo
+            try:
+                if paciente.clinica_id and clinico:
+                    iniciar_nuevo_ciclo(paciente, paciente.clinica, clinico, request=request)
+            except Exception:
+                pass
             
             request.session['temp_rut_historial'] = paciente.rut
             return redirect('historialClinico')

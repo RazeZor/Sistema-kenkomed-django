@@ -8,7 +8,7 @@ Documento de referencia para entender **de punta a punta** cómo funciona el Sis
 
 ## 1. Resumen en una frase
 
-El paciente (o clínico) completa la **anamnesis** → los datos se guardan en `formularioClinico` → el clínico abre el **Informe DSS** → Django ejecuta **12 módulos interpretativos** en paralelo → cada módulo devuelve un dict con `status` + texto clínico → la plantilla `informe.html` pinta tarjetas de alerta coloreadas.
+El paciente (o clínico) completa la **anamnesis** dentro de un **ciclo clínico** → los datos se guardan en `formularioClinico` (OneToOne con `CicloClinico`) → el clínico abre el **Informe DSS** del ciclo seleccionado → Django ejecuta **12 módulos interpretativos** en paralelo → cada módulo devuelve un dict con `status` + texto clínico → la plantilla `informe.html` pinta tarjetas de alerta coloreadas.
 
 ---
 
@@ -18,7 +18,8 @@ El paciente (o clínico) completa la **anamnesis** → los datos se guardan en `
 |-----|---------|
 | Formulario web (captura) | `FormularioInicial/templates/FormularioInicial.html` |
 | POST → BD | `FormularioInicial/anamnesis_utils.py` → `guardar_anamnesis_desde_post()` |
-| Modelo de datos | `Login/models.py` → `formularioClinico` |
+| Modelo de datos | `Login/models.py` → `formularioClinico` (por ciclo) |
+| Ciclo clínico | `ciclos_clinicos/models.py` → `CicloClinico`; resolución en `services.obtener_ciclo_desde_request()` |
 | Vista principal DSS | `PanelDeControl/views_informe.py` → `RenderInforme()` |
 | Lógica interpretativa | `PanelDeControl/views_informe.py` (funciones `*Anamnesis`, `AnalisisDSS`, etc.) |
 | Plantilla informe | `PanelDeControl/templates/informe.html` |
@@ -36,13 +37,15 @@ flowchart TD
     A[Paciente / Clínico accede a anamnesis] --> B[FormularioInicial.html]
     B --> C{POST válido?}
     C -->|No| B
-    C -->|Sí| D[anamnesis_utils.guardar_anamnesis_desde_post]
-    D --> E[(formularioClinico MySQL)]
+    C -->|Sí| CC[obtener_ciclo_desde_request — ciclo activo o crear]
+    CC --> D[anamnesis_utils.guardar_anamnesis_desde_post]
+    D --> E[(formularioClinico + CicloClinico MySQL)]
     
-    F[Clínico autenticado @requiere_clinico] --> G[GET /informe/?rut=]
+    F[Clínico autenticado @requiere_clinico] --> G[GET /informe/?rut=&ciclo_id=]
     G --> H{Paciente en centro del clínico?}
     H -->|No| I[403 Forbidden]
-    H -->|Sí| J{Existe formularioClinico?}
+    H -->|Sí| CR[Resolver ciclo — ciclo_id / sesión / activo]
+    CR --> J{Existe formulario del ciclo?}
     J -->|No| K[informe.html — sin formulario]
     J -->|Sí| L[RenderInforme ejecuta módulos DSS]
     L --> M[Context dict con resultados]
@@ -90,7 +93,7 @@ guardar_anamnesis_desde_post()
   └─ Si no existe → CREATE (OneToOne con Paciente)
 ```
 
-Relación: **1 paciente = 1 formularioClinico**.
+Relación: **1 ciclo clínico = 1 formularioClinico** (un paciente puede tener N ciclos con N anamnesis).
 
 ---
 
@@ -497,6 +500,7 @@ Ideal como **página 1** del diagrama de flujo:
 | **Módulo** | Función Python que recibe campos y devuelve dict interpretado |
 | **status** | Severidad visual del hallazgo (success/info/warning/danger) |
 | **Informe DSS** | Vista `/informe/` — documento para el clínico con alertas |
+| **CicloClinico** | Episodio de tratamiento; la anamnesis y el DSS se acotan al ciclo seleccionado |
 
 ---
 

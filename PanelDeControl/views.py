@@ -1,6 +1,7 @@
 import json
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -10,7 +11,13 @@ from Login.models import (
     CuestionarioScrenning, CuestionarioEvaluacionENA, Reserva
 )
 from SesionesKinesicas.models import SesionKinesica
-from SesionesKinesicas.escalas_sesion import paquetes_escalas_para_paciente
+from SesionesKinesicas.escalas_sesion import paquetes_escalas_para_ciclo
+from SesionesKinesicas.ux_helpers import contexto_tratamiento_ux
+from ciclos_clinicos.clinical_data import formulario_del_ciclo
+from ciclos_clinicos.services import obtener_ciclo_desde_request
+from ciclos_clinicos.selectors import listar_ciclos_paciente, obtener_ciclo_activo
+from ciclos_clinicos.context_helpers import contexto_ciclo_para_template
+from ciclos_clinicos.clinical_data import formulario_del_ciclo, tiene_anamnesis_ciclo
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
@@ -125,6 +132,19 @@ def HistorialClinico(request):
             )
             if paciente:
                 rut = paciente.rut
+                ciclo = obtener_ciclo_desde_request(
+                    request, paciente, crear_si_ausente=False, clinico=clinico_obj,
+                )
+                ciclos_historial = list(listar_ciclos_paciente(
+                    paciente, request.session.get('clinica_id'),
+                ))
+                ciclo_activo = obtener_ciclo_activo(paciente, request.session.get('clinica_id'))
+                puede_iniciar_ciclo = ciclo_activo is None
+                if ciclo and ciclo.es_solo_lectura:
+                    registrar_auditoria(
+                        request, 'consulta_ciclo_historico', paciente,
+                        detalle=f'Consulta ciclo #{ciclo.numero_ciclo} — {paciente.rut}',
+                    )
                 nota_existente, created = Notas.objects.get_or_create(paciente=paciente)
 
                 if nota_texto is not None and request.method == 'POST':
@@ -141,8 +161,24 @@ def HistorialClinico(request):
                     )
             else:
                 error = "No se encontró ningún paciente con ese documento o no tienes permisos para verlo."
+                ciclo = None
+                ciclos_historial = []
+                puede_iniciar_ciclo = False
+        else:
+            ciclo = None
+            ciclos_historial = []
+            puede_iniciar_ciclo = False
 
         ctx_ident = contexto_identificacion_paciente(paciente)
+        ctx_ciclo = contexto_ciclo_para_template(ciclo, paciente) if paciente else {}
+        sesiones_ciclo = (
+            SesionKinesica.objects.filter(ciclo=ciclo).order_by('-numero_sesion')
+            if ciclo else SesionKinesica.objects.none()
+        )
+        ctx_tratamiento = (
+            contexto_tratamiento_ux(request, paciente, ciclo, sesiones_ciclo)
+            if paciente and ciclo else {}
+        )
         if not paciente and request.method == 'POST' and rut:
             ctx_ident['tipo_documento_actual'] = tipo_doc or 'rut_chile'
             ctx_ident['pais_documento_actual'] = pais_doc or ''
@@ -151,122 +187,31 @@ def HistorialClinico(request):
             'paciente': paciente,
             'error': error,
             'nota': nota_existente.notas if nota_existente else '',
-            'paquetes_escalas': paquetes_escalas_para_paciente(paciente.rut) if paciente else [],
+            'ciclo': ciclo,
+            'ciclos_historial': ciclos_historial,
+            'tiene_anamnesis_ciclo': tiene_anamnesis_ciclo(ciclo) if ciclo else False,
+            'formulario_ciclo': formulario_del_ciclo(ciclo) if ciclo else None,
+            'sesiones_ciclo': sesiones_ciclo,
+            'puede_iniciar_ciclo': puede_iniciar_ciclo if paciente else False,
+            'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo) if paciente and ciclo else [],
+            **ctx_tratamiento,
+            **ctx_ciclo,
             **ctx_ident,
         })
     else:
         return redirect('login')
 @requiere_clinico
 def VerInformePacientes(request):
-    if 'nombre_clinico' in request.session:
-        nombre_clinico = request.session['nombre_clinico']
-        es_admin = request.session.get('es_admin', False)
-        if 'nombre_clinico' not in request.session:
-            return redirect('login')
-        
-        nombre_clinico = request.session['nombre_clinico']
-        rut = request.GET.get('rut', None)
-        context = {'nombre_clinico': nombre_clinico}
-
-        if rut:
-            paciente = obtener_paciente_por_rut(request, rut)
-            if not paciente:
-                messages.error(request, 'No tienes permisos para ver el informe de este paciente.')
-                return redirect('panel')
-            registrar_auditoria(
-                request, 'consulta_resumen_paciente', paciente,
-                detalle=f'Visualizó resumen en panel — {paciente.rut}',
-            )
-            try:
-                formulario = formularioClinico.objects.get(paciente=paciente)
-                #escala Semaforo Integrada
-                semaforo = json.loads(formulario.preguntas1)
-                mensajeSemaforo = EscalaSemaforo(semaforo)
-                opinionproblemaEnfermead = CreenciaDolor(formulario.opinionProblemaEnfermeda)
-                #mensaje apoyo 
-                mensajeApoyo = evaluar_necesidad_apoyo(formulario.nesesidadDeApoyo)
-                
-                #mensaje caracteristicas de dolor
-                caracteristicasDolor = json.loads(formulario.caracteristicasDeDolor)
-                MensajecaracteristicasDolor = Neuropaticas(caracteristicasDolor)
-
-                #mensaje fibromialgia
-                condicionesSalud1 = json.loads(formulario.TiposDeEnfermedades)
-                MensajeCondicionesSalud = condicionesSalud(condicionesSalud1)
-
-                # mensaje de evitacion 
-                respuestas = formulario.parametros
-                mensajeEVPER = Respuesta_evitativo_persistente(json.loads(respuestas)) 
-                
-                #preocupacion Consumo
-                preocupacionNicotina = formulario.nicotinaPreocupacion
-                MensajeNicotina = "no tiene" if preocupacionNicotina is None else preocupacionNicotina
-                
-                #preocupacion alchol
-                preocupacionAlcohol = formulario.AlcoholPreocupacion
-                mensajeAcoholP = "no tiene" if preocupacionAlcohol is None else preocupacionAlcohol
-                
-                #preocupacion drogas 
-                preocupacionDrogas = formulario.DrogasPreocupacion
-                mensajeDrogasP = "no tiene" if preocupacionDrogas is None else preocupacionDrogas
-                
-                #preocupacion marihuana
-                preocupacionMarihuana = formulario.marihuanaPreocupacion
-                mensajeMarihuanaP = "no tiene" if preocupacionMarihuana is None else preocupacionMarihuana
-                
-                #uso importante de JsonLoad, esta es la unica manera
-                #que carguen bien las respuestas Json De el Atribuo JsonField de la base de Datos
-                
-                
-                
-                
-                # el cuerpo humano Bien mostrado 
-                ubicacionDolor = json.loads(formulario.ubicacionDolor)
-                intensidadDolor = json.loads(formulario.dolorIntensidad)
-                ubicacion_intensidad_list = ""
-                min_len = min(len(ubicacionDolor), len(intensidadDolor))
-                for i in range(min_len):
-                    ubicacion = escape(str(ubicacionDolor[i]))
-                    intensidad = escape(str(intensidadDolor[i]))
-                    ubicacion_intensidad_list += f"<li><strong>{ubicacion}:</strong> {intensidad}</li>\n"
-                if len(ubicacionDolor) != len(intensidadDolor):
-                    ubicacion_intensidad_list += "<li><strong>Error:</strong> Las listas no coinciden en longitud</li>\n"
-
-                
-                
-                # renderizar el informe 
-                with open('PanelDeControl/templates/informe.html', 'r', encoding='utf-8') as template_file:
-                    informe_template = template_file.read()
-
-                informe = informe_template.format(
-                    paciente=paciente,
-                    formulario=formulario,
-                    mensajeApoyo=mensajeApoyo,
-                    ubicacion_intensidad=ubicacion_intensidad_list,
-                    mensajeSemaforo=mensajeSemaforo,
-                    MensajecaracteristicasDolor=MensajecaracteristicasDolor,
-                    MensajeCondicionesSalud=MensajeCondicionesSalud,
-                    opinionproblemaEnfermead=opinionproblemaEnfermead,
-                    mensajeEVPER=mensajeEVPER,
-                    MensajeNicotina=MensajeNicotina,
-                    mensajeAcoholP=mensajeAcoholP,
-                    mensajeDrogasP=mensajeDrogasP,
-                    mensajeMarihuanaP=mensajeMarihuanaP
-                    
-                )
-
-
-                context['informe'] = informe
-                context['encontrado'] = True
-
-            except formularioClinico.DoesNotExist:
-                context['encontrado'] = False
-                context['mensaje'] = "No se encontró el paciente o su formulario clínico"
-
-        return render(request, 'FichaPacientes.html', context)
-    else:
-        return redirect('login')
-
+    """Redirige a la vista moderna de informe DSS."""
+    rut = request.GET.get('rut', '')
+    url = reverse('informe')
+    if rut:
+        params = f'rut={rut}'
+        ciclo_id = request.GET.get('ciclo_id')
+        if ciclo_id:
+            params += f'&ciclo_id={ciclo_id}'
+        url = f'{url}?{params}'
+    return redirect(url)
 
 
 # funciones y algoritmo para las Respuesta de el informe 
@@ -1026,6 +971,16 @@ def estadisticas_paciente_view(request):
 
         context['paciente'] = paciente
 
+        from ciclos_clinicos.services import obtener_ciclo_desde_request
+        from ciclos_clinicos.selectors import listar_ciclos_paciente
+        from ciclos_clinicos.context_helpers import contexto_ciclo_para_template
+
+        rut_clinico_obj = request.session.get('rut_clinico')
+        clinico_obj = Clinico.objects.filter(rut=rut_clinico_obj).first() if rut_clinico_obj else None
+        ciclo = obtener_ciclo_desde_request(request, paciente, clinico=clinico_obj)
+        context.update(contexto_ciclo_para_template(ciclo, paciente))
+        context['ciclos_historial'] = list(listar_ciclos_paciente(paciente, request.session.get('clinica_id')))
+
         registrar_auditoria(
             request, 'consulta_estadisticas_paciente', paciente,
             detalle=f'Estadísticas individuales — {paciente.rut}',
@@ -1039,14 +994,16 @@ def estadisticas_paciente_view(request):
         }
 
         try:
-            psfs = CuestionarioPSFS.objects.get(paciente=paciente)
-            from TiposDeFormularios.psfs_utils import psfs_chart_series
-            charts_data['psfs'] = psfs_chart_series(psfs)
+            if ciclo:
+                psfs = CuestionarioPSFS.objects.get(ciclo=ciclo)
+                from TiposDeFormularios.psfs_utils import psfs_chart_series
+                charts_data['psfs'] = psfs_chart_series(psfs)
         except CuestionarioPSFS.DoesNotExist:
             pass
 
         try:
-            groc = Groc.objects.get(paciente=paciente)
+            if ciclo:
+                groc = Groc.objects.get(ciclo=ciclo)
             if groc.puntajeGroc:
                 data_groc = json.loads(groc.puntajeGroc) if isinstance(groc.puntajeGroc, str) else groc.puntajeGroc
                 if isinstance(data_groc, list):
@@ -1068,7 +1025,8 @@ def estadisticas_paciente_view(request):
             pass
 
         try:
-            ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
+            if ciclo:
+                ena = CuestionarioEvaluacionENA.objects.get(ciclo=ciclo)
             if ena.estado_por_sesion:
                 data_ena = json.loads(ena.estado_por_sesion) if isinstance(ena.estado_por_sesion, str) else ena.estado_por_sesion
                 if isinstance(data_ena, list):
@@ -1089,7 +1047,7 @@ def estadisticas_paciente_view(request):
         except CuestionarioEvaluacionENA.DoesNotExist:
             pass
 
-        sesiones = SesionKinesica.objects.filter(paciente=paciente).order_by('numero_sesion')
+        sesiones = SesionKinesica.objects.filter(ciclo=ciclo).order_by('numero_sesion') if ciclo else SesionKinesica.objects.none()
         context['total_sesiones'] = sesiones.count()
         if sesiones.exists():
             context['ultima_sesion'] = sesiones.last().fecha_creacion

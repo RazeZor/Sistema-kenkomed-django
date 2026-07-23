@@ -79,6 +79,7 @@ INSTALLED_APPS = [
     'TiposDeFormularios',	
     'RecetasMedicas',
     'SesionesKinesicas',
+    'ciclos_clinicos',
 ]
 
 MIDDLEWARE = [

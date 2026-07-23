@@ -83,6 +83,16 @@ Capa de datos central:
 
 - Vista CRUD de recetas; modelo `RecetaMedica` en `Login.models`.
 
+### ciclos_clinicos
+
+- Modelo `CicloClinico` — episodios de tratamiento por `(paciente, clínica)`.
+- **Selectors** (`selectors.py`) — lecturas: listar, activo, por ID.
+- **Services** (`services.py`) — escrituras: iniciar, finalizar, abandonar; `obtener_ciclo_desde_request()`.
+- **Clinical data** (`clinical_data.py`) — anamnesis y cuestionarios scoped por ciclo.
+- Endpoints bajo `/ciclos/`; integración en historial, DSS, sesiones y exportación ARCO.
+
+Ver [16-ciclos-clinicos.md](16-ciclos-clinicos.md).
+
 ### clinicos
 
 - Vista de perfil del profesional (`/clinicos/perfil/`).
@@ -137,3 +147,4 @@ Un profesional solo ve datos de su centro activo (salvo admin KenkoMed sin centr
 2. **JSONField / TextField JSON** — muchos cuestionarios guardan series temporales como listas JSON.
 3. **Auditoría transversal** — `registrar_auditoria()` llamado desde vistas, no middleware automático (más explícito y con contexto).
 4. **Admin Django oculto** — URL `/administradordjangogeneral` para operaciones de soporte.
+5. **Ciclos clínicos** — capa `services`/`selectors` en app dedicada; datos episódicos filtrados por `ciclo_id`.

@@ -16,6 +16,12 @@ from TiposDeFormularios.escala_hooks import (
     sincronizar_numero_sesion_kine,
     vincular_escala_a_sesion,
 )
+from ciclos_clinicos.services import (
+    obtener_ciclo_desde_request,
+    asegurar_ciclo_editable,
+    CicloClinicoError,
+)
+from ciclos_clinicos.context_helpers import contexto_ciclo_para_template
 
 
 class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en el codigo
@@ -25,6 +31,7 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
         self.request = request
         self.paciente = None
         self.clinico = None
+        self.ciclo = None
     
     def validar_sesion(self, requiere_admin=False):
         """Valida la sesion del clinico"""
@@ -60,7 +67,28 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
             messages.error(self.request, 'Paciente no encontrado o no tienes permiso de acceso.')
         else:
             sincronizar_numero_sesion_kine(self.request, self.paciente)
+            self.resolver_ciclo()
         return self.paciente
+
+    def resolver_ciclo(self, crear_si_ausente=False):
+        if self.paciente:
+            self.ciclo = obtener_ciclo_desde_request(
+                self.request,
+                self.paciente,
+                crear_si_ausente=crear_si_ausente,
+                clinico=self.clinico,
+            )
+        else:
+            self.ciclo = None
+        return self.ciclo
+
+    def asegurar_editable(self):
+        try:
+            asegurar_ciclo_editable(self.ciclo)
+            return True
+        except CicloClinicoError as exc:
+            messages.error(self.request, str(exc))
+            return False
     
     def redirect_to_login(self):
         """Redirección común al login"""
@@ -75,6 +103,18 @@ class BaseEvaluacionHandler: # utilizo esta clase para reutilizar funciones en e
             auditar_cuestionario_edicion(self.request, self.paciente, nombre_cuestionario, subaccion)
 
 
+def _asegurar_ciclo_editable_o_error(request, ciclo):
+    if not ciclo:
+        messages.error(request, 'No hay ciclo clínico activo para esta acción.')
+        return False
+    try:
+        asegurar_ciclo_editable(ciclo)
+        return True
+    except CicloClinicoError as exc:
+        messages.error(request, str(exc))
+        return False
+
+
 def RenderizarGROC(request):
     """Vista refactorizada para GROC"""
     handler = BaseEvaluacionHandler(request)
@@ -83,18 +123,20 @@ def RenderizarGROC(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
-    sincronizar_numero_sesion_kine(request, paciente)
-    evaluacion_existente = Groc.objects.filter(paciente=paciente).exists()
+    ciclo = handler.ciclo
+    evaluacion_existente = bool(ciclo and Groc.objects.filter(ciclo=ciclo).exists())
     puntajes = []
     NotaGroc = "el Paciente No tiene Notas"
     
     if evaluacion_existente:
-        groc_obj = Groc.objects.get(paciente=paciente)
+        groc_obj = Groc.objects.get(ciclo=ciclo)
         puntajes = groc_obj.puntajeGroc
         NotaGroc = groc_obj.NotaGroc
     
     if request.method == 'POST':
-        return _procesar_groc_post(request, paciente, evaluacion_existente)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_groc_post(request, paciente, handler.ciclo, evaluacion_existente)
 
     auditar_cuestionario_consulta(request, paciente, 'GROC')
     return render(request, 'GROC.html', {
@@ -102,12 +144,16 @@ def RenderizarGROC(request):
         'paciente': paciente,
         'evaluacion_existente': evaluacion_existente,
         'puntajes': puntajes,
-        'NotaGroc': NotaGroc
+        'NotaGroc': NotaGroc,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_groc_post(request, paciente, evaluacion_existente):
+def _procesar_groc_post(request, paciente, ciclo, evaluacion_existente):
     """Procesa las acciones POST para GROC"""
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return HttpResponseRedirect(request.get_full_path())
+
     fecha_creacion = datetime.now().date()
     puntajeGroc = request.POST.get('puntajeGroc')
     NotaGroc = request.POST.get('nota_adicional')
@@ -120,6 +166,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
     try:
         if action == 'guardar':
             Groc.objects.create(
+                ciclo=ciclo,
                 paciente=paciente,
                 fecha_creacion=fecha_creacion,
                 NotaGroc=NotaGroc,
@@ -130,7 +177,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
             messages.success(request, "Evaluación registrada correctamente.")
             
         elif action == 'actualizar':
-            evaluacion = get_object_or_404(Groc, paciente=paciente)
+            evaluacion = get_object_or_404(Groc, ciclo=ciclo)
             if isinstance(evaluacion.puntajeGroc, list):
                 evaluacion.puntajeGroc.append({'puntaje': int(puntajeGroc)})
             else:
@@ -141,7 +188,7 @@ def _procesar_groc_post(request, paciente, evaluacion_existente):
             messages.success(request, "Evaluación actualizada correctamente.")
             
         elif action == 'GuardarNota':
-            evaluacion = get_object_or_404(Groc, paciente=paciente)
+            evaluacion = get_object_or_404(Groc, ciclo=ciclo)
             evaluacion.NotaGroc = NotaGroc
             evaluacion.save()
             auditar_cuestionario_edicion(request, paciente, 'GROC', 'nota clínica')
@@ -163,13 +210,16 @@ def gestionar_psfs(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
-    cuestionario = CuestionarioPSFS.objects.filter(paciente=paciente).first()
+    ciclo = handler.ciclo
+    cuestionario = CuestionarioPSFS.objects.filter(ciclo=ciclo).first() if ciclo else None
     if cuestionario:
         from TiposDeFormularios.psfs_utils import repair_psfs_stored_totals
         repair_psfs_stored_totals(cuestionario)
     
     if request.method == 'POST':
-        return _procesar_psfs_post(request, paciente, cuestionario)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_psfs_post(request, paciente, handler.ciclo, cuestionario)
     
     # Preparar datos para renderizado
     sesiones = _obtener_sesiones_psfs(cuestionario) if cuestionario else []
@@ -187,11 +237,15 @@ def gestionar_psfs(request):
         'rango1': ultima['actividad_1'] if ultima else 5,
         'rango2': ultima['actividad_2'] if ultima else 5,
         'rango3': ultima['actividad_3'] if ultima else 5,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_psfs_post(request, paciente, cuestionario):
+def _procesar_psfs_post(request, paciente, ciclo, cuestionario):
     """Procesa las acciones POST para PSFS con actividades manuales."""
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect(f"{reverse('gestionar_psfs')}?rut={paciente.rut}")
+
     from TiposDeFormularios.psfs_utils import (
         append_psfs_scores,
         initial_psfs_scores,
@@ -216,7 +270,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
 
         if not notaPSFS:
             messages.error(request, 'No se proporcionó ninguna nota para guardar.')
-        elif _actualizar_nota_psfs(paciente, notaPSFS):
+        elif _actualizar_nota_psfs(ciclo, notaPSFS):
             auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nota clínica')
             messages.success(request, 'Nota guardada correctamente.')
         else:
@@ -236,6 +290,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
         if action == 'guardar':
             scores = initial_psfs_scores(puntajes)
             CuestionarioPSFS.objects.create(
+                ciclo=ciclo,
                 paciente=paciente,
                 fecha_creacion=datetime.now().date(),
                 actividad_1=actividad_1,
@@ -246,11 +301,11 @@ def _procesar_psfs_post(request, paciente, cuestionario):
             )
             auditar_cuestionario_edicion(request, paciente, 'PSFS', 'nueva evaluación')
             messages.success(request, 'Cuestionario guardado correctamente.')
-            _vincular_psfs_a_sesion(request, paciente)
+            _vincular_psfs_a_sesion(request, paciente, ciclo)
 
         elif action == 'actualizar':
             if not cuestionario:
-                cuestionario = get_object_or_404(CuestionarioPSFS, paciente=paciente)
+                cuestionario = get_object_or_404(CuestionarioPSFS, ciclo=ciclo)
 
             if actividad_1:
                 cuestionario.actividad_1 = actividad_1
@@ -269,7 +324,7 @@ def _procesar_psfs_post(request, paciente, cuestionario):
                 auditar_cuestionario_edicion(request, paciente, 'PSFS', 'actualización de sesión')
                 messages.success(request, 'Evaluación actualizada correctamente.')
 
-            _vincular_psfs_a_sesion(request, paciente)
+            _vincular_psfs_a_sesion(request, paciente, ciclo)
 
             if 'nota_adicional' in request.POST:
                 cuestionario.NotaCuestionarioPSFS = notaPSFS
@@ -295,8 +350,8 @@ def _obtener_sesiones_psfs(cuestionario):
     return build_psfs_sessions(cuestionario)
 
 
-def _vincular_psfs_a_sesion(request, paciente):
-    cuestionario = CuestionarioPSFS.objects.filter(paciente=paciente).first()
+def _vincular_psfs_a_sesion(request, paciente, ciclo):
+    cuestionario = CuestionarioPSFS.objects.filter(ciclo=ciclo).first()
     if not cuestionario:
         return
     sesiones = _obtener_sesiones_psfs(cuestionario)
@@ -307,10 +362,10 @@ def _vincular_psfs_a_sesion(request, paciente):
     vincular_escala_a_sesion(request, paciente, 'psfs', f'Total: {total}', 'gestionar_psfs')
 
 
-def _actualizar_nota_psfs(paciente, nota):
+def _actualizar_nota_psfs(ciclo, nota):
     """Actualiza la nota PSFS"""
     try:
-        cuestionario = CuestionarioPSFS.objects.filter(paciente=paciente).first()
+        cuestionario = CuestionarioPSFS.objects.filter(ciclo=ciclo).first()
         if not cuestionario:
             return False
             
@@ -333,33 +388,43 @@ def RenderizarEQ_5D(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
-    sesiones_existentes = CuestionarioEQ_5D.objects.filter(paciente=paciente).exists()
+    ciclo = handler.ciclo
+    sesiones_existentes = bool(ciclo and CuestionarioEQ_5D.objects.filter(ciclo=ciclo).exists())
     
     if request.method == 'POST':
-        return _procesar_eq5d_post(request, paciente, handler.clinico)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_eq5d_post(request, paciente, handler.ciclo, handler.clinico)
     
-    puntajes_por_sesion = _obtener_puntajes_eq5d(paciente)
+    puntajes_por_sesion = _obtener_puntajes_eq5d(ciclo)
 
     handler.auditar_consulta('EQ-5D')
     return render(request, 'CuestionarioEQ-5D.html', {
         'rut': paciente.rut,
         'puntajes_por_sesion': puntajes_por_sesion,
         'paciente': paciente,
-        'sesiones_existentes': sesiones_existentes
+        'sesiones_existentes': sesiones_existentes,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_eq5d_post(request, paciente, clinico):
+def _procesar_eq5d_post(request, paciente, ciclo, clinico):
     """Procesa las acciones POST para EQ-5D"""
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return HttpResponseRedirect(request.get_full_path())
+
     action = request.POST.get('action')
     
     try:
         if action == 'actualizar':
-            cuestionario, created = CuestionarioEQ_5D.objects.get_or_create(paciente=paciente)
+            cuestionario, created = CuestionarioEQ_5D.objects.get_or_create(
+                ciclo=ciclo,
+                defaults={'paciente': paciente},
+            )
             _actualizar_eq5d(request, cuestionario)
             
         elif action == 'guardar':
-            _crear_eq5d(request, paciente, clinico)
+            _crear_eq5d(request, paciente, ciclo, clinico)
 
         if action in ('guardar', 'actualizar'):
             auditar_cuestionario_edicion(
@@ -405,7 +470,7 @@ def _actualizar_eq5d(request, cuestionario):
     cuestionario.save()
 
 
-def _crear_eq5d(request, paciente, clinico):
+def _crear_eq5d(request, paciente, ciclo, clinico):
     """Crea un nuevo cuestionario EQ-5D"""
     # Get all the data from the form
     datos = {
@@ -424,6 +489,7 @@ def _crear_eq5d(request, paciente, clinico):
     
     # Create the questionnaire
     cuestionario = CuestionarioEQ_5D.objects.create(
+        ciclo=ciclo,
         paciente=paciente,
         clinico=clinico,
         **datos
@@ -431,10 +497,12 @@ def _crear_eq5d(request, paciente, clinico):
     return cuestionario
 
 
-def _obtener_puntajes_eq5d(paciente):
+def _obtener_puntajes_eq5d(ciclo):
     """Obtiene los puntajes formateados para EQ-5D"""
+    if not ciclo:
+        return []
     try:
-        evaluacion = CuestionarioEQ_5D.objects.get(paciente=paciente)
+        evaluacion = CuestionarioEQ_5D.objects.get(ciclo=ciclo)
     except CuestionarioEQ_5D.DoesNotExist:
         return []
     
@@ -482,9 +550,12 @@ def renderizar_CuestionarioBarthel(request):
         return handler.redirect_to_login()
     
     paciente = handler.obtener_paciente()
+    ciclo = handler.ciclo
     
     if request.method == "POST":
-        return _procesar_barthel_post(request, paciente, handler.clinico)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_barthel_post(request, paciente, handler.clinico, handler.ciclo)
     
     # Preparar datos para renderizado
     pacientes = Paciente.objects.all()
@@ -492,8 +563,8 @@ def renderizar_CuestionarioBarthel(request):
     cuestionario_existente = None
     sesiones = []
     
-    if paciente:
-        cuestionario_existente = CuestionarioBarthel.objects.filter(paciente=paciente).first()
+    if paciente and ciclo:
+        cuestionario_existente = CuestionarioBarthel.objects.filter(ciclo=ciclo).first()
         if cuestionario_existente:
             sesiones = _obtener_sesiones_barthel(cuestionario_existente)
 
@@ -504,19 +575,26 @@ def renderizar_CuestionarioBarthel(request):
         "paciente": paciente,
         "cuestionario_existente": cuestionario_existente,
         "clinico_actual": handler.clinico,
-        "sesiones": sesiones
+        "sesiones": sesiones,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_barthel_post(request, paciente, clinico):
+def _procesar_barthel_post(request, paciente, clinico, ciclo):
     """Procesa las acciones POST para Barthel"""
     if not paciente:
         paciente_rut = request.POST.get("paciente")
         if paciente_rut:
             paciente = get_object_or_404(Paciente, rut=paciente_rut)
+            ciclo = obtener_ciclo_desde_request(
+                request, paciente, crear_si_ausente=True, clinico=clinico,
+            )
         else:
             messages.error(request, "Debe seleccionar un paciente.")
             return redirect('bartel')
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'bartel', paciente.rut)
     
     action = request.POST.get('action', '')
     notaBarthel = request.POST.get('nota_adicional', '')
@@ -526,19 +604,19 @@ def _procesar_barthel_post(request, paciente, clinico):
             datos, total, grado = _procesar_datos_barthel(request)
             
             if action == 'guardar':
-                _crear_barthel(paciente, clinico, datos, total, grado, notaBarthel)
+                _crear_barthel(paciente, ciclo, clinico, datos, total, grado, notaBarthel)
                 auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva evaluación')
                 vincular_escala_a_sesion(request, paciente, 'barthel', f'Puntaje: {total}, {grado}', 'bartel')
                 messages.success(request, f"Cuestionario Barthel guardado correctamente. Puntaje: {total}, Grado: {grado}")
             
             elif action == 'actualizar':
-                _actualizar_barthel(paciente, datos, total, grado)
+                _actualizar_barthel(ciclo, datos, total, grado)
                 auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nueva sesión')
                 vincular_escala_a_sesion(request, paciente, 'barthel', f'Puntaje: {total}, {grado}', 'bartel')
                 messages.success(request, f"Cuestionario Barthel actualizado correctamente. Puntaje: {total}, Grado: {grado}")
         
         elif action == 'GuardarNota':
-            cuestionario = get_object_or_404(CuestionarioBarthel, paciente=paciente)
+            cuestionario = get_object_or_404(CuestionarioBarthel, ciclo=ciclo)
             cuestionario.NotaCuestionarioBarthel = notaBarthel
             cuestionario.save()
             auditar_cuestionario_edicion(request, paciente, 'Barthel', 'nota clínica')
@@ -588,9 +666,10 @@ def _procesar_datos_barthel(request):
     return datos, total, grado
 
 
-def _crear_barthel(paciente, clinico, datos, total, grado, nota):
+def _crear_barthel(paciente, ciclo, clinico, datos, total, grado, nota):
     """Crea un nuevo cuestionario Barthel"""
     CuestionarioBarthel.objects.create(
+        ciclo=ciclo,
         paciente=paciente,
         clinico=clinico,
         fecha_creacion=datetime.now().date(),
@@ -610,9 +689,9 @@ def _crear_barthel(paciente, clinico, datos, total, grado, nota):
     )
 
 
-def _actualizar_barthel(paciente, datos, total, grado):
+def _actualizar_barthel(ciclo, datos, total, grado):
     """Actualiza un cuestionario Barthel existente"""
-    cuestionario = get_object_or_404(CuestionarioBarthel, paciente=paciente)
+    cuestionario = get_object_or_404(CuestionarioBarthel, ciclo=ciclo)
     
     campos = [
         "comer", "lavarse", "vestirse", "arreglarse",
@@ -682,19 +761,25 @@ def renderizar_cuestionarioScrening(request):
         messages.error(request, 'Paciente no encontrado.')
         return redirect('panel')
 
+    ciclo = handler.ciclo
+
     # Verificar si ya existe una evaluación
-    evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente).exists()
+    evaluacion_existente = bool(ciclo and CuestionarioScrenning.objects.filter(ciclo=ciclo).exists())
     cuestionario_actual = None
 
     if evaluacion_existente:
-        cuestionario_actual = CuestionarioScrenning.objects.get(paciente=paciente)
+        cuestionario_actual = CuestionarioScrenning.objects.get(ciclo=ciclo)
 
     if request.method == "POST":
-        return _procesar_screening_post(request, paciente, handler.clinico)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_screening_post(request, paciente, handler.ciclo, handler.clinico)
 
     # Obtener todas las evaluaciones del paciente
 
-    toda_evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente)
+    toda_evaluacion_existente = (
+        CuestionarioScrenning.objects.filter(ciclo=ciclo) if ciclo else CuestionarioScrenning.objects.none()
+    )
     # Si existe la evaluación actual, generar alerta
     alerta = generar_alerta(cuestionario_actual.Puntaje_Sesion) if cuestionario_actual else None
 
@@ -705,12 +790,16 @@ def renderizar_cuestionarioScrening(request):
         'evaluacion_existente': evaluacion_existente,
         'cuestionario': cuestionario_actual,
         'alerta': alerta,
-        'toda_evaluacion_existente':toda_evaluacion_existente,
+        'toda_evaluacion_existente': toda_evaluacion_existente,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_screening_post(request, paciente, clinico):
+def _procesar_screening_post(request, paciente, ciclo, clinico):
     """Procesa las acciones POST para Screening"""
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return HttpResponseRedirect(request.get_full_path())
+
     try:
         # Obtener datos del formulario
         intensidad_dolor = request.POST.get('IntensidadDolor')
@@ -738,11 +827,14 @@ def _procesar_screening_post(request, paciente, clinico):
             if missing:
                 # En lugar de redirigir al panel, renderizamos la misma plantilla con información
                 # sobre los campos faltantes y los valores enviados para que el clínico corrija.
-                evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente).exists()
+                evaluacion_existente = bool(ciclo and CuestionarioScrenning.objects.filter(ciclo=ciclo).exists())
                 cuestionario_actual = None
                 if evaluacion_existente:
-                    cuestionario_actual = CuestionarioScrenning.objects.get(paciente=paciente)
-                toda_evaluacion_existente = CuestionarioScrenning.objects.filter(paciente=paciente)
+                    cuestionario_actual = CuestionarioScrenning.objects.get(ciclo=ciclo)
+                toda_evaluacion_existente = (
+                    CuestionarioScrenning.objects.filter(ciclo=ciclo)
+                    if ciclo else CuestionarioScrenning.objects.none()
+                )
                 alerta = generar_alerta(cuestionario_actual.Puntaje_Sesion) if cuestionario_actual else None
 
                 context = {
@@ -756,6 +848,7 @@ def _procesar_screening_post(request, paciente, clinico):
                     'posted_intensidad': intensidad_dolor,
                     'posted_nivel': nivel_molestia,
                     'posted_respuestas': respuestas_tabla,
+                    **contexto_ciclo_para_template(ciclo, paciente),
                 }
 
                 # Señalamos si faltan respuestas de la sección funcional para resaltarla en la plantilla
@@ -768,12 +861,13 @@ def _procesar_screening_post(request, paciente, clinico):
 
         if action == 'guardar':
             # Verificar si ya existe (OneToOneField)
-            if CuestionarioScrenning.objects.filter(paciente=paciente).exists():
-                messages.error(request, "Ya existe una evaluación para este paciente. Use 'Actualizar Evaluación'.")
+            if CuestionarioScrenning.objects.filter(ciclo=ciclo).exists():
+                messages.error(request, "Ya existe una evaluación para este ciclo. Use 'Actualizar Evaluación'.")
                 return redirect(f"{reverse('cuestionario_screening')}?rut={paciente.rut}")
 
             # Crear nuevo cuestionario
             CuestionarioScrenning.objects.create(
+                ciclo=ciclo,
                 paciente=paciente,
                 clinico=clinico,
                 IntensidadDolor=intensidad_dolor,
@@ -788,7 +882,7 @@ def _procesar_screening_post(request, paciente, clinico):
 
         elif action == 'actualizar':
             try:
-                cuestionario = CuestionarioScrenning.objects.get(paciente=paciente)
+                cuestionario = CuestionarioScrenning.objects.get(ciclo=ciclo)
                 cuestionario.IntensidadDolor = intensidad_dolor
                 cuestionario.RespuestasTabla1 = respuestas_tabla
                 cuestionario.NivelMolestia = nivel_molestia
@@ -860,11 +954,19 @@ def renderizar_CuestionarioENA(request):
         messages.error(request, 'Paciente no encontrado.')
         return redirect('panel')
 
-    # Obtener o crear cuestionario ENA asociado al paciente
-    cuestionario = CuestionarioEvaluacionENA.objects.filter(paciente=paciente).first()
+    ciclo = handler.ciclo
+
+    # Obtener o crear cuestionario ENA asociado al ciclo
+    cuestionario = CuestionarioEvaluacionENA.objects.filter(ciclo=ciclo).first() if ciclo else None
     evaluations = cuestionario.estado_por_sesion if cuestionario and cuestionario.estado_por_sesion else []
 
     if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        ciclo = handler.ciclo
+        if not _asegurar_ciclo_editable_o_error(request, ciclo):
+            return HttpResponseRedirect(request.get_full_path())
+
         action = request.POST.get('action', 'guardar')
         try:
             if action == 'guardar':
@@ -883,6 +985,7 @@ def renderizar_CuestionarioENA(request):
 
                 if not cuestionario:
                     cuestionario = CuestionarioEvaluacionENA.objects.create(
+                        ciclo=ciclo,
                         paciente=paciente,
                         clinico=handler.clinico,
                         fecha_creacion=datetime.now().date(),
@@ -933,7 +1036,8 @@ def renderizar_CuestionarioENA(request):
         'paciente': paciente,
         'evaluations_json': evaluations_json,
         'evaluations': evaluations,
-        'clinico_actual': handler.clinico
+        'clinico_actual': handler.clinico,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
@@ -952,11 +1056,18 @@ def renderizar_cuestionario_oswestry(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
+    ciclo = handler.ciclo
+
     if request.method == 'POST':
-        return _procesar_oswestry_post(request, paciente, handler.clinico)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_oswestry_post(request, paciente, handler.ciclo, handler.clinico)
     
     # Obtener evaluaciones existentes
-    evaluaciones = EvaluacionOswestry.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    evaluaciones = (
+        EvaluacionOswestry.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionOswestry.objects.none()
+    )
     evaluations_count = evaluaciones.count()
     
     # Preparar datos para el gráfico de evolución
@@ -982,12 +1093,16 @@ def renderizar_cuestionario_oswestry(request):
         'evaluations_count': evaluations_count,
         'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_oswestry_post(request, paciente, clinico):
+def _procesar_oswestry_post(request, paciente, ciclo, clinico):
     """Procesa las acciones POST para Oswestry"""
     from .models import EvaluacionOswestry
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'oswestry', paciente.rut)
     
     action = request.POST.get('action', 'guardar')
     
@@ -1026,6 +1141,7 @@ def _procesar_oswestry_post(request, paciente, clinico):
         
         # Crear nueva evaluación
         evaluacion = EvaluacionOswestry.objects.create(
+            ciclo=ciclo,
             paciente=paciente,
             clinico=clinico,
             notas_clinicas=notas_clinicas,
@@ -1070,11 +1186,18 @@ def renderizar_cuestionario_lefs(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
     
+    ciclo = handler.ciclo
+
     if request.method == 'POST':
-        return _procesar_lefs_post(request, paciente, handler.clinico)
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_lefs_post(request, paciente, handler.ciclo, handler.clinico)
     
     # Obtener evaluaciones existentes
-    evaluaciones = EvaluacionLEFS.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    evaluaciones = (
+        EvaluacionLEFS.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionLEFS.objects.none()
+    )
     evaluations_count = evaluaciones.count()
     
     # Preparar datos para el gráfico de evolución
@@ -1123,13 +1246,17 @@ def renderizar_cuestionario_lefs(request):
         'evaluations_count': evaluations_count,
         'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
-        'actividades': actividades
+        'actividades': actividades,
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_lefs_post(request, paciente, clinico):
+def _procesar_lefs_post(request, paciente, ciclo, clinico):
     """Procesa las acciones POST para LEFS"""
     from .models import EvaluacionLEFS
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'lefs', paciente.rut)
     
     action = request.POST.get('action', 'guardar')
     
@@ -1155,6 +1282,7 @@ def _procesar_lefs_post(request, paciente, clinico):
         
         # Crear nueva evaluación
         evaluacion = EvaluacionLEFS.objects.create(
+            ciclo=ciclo,
             paciente=paciente,
             clinico=clinico,
             notas_clinicas=notas_clinicas,
@@ -1218,10 +1346,17 @@ def renderizar_cuestionario_quickdash(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
 
-    if request.method == 'POST':
-        return _procesar_quickdash_post(request, paciente, handler.clinico)
+    ciclo = handler.ciclo
 
-    evaluaciones = EvaluacionQuickDASH.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_quickdash_post(request, paciente, handler.ciclo, handler.clinico)
+
+    evaluaciones = (
+        EvaluacionQuickDASH.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionQuickDASH.objects.none()
+    )
     from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
     chart_config = obtener_graficos_paciente(paciente).get('quickdash', {})
     preguntas_ctx = [
@@ -1242,12 +1377,16 @@ def renderizar_cuestionario_quickdash(request):
         'evaluations_count': evaluaciones.count(),
         'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'quickdash'), ensure_ascii=False),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_quickdash_post(request, paciente, clinico):
+def _procesar_quickdash_post(request, paciente, ciclo, clinico):
     from .models import EvaluacionQuickDASH
     from .quickdash_data import CAMPOS_QUICKDASH
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'quickdash', paciente.rut)
 
     try:
         datos = {}
@@ -1259,6 +1398,7 @@ def _procesar_quickdash_post(request, paciente, clinico):
             datos[campo] = int(valor)
 
         evaluacion = EvaluacionQuickDASH.objects.create(
+            ciclo=ciclo,
             paciente=paciente,
             clinico=clinico,
             notas_clinicas=request.POST.get('notas_clinicas', ''),
@@ -1299,10 +1439,17 @@ def renderizar_cuestionario_womac(request):
     if not paciente:
         return HttpResponse('Paciente no encontrado', status=404)
 
-    if request.method == 'POST':
-        return _procesar_womac_post(request, paciente, handler.clinico)
+    ciclo = handler.ciclo
 
-    evaluaciones = EvaluacionWOMAC.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_womac_post(request, paciente, handler.ciclo, handler.clinico)
+
+    evaluaciones = (
+        EvaluacionWOMAC.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionWOMAC.objects.none()
+    )
     from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
     chart_config = obtener_graficos_paciente(paciente).get('womac', {})
     items_flat = []
@@ -1326,12 +1473,16 @@ def renderizar_cuestionario_womac(request):
         'evaluations_count': evaluaciones.count(),
         'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'womac'), ensure_ascii=False),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        **contexto_ciclo_para_template(ciclo, paciente),
     })
 
 
-def _procesar_womac_post(request, paciente, clinico):
+def _procesar_womac_post(request, paciente, ciclo, clinico):
     from .models import EvaluacionWOMAC
     from .womac_data import WOMAC_TOTAL_ITEMS
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'womac', paciente.rut)
 
     try:
         respuestas = []
@@ -1346,6 +1497,7 @@ def _procesar_womac_post(request, paciente, clinico):
             respuestas.append(v)
 
         evaluacion = EvaluacionWOMAC.objects.create(
+            ciclo=ciclo,
             paciente=paciente,
             clinico=clinico,
             respuestas=respuestas,

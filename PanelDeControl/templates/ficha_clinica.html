@@ -246,6 +246,12 @@
                 <div class="hl">Fecha de emisión</div>
                 <div class="hv">{% now "d/m/Y H:i" %}</div>
             </div>
+            {% if ciclo %}
+            <div>
+                <div class="hl">Ciclo clínico</div>
+                <div class="hv">#{{ ciclo.numero_ciclo }} — {{ ciclo.get_estado_display }}{% if ciclo.fecha_inicio %} (desde {{ ciclo.fecha_inicio|date:"d/m/Y" }}){% endif %}</div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -298,7 +304,7 @@
 <div class="card">
     <div class="card-head bg-purple" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
         <span><i class='bx bx-conversation'></i> 3. Anamnesis</span>
-        <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" style="font-size:11px;color:#fff;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">
+        <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}{% if ciclo %}&ciclo_id={{ ciclo.id }}{% endif %}" style="font-size:11px;color:#fff;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:6px;text-decoration:none;white-space:nowrap">
             <i class='bx bx-edit'></i> Editar
         </a>
     </div>

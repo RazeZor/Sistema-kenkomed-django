@@ -1,0 +1,98 @@
+{% if ciclo and tratamiento_ux %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="border-b border-gray-100 px-4 sm:px-6 py-4 space-y-4">
+
+        <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+            <div class="min-w-0 flex-1">
+                <p class="text-xs font-medium text-gray-500 uppercase tracking-wider">Tratamiento kinésico</p>
+                <p class="text-sm text-gray-800 mt-1 font-medium">{{ tratamiento_ux.resumen }}</p>
+                {% if ciclo.fecha_inicio or ciclo.fecha_cierre %}
+                <p class="text-xs text-gray-500 mt-0.5">
+                    {% if ciclo.fecha_inicio %}Inicio {{ ciclo.fecha_inicio|date:"d/m/Y" }}{% endif %}
+                    {% if ciclo.fecha_cierre %} · Cierre {{ ciclo.fecha_cierre|date:"d/m/Y" }}{% endif %}
+                </p>
+                {% endif %}
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                {% if ciclo_solo_lectura %}
+                <span class="px-2.5 py-1 text-xs rounded-full bg-gray-100 text-gray-600 border border-gray-200">Solo lectura</span>
+                {% endif %}
+                {% if ciclos_historial|length > 1 %}
+                <form method="get" action="{% url 'sesiones_kinesicas:listar' %}" class="flex items-center gap-2">
+                    <input type="hidden" name="rut" value="{{ paciente.rut }}">
+                    <label for="selectorTratamiento" class="text-xs text-gray-500 whitespace-nowrap">Ver tratamiento:</label>
+                    <select id="selectorTratamiento" name="ciclo_id"
+                            class="text-sm border border-gray-200 rounded-lg px-2 py-1.5 bg-gray-50 focus:ring-medical-blue focus:border-medical-blue"
+                            onchange="this.form.submit()">
+                        {% for c in ciclos_historial %}
+                        <option value="{{ c.id }}" {% if c.id == ciclo.id %}selected{% endif %}>
+                            #{{ c.numero_ciclo }} — {{ c.get_estado_display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
+                <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}"
+                   class="btn btn-outline btn-sm">
+                    <i class='bx bx-arrow-back'></i> Historial clínico
+                </a>
+            </div>
+        </div>
+
+        <!-- Stepper -->
+        <div class="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+            {% with s=tratamiento_ux.stepper %}
+            <div class="flex items-center gap-1.5 min-w-0 {% if s.inicial == 'current' %}text-medical-blue font-semibold{% elif s.inicial == 'done' %}text-gray-700{% else %}text-gray-400{% endif %}">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] border shrink-0
+                    {% if s.inicial == 'done' %}bg-medical-blue text-white border-medical-blue
+                    {% elif s.inicial == 'current' %}border-medical-blue bg-medical-blue/10
+                    {% else %}border-gray-200{% endif %}">1</span>
+                <span class="truncate hidden sm:inline">Evaluación inicial</span>
+            </div>
+            <span class="text-gray-300 shrink-0">→</span>
+            <div class="flex items-center gap-1.5 min-w-0 {% if s.seguimiento == 'current' %}text-medical-blue font-semibold{% elif s.seguimiento == 'done' %}text-gray-700{% else %}text-gray-400{% endif %}">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] border shrink-0
+                    {% if s.seguimiento == 'done' %}bg-medical-blue text-white border-medical-blue
+                    {% elif s.seguimiento == 'current' %}border-medical-blue bg-medical-blue/10
+                    {% else %}border-gray-200{% endif %}">2</span>
+                <span class="truncate hidden sm:inline">Seguimiento</span>
+            </div>
+            <span class="text-gray-300 shrink-0">→</span>
+            <div class="flex items-center gap-1.5 min-w-0 {% if s.alta == 'current' %}text-medical-blue font-semibold{% elif s.alta == 'done' %}text-gray-700{% else %}text-gray-400{% endif %}">
+                <span class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] border shrink-0
+                    {% if s.alta == 'done' %}bg-medical-blue text-white border-medical-blue
+                    {% elif s.alta == 'current' %}border-medical-blue bg-medical-blue/10
+                    {% else %}border-gray-200{% endif %}">3</span>
+                <span class="truncate hidden sm:inline">Alta</span>
+            </div>
+            {% endwith %}
+        </div>
+
+        <p class="text-sm text-gray-600">{{ tratamiento_ux.mensaje_guia }}</p>
+    </div>
+
+    {% if mostrar_ctas and not ciclo_solo_lectura %}
+    <div class="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
+        {% if tratamiento_ux.cta_primario %}
+        <a href="{{ tratamiento_ux.cta_primario.url }}" class="btn btn-primary btn-sm">
+            <i class='bx {{ tratamiento_ux.cta_primario.icon }}'></i> {{ tratamiento_ux.cta_primario.label }}
+        </a>
+        {% endif %}
+        {% if tratamiento_ux.cta_secundario %}
+        <a href="{{ tratamiento_ux.cta_secundario.url }}"
+           class="btn btn-outline btn-sm"
+           {% if tratamiento_ux.cta_secundario.confirm %}data-confirm="{{ tratamiento_ux.cta_secundario.confirm }}"{% endif %}>
+            <i class='bx {{ tratamiento_ux.cta_secundario.icon }}'></i> {{ tratamiento_ux.cta_secundario.label }}
+        </a>
+        {% endif %}
+        {% if ultima_sesion and tratamiento_ux.fase == 'en_tratamiento' %}
+        <a href="{% url 'sesiones_kinesicas:ver' %}?rut={{ paciente.rut }}&numero_sesion={{ ultima_sesion.numero_sesion }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}"
+           class="btn btn-outline btn-sm">
+            <i class='bx bx-show'></i> Última sesión (#{{ ultima_sesion.numero_sesion }})
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}

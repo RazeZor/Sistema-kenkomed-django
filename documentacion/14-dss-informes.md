@@ -2,13 +2,21 @@
 
 ## Sistema de Soporte a Decisiones (DSS)
 
-El DSS analiza la **anamnesis inicial** (`formularioClinico`) y genera alertas y recomendaciones clínicas automáticas en:
+El DSS analiza la **anamnesis del ciclo clínico activo o seleccionado** (`formularioClinico` vinculado a `CicloClinico`) y genera alertas y recomendaciones clínicas automáticas en:
 
 - **Informe DSS** (`/informe/?rut=`)
 - **Ficha clínica profesional** (`/ficha-clinica/?rut=`)
 - **Resumen en panel** (`/panel/fichaPacientes/?rut=`)
 
 La lógica vive principalmente en `PanelDeControl/views.py` y `PanelDeControl/views_informe.py`.
+
+### Alcance por ciclo
+
+`RenderInforme` y `RenderFichaClinica` resuelven el ciclo con `obtener_ciclo_desde_request()` y leen la anamnesis via `formulario_del_ciclo(ciclo)`. El informe refleja el episodio indicado en `?ciclo_id=`; sin parámetro, usa el ciclo activo del centro.
+
+Los ciclos **finalizados o abandonados** son solo lectura: no se puede editar la anamnesis que alimenta el DSS, pero sí consultar e imprimir el informe histórico.
+
+Ver [16-ciclos-clinicos.md](16-ciclos-clinicos.md).
 
 ---
 

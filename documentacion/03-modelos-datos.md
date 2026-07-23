@@ -4,12 +4,12 @@
 
 ```
 Clinica ──┬── MembresiaClinica ── Clinico
-          ├── Paciente ──┬── formularioClinico (1:1)
-          │              ├── Notas (1:1)
-          │              ├── CuestionarioPSFS, Groc, EQ-5D, Barthel, Screening, ENA (1:1)
-          │              ├── RecetaMedica (1:1)
-          │              ├── SesionKinesica (1:N)
-          │              ├── EvaluacionOswestry, EvaluacionLEFS (1:N)
+          ├── Paciente ──┬── CicloClinico (1:N) ──┬── formularioClinico (1:1 por ciclo)
+          │              │                       ├── CuestionarioPSFS, Groc, EQ-5D, Barthel, Screening, ENA (1:1)
+          │              │                       ├── SesionKinesica (1:N)
+          │              │                       └── EvaluacionOswestry, LEFS, QuickDASH, WOMAC (1:N)
+          │              ├── Notas (1:1)          ← global al paciente
+          │              ├── RecetaMedica (1:1)   ← global al paciente
           │              ├── Reserva (1:N)
           │              ├── ConsentimientoDatos (1:N)
           │              └── AuditoriaAcceso (1:N)
@@ -48,9 +48,26 @@ Clinica ──┬── MembresiaClinica ── Clinico
 
 ---
 
+## ciclos_clinicos — CicloClinico
+
+Episodio de tratamiento kinésico. Ver doc completa: [16-ciclos-clinicos.md](16-ciclos-clinicos.md).
+
+| Campo | Notas |
+|-------|-------|
+| `paciente`, `clinica` | FK — alcance por centro |
+| `clinico_responsable` | FK nullable |
+| `numero_ciclo` | Secuencial por `(paciente, clínica)` |
+| `estado` | `activo`, `finalizado`, `abandonado` |
+| `motivo_consulta`, `notas_cierre` | Texto |
+| `fecha_inicio`, `fecha_cierre` | DateTime |
+
+**Restricción:** un solo ciclo `activo` por `(paciente, clinica)`.
+
+---
+
 ## Login — formularioClinico (anamnesis DSS)
 
-OneToOne con `Paciente`. Contiene decenas de campos de anamnesis:
+OneToOne con `CicloClinico` (y FK legacy a `Paciente`). Contiene decenas de campos de anamnesis:
 
 - Datos demográficos extendidos, dolor (ubicación, intensidad, características JSON).
 - Cuestionarios integrados: semáforo, creencias, apoyo, EVPER, sustancias, sueño, etc.
@@ -70,7 +87,7 @@ OneToOne con `Paciente`. Contiene decenas de campos de anamnesis:
 
 ---
 
-## Login — Cuestionarios (modelos legacy, 1:1 con Paciente)
+## Login — Cuestionarios (1:1 con CicloClinico)
 
 | Modelo | Contenido principal |
 |--------|---------------------|
@@ -170,8 +187,8 @@ Métodos: `crear_token()`, `is_valid()`, `marcar_como_usado()`, `desactivar()`.
 
 | Campo | Notas |
 |-------|-------|
-| `paciente`, `clinico` | FK |
-| `numero_sesion` | unique con paciente |
+| `paciente`, `clinico`, `ciclo` | FK — `ciclo` obligatorio |
+| `numero_sesion` | unique con `ciclo` (se reinicia en cada ciclo) |
 | `es_primera_sesion` | Evaluación inicial completa en JSON |
 | `es_sesion_final` | Alta con diagnóstico, resumen, recomendaciones |
 | `evaluacion_inicial` | JSONField (anamnesis kinésica detallada) |

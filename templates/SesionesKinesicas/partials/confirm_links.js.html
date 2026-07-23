@@ -1,0 +1,20 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-confirm]').forEach(function(el) {
+        el.addEventListener('click', function(e) {
+            var msg = el.getAttribute('data-confirm');
+            if (msg && !window.confirm(msg)) {
+                e.preventDefault();
+            }
+        });
+    });
+    document.querySelectorAll('form[data-confirm-submit]').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            var msg = form.getAttribute('data-confirm-submit');
+            if (msg && !window.confirm(msg)) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>

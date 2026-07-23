@@ -1,13 +1,13 @@
 {% if escalas %}
 {% if not bare %}
-<div class="{% if full_width %}sm:col-span-2 {% endif %}bg-purple-50/60 p-4 rounded-xl border border-purple-100">
-    <h4 class="text-xs uppercase font-bold tracking-wider text-purple-700 mb-3 flex items-center gap-2">
-        <i class='bx bx-bar-chart-alt-2'></i> Escalas aplicadas
+<div class="{% if full_width %}sm:col-span-2 {% endif %}bg-gray-50 p-4 rounded-xl border border-gray-100">
+    <h4 class="text-xs uppercase font-medium tracking-wider text-gray-500 mb-3 flex items-center gap-2">
+        <i class='bx bx-bar-chart-alt-2 text-medical-blue'></i> Escalas aplicadas
     </h4>
 {% endif %}
     <ul class="space-y-2">
         {% for escala in escalas %}
-        <li class="text-sm bg-white/80 rounded-lg px-3 py-2 border border-purple-100/80">
+        <li class="text-sm bg-white rounded-lg px-3 py-2 border border-gray-100">
             <div class="min-w-0">
                 <span class="font-semibold text-gray-800">{{ escala.get_tipo_escala_display }}</span>
                 <p class="text-gray-600 text-xs mt-0.5">{{ escala.resumen }}</p>

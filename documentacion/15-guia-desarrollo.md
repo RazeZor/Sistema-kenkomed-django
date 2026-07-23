@@ -63,6 +63,7 @@ Migraciones recientes importantes:
 - `Login.0068` — Auditoría ampliada
 - `Login.0069` — Acciones auditoría sistema completo
 - `FormularioInicial.0004` — ConsentimientoDatos
+- `ciclos_clinicos.0001`–`0003` — CicloClinico, backfill legacy, sesiones NOT NULL
 
 ---
 
@@ -113,6 +114,7 @@ Apps con `tests.py`: varias tienen plantillas vacías o mínimas — ampliar seg
 - Acciones sobre datos sensibles: llamar `registrar_auditoria`.
 - JSON en modelos legacy: validar con `json.loads` y manejar strings vacíos.
 - PSFS: usar siempre `psfs_utils` — no manipular JSONField manualmente con `json.dumps` en campos ya JSON.
+- **Ciclos clínicos:** en vistas que lean o escriban datos episódicos (anamnesis, cuestionarios, sesiones, informes), resolver el ciclo con `obtener_ciclo_desde_request()` y pasarlo a servicios/helpers. No consultar `formularioClinico.objects.get(paciente=...)` ni filtrar sesiones solo por paciente. Propagar `ciclo_id` en URLs con `contexto_ciclo_para_template()` o `querystring_ciclo()`. Antes de escrituras, llamar `asegurar_ciclo_editable(ciclo)`.
 
 ---
 

@@ -88,19 +88,31 @@ def aplicar_valores_a_formulario(form, valores, clinico=None):
     return form
 
 
-def guardar_anamnesis_desde_post(request, paciente, clinico):
-    """Crea o actualiza la anamnesis del paciente. Retorna (formulario, es_edicion)."""
+def guardar_anamnesis_desde_post(request, paciente, clinico, ciclo=None):
+    """Crea o actualiza la anamnesis del ciclo. Retorna (formulario, es_edicion)."""
     from Login.models import formularioClinico
+    from ciclos_clinicos.clinical_data import formulario_del_ciclo
+    from ciclos_clinicos.services import asegurar_ciclo_editable, obtener_ciclo_desde_request
+
+    if ciclo is None:
+        ciclo = obtener_ciclo_desde_request(
+            request, paciente, crear_si_ausente=True, clinico=clinico,
+        )
+    if not ciclo:
+        raise ValueError('No hay ciclo clínico activo para guardar la anamnesis.')
+    asegurar_ciclo_editable(ciclo)
 
     valores = valores_anamnesis_desde_post(request)
-    try:
-        form = formularioClinico.objects.get(paciente=paciente)
+    form = formulario_del_ciclo(ciclo)
+    if form:
         aplicar_valores_a_formulario(form, valores, clinico=clinico)
+        if not form.paciente_id:
+            form.paciente = paciente
+            form.save(update_fields=['paciente'])
         return form, True
-    except formularioClinico.DoesNotExist:
-        form = formularioClinico(paciente=paciente, clinico=clinico, **valores)
-        form.save()
-        return form, False
+    form = formularioClinico(paciente=paciente, ciclo=ciclo, clinico=clinico, **valores)
+    form.save()
+    return form, False
 
 
 def _scalar_json_field(value):

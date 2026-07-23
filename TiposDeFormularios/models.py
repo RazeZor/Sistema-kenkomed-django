@@ -11,6 +11,11 @@ class EvaluacionLEFS(models.Model):
     """
     
     paciente = models.ForeignKey('Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_lefs')
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_lefs',
+    )
     clinico = models.ForeignKey('Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_lefs')
     fecha_evaluacion = models.DateTimeField(auto_now_add=True)
     
@@ -184,6 +189,11 @@ class EvaluacionOswestry(models.Model):
     """
     
     paciente = models.ForeignKey('Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_oswestry')
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_oswestry',
+    )
     clinico = models.ForeignKey('Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_oswestry')
     fecha_evaluacion = models.DateTimeField(auto_now_add=True)
     
@@ -319,6 +329,11 @@ class EvaluacionQuickDASH(models.Model):
     paciente = models.ForeignKey(
         'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_quickdash',
     )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_quickdash',
+    )
     clinico = models.ForeignKey(
         'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_quickdash',
     )
@@ -384,6 +399,11 @@ class EvaluacionWOMAC(models.Model):
 
     paciente = models.ForeignKey(
         'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_womac',
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_womac',
     )
     clinico = models.ForeignKey(
         'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_womac',

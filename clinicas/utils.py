@@ -99,6 +99,19 @@ def obtener_paciente_por_rut(request, rut, tipo_documento=None, pais_documento=N
     return None
 
 
+def obtener_clinico_de_sesion(request):
+    """Devuelve el Clinico autenticado en sesión o None."""
+    from Login.models import Clinico
+
+    rut_clinico = request.session.get('rut_clinico')
+    if rut_clinico:
+        return Clinico.objects.filter(rut=rut_clinico).first()
+    nombre = request.session.get('nombre_clinico')
+    if nombre:
+        return Clinico.objects.filter(nombre=nombre).first()
+    return None
+
+
 def obtener_clinicos_de_sesion(request):
     from clinicas.models import MembresiaClinica
 

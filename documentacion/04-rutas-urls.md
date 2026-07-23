@@ -26,11 +26,24 @@ Prefijo de producción: `https://software.kenkomed.cl`
 
 ---
 
+## Ciclos clínicos (`/ciclos/`)
+
+| Ruta | Método | Nombre | Descripción |
+|------|--------|--------|-------------|
+| `/ciclos/iniciar/` | POST | `ciclos_clinicos:iniciar` | Nuevo ciclo (`rut`, `motivo_consulta`) |
+| `/ciclos/finalizar/` | POST | `ciclos_clinicos:finalizar` | Cierre normal (`rut`, `ciclo_id`, `notas_cierre`) |
+| `/ciclos/abandonar/` | POST | `ciclos_clinicos:abandonar` | Abandono (`rut`, `ciclo_id`, `motivo`) |
+| `/ciclos/paciente/` | GET | `ciclos_clinicos:listar` | JSON de ciclos del paciente (`?rut=`) |
+
+**Parámetro transversal:** `ciclo_id=<pk>` en query string (junto con `rut=`) para historial, cuestionarios, sesiones, informes y exportación ARCO. Si se omite, se usa el ciclo activo del centro o el guardado en sesión (`ciclo_activo_id`).
+
+---
+
 ## Historial e informes
 
 | Ruta | Nombre | Vista |
 |------|--------|-------|
-| `/panel/historialClinico/` | `historialClinico` | Hub clínico del paciente |
+| `/panel/historialClinico/` | `historialClinico` | Hub clínico del paciente (`?rut=&ciclo_id=`) |
 | `/panel/fichaPacientes/` | `ficha` | Resumen DSS del paciente |
 | `/informe/` | `informe` | Informe DSS imprimible (`?rut=`) |
 | `/ficha-clinica/` | `fichaClinica` | Ficha profesional completa |
@@ -65,7 +78,7 @@ Prefijo de producción: `https://software.kenkomed.cl`
 | `/CuestionarioOswestry/` | `oswestry` | ODI (lumbalgia) |
 | `/CuestionarioLEFS/` | `lefs` | LEFS (extremidad inferior) |
 
-Todas aceptan `?rut=` del paciente.
+Todas aceptan `?rut=` del paciente y `?ciclo_id=` del episodio.
 
 ---
 

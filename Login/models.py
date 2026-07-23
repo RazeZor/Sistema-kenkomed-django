@@ -149,10 +149,21 @@ class Reserva(models.Model):
 #.BooleanField : recibe respuesta boolean true or false 
 
 class formularioClinico(models.Model):
-    #ejecuto las tablas foraneas el cual 1 formulario es de 1 paciente 
-    #y asegura que ese clinico realizo ese formulario 
-    id= models.AutoField(primary_key=True,unique=True)
-    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, related_name='formulario')
+    id = models.AutoField(primary_key=True, unique=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='formulario',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        'Paciente',
+        on_delete=models.CASCADE,
+        related_name='formularios_clinicos',
+        null=True,
+        blank=True,
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='formularios')
     fechaCreacion = models.DateTimeField(auto_now_add=True) 
     medicamentos = models.JSONField(null=True,blank=True) #listo
@@ -240,7 +251,18 @@ class Notas(models.Model):
         return f'Notas de {self.paciente.nombre} {self.paciente.apellido}'
       
 class CuestionarioPSFS(models.Model):
-    paciente = models.OneToOneField(Paciente, on_delete=models.CASCADE, primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='psfs',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.CASCADE, related_name='cuestionarios_psfs',
+        null=True, blank=True,
+    )
     fecha_creacion = models.DateField()
     actividad_1 = models.TextField(null=True, blank=True)
     actividad_2 = models.TextField(null=True, blank=True)
@@ -252,13 +274,35 @@ class CuestionarioPSFS(models.Model):
     NotaCuestionarioPSFS=models.TextField(null=True,blank=True)
     
 class Groc(models.Model):
-    paciente = models.OneToOneField(Paciente,on_delete=models.CASCADE,primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='groc',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.CASCADE, related_name='cuestionarios_groc',
+        null=True, blank=True,
+    )
     fecha_creacion = models.DateField()
     puntajeGroc = models.JSONField(null=True,blank=True)
     NotaGroc = models.TextField(null=True,blank=True)
     
 class CuestionarioEQ_5D(models.Model):
-    paciente = models.OneToOneField(Paciente, on_delete=models.CASCADE, primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='eq5d',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        Paciente, on_delete=models.CASCADE, related_name='cuestionarios_eq5d',
+        null=True, blank=True,
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='CuestionarioEQ_5D')
 
     # Preguntas (Texto)
@@ -338,7 +382,18 @@ class CuestionarioBarthel(models.Model):
         (0, "Dependiente"),
     ]
 
-    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='barthel',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        'Paciente', on_delete=models.CASCADE, related_name='cuestionarios_barthel',
+        null=True, blank=True,
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_barthel')
     fecha_creacion = models.DateField(auto_now_add=True)
 
@@ -365,7 +420,18 @@ class CuestionarioBarthel(models.Model):
         return f"Barthel de {self.paciente.nombre}"
 
 class CuestionarioScrenning(models.Model):
-    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='screening',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        'Paciente', on_delete=models.CASCADE, related_name='cuestionarios_screnning',
+        null=True, blank=True,
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_screnning')
     fecha_creacion = models.DateField(auto_now_add=True)
     IntensidadDolor = models.JSONField(null=True, blank=True)
@@ -378,7 +444,18 @@ class CuestionarioScrenning(models.Model):
         return f"Screnning de {self.paciente.nombre}"
 
 class CuestionarioEvaluacionENA(models.Model):
-    paciente = models.OneToOneField('Paciente', on_delete=models.CASCADE, primary_key=True)
+    id = models.BigAutoField(primary_key=True)
+    ciclo = models.OneToOneField(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='ena',
+        null=True,
+        blank=True,
+    )
+    paciente = models.ForeignKey(
+        'Paciente', on_delete=models.CASCADE, related_name='cuestionarios_evaluacion_ena',
+        null=True, blank=True,
+    )
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='cuestionarios_evaluacion_ena')
     fecha_creacion = models.DateField(auto_now_add=True)
     puntaje_obtenido_sesion = models.JSONField(null=True,blank=True)
@@ -440,6 +517,9 @@ class AuditoriaAcceso(models.Model):
         ('edicion_anamnesis', 'Registró o editó anamnesis DSS'),
         ('formulario_qr_enviado', 'Paciente envió anamnesis vía formulario QR'),
         ('consulta_formulario_inicial', 'Accedió al formulario de anamnesis DSS'),
+        ('inicio_ciclo_clinico', 'Inició nuevo ciclo clínico'),
+        ('cierre_ciclo_clinico', 'Cerró ciclo clínico'),
+        ('consulta_ciclo_historico', 'Consultó historial de ciclos clínicos'),
     ]
 
     paciente = models.ForeignKey(

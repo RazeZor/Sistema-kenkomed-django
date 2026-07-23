@@ -1,0 +1,17 @@
+{% if paquetes_escalas and not ciclo_solo_lectura %}
+<div id="escalas-clinicas" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="border-b border-gray-100 px-5 py-3 bg-gray-50">
+        <h3 class="text-sm font-semibold text-gray-800 flex items-center gap-2">
+            <i class='bx bx-bar-chart-alt-2 text-medical-blue'></i> Escalas clínicas
+        </h3>
+        {% if numero_sesion %}
+        <p class="text-xs text-gray-500 mt-1">Se vincularán a la sesión #{{ numero_sesion }} de este tratamiento.</p>
+        {% else %}
+        <p class="text-xs text-gray-500 mt-1">Abra una sesión para aplicar escalas vinculadas a la atención de hoy.</p>
+        {% endif %}
+    </div>
+    <div class="p-3">
+        {% include 'SesionesKinesicas/partials/paquetes_escalas_aplicar.html' with paquetes_escalas=paquetes_escalas prefix=prefix|default:'escalas' compact=True only %}
+    </div>
+</div>
+{% endif %}

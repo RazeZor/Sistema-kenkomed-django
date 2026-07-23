@@ -44,6 +44,21 @@
 
     <!-- Si se encontró paciente, mostramos los datos -->
     {% if paciente %}
+    {% if ciclos_historial|length > 1 %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <form method="get" action="{% url 'estadisticas_paciente' %}" class="flex flex-wrap items-center gap-3">
+            <input type="hidden" name="rut" value="{{ paciente.rut }}">
+            <label for="selectorCicloStats" class="text-sm text-gray-600">Ciclo clínico:</label>
+            <select id="selectorCicloStats" name="ciclo_id" class="text-sm border border-gray-200 rounded-lg px-2 py-1.5" onchange="this.form.submit()">
+                {% for c in ciclos_historial %}
+                <option value="{{ c.id }}" {% if ciclo and c.id == ciclo.id %}selected{% endif %}>
+                    #{{ c.numero_ciclo }} — {{ c.get_estado_display }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+    {% endif %}
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
         <div class="border-b border-gray-100 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div class="flex items-center gap-2">
@@ -55,6 +70,12 @@
             </div>
             
             <div class="flex gap-4">
+                {% if ciclo %}
+                <div class="text-right">
+                    <span class="block text-xs text-gray-500 uppercase tracking-wider font-semibold">Ciclo</span>
+                    <span class="text-sm font-medium text-gray-900">#{{ ciclo.numero_ciclo }} — {{ ciclo.get_estado_display }}</span>
+                </div>
+                {% endif %}
                 <div class="text-right">
                     <span class="block text-xs text-gray-500 uppercase tracking-wider font-semibold">Total Sesiones</span>
                     <span class="text-lg font-bold text-gray-900">{{ total_sesiones }}</span>

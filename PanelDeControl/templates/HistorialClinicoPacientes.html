@@ -36,6 +36,54 @@
         {% endif %}
     </div>
 
+    {% if paciente %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <i class='bx bx-revision text-medical-blue'></i>
+                    Tratamiento kinésico
+                </h2>
+                {% if ciclo %}
+                <p class="text-sm text-gray-600 mt-1">
+                    <span class="font-medium">#{{ ciclo.numero_ciclo }}</span> — {{ ciclo.get_estado_display }}
+                    {% if ciclo.fecha_inicio %} · Inicio {{ ciclo.fecha_inicio|date:"d/m/Y" }}{% endif %}
+                    {% if ciclo_solo_lectura %}
+                    <span class="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600 border">Solo lectura</span>
+                    {% endif %}
+                </p>
+                {% else %}
+                <p class="text-sm text-amber-700 mt-1">Sin ciclo activo. Inicie un nuevo tratamiento para registrar datos clínicos.</p>
+                {% endif %}
+            </div>
+            <div class="flex flex-wrap gap-2 items-center">
+                {% if ciclos_historial|length > 1 %}
+                <form method="get" action="{% url 'historialClinico' %}" class="flex items-center gap-2">
+                    <input type="hidden" name="rut" value="{{ paciente.rut }}">
+                    <label for="selectorCiclo" class="text-xs text-gray-500">Ver tratamiento:</label>
+                    <select id="selectorCiclo" name="ciclo_id" class="text-sm border border-gray-200 rounded-lg px-2 py-1.5" onchange="this.form.submit()">
+                        {% for c in ciclos_historial %}
+                        <option value="{{ c.id }}" {% if ciclo and c.id == ciclo.id %}selected{% endif %}>
+                            #{{ c.numero_ciclo }} — {{ c.get_estado_display }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+                {% endif %}
+                {% if puede_iniciar_ciclo %}
+                <form method="post" action="{% url 'ciclos_clinicos:iniciar' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="rut" value="{{ paciente.rut }}">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class='bx bx-plus-circle'></i> Iniciar nuevo tratamiento
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Columna Izquierda: Información del Paciente -->
         <div class="lg:col-span-2 space-y-6">
@@ -163,7 +211,7 @@
 
         <!-- Columna Derecha: Acciones Rápidas -->
         <div class="space-y-6">
-            {% if paciente and not paciente.formulario %}
+            {% if paciente and not tiene_anamnesis_ciclo and ciclo and not ciclo_solo_lectura %}
             <!-- Tarjeta de Evaluación Opcional -->
             <div class="bg-amber-50 rounded-xl p-6 border border-amber-200 text-center shadow-sm relative overflow-hidden group">
                 <div class="absolute -right-6 -top-6 w-24 h-24 bg-amber-500 rounded-full opacity-10 group-hover:scale-110 transition-transform"></div>
@@ -173,7 +221,7 @@
                 <h3 class="text-lg font-bold text-amber-800 mb-2 relative z-10">Evaluación Inicial (Opcional)</h3>
                 <p class="text-amber-700 text-sm mb-4 relative z-10 font-medium">Puede contestar la anamnesis para habilitar el Informe Inteligente con DSS, o saltarla y proceder con las sesiones.</p>
                 <div class="space-y-2 relative z-10">
-                    <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="btn btn-warning btn-block">
+                    <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-warning btn-block">
                         <i class='bx bx-edit text-xl'></i> Completar aquí (presencial)
                     </a>
                     <form method="POST" action="{% url 'generar_formulario_remoto' %}" class="w-full">
@@ -205,100 +253,116 @@
                     <hr class="border-gray-100">
                     
                     <div class="space-y-3">
-                        {% if paciente.formulario %}
-                        <a href="{% url 'informe' %}?rut={{ paciente.rut }}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                        {% if tiene_anamnesis_ciclo %}
+                        <a href="{% url 'informe' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
                             <i class='bx bx-file-medical text-lg'></i> Informe DSS (Anamnesis)
                         </a>
-                        <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm">
+                        {% if not ciclo_solo_lectura %}
+                        <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm">
                             <i class='bx bx-edit text-lg'></i> Editar Anamnesis
                         </a>
+                        {% endif %}
                         {% else %}
                         <button type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed shadow-sm" title="Requiere completar la Evaluación Inicial">
                             <i class='bx bx-file-medical text-lg'></i> Informe DSS (Bloqueado)
                         </button>
                         {% endif %}
                         
-                        <a href="{% url 'fichaClinica' %}?rut={{ paciente.rut }}" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-sm">
+                        <a href="{% url 'fichaClinica' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition-all shadow-sm">
                             <i class='bx bx-file text-lg'></i> Ficha Clínica Profesional
                         </a>
 
                         <div class="grid grid-cols-2 gap-2">
-                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=json" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Portabilidad ARCO (JSON)">
+                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=json{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Portabilidad ARCO (JSON)">
                                 <i class='bx bx-download'></i> Exportar JSON
                             </a>
-                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=html" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Ficha imprimible (HTML)">
+                            <a href="{% url 'exportar_ficha' %}?rut={{ paciente.rut }}&format=html{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="flex items-center justify-center gap-1 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50" title="Ficha imprimible (HTML)">
                                 <i class='bx bx-printer'></i> Exportar HTML
                             </a>
                         </div>
                     </div>
 
-                    <!-- Sesiones Kinésicas - Card Mejorada -->
+                    <!-- Sesiones kinésicas -->
                     <div id="sesionesKinesicasCard" class="mt-6 rounded-xl overflow-hidden shadow-sm border border-gray-100" style="display: none;">
-                        <!-- Header con color médico -->
-                        <div class="bg-gradient-to-r from-medical-blue to-medical-blue-light px-6 py-4 flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                                <i class='bx bx-dumbbell text-lg text-white'></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="font-semibold text-white text-sm">Sesiones Kinésicas</h3>
-                                <p class="text-xs text-white/80">Gestión de sesiones de tratamiento</p>
-                            </div>
-                            <div>
-                                <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/20 text-white">
+                        <div class="border-b border-gray-100 px-6 py-4 bg-gray-50">
+                            <div class="flex items-center justify-between gap-3">
+                                <div>
+                                    <h3 class="font-semibold text-gray-800 text-sm">Sesiones kinésicas</h3>
+                                    <p class="text-xs text-gray-500 mt-0.5">Tratamiento y seguimiento del paciente</p>
+                                </div>
+                                <span class="inline-block px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
                                     <span id="sesionesCount">0</span> sesiones
                                 </span>
                             </div>
                         </div>
 
-                        <!-- Contenido -->
-                        <div class="bg-white p-6 space-y-4">
+                        <div class="bg-white p-6 space-y-3">
 
-                            <!-- Selector de sesiones (solo referencial para saber si hay, pero oculto para el usuario para evitar doble navegación) -->
-                            {% with sesiones=paciente.sesiones_kinesicas.all %}
+                            {% if tratamiento_ux %}
+                            <p class="text-sm text-gray-600">{{ tratamiento_ux.mensaje_guia }}</p>
+                            {% endif %}
+
+                            {% with sesiones=sesiones_ciclo %}
                             <div id="sesionesSelector" style="display: none;">
                                 <select id="comboSesionesKinesicas">
                                     <option value="">-- Selecciona una sesión --</option>
                                     {% for sesion in sesiones %}
-                                        <option value="{{ sesion.numero_sesion }}">
-                                            {{ sesion }}
-                                        </option>
+                                        <option value="{{ sesion.numero_sesion }}">{{ sesion }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             {% endwith %}
 
-                            <!-- Botones de acción directos -->
-                            <div class="space-y-3" id="botonesAccion">
-                                <a id="btnPrimeraSesion" href="{% url 'sesiones_kinesicas:crear_primera' %}?rut={{ paciente.rut }}" class="btn btn-primary btn-block" style="display: none;">
-                                    <i class='bx bx-plus-medical text-lg'></i> Comenzar tratamiento
+                            <div class="space-y-2" id="botonesAccion">
+                                {% if tratamiento_ux and tratamiento_ux.cta_primario and not ciclo_solo_lectura %}
+                                <a id="btnPrimario" href="{{ tratamiento_ux.cta_primario.url }}" class="btn btn-primary btn-block">
+                                    <i class='bx {{ tratamiento_ux.cta_primario.icon }} text-lg'></i> {{ tratamiento_ux.cta_primario.label }}
                                 </a>
-                                
-                                <a id="btnNuevaSesion" href="{% url 'sesiones_kinesicas:crear_seguimiento' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-block" style="display: none;">
-                                    <i class='bx bx-plus text-lg'></i> Registrar nueva sesión
+                                {% else %}
+                                <a id="btnPrimeraSesion" href="{% url 'sesiones_kinesicas:crear_primera' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-primary btn-block" style="display: none;">
+                                    <i class='bx bx-plus-medical text-lg'></i> Evaluación inicial
                                 </a>
+                                <a id="btnNuevaSesion" href="{% url 'sesiones_kinesicas:crear_seguimiento' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-primary btn-block" style="display: none;">
+                                    <i class='bx bx-plus text-lg'></i> Registrar sesión de hoy
+                                </a>
+                                {% endif %}
 
-                                <a id="btnSesionFinal" href="{% url 'sesiones_kinesicas:crear_final' %}?rut={{ paciente.rut }}" class="btn btn-success btn-block" style="display: none;">
-                                    <i class='bx bx-check-shield text-lg'></i> Crear sesión final
+                                {% if tratamiento_ux and tratamiento_ux.cta_secundario and not ciclo_solo_lectura %}
+                                <a id="btnSesionFinal" href="{{ tratamiento_ux.cta_secundario.url }}"
+                                   class="btn btn-outline btn-block"
+                                   {% if tratamiento_ux.cta_secundario.confirm %}data-confirm="{{ tratamiento_ux.cta_secundario.confirm }}"{% endif %}>
+                                    <i class='bx {{ tratamiento_ux.cta_secundario.icon }} text-lg'></i> {{ tratamiento_ux.cta_secundario.label }}
                                 </a>
-                                
-                                <a id="btnVerTodas" href="{% url 'sesiones_kinesicas:listar' %}?rut={{ paciente.rut }}" class="btn btn-primary btn-block">
-                                    <i class='bx bx-history text-lg'></i> Ver todo el historial
+                                {% else %}
+                                <a id="btnSesionFinalLegacy" href="{% url 'sesiones_kinesicas:crear_final' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline btn-block" style="display: none;"
+                                   data-confirm="¿Confirma el cierre del tratamiento?&#10;&#10;Se registrará la sesión de alta y este episodio quedará en solo lectura.">
+                                    <i class='bx bx-check text-lg'></i> Cerrar tratamiento (alta)
+                                </a>
+                                {% endif %}
+
+                                {% if ultima_sesion %}
+                                <a href="{% url 'sesiones_kinesicas:ver' %}?rut={{ paciente.rut }}&numero_sesion={{ ultima_sesion.numero_sesion }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}"
+                                   class="btn btn-outline btn-block">
+                                    <i class='bx bx-show text-lg'></i> Ver última sesión (#{{ ultima_sesion.numero_sesion }})
+                                </a>
+                                {% endif %}
+
+                                <a id="btnVerTodas" href="{% url 'sesiones_kinesicas:listar' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline btn-block">
+                                    <i class='bx bx-history text-lg'></i> Ver historial completo
                                 </a>
                             </div>
 
-                            <!-- Info de última sesión -->
-                            <div id="lastSessionInfo" class="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500" style="display: none;">
+                            <div id="lastSessionInfo" class="pt-3 border-t border-gray-100 text-center text-sm text-gray-500" style="display: none;">
                                 <div class="flex items-center gap-2 text-xs text-gray-600 justify-center font-medium bg-gray-50 py-2 rounded-lg border border-gray-100">
                                     <i class='bx bx-calendar text-medical-blue'></i>
                                     <span>Última atención: <strong id="lastSessionDate" class="text-gray-800">--</strong></span>
                                 </div>
                             </div>
 
-                            <!-- Sin sesiones -->
-                            {% with sesiones=paciente.sesiones_kinesicas.all %}
+                            {% with sesiones=sesiones_ciclo %}
                             {% if not sesiones %}
-                            <div id="noSessionsInfo" class="mt-4 pt-4 border-t border-gray-100 text-center text-sm text-gray-500">
-                                <p>Sin sesiones registradas</p>
+                            <div id="noSessionsInfo" class="pt-3 border-t border-gray-100 text-center text-sm text-gray-500">
+                                <p>Sin sesiones registradas en este tratamiento</p>
                             </div>
                             {% endif %}
                             {% endwith %}
@@ -345,52 +409,72 @@
         const comboSesiones = document.getElementById('comboSesionesKinesicas');
         const btnPrimera = document.getElementById('btnPrimeraSesion');
         const btnNueva = document.getElementById('btnNuevaSesion');
-        const btnSesionFinal = document.getElementById('btnSesionFinal');
+        const btnSesionFinal = document.getElementById('btnSesionFinalLegacy');
         const btnVerTodas = document.getElementById('btnVerTodas');
         const sesionesCount = document.getElementById('sesionesCount');
         const lastSessionInfo = document.getElementById('lastSessionInfo');
         const noSessionsInfo = document.getElementById('noSessionsInfo');
         const lastSessionDate = document.getElementById('lastSessionDate');
+        const usaUxBackend = !!document.getElementById('btnPrimario');
 
-        // Extraer sesiones del HTML
         const sesionesOptions = document.querySelectorAll('#comboSesionesKinesicas option');
         const sesionesArray = [];
         sesionesOptions.forEach((opt, index) => {
             if (index > 0) {
-                sesionesArray.push({
-                    numero: opt.value,
-                    texto: opt.textContent
-                });
+                sesionesArray.push({ numero: opt.value, texto: opt.textContent });
             }
         });
         const totalSesiones = sesionesArray.length;
-        sesionesCount.textContent = totalSesiones;
+        if (sesionesCount) sesionesCount.textContent = totalSesiones;
 
-        // Configurar botones
-        if (totalSesiones === 0) {
-            btnPrimera.style.display = 'flex';
-            btnNueva.style.display = 'none';
-            if (btnSesionFinal) btnSesionFinal.style.display = 'none';
-            noSessionsInfo.style.display = 'block';
-            lastSessionInfo.style.display = 'none';
-        } else {
-            btnPrimera.style.display = 'none';
-            btnNueva.style.display = 'flex';
-            if (btnSesionFinal) btnSesionFinal.style.display = 'flex';
-            noSessionsInfo.style.display = 'none';
-            lastSessionInfo.style.display = 'block';
-            
-            // Obtener fecha de última sesión del primer option
-            if (sesionesArray.length > 0) {
-                const lastText = sesionesOptions[1].textContent;
-                const dateMatch = lastText.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-                if (dateMatch) {
-                    lastSessionDate.textContent = dateMatch[1];
+        if (!usaUxBackend) {
+            if (totalSesiones === 0) {
+                if (btnPrimera) btnPrimera.style.display = 'flex';
+                if (btnNueva) btnNueva.style.display = 'none';
+                if (btnSesionFinal) btnSesionFinal.style.display = 'none';
+                if (noSessionsInfo) noSessionsInfo.style.display = 'block';
+                if (lastSessionInfo) lastSessionInfo.style.display = 'none';
+            } else {
+                if (btnPrimera) btnPrimera.style.display = 'none';
+                if (btnNueva) btnNueva.style.display = 'flex';
+                if (btnSesionFinal) btnSesionFinal.style.display = 'flex';
+                if (noSessionsInfo) noSessionsInfo.style.display = 'none';
+                if (lastSessionInfo) lastSessionInfo.style.display = 'block';
+                if (sesionesArray.length > 0 && sesionesOptions[1]) {
+                    const dateMatch = sesionesOptions[1].textContent.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+                    if (dateMatch && lastSessionDate) lastSessionDate.textContent = dateMatch[1];
                 }
             }
+        } else {
+            if (totalSesiones > 0 && lastSessionInfo) {
+                lastSessionInfo.style.display = 'block';
+                if (sesionesOptions[1] && lastSessionDate) {
+                    const dateMatch = sesionesOptions[1].textContent.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+                    if (dateMatch) lastSessionDate.textContent = dateMatch[1];
+                }
+            }
+            if (totalSesiones === 0 && noSessionsInfo) noSessionsInfo.style.display = 'block';
         }
 
-        btnVerTodas.href = "{% url 'sesiones_kinesicas:listar' %}?rut=" + encodeURIComponent(rut);
+        if (btnVerTodas) {
+            btnVerTodas.href = "{% url 'sesiones_kinesicas:listar' %}?rut=" + encodeURIComponent(rut) + "{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}";
+        }
+        if ({{ ciclo_solo_lectura|yesno:'true,false' }}) {
+            if (btnPrimera) btnPrimera.style.display = 'none';
+            if (btnNueva) btnNueva.style.display = 'none';
+            if (btnSesionFinal) btnSesionFinal.style.display = 'none';
+            const btnPrimario = document.getElementById('btnPrimario');
+            const btnFinalUx = document.getElementById('btnSesionFinal');
+            if (btnPrimario) btnPrimario.style.display = 'none';
+            if (btnFinalUx) btnFinalUx.style.display = 'none';
+        }
+
+        document.querySelectorAll('[data-confirm]').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                var msg = el.getAttribute('data-confirm');
+                if (msg && !window.confirm(msg)) e.preventDefault();
+            });
+        });
     }
 
     if (typeof initializeKenkomedUtils === 'function') {

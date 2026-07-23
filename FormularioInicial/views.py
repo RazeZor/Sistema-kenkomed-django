@@ -28,6 +28,31 @@ from Login.identificacion_utils import (
 from FormularioInicial.anamnesis_utils import guardar_anamnesis_desde_post, prefill_desde_formulario
 import json
 import qrcode
+
+
+def _paciente_puede_anamnesis_qr(request, paciente):
+    from ciclos_clinicos.selectors import obtener_ciclo_activo
+    from ciclos_clinicos.clinical_data import tiene_anamnesis_ciclo
+
+    clinica_id = request.session.get('clinica_id') or paciente.clinica_id
+    ciclo = obtener_ciclo_activo(paciente, clinica_id)
+    if ciclo and tiene_anamnesis_ciclo(ciclo):
+        return False
+    return True
+
+
+def _pacientes_elegibles_qr(request):
+    from ciclos_clinicos.selectors import obtener_ciclo_activo
+    from ciclos_clinicos.clinical_data import tiene_anamnesis_ciclo
+
+    clinica_id = request.session.get('clinica_id')
+    elegibles = []
+    for paciente in filtrar_pacientes_por_sesion(request):
+        cid = clinica_id or paciente.clinica_id
+        ciclo = obtener_ciclo_activo(paciente, cid)
+        if ciclo is None or not tiene_anamnesis_ciclo(ciclo):
+            elegibles.append(paciente)
+    return elegibles
 from io import BytesIO
 import base64
 
@@ -211,21 +236,26 @@ def construir_formulario_desde_post(request, paciente, clinico):
     return form
 
 
-def _contexto_anamnesis_paciente(paciente):
+def _contexto_anamnesis_paciente(request, paciente):
     """Contexto extra cuando el clínico abre el formulario con un paciente."""
+    from ciclos_clinicos.services import obtener_ciclo_desde_request, CicloClinicoError, asegurar_ciclo_editable
+    from ciclos_clinicos.context_helpers import contexto_ciclo_para_template
+    from ciclos_clinicos.clinical_data import formulario_del_ciclo
+
     ctx = {
         'paciente_existente': True,
         'paciente': paciente,
         'modo_edicion': False,
     }
     ctx.update(contexto_identificacion_paciente(paciente))
-    try:
-        form = formularioClinico.objects.get(paciente=paciente)
+    clinico, _ = obtener_clinico_desde_sesion(request)
+    ciclo = obtener_ciclo_desde_request(request, paciente, crear_si_ausente=False, clinico=clinico)
+    ctx.update(contexto_ciclo_para_template(ciclo, paciente))
+    form = formulario_del_ciclo(ciclo) if ciclo else None
+    if form:
         ctx['modo_edicion'] = True
         ctx['formulario_existente'] = form
         ctx['anamnesis_prefill'] = prefill_desde_formulario(form)
-    except formularioClinico.DoesNotExist:
-        pass
     return ctx
 
 # --------------------------
@@ -249,7 +279,7 @@ def FormularioInicial(request):
             if rut:
                 paciente_obj = obtener_paciente_por_rut(request, rut)
                 if paciente_obj:
-                    context.update(_contexto_anamnesis_paciente(paciente_obj))
+                    context.update(_contexto_anamnesis_paciente(request, paciente_obj))
                     registrar_auditoria(
                         request, 'consulta_formulario_inicial', paciente_obj,
                         detalle=(
@@ -377,7 +407,7 @@ def FormularioInicial(request):
             except Exception as e:
                 messages.error(request, f'Error al guardar formulario clínico: {e}')
                 if paciente:
-                    context.update(_contexto_anamnesis_paciente(paciente))
+                    context.update(_contexto_anamnesis_paciente(request, paciente))
                 return render(request, 'FormularioInicial.html', context)
 
             if request.POST.get('editar_anamnesis') == 'true' or request.POST.get('paciente_ya_existe') == 'true':
@@ -426,9 +456,8 @@ def generar_token_formulario(request):
                 messages.error(request, 'No tienes permisos para generar formulario para este paciente')
                 return redirect('generar_qr')
             
-            # Verificar que no tenga ya formulario clínico
-            if formularioClinico.objects.filter(paciente=paciente).exists():
-                messages.warning(request, f'{paciente.nombre} {paciente.apellido} ya completó su anamnesis.')
+            if not _paciente_puede_anamnesis_qr(request, paciente):
+                messages.warning(request, f'{paciente.nombre} {paciente.apellido} ya completó la anamnesis del ciclo activo.')
                 return redirect('generar_qr')
             
             # Desactivar tokens anteriores del mismo paciente
@@ -446,7 +475,7 @@ def generar_token_formulario(request):
             return redirect('descargar_qr', token_id=token.id)
         
         # GET: Listar pacientes sin anamnesis y tokens activos
-        pacientes_sin_anamnesis = filtrar_pacientes_por_sesion(request).filter(formulario__isnull=True)
+        pacientes_sin_anamnesis = _pacientes_elegibles_qr(request)
 
         tokens_activos = filtrar_tokens_formulario_por_sesion(request).order_by('-fecha_creacion')[:20]
         
@@ -689,8 +718,8 @@ def generar_token_desde_historial(request):
         messages.error(request, 'Paciente no encontrado')
         return redirect('historialClinico')
     
-    if formularioClinico.objects.filter(paciente=paciente).exists():
-        messages.warning(request, f'{paciente.nombre} ya completó su anamnesis.')
+    if not _paciente_puede_anamnesis_qr(request, paciente):
+        messages.warning(request, f'{paciente.nombre} ya completó la anamnesis del ciclo activo.')
         return redirect(f'/panel/historialClinico/?rut={rut}')
     
     # Desactivar tokens anteriores

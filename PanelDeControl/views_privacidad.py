@@ -55,6 +55,9 @@ def exportar_ficha(request):
     if not paciente:
         return HttpResponseForbidden('No tienes permisos para exportar los datos de este paciente.')
 
+    from ciclos_clinicos.services import obtener_ciclo_desde_request
+    ciclo = obtener_ciclo_desde_request(request, paciente)
+
     rut_limpio = paciente.rut.replace('.', '').replace('-', '')
 
     if formato == 'html':
@@ -72,7 +75,7 @@ def exportar_ficha(request):
         request, 'exportacion_arco_json', paciente,
         detalle=f'Exportación ARCO JSON — paciente {paciente.rut}',
     )
-    contenido = exportar_paciente_json_bytes(paciente)
+    contenido = exportar_paciente_json_bytes(paciente, ciclo=ciclo)
     response = HttpResponse(contenido, content_type='application/json; charset=utf-8')
     response['Content-Disposition'] = f'attachment; filename="ficha_{rut_limpio}.json"'
     return response

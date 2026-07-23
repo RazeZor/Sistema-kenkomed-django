@@ -36,18 +36,22 @@ def _serie_simple(labels, data, label, color, ymin=None, ymax=None):
     return cfg
 
 
-def _psfs(paciente):
+def _psfs(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
         from TiposDeFormularios.psfs_utils import psfs_chart_series
-        raw = psfs_chart_series(CuestionarioPSFS.objects.get(paciente=paciente))
+        raw = psfs_chart_series(CuestionarioPSFS.objects.get(ciclo=ciclo))
         return _serie_simple(raw.get('labels', []), raw.get('data', []), 'PSFS (total)', '#10b981', 0, 10)
     except CuestionarioPSFS.DoesNotExist:
         return _serie_vacia()
 
 
-def _groc(paciente):
+def _groc(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
-        groc = Groc.objects.get(paciente=paciente)
+        groc = Groc.objects.get(ciclo=ciclo)
         raw = groc.puntajeGroc
         if isinstance(raw, str):
             raw = json.loads(raw)
@@ -65,9 +69,11 @@ def _groc(paciente):
         return _serie_vacia()
 
 
-def _ena(paciente):
+def _ena(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
-        ena = CuestionarioEvaluacionENA.objects.get(paciente=paciente)
+        ena = CuestionarioEvaluacionENA.objects.get(ciclo=ciclo)
         raw = ena.estado_por_sesion or []
         if isinstance(raw, str):
             raw = json.loads(raw)
@@ -80,9 +86,11 @@ def _ena(paciente):
         return _serie_vacia()
 
 
-def _eq5d(paciente):
+def _eq5d(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
-        eq = CuestionarioEQ_5D.objects.get(paciente=paciente)
+        eq = CuestionarioEQ_5D.objects.get(ciclo=ciclo)
         vas = eq.vas_score or []
         if not vas:
             return _serie_vacia()
@@ -92,11 +100,12 @@ def _eq5d(paciente):
         return _serie_vacia()
 
 
-def _barthel(paciente):
+def _barthel(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
-        import json as _json
-        b = CuestionarioBarthel.objects.get(paciente=paciente)
-        totals = _json.loads(b.puntaje_total or '[]')
+        b = CuestionarioBarthel.objects.get(ciclo=ciclo)
+        totals = json.loads(b.puntaje_total or '[]')
         if not totals:
             return _serie_vacia()
         labels = [f'S{i + 1}' for i in range(len(totals))]
@@ -105,9 +114,11 @@ def _barthel(paciente):
         return _serie_vacia()
 
 
-def _screening(paciente):
+def _screening(ciclo):
+    if not ciclo:
+        return _serie_vacia()
     try:
-        s = CuestionarioScrenning.objects.get(paciente=paciente)
+        s = CuestionarioScrenning.objects.get(ciclo=ciclo)
         puntajes = s.Puntaje_Sesion
         if isinstance(puntajes, list):
             values = puntajes
@@ -121,9 +132,11 @@ def _screening(paciente):
         return _serie_vacia()
 
 
-def _lefs(paciente):
+def _lefs(ciclo):
     from TiposDeFormularios.models import EvaluacionLEFS
-    qs = EvaluacionLEFS.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionLEFS.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
     if not qs.exists():
         return _serie_vacia()
     labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
@@ -131,9 +144,11 @@ def _lefs(paciente):
     return _serie_simple(labels, data, 'LEFS (puntos)', '#059669', 0, 80)
 
 
-def _oswestry(paciente):
+def _oswestry(ciclo):
     from TiposDeFormularios.models import EvaluacionOswestry
-    qs = EvaluacionOswestry.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionOswestry.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
     if not qs.exists():
         return _serie_vacia()
     labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
@@ -141,9 +156,11 @@ def _oswestry(paciente):
     return _serie_simple(labels, data, 'Oswestry ODI (%)', '#1e40af', 0, 100)
 
 
-def _quickdash(paciente):
+def _quickdash(ciclo):
     from TiposDeFormularios.models import EvaluacionQuickDASH
-    qs = EvaluacionQuickDASH.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionQuickDASH.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
     if not qs.exists():
         return _serie_vacia()
     labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
@@ -151,9 +168,11 @@ def _quickdash(paciente):
     return _serie_simple(labels, data, 'QuickDASH (% discapacidad)', '#7c3aed', 0, 100)
 
 
-def _womac(paciente):
+def _womac(ciclo):
     from TiposDeFormularios.models import EvaluacionWOMAC
-    qs = EvaluacionWOMAC.objects.filter(paciente=paciente).order_by('fecha_evaluacion')
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionWOMAC.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
     if not qs.exists():
         return _serie_vacia()
     labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
@@ -184,14 +203,21 @@ _BUILDERS = {
 }
 
 
+def obtener_graficos_ciclo(ciclo):
+    """Dict tipo_escala → configuración de gráfico para un ciclo."""
+    return {codigo: builder(ciclo) for codigo, builder in _BUILDERS.items()}
+
+
 def obtener_graficos_paciente(paciente):
-    """Dict tipo_escala → configuración de gráfico."""
-    return {codigo: builder(paciente) for codigo, builder in _BUILDERS.items()}
+    """Compatibilidad: usa ciclo activo del paciente si existe."""
+    from ciclos_clinicos.selectors import obtener_ciclo_activo
+    ciclo = obtener_ciclo_activo(paciente, paciente.clinica_id) if paciente else None
+    return obtener_graficos_ciclo(ciclo)
 
 
-def graficos_para_registros_sesion(paciente, registros_escalas):
+def graficos_para_registros_sesion(ciclo, registros_escalas):
     """Gráficos únicos para las escalas aplicadas en una sesión."""
-    todos = obtener_graficos_paciente(paciente)
+    todos = obtener_graficos_ciclo(ciclo)
     vistos = set()
     bloques = []
     for reg in registros_escalas:
@@ -211,9 +237,9 @@ def graficos_para_registros_sesion(paciente, registros_escalas):
     return bloques
 
 
-def serie_json_para_vista(paciente, codigo):
+def serie_json_para_vista(ciclo, codigo):
     """Lista de puntos {fecha, valor, ...} para plantillas de cuestionario."""
-    cfg = _BUILDERS.get(codigo, lambda p: _serie_vacia())(paciente)
+    cfg = _BUILDERS.get(codigo, lambda c: _serie_vacia())(ciclo)
     if not cfg.get('labels'):
         return []
     ds = cfg['datasets'][0] if cfg.get('datasets') else {}
