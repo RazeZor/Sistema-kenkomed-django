@@ -105,10 +105,14 @@ def RenderInforme(request):
             ubicacion_intensidad_list += "<li><strong>Error:</strong> Las listas no coinciden en longitud</li>"
 
         ubicacion_intensidad_list += "</ul>"
+
+        clinica = paciente.clinica
         
         context = {
             'paciente': paciente,
             'ciclo': ciclo,
+            'clinica': clinica,
+            'logo_clinica_url': url_logo_clinica(clinica, request),
             'formulario': formulario,
             'medicamentos': _parse_json_list(formulario.medicamentos),
             'ubicacion_intensidad': ubicacion_intensidad_list,

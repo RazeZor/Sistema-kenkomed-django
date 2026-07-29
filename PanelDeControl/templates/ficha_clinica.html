@@ -210,16 +210,20 @@
 <!-- ENCABEZADO -->
 <div class="card" style="border-top: 4px solid #115b9c">
     <div class="card-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e5e7eb">
-            <div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e5e7eb;gap:16px">
+            <div style="flex:1;min-width:0">
                 <h1 style="font-size:17px;font-weight:700;color:#115b9c;text-transform:uppercase;margin:0">Ficha Clínica Profesional</h1>
                 <p style="font-size:11px;color:#6b7280;margin:4px 0 0">{% if clinica %}{{ clinica.nombre }}{% else %}KenkoMed{% endif %} · Ley N° 20.584 · Derechos del Paciente</p>
             </div>
-            {% if logo_clinica_url %}
-            <img src="{{ logo_clinica_url }}" alt="{% if clinica %}{{ clinica.nombre }}{% else %}KenkoMed{% endif %}" style="height:40px;max-width:160px;object-fit:contain">
-            {% else %}
-            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" style="height:30px">
-            {% endif %}
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+                {% if logo_clinica_url %}
+                <img src="{{ logo_clinica_url }}" alt="{% if clinica %}{{ clinica.nombre }}{% else %}Centro{% endif %}" style="height:56px;max-width:220px;object-fit:contain">
+                {% elif clinica %}
+                <span style="font-size:14px;font-weight:700;color:#115b9c;text-align:right;line-height:1.3">{{ clinica.nombre }}</span>
+                {% else %}
+                <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" style="height:32px;object-fit:contain">
+                {% endif %}
+            </div>
         </div>
         <div class="header-grid">
             <div>
@@ -588,8 +592,12 @@
     </div>
     <div style="text-align:right;font-size:10px;color:#9ca3af">
         <p style="margin:0">Emitido: {% now "d/m/Y H:i" %}</p>
+        {% if clinica %}
+        <p style="margin:4px 0 0;font-weight:600;color:#6b7280">{{ clinica.nombre }}</p>
+        <p style="margin:4px 0 0;font-size:9px;color:#cbd5e1">Generado con KenkoMed</p>
+        {% else %}
         <p style="margin:4px 0 0">KenkoMed · Ficha Clínica Electrónica</p>
-        {% if clinica %}<p style="margin:4px 0 0">{{ clinica.nombre }}</p>{% endif %}
+        {% endif %}
     </div>
 </div>
 

@@ -121,13 +121,12 @@
     <!-- ============================================================ -->
     <aside class="hidden lg:flex flex-col h-screen bg-white border-r border-gray-100 transition-all duration-300 flex-shrink-0 w-20 xl:w-64" id="sidebar">
         <!-- Logo -->
-        <div class="flex items-center justify-center xl:justify-start h-16 px-4 border-b border-gray-100 flex-shrink-0">
-            <a href="{% url 'panel' %}" class="flex items-center gap-3">
-                <div class="flex items-center justify-center w-10 h-10 xl:w-10 xl:h-10 rounded-xl overflow-hidden flex-shrink-0">
-                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain">
+        <div class="flex items-center justify-center xl:justify-start min-h-16 px-3 xl:px-4 py-3 border-b border-gray-100 flex-shrink-0">
+            <a href="{% url 'panel' %}" class="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-3 w-full">
+                <div class="flex items-center justify-center xl:justify-start w-full">
+                    {% include 'partials/marca_dual.html' with variant='sidebar' %}
                 </div>
-                <span class="hidden xl:block text-base font-bold text-gray-800 whitespace-nowrap">KenkoMed</span>
-                {% if clinica_nombre %}
+                {% if clinica_nombre and not clinica_logo_url %}
                 <span class="hidden xl:block text-xs text-gray-500 truncate max-w-[10rem]">{{ clinica_nombre }}</span>
                 {% endif %}
             </a>
@@ -282,14 +281,8 @@
     <div id="sideDrawer" class="lg:hidden fixed left-0 top-0 bottom-0 z-[70] w-72 bg-white shadow-2xl -translate-x-full flex flex-col">
         <!-- Header del Drawer -->
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-medical-blue to-medical-blue-light flex-shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 flex items-center justify-center flex-shrink-0">
-                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo" class="w-full h-full object-contain">
-                </div>
-                <div>
-                    <span class="text-white font-bold text-base leading-tight block">KenkoMed</span>
-                    <span class="text-white/70 text-xs font-normal">{% if clinica_nombre %}{{ clinica_nombre }}{% else %}Sistema Clínico{% endif %}</span>
-                </div>
+            <div class="flex items-center gap-3 min-w-0 flex-1">
+                {% include 'partials/marca_dual.html' with variant='drawer' %}
             </div>
             <button onclick="closeDrawer()" class="w-8 h-8 flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-all">
                 <i class='text-xl bx bx-x'></i>

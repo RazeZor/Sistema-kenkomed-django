@@ -126,6 +126,8 @@
   }
   .print-logo-area h1 { font-size:16pt;font-weight:800;color:#0f6fbd;margin:0 0 2pt; }
   .print-logo-area p  { font-size:8pt;color:#64748b;margin:0; }
+  .print-clinic-logo { height:48pt;max-width:160pt;object-fit:contain;display:block;margin-bottom:4pt; }
+  .print-clinic-name { font-size:11pt;font-weight:700;color:#0f6fbd;margin:0 0 2pt; }
   .print-rx-badge {
     background:#0f6fbd;color:#fff;
     padding:6pt 14pt;border-radius:6pt;
@@ -415,8 +417,16 @@
     <!-- Encabezado -->
     <div class="print-header">
       <div class="print-logo-area">
+        {% if clinica_logo_url %}
+        <img src="{{ clinica_logo_url }}" alt="{{ clinica_nombre }}" class="print-clinic-logo">
+        <p class="print-clinic-name">{{ clinica_nombre }}</p>
+        {% elif clinica_nombre %}
+        <h1>{{ clinica_nombre }}</h1>
+        <p>Receta médica</p>
+        {% else %}
         <h1>KenkoMed</h1>
         <p>Sistema Clínico · Gestión del Dolor</p>
+        {% endif %}
       </div>
       <div class="print-rx-badge">Rₓ</div>
     </div>
@@ -458,11 +468,12 @@
       <div class="print-sign-area">
         <div class="print-sign-line"></div>
         <div class="print-sign-label">Dr/a. {{ receta.clinico.nombre }}</div>
-        <div class="print-sign-label" style="margin-top:2pt;font-size:7pt">Kinesiólogo — KenkoMed</div>
+        <div class="print-sign-label" style="margin-top:2pt;font-size:7pt">Kinesiólogo{% if clinica_nombre %} · {{ clinica_nombre }}{% endif %}</div>
       </div>
       <div class="print-meta">
         <div>Emitida el <strong>{{ receta.fecha_creacion|date:"d/m/Y" }}</strong></div>
-        <div style="margin-top:4pt">KenkoMed · Sistema Clínico</div>
+        <div style="margin-top:4pt">{% if clinica_nombre %}{{ clinica_nombre }}{% else %}KenkoMed{% endif %}</div>
+        {% if clinica_logo_url or clinica_nombre %}<div style="margin-top:3pt;font-size:7pt;color:#cbd5e1">Generado con KenkoMed</div>{% endif %}
         <div style="margin-top:4pt;font-size:7pt;color:#cbd5e1">Documento generado digitalmente</div>
       </div>
     </div>

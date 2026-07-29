@@ -1,0 +1,48 @@
+{% load static %}
+{# Marca en la app: logo de clínica → solo ese; sin logo pero con nombre → nombre del centro; sin nada → KenkoMed. #}
+{% with v=variant|default:"header" %}
+{% with logo=logo_url|default:clinica_logo_url %}
+{% with nombre=nombre_centro|default:clinica_nombre %}
+
+{% if logo %}
+<div class="marca-centro inline-flex items-center gap-2 sm:gap-3 min-w-0">
+    <img src="{{ logo }}"
+         alt="{{ nombre|default:'Centro' }}"
+         class="object-contain shrink-0
+            {% if v == 'sidebar' %}h-10 xl:h-11 max-w-[150px] xl:max-w-[180px]
+            {% elif v == 'drawer' %}h-10 max-w-[140px] rounded-md bg-white p-1 shadow-sm
+            {% else %}h-8 sm:h-9 max-w-[130px] sm:max-w-[150px]{% endif %}">
+    {% if nombre and v == 'sidebar' %}
+    <span class="hidden xl:block text-sm font-medium text-gray-700 truncate max-w-[9rem]">{{ nombre }}</span>
+    {% elif nombre and v == 'drawer' %}
+    <span class="text-white font-semibold text-sm leading-tight truncate max-w-[140px]">{{ nombre }}</span>
+    {% endif %}
+</div>
+
+{% elif nombre %}
+<div class="marca-centro inline-flex items-center gap-2 min-w-0 max-w-[180px]">
+    <div class="flex items-center justify-center shrink-0 rounded-lg
+        {% if v == 'drawer' %}w-9 h-9 bg-white/20 text-white{% else %}w-8 h-8 bg-medical-blue/10 text-medical-blue{% endif %}">
+        <i class='bx bx-buildings text-lg'></i>
+    </div>
+    <span class="font-semibold truncate
+        {% if v == 'drawer' %}text-white text-sm{% elif v == 'sidebar' %}hidden xl:block text-sm text-gray-800 max-w-[9rem]{% else %}text-xs sm:text-sm text-gray-700 max-w-[120px] sm:max-w-[150px]{% endif %}">{{ nombre }}</span>
+</div>
+
+{% else %}
+<div class="marca-centro inline-flex items-center gap-2 shrink-0">
+    <img src="{% if v == 'drawer' %}{% static 'image/logoblanco.png' %}{% else %}{% static 'image/LogoKenkoMed.png' %}{% endif %}"
+         alt="KenkoMed"
+         class="object-contain
+            {% if v == 'sidebar' %}h-8 xl:h-9 max-w-[120px]
+            {% elif v == 'drawer' %}h-7 max-w-[100px]
+            {% else %}h-8 max-w-[120px]{% endif %}">
+    {% if v == 'sidebar' or v == 'drawer' %}
+    <span class="{% if v == 'drawer' %}text-white font-bold text-base{% else %}hidden xl:block text-sm font-semibold text-gray-800{% endif %}">KenkoMed</span>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endwith %}
+{% endwith %}
+{% endwith %}

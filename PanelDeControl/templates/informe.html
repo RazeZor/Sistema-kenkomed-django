@@ -89,7 +89,39 @@
             text-transform: uppercase;
         }
         .report-title p { font-size: 11px; color: var(--ink3); margin-top: 2px; }
-        .brand-mark { font-weight: 800; font-size: 17px; color: var(--blue); letter-spacing: -.3px; display: flex; align-items: center; gap: 5px; }
+        .brand-mark {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            text-align: right;
+        }
+        .brand-mark-clinic img {
+            height: 64px;
+            max-width: 240px;
+            object-fit: contain;
+        }
+        .brand-mark-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--ink3);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .brand-mark-fallback {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .brand-mark-fallback img { height: 36px; opacity: 0.95; }
+        .brand-mark-fallback span {
+            font-size: 9px;
+            color: var(--ink3);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
 
         /* ── Patient Summary Strip ─────────────────── */
         .patient-strip {
@@ -499,7 +531,13 @@
     <!-- Topbar (web only) -->
     <div class="topbar no-print">
         <div class="topbar-brand">
-            <img src="{% static 'image/logoblanco.png' %}" alt="KenkoMed Logo" style="height: 20px;"> KenkoMed
+            {% if logo_clinica_url %}
+            <img src="{{ logo_clinica_url }}" alt="{% if clinica %}{{ clinica.nombre }}{% else %}Centro{% endif %}" style="height: 34px; max-width: 160px; object-fit: contain;">
+            {% if clinica %}<span style="font-size: 12px; font-weight: 600;">{{ clinica.nombre }}</span>{% endif %}
+            {% else %}
+            <img src="{% static 'image/logoblanco.png' %}" alt="KenkoMed" style="height: 18px; opacity: 0.95;">
+            <span style="font-size: 11px; font-weight: 500; opacity: 0.85;">KenkoMed</span>
+            {% endif %}
         </div>
         <a href="/panel/">
             <i class='bx bx-arrow-back'></i> Volver al Panel
@@ -517,10 +555,20 @@
             <div class="report-title-row">
                 <div class="report-title">
                     <h1>Informe Clínico DSS</h1>
-                    <p>Sistema de Apoyo a la Toma de Decisiones · KenkoMed</p>
+                    <p>Sistema de Apoyo a la Toma de Decisiones{% if clinica %} · {{ clinica.nombre }}{% else %} · KenkoMed{% endif %}</p>
                 </div>
                 <div class="brand-mark">
-                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" style="height: 28px;">
+                    {% if logo_clinica_url %}
+                    <div class="brand-mark-clinic">
+                        <img src="{{ logo_clinica_url }}" alt="{% if clinica %}{{ clinica.nombre }}{% else %}Centro{% endif %}">
+                        {% if clinica %}<span class="brand-mark-name">{{ clinica.nombre }}</span>{% endif %}
+                    </div>
+                    {% else %}
+                    <div class="brand-mark-fallback">
+                        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed">
+                        <span>KenkoMed</span>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
             <!-- Strip de datos del paciente -->
@@ -982,8 +1030,14 @@
 
     <!-- Footer impresión -->
     <div class="print-footer">
+        {% if clinica %}
+        <strong>INFORME CONFIDENCIAL — {{ clinica.nombre }}</strong> — Información sujeta a secreto profesional y protección de datos médicos. ·
+        Generado: {{ formulario.fechaCreacion }} · Prof. {{ formulario.clinico }} ·
+        <span style="font-weight:400;color:#94a3b8">Generado con KenkoMed</span>
+        {% else %}
         <strong>INFORME CONFIDENCIAL KENKOMED</strong> — Información sujeta a secreto profesional y protección de datos médicos. ·
         Generado: {{ formulario.fechaCreacion }} · Prof. {{ formulario.clinico }}
+        {% endif %}
     </div>
 
     <script>
