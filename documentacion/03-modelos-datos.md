@@ -81,7 +81,7 @@ OneToOne con `CicloClinico` (y FK legacy a `Paciente`). Contiene decenas de camp
 | Campo | Notas |
 |-------|-------|
 | `paciente`, `clinico` | FK |
-| `fecha`, `hora_inicio`, `hora_fin` | Validación solapamiento 07:00–21:00 |
+| `fecha`, `hora_inicio`, `hora_fin` | Validación solapamiento 07:00–22:30 |
 | `estado` | Confirmada, Pendiente, Cancelada, etc. |
 | `motivo` | Texto libre |
 

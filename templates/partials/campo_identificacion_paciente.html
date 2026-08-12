@@ -42,7 +42,7 @@
                value="{% if tipo_documento_actual == 'rut_chile' or not tipo_documento_actual %}{{ numero_documento_actual|default:'' }}{% endif %}"
                required
                autocomplete="off"
-               inputmode="numeric">
+               inputmode="text">
         <p class="text-xs text-gray-500 mt-1">Formato chileno: 12.345.678-9</p>
     </div>
 

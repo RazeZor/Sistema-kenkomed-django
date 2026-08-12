@@ -1,243 +1,208 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Agregar Nuevo Paciente - Sistema Clínico{% endblock %}
-{% block header_title %}Agregar Nuevo Paciente{% endblock %}
+{% block title %}Agregar paciente — KenkoMed{% endblock %}
+{% block header_title %}Agregar paciente{% endblock %}
 
 {% block extra_head %}
 <link rel="stylesheet" href="{% static 'css/inputRut.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto space-y-5">
-
-    <!-- Header -->
-    <div class="flex items-center gap-4">
-        <a href="{% url 'pacientes' %}"
-           class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
-            <i class='bx bx-arrow-back'></i> Volver a la lista
-        </a>
-        <div>
-            <h1 class="text-xl font-bold text-gray-800">Registro de paciente</h1>
-            <p class="text-sm text-gray-500">Datos demográficos y de contacto para el alta manual</p>
-        </div>
-    </div>
+<div class="max-w-7xl mx-auto">
 
     {% if messages %}
+    <div class="mb-4 space-y-2">
         {% for message in messages %}
-        <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-700{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-700{% else %}bg-blue-50 border border-blue-200 text-blue-700{% endif %} flex items-center gap-2 text-sm">
-            <i class='bx {% if message.tags == "success" %}bx-check-circle{% elif message.tags == "error" %}bx-error-circle{% else %}bx-info-circle{% endif %}'></i>
+        <div class="p-3 rounded-lg text-sm flex items-center gap-2 border
+            {% if message.tags == 'error' %}bg-red-50 border-red-100 text-red-700
+            {% elif message.tags == 'success' %}bg-green-50 border-green-100 text-green-700
+            {% else %}bg-gray-50 border-gray-200 text-gray-700{% endif %}">
+            <i class='bx {% if message.tags == "error" %}bx-error-circle{% elif message.tags == "success" %}bx-check-circle{% else %}bx-info-circle{% endif %}'></i>
             {{ message }}
         </div>
         {% endfor %}
+    </div>
     {% endif %}
 
     <form method="POST" action="{% url 'AgregarPacienteBasico' %}"
+          class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
           onsubmit="return typeof validarFormularioIdentificacion === 'function' ? validarFormularioIdentificacion(this) : true;">
         {% csrf_token %}
 
-        <!-- Identificación -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3">
-                <h2 class="font-bold text-white text-sm flex items-center gap-2"><i class='bx bx-id-card'></i> Identificación personal</h2>
+        <div class="border-b border-gray-100 px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-lg bg-medical-blue/10 flex items-center justify-center flex-shrink-0">
+                    <i class='bx bx-user-plus text-lg text-medical-blue'></i>
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-base font-semibold text-gray-800">Registro de paciente</h2>
+                    <p class="text-xs text-gray-500">Alta manual · campos con * son obligatorios</p>
+                </div>
             </div>
-            <div class="p-6 space-y-4">
-                {% include 'partials/campo_identificacion_paciente.html' with prefix='ap_' %}
+            <a href="{% url 'pacientes' %}" class="btn btn-outline btn-sm shrink-0 self-start sm:self-auto">
+                <i class='bx bx-arrow-back'></i> Volver
+            </a>
+        </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="p-4 sm:p-6 lg:grid lg:grid-cols-2 lg:gap-x-10 lg:items-start">
+
+            <section class="space-y-4">
+                <h3 class="text-sm font-semibold text-gray-800 flex items-center gap-2 pb-1 border-b border-gray-100">
+                    <i class='bx bx-id-card text-medical-blue'></i> Identificación personal
+                </h3>
+
+                {% include 'partials/campo_identificacion_paciente.html' with prefix='ap_' label_class='block text-sm font-medium text-gray-700 mb-1' select_class='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue' input_class='w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue' %}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5" for="fechaNacimiento">
-                            Fecha de nacimiento <span class="text-red-400">*</span>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="nombre">
+                            Nombres <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="nombre" name="nombre" maxlength="50" required
+                               placeholder="Nombre completo"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="apellido">
+                            Apellidos <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="apellido" name="apellido" maxlength="50" required
+                               placeholder="Ambos apellidos"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="fechaNacimiento">
+                            Fecha de nacimiento <span class="text-red-500">*</span>
                         </label>
                         <input type="date" id="fechaNacimiento" name="fechaNacimiento" required
-                               class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                    </div>
-                    <div class="hidden sm:block"></div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                            Nombres <span class="text-red-400">*</span>
-                        </label>
-                        <input type="text" name="nombre" maxlength="50" required
-                               placeholder="Nombre completo"
-                               class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                            Apellidos <span class="text-red-400">*</span>
-                        </label>
-                        <input type="text" name="apellido" maxlength="50" required
-                               placeholder="Ambos apellidos"
-                               class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                    </div>
-                    <div class="sm:col-span-2">
-                        <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
-                            Género <span class="text-red-400">*</span>
-                        </label>
-                        <div class="flex flex-wrap gap-2">
-                            <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                                <input type="radio" name="genero" value="Masculino" required class="accent-blue-600">
-                                <span class="text-sm font-medium text-gray-700">Masculino</span>
+                        <p class="block text-sm font-medium text-gray-700 mb-1">
+                            Género <span class="text-red-500">*</span>
+                        </p>
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-700 pt-1.5">
+                            <label class="inline-flex items-center gap-1.5">
+                                <input type="radio" name="genero" value="Masculino" required class="text-medical-blue focus:ring-medical-blue">
+                                Masculino
                             </label>
-                            <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                                <input type="radio" name="genero" value="Femenino" class="accent-blue-600">
-                                <span class="text-sm font-medium text-gray-700">Femenino</span>
+                            <label class="inline-flex items-center gap-1.5">
+                                <input type="radio" name="genero" value="Femenino" class="text-medical-blue focus:ring-medical-blue">
+                                Femenino
                             </label>
-                            <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all has-[:checked]:bg-blue-50 has-[:checked]:border-blue-400">
-                                <input type="radio" name="genero" value="Otro" class="accent-blue-600">
-                                <span class="text-sm font-medium text-gray-700">Otro</span>
+                            <label class="inline-flex items-center gap-1.5">
+                                <input type="radio" name="genero" value="Otro" class="text-medical-blue focus:ring-medical-blue">
+                                Otro
                             </label>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <section class="space-y-4 mt-6 lg:mt-0 lg:border-l lg:border-gray-100 lg:pl-8">
+                <h3 class="text-sm font-semibold text-gray-800 flex items-center gap-2 pb-1 border-b border-gray-100">
+                    <i class='bx bx-phone text-medical-blue'></i> Contacto y previsión
+                </h3>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="contacto">
+                            Teléfono <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-2.5 text-sm text-gray-500 bg-gray-100 border border-r-0 border-gray-200 rounded-l-lg whitespace-nowrap">+56 9</span>
+                            <input type="tel" id="contacto" name="contacto" maxlength="8" pattern="[0-9]{8}"
+                                   placeholder="12345678" required
+                                   class="flex-1 min-w-0 px-3 py-2 text-sm border border-gray-200 rounded-r-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" placeholder="ejemplo@correo.com"
+                               class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
+                    </div>
+                </div>
+
+                <div>
+                    <p class="block text-sm font-medium text-gray-700 mb-2">
+                        Cobertura de salud <span class="text-red-500">*</span>
+                    </p>
+                    <div class="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-gray-700">
+                        <label class="inline-flex items-center gap-1.5">
+                            <input type="radio" name="cobertura_de_salud" value="Fonasa" required class="text-medical-blue focus:ring-medical-blue">
+                            Fonasa
+                        </label>
+                        <label class="inline-flex items-center gap-1.5">
+                            <input type="radio" name="cobertura_de_salud" value="Isapre" class="text-medical-blue focus:ring-medical-blue">
+                            Isapre
+                        </label>
+                        <label class="inline-flex items-center gap-1.5">
+                            <input type="radio" name="cobertura_de_salud" value="Particular" class="text-medical-blue focus:ring-medical-blue">
+                            Particular
+                        </label>
+                        <label class="inline-flex items-center gap-1.5">
+                            <input type="radio" name="cobertura_de_salud" value="Extranjero sin previsión" class="text-medical-blue focus:ring-medical-blue">
+                            Extranjero
+                        </label>
+                        <label class="inline-flex items-center gap-1.5">
+                            <input type="radio" name="cobertura_de_salud" value="Otro" class="text-medical-blue focus:ring-medical-blue">
+                            Otro
+                        </label>
+                    </div>
+                </div>
+            </section>
         </div>
 
-        <!-- Contacto y previsión -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-600 to-teal-500 px-5 py-3">
-                <h2 class="font-bold text-white text-sm flex items-center gap-2"><i class='bx bx-book-contact'></i> Contacto y previsión</h2>
-            </div>
-            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">
-                        Teléfono <span class="text-red-400">*</span>
-                    </label>
-                    <div class="flex">
-                        <span class="px-3 py-2.5 bg-gray-100 border border-r-0 border-gray-300 rounded-l-lg text-sm font-semibold text-gray-500 whitespace-nowrap">+56 9</span>
-                        <input type="tel" name="contacto" maxlength="8" pattern="[0-9]{8}"
-                               placeholder="12345678" required
-                               class="flex-1 px-3 py-2.5 text-sm border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1">8 dígitos después del 9</p>
+        <!-- Opcional: una fila en desktop, grid compacto en móvil -->
+        <div class="border-t border-gray-100 px-4 sm:px-6 py-4 bg-gray-50/60">
+            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Datos opcionales</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 lg:items-end">
+                <div class="lg:col-span-3">
+                    <label class="block text-xs font-medium text-gray-600 mb-1" for="profesion">Profesión</label>
+                    <input type="text" id="profesion" name="profesion" placeholder="Ej: Profesor"
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-medical-blue focus:border-medical-blue">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Correo electrónico</label>
-                    <input type="email" name="correo" placeholder="ejemplo@correo.com"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                    <p class="text-xs text-gray-400 mt-1">Opcional. Recomendado para recordatorios y formulario QR</p>
+                <div class="lg:col-span-4">
+                    <label class="block text-xs font-medium text-gray-600 mb-1" for="trabajo">Tipo de trabajo</label>
+                    <select id="trabajo" name="trabajo"
+                            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-medical-blue focus:border-medical-blue">
+                        <option value="">— Sin especificar —</option>
+                        <option value="Trabajo sedentario">Sedentario</option>
+                        <option value="Trabajo con movilidad moderada">Movilidad moderada</option>
+                        <option value="Trabajo de moderado esfuerzo físico">Moderado esfuerzo físico</option>
+                        <option value="Trabajo de alto esfuerzo físico">Alto esfuerzo físico</option>
+                        <option value="Trabajo manual especializado">Manual especializado</option>
+                    </select>
                 </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">
-                        Cobertura de salud <span class="text-red-400">*</span>
-                    </label>
-                    <div class="flex flex-wrap gap-2">
-                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-400">
-                            <input type="radio" name="cobertura_de_salud" value="Fonasa" required class="accent-emerald-600">
-                            <span class="text-sm font-medium text-gray-700">Fonasa</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-400">
-                            <input type="radio" name="cobertura_de_salud" value="Isapre" class="accent-emerald-600">
-                            <span class="text-sm font-medium text-gray-700">Isapre</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-400">
-                            <input type="radio" name="cobertura_de_salud" value="Particular" class="accent-emerald-600">
-                            <span class="text-sm font-medium text-gray-700">Particular</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-400">
-                            <input type="radio" name="cobertura_de_salud" value="Extranjero sin previsión" class="accent-emerald-600">
-                            <span class="text-sm font-medium text-gray-700">Extranjero / sin previsión</span>
-                        </label>
-                        <label class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-emerald-50 hover:border-emerald-300 transition-all has-[:checked]:bg-emerald-50 has-[:checked]:border-emerald-400">
-                            <input type="radio" name="cobertura_de_salud" value="Otro" class="accent-emerald-600">
-                            <span class="text-sm font-medium text-gray-700">Otro</span>
-                        </label>
-                    </div>
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1" for="LicenciaInicio">Lic. inicio</label>
+                    <input type="date" id="LicenciaInicio" name="LicenciaInicio"
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-medical-blue focus:border-medical-blue">
                 </div>
-            </div>
-        </div>
-
-        <!-- Ocupación -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="bg-gradient-to-r from-purple-600 to-indigo-500 px-5 py-3">
-                <h2 class="font-bold text-white text-sm flex items-center gap-2"><i class='bx bx-briefcase'></i> Ocupación y trabajo</h2>
-            </div>
-            <div class="p-6 space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Profesión / oficio</label>
-                    <input type="text" name="profesion" placeholder="Ej: Profesor, Administrativo, Ingeniero"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
+                <div class="lg:col-span-2">
+                    <label class="block text-xs font-medium text-gray-600 mb-1" for="LicenciaFin">Lic. término</label>
+                    <input type="date" id="LicenciaFin" name="LicenciaFin"
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-medical-blue focus:border-medical-blue">
                 </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-2">Tipo de trabajo</label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
-                            <input type="radio" name="trabajo" value="Trabajo sedentario" class="mt-0.5 accent-purple-600">
-                            <span>
-                                <span class="block text-sm font-semibold text-gray-800">Sedentario</span>
-                                <span class="block text-xs text-gray-500">Sentado la mayor parte del tiempo</span>
-                            </span>
-                        </label>
-                        <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
-                            <input type="radio" name="trabajo" value="Trabajo con movilidad moderada" class="mt-0.5 accent-purple-600">
-                            <span>
-                                <span class="block text-sm font-semibold text-gray-800">Movilidad moderada</span>
-                                <span class="block text-xs text-gray-500">Alterna sentado / de pie ocasionalmente</span>
-                            </span>
-                        </label>
-                        <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
-                            <input type="radio" name="trabajo" value="Trabajo de moderado esfuerzo físico" class="mt-0.5 accent-purple-600">
-                            <span>
-                                <span class="block text-sm font-semibold text-gray-800">Moderado esfuerzo físico</span>
-                                <span class="block text-xs text-gray-500">Levanta cargas medias, posturas prolongadas</span>
-                            </span>
-                        </label>
-                        <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400">
-                            <input type="radio" name="trabajo" value="Trabajo de alto esfuerzo físico" class="mt-0.5 accent-purple-600">
-                            <span>
-                                <span class="block text-sm font-semibold text-gray-800">Alto esfuerzo físico</span>
-                                <span class="block text-xs text-gray-500">Cargas pesadas, esfuerzo constante</span>
-                            </span>
-                        </label>
-                        <label class="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-purple-50 hover:border-purple-300 transition-all has-[:checked]:bg-purple-50 has-[:checked]:border-purple-400 sm:col-span-2">
-                            <input type="radio" name="trabajo" value="Trabajo manual especializado" class="mt-0.5 accent-purple-600">
-                            <span>
-                                <span class="block text-sm font-semibold text-gray-800">Manual especializado</span>
-                                <span class="block text-xs text-gray-500">Movimientos precisos y repetitivos</span>
-                            </span>
-                        </label>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">Opcional. Se puede completar después en la anamnesis</p>
+                <div class="lg:col-span-1">
+                    <label class="block text-xs font-medium text-gray-600 mb-1" for="LicenciaDias">Días</label>
+                    <input type="number" id="LicenciaDias" name="LicenciaDias" min="1" placeholder="30"
+                           class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:ring-medical-blue focus:border-medical-blue">
                 </div>
             </div>
         </div>
 
-        <!-- Licencia (opcional) -->
-        <details class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
-            <summary class="cursor-pointer list-none px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors">
-                <span class="font-semibold text-sm text-gray-700 flex items-center gap-2">
-                    <i class='bx bx-calendar-event text-medical-blue'></i> Licencia médica <span class="text-gray-400 font-normal">(opcional)</span>
-                </span>
-                <i class='bx bx-chevron-down text-gray-400 transition-transform group-open:rotate-180'></i>
-            </summary>
-            <div class="px-6 pb-6 pt-2 grid grid-cols-1 sm:grid-cols-3 gap-4 border-t border-gray-100">
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Inicio</label>
-                    <input type="date" name="LicenciaInicio"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Término</label>
-                    <input type="date" name="LicenciaFin"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">Días</label>
-                    <input type="number" name="LicenciaDias" min="1" placeholder="Ej: 30"
-                           class="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:border-blue-500 outline-none transition-all">
-                </div>
-            </div>
-        </details>
-
-        <!-- Acciones -->
-        <div class="flex items-center justify-between pb-6">
-            <a href="{% url 'pacientes' %}" class="btn btn-secondary">
+        <div class="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
+            <a href="{% url 'pacientes' %}" class="btn btn-outline btn-sm">
                 <i class='bx bx-x'></i> Cancelar
             </a>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary btn-sm">
                 <i class='bx bx-save'></i> Confirmar e ir al historial
             </button>
         </div>
     </form>
+
 </div>
 {% endblock %}
 

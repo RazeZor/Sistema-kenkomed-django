@@ -25,7 +25,7 @@ from clinicas.utils import (
 )
 
 HORA_APERTURA = datetime.strptime('07:00', '%H:%M').time()
-HORA_CIERRE = datetime.strptime('21:00', '%H:%M').time()
+HORA_CIERRE = datetime.strptime('22:30', '%H:%M').time()
 COLORES_PROF = ['#0284c7', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0d9488', '#4338ca']
 
 
@@ -163,7 +163,7 @@ def _parse_horas(data):
     if h_inicio >= h_fin:
         raise ValueError('La hora de inicio debe ser anterior a la hora de fin.')
     if h_inicio < HORA_APERTURA or h_fin > HORA_CIERRE:
-        raise ValueError('El horario de atención es de 07:00 a 21:00.')
+        raise ValueError('El horario de atención es de 07:00 a 22:30.')
     return h_inicio, h_fin
 
 

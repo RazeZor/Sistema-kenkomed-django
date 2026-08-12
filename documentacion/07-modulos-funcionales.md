@@ -84,7 +84,7 @@ Plantilla: `calendario.html` con FullCalendar.
 | `api_eliminar_reserva` | Cancela |
 
 Validaciones:
-- Horario 07:00–21:00.
+- Horario 07:00–22:30.
 - Sin solapamiento por clínico.
 - Paciente y clínico deben pertenecer al centro.
 
