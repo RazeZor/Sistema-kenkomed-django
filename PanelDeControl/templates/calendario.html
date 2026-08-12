@@ -759,7 +759,7 @@
                             <label class="form-label">Profesional <span class="req">*</span></label>
                             <select id="clinico_rut" class="form-input" required>
                                 {% for c in clinicos %}
-                                <option value="{{ c.rut }}" {% if c.rut==rut_clinico_sesion %}selected{% endif %}>
+                                <option value="{{ c.rut }}" {% if c.rut == rut_clinico_sesion %}selected{% endif %}>
                                     {{ c.nombre }} {{ c.apellido }} — {{ c.profesion }}
                                 </option>
                                 {% endfor %}
