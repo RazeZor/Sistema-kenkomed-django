@@ -814,7 +814,7 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js"></script>
 
     <script>
-        const SOLO_LECTURA = {{ solo_lectura| yesno: "true,false" }};
+        const SOLO_LECTURA = {{ solo_lectura|yesno:"true,false" }};
         const MODO_CALENDARIO = '{{ modo_calendario }}';
         const EVENTS_BASE = "{% url 'api_obtener_reservas' %}";
         const CSRF_TOKEN = getCookie('csrftoken');
