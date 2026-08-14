@@ -1375,7 +1375,7 @@ def renderizar_cuestionario_quickdash(request):
         'instrucciones': QUICKDASH_INSTRUCCIONES,
         'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
         'evaluations_count': evaluaciones.count(),
-        'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'quickdash'), ensure_ascii=False),
+        'evaluations_json': json.dumps(serie_json_para_vista(ciclo or paciente, 'quickdash'), ensure_ascii=False),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
         **contexto_ciclo_para_template(ciclo, paciente),
     })
@@ -1471,7 +1471,7 @@ def renderizar_cuestionario_womac(request):
         'instrucciones': WOMAC_INSTRUCCIONES,
         'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
         'evaluations_count': evaluaciones.count(),
-        'evaluations_json': json.dumps(serie_json_para_vista(paciente, 'womac'), ensure_ascii=False),
+        'evaluations_json': json.dumps(serie_json_para_vista(ciclo or paciente, 'womac'), ensure_ascii=False),
         'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
         **contexto_ciclo_para_template(ciclo, paciente),
     })

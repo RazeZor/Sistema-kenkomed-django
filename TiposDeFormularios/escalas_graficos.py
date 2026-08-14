@@ -237,10 +237,26 @@ def graficos_para_registros_sesion(ciclo, registros_escalas):
     return bloques
 
 
-def serie_json_para_vista(ciclo, codigo):
+def serie_json_para_vista(ciclo_o_paciente, codigo):
     """Lista de puntos {fecha, valor, ...} para plantillas de cuestionario."""
-    cfg = _BUILDERS.get(codigo, lambda c: _serie_vacia())(ciclo)
-    if not cfg.get('labels'):
+    if not ciclo_o_paciente:
+        return []
+    from Login.models import Paciente
+    if isinstance(ciclo_o_paciente, Paciente):
+        from ciclos_clinicos.selectors import obtener_ciclo_activo
+        ciclo = obtener_ciclo_activo(ciclo_o_paciente, ciclo_o_paciente.clinica_id) if ciclo_o_paciente else None
+    else:
+        ciclo = ciclo_o_paciente
+
+    if not ciclo:
+        return []
+
+    try:
+        cfg = _BUILDERS.get(codigo, lambda c: _serie_vacia())(ciclo)
+    except Exception:
+        return []
+
+    if not cfg or not cfg.get('labels'):
         return []
     ds = cfg['datasets'][0] if cfg.get('datasets') else {}
     data = ds.get('data', [])
@@ -257,11 +273,11 @@ def serie_json_para_vista(ciclo, codigo):
         elif codigo == 'womac':
             point['total'] = data[i] if i < len(data) else None
         out.append(point)
-    if codigo == 'womac' and cfg.get('datasets'):
+    if codigo == 'womac' and cfg.get('datasets') and len(cfg['datasets']) >= 4:
         for i, label in enumerate(cfg['labels']):
             if i < len(out):
-                out[i]['dolor'] = cfg['datasets'][1]['data'][i]
-                out[i]['rigidez'] = cfg['datasets'][2]['data'][i]
-                out[i]['funcion'] = cfg['datasets'][3]['data'][i]
-                out[i]['total'] = cfg['datasets'][0]['data'][i]
+                out[i]['dolor'] = cfg['datasets'][1]['data'][i] if i < len(cfg['datasets'][1]['data']) else 0
+                out[i]['rigidez'] = cfg['datasets'][2]['data'][i] if i < len(cfg['datasets'][2]['data']) else 0
+                out[i]['funcion'] = cfg['datasets'][3]['data'][i] if i < len(cfg['datasets'][3]['data']) else 0
+                out[i]['total'] = cfg['datasets'][0]['data'][i] if i < len(cfg['datasets'][0]['data']) else 0
     return out
