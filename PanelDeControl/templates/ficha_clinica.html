@@ -526,8 +526,15 @@
                 --fs-xl: 14pt;
             }
 
-            body {
-                background: #fff !important;
+            @page {
+                size: A4 portrait;
+                margin: 0 !important; /* Elimina automáticamente los bordes del navegador donde van la URL y fecha por defecto */
+            }
+
+            html, body {
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 font-size: 8.5pt;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -538,17 +545,13 @@
             .fce-page {
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 0 !important;
+                padding: 12mm 12mm 14mm 12mm !important;
                 margin: 0 !important;
                 box-shadow: none !important;
                 display: block !important;
                 min-height: auto !important;
                 height: auto !important;
-            }
-
-            @page {
-                size: A4 portrait;
-                margin: 14mm 12mm 18mm 12mm;
+                background: #ffffff !important;
             }
 
             /* Encabezado limpio con fondo blanco para visibilidad total de logos */
