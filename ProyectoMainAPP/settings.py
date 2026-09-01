@@ -158,14 +158,30 @@ TIME_ZONE = 'America/Santiago'
 USE_I18N = True
 USE_TZ = True
 
-# Email Settings
+# Email Settings (Configuración SMTP para Producción y Desarrollo)
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = _env_bool('EMAIL_USE_TLS', default=True)
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'noreply@kenkomed.cl')
+EMAIL_USE_SSL = _env_bool('EMAIL_USE_SSL', default=False)
+EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 10))
+
+# Credenciales de producción con respaldo predeterminado
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'kenkomedplus@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'irykslbyckmeiewn')
+
+# Remitente visible formateado para prevenir rechazo DMARC/SPF
+_default_from = os.environ.get('DEFAULT_FROM_EMAIL', '')
+if _default_from:
+    DEFAULT_FROM_EMAIL = _default_from
+elif EMAIL_HOST_USER:
+    DEFAULT_FROM_EMAIL = f'KenkoMed <{EMAIL_HOST_USER}>'
+else:
+    DEFAULT_FROM_EMAIL = 'KenkoMed <kenkomedplus@gmail.com>'
+
+# Copia oculta por defecto para auditoría del sistema
+EMAIL_BCC_SYSTEM = os.environ.get('EMAIL_BCC_SYSTEM', EMAIL_HOST_USER or 'kenkomedplus@gmail.com')
+
 
 
 # Static files (CSS, JavaScript, Images)

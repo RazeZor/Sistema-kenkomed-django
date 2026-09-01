@@ -4,13 +4,15 @@ Todas las funciones son fire-and-forget: si falla el envío, se registra
 en el log pero NO interrumpe el flujo de la aplicación.
 """
 import logging
+import threading
 from email.mime.image import MIMEImage
 from pathlib import Path
+from datetime import datetime, date, time
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
+from django.db import close_old_connections
 from django.template.loader import render_to_string
-from datetime import datetime, date, time
 
 from clinicas.branding import resolver_branding_correo, tipo_mime_logo
 
@@ -42,7 +44,24 @@ def _formatear_fecha(valor, formato):
         return str(valor)
 
 
-def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None):
+def _ejecutar_en_background(func, *args, **kwargs):
+    """
+    Ejecuta una función en un hilo secundario en segundo plano,
+    limpiando conexiones a la base de datos para evitar fallos en Uvicorn/Gunicorn.
+    """
+    def worker():
+        close_old_connections()
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error en hilo de correo en segundo plano ({func.__name__}): {e}", exc_info=True)
+        finally:
+            close_old_connections()
+
+    threading.Thread(target=worker, daemon=True).start()
+
+
+def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc=None):
     """
     Función interna para enviar un correo con plantilla HTML.
     - asunto: str con el asunto del correo
@@ -50,17 +69,18 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None):
     - contexto: dict con variables para la plantilla
     - destinatarios: lista de correos electrónicos
     - clinica: instancia Clinica opcional para logo y nombre del centro
+    - bcc: lista o str opcional de copias ocultas
     """
-    # Filtrar destinatarios vacíos o None
-    destinatarios = [d for d in destinatarios if d]
+    destinatarios = [d.strip() for d in destinatarios if d and isinstance(d, str) and d.strip()]
     if not destinatarios:
-        logger.info(f"No se envió correo '{asunto}': sin destinatarios con email.")
+        logger.info(f"No se envió correo '{asunto}': sin destinatarios válidos con email.")
         return False
 
     try:
         branding = resolver_branding_correo(clinica)
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'KenkoMed <kenkomedplus@gmail.com>')
         contexto['nombre_sistema'] = 'KenkoMed'
-        contexto['correo_contacto'] = getattr(settings, 'DEFAULT_FROM_EMAIL', 'kenkomedplus@gmail.com')
+        contexto['correo_contacto'] = from_email
         contexto['nombre_marca'] = branding['nombre_marca']
         contexto['es_marca_clinica'] = branding['es_marca_clinica']
         contexto['tiene_logo'] = branding['tiene_logo']
@@ -72,14 +92,27 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None):
             f"{asunto}\n\n"
             f"Ha recibido una notificación de {marca_visible}. "
             "Abra este correo en un cliente compatible con HTML para ver el contenido completo.\n\n"
-            f"KenkoMed — {contexto['correo_contacto']}"
+            f"KenkoMed — {from_email}"
         )
+
+        # Copia oculta (BCC): incluir copia de respaldo del sistema (kenkomedplus@gmail.com)
+        bcc_list = []
+        if bcc:
+            if isinstance(bcc, list):
+                bcc_list.extend([b.strip() for b in bcc if b and isinstance(b, str) and b.strip()])
+            elif isinstance(bcc, str) and bcc.strip():
+                bcc_list.append(bcc.strip())
+
+        copia_sistema = getattr(settings, 'EMAIL_BCC_SYSTEM', 'kenkomedplus@gmail.com')
+        if copia_sistema and copia_sistema not in destinatarios and copia_sistema not in bcc_list:
+            bcc_list.append(copia_sistema)
 
         email = EmailMultiAlternatives(
             subject=asunto,
             body=text_content,
-            from_email=getattr(settings, 'DEFAULT_FROM_EMAIL', 'kenkomedplus@gmail.com'),
+            from_email=from_email,
             to=destinatarios,
+            bcc=bcc_list if bcc_list else None,
         )
         email.attach_alternative(html_content, 'text/html')
 
@@ -93,13 +126,13 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None):
                 email.mixed_subtype = 'related'
             except OSError as e:
                 logger.warning(f'No se pudo adjuntar el logo al correo: {e}')
-        email.send(fail_silently=False)
 
-        logger.info(f"Correo enviado: '{asunto}' → {destinatarios}")
+        email.send(fail_silently=False)
+        logger.info(f"Correo enviado: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list}")
         return True
 
     except Exception as e:
-        logger.error(f"Error al enviar correo '{asunto}' a {destinatarios}: {str(e)}")
+        logger.error(f"Error al enviar correo '{asunto}' a {destinatarios}: {str(e)}", exc_info=True)
         return False
 
 
@@ -117,53 +150,58 @@ def notificar_nuevo_paciente(paciente, clinico):
     cuando se registra un nuevo paciente en el sistema.
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'paciente_rut': paciente.rut,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'paciente_rut': getattr(paciente, 'rut', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else '',
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
     }
 
     clinica = _clinica_de_paciente(paciente)
 
     # Correo al paciente
-    _enviar_correo(
-        asunto='Bienvenido a KenkoMed — Registro exitoso',
-        plantilla='emails/nuevo_paciente.html',
-        contexto={**contexto, 'es_paciente': True},
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=clinica,
-    )
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Bienvenido a KenkoMed — Registro exitoso',
+            plantilla='emails/nuevo_paciente.html',
+            contexto={**contexto, 'es_paciente': True},
+            destinatarios=[paciente.correo],
+            clinica=clinica,
+        )
 
     # Correo al clínico
-    _enviar_correo(
-        asunto='Nuevo paciente registrado — KenkoMed',
-        plantilla='emails/nuevo_paciente.html',
-        contexto={**contexto, 'es_paciente': False},
-        destinatarios=[getattr(clinico, 'correo', None)],
-        clinica=clinica,
-    )
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Nuevo paciente registrado — KenkoMed',
+            plantilla='emails/nuevo_paciente.html',
+            contexto={**contexto, 'es_paciente': False},
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )
 
 
 def notificar_formulario_completado(paciente, clinico):
     """
-    Notifica al clínico cuando un paciente completa el formulario
+    Notifica al clínico y paciente cuando el paciente completa el formulario
     de anamnesis remoto (vía QR/link).
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'paciente_rut': paciente.rut,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'paciente_rut': getattr(paciente, 'rut', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else '',
     }
 
-    _enviar_correo(
-        asunto='Formulario de anamnesis completado — KenkoMed',
-        plantilla='emails/formulario_completado.html',
-        contexto=contexto,
-        destinatarios=[getattr(clinico, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    clinica = _clinica_de_paciente(paciente)
+
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Formulario de anamnesis completado — KenkoMed',
+            plantilla='emails/formulario_completado.html',
+            contexto=contexto,
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )
 
 
 def notificar_receta_creada(paciente, clinico, receta):
@@ -171,22 +209,23 @@ def notificar_receta_creada(paciente, clinico, receta):
     Notifica al paciente cuando se le crea una receta médica.
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
-        'medicamentos': receta.medicamentos or '',
-        'indicaciones': receta.indicaciones or '',
-        'notas': receta.NotaRecetaMedica or '',
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else '',
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
+        'medicamentos': getattr(receta, 'medicamentos', '') or '',
+        'indicaciones': getattr(receta, 'indicaciones', '') or '',
+        'notas': getattr(receta, 'NotaRecetaMedica', '') or '',
     }
 
-    _enviar_correo(
-        asunto='Nueva receta médica — KenkoMed',
-        plantilla='emails/receta_creada.html',
-        contexto=contexto,
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Nueva receta médica — KenkoMed',
+            plantilla='emails/receta_creada.html',
+            contexto=contexto,
+            destinatarios=[paciente.correo],
+            clinica=_clinica_de_paciente(paciente),
+        )
 
 
 def notificar_receta_actualizada(paciente, receta):
@@ -194,20 +233,21 @@ def notificar_receta_actualizada(paciente, receta):
     Notifica al paciente cuando su receta médica es actualizada.
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'medicamentos': receta.medicamentos or '',
-        'indicaciones': receta.indicaciones or '',
-        'notas': receta.NotaRecetaMedica or '',
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'medicamentos': getattr(receta, 'medicamentos', '') or '',
+        'indicaciones': getattr(receta, 'indicaciones', '') or '',
+        'notas': getattr(receta, 'NotaRecetaMedica', '') or '',
     }
 
-    _enviar_correo(
-        asunto='Tu receta médica ha sido actualizada — KenkoMed',
-        plantilla='emails/receta_actualizada.html',
-        contexto=contexto,
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Tu receta médica ha sido actualizada — KenkoMed',
+            plantilla='emails/receta_actualizada.html',
+            contexto=contexto,
+            destinatarios=[paciente.correo],
+            clinica=_clinica_de_paciente(paciente),
+        )
 
 
 def notificar_alta_paciente(paciente, clinico, sesion):
@@ -216,101 +256,141 @@ def notificar_alta_paciente(paciente, clinico, sesion):
     (sesión final del tratamiento kinésico).
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'paciente_rut': paciente.rut,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
-        'numero_sesion': sesion.numero_sesion,
-        'diagnostico_final': sesion.diagnostico_final or '',
-        'resumen_tratamiento': sesion.resumen_tratamiento or '',
-        'logros_obtenidos': sesion.logros_obtenidos or '',
-        'estado_al_alta': sesion.get_estado_al_alta_display() if sesion.estado_al_alta else '',
-        'recomendaciones_alta': sesion.recomendaciones_alta or '',
-        'plan_seguimiento': sesion.plan_seguimiento or '',
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'paciente_rut': getattr(paciente, 'rut', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else '',
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
+        'numero_sesion': getattr(sesion, 'numero_sesion', ''),
+        'diagnostico_final': getattr(sesion, 'diagnostico_final', '') or '',
+        'resumen_tratamiento': getattr(sesion, 'resumen_tratamiento', '') or '',
+        'logros_obtenidos': getattr(sesion, 'logros_obtenidos', '') or '',
+        'estado_al_alta': sesion.get_estado_al_alta_display() if hasattr(sesion, 'get_estado_al_alta_display') and sesion.estado_al_alta else '',
+        'recomendaciones_alta': getattr(sesion, 'recomendaciones_alta', '') or '',
+        'plan_seguimiento': getattr(sesion, 'plan_seguimiento', '') or '',
     }
 
     clinica = _clinica_de_paciente(paciente)
 
     # Correo al paciente
-    _enviar_correo(
-        asunto='Resumen de tu alta — KenkoMed',
-        plantilla='emails/alta_paciente.html',
-        contexto={**contexto, 'es_paciente': True},
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=clinica,
-    )
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Resumen de tu alta — KenkoMed',
+            plantilla='emails/alta_paciente.html',
+            contexto={**contexto, 'es_paciente': True},
+            destinatarios=[paciente.correo],
+            clinica=clinica,
+        )
 
     # Correo al clínico
-    _enviar_correo(
-        asunto='Alta de paciente registrada — KenkoMed',
-        plantilla='emails/alta_paciente.html',
-        contexto={**contexto, 'es_paciente': False},
-        destinatarios=[getattr(clinico, 'correo', None)],
-        clinica=clinica,
-    )
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Alta de paciente registrada — KenkoMed',
+            plantilla='emails/alta_paciente.html',
+            contexto={**contexto, 'es_paciente': False},
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )
 
 
 def notificar_reserva_creada(paciente, clinico, reserva):
     """
-    Notifica al paciente cuando se crea una reserva de cita.
+    Notifica al paciente y al clínico cuando se crea una reserva de cita.
     """
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
-        'fecha': _formatear_fecha(reserva.fecha, '%d/%m/%Y'),
-        'hora_inicio': _formatear_fecha(reserva.hora_inicio, '%H:%M'),
-        'hora_fin': _formatear_fecha(reserva.hora_fin, '%H:%M'),
-        'motivo': reserva.motivo or '',
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else "Su profesional",
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
+        'fecha': _formatear_fecha(getattr(reserva, 'fecha', None), '%d/%m/%Y'),
+        'hora_inicio': _formatear_fecha(getattr(reserva, 'hora_inicio', None), '%H:%M'),
+        'hora_fin': _formatear_fecha(getattr(reserva, 'hora_fin', None), '%H:%M'),
+        'motivo': getattr(reserva, 'motivo', '') or '',
     }
 
-    _enviar_correo(
-        asunto='Confirmación de cita — KenkoMed',
-        plantilla='emails/reserva_creada.html',
-        contexto=contexto,
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    clinica = _clinica_de_paciente(paciente)
+
+    # Correo al paciente
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Confirmación de cita — KenkoMed',
+            plantilla='emails/reserva_creada.html',
+            contexto={**contexto, 'es_paciente': True},
+            destinatarios=[paciente.correo],
+            clinica=clinica,
+        )
+
+    # Correo al clínico
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Nueva reserva agendada — KenkoMed',
+            plantilla='emails/reserva_creada.html',
+            contexto={**contexto, 'es_paciente': False},
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )
 
 
 def notificar_reserva_reagendada(paciente, clinico, reserva):
-    """Notifica al paciente cuando su cita es reagendada."""
+    """Notifica al paciente y al clínico cuando su cita es reagendada."""
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
-        'fecha': _formatear_fecha(reserva.fecha, '%d/%m/%Y'),
-        'hora_inicio': _formatear_fecha(reserva.hora_inicio, '%H:%M'),
-        'hora_fin': _formatear_fecha(reserva.hora_fin, '%H:%M'),
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else "Su profesional",
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
+        'fecha': _formatear_fecha(getattr(reserva, 'fecha', None), '%d/%m/%Y'),
+        'hora_inicio': _formatear_fecha(getattr(reserva, 'hora_inicio', None), '%H:%M'),
+        'hora_fin': _formatear_fecha(getattr(reserva, 'hora_fin', None), '%H:%M'),
     }
 
-    _enviar_correo(
-        asunto='Cambio de horario de cita — KenkoMed',
-        plantilla='emails/reserva_reagendada.html',
-        contexto=contexto,
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    clinica = _clinica_de_paciente(paciente)
+
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Cambio de horario de cita — KenkoMed',
+            plantilla='emails/reserva_reagendada.html',
+            contexto={**contexto, 'es_paciente': True},
+            destinatarios=[paciente.correo],
+            clinica=clinica,
+        )
+
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Cita reagendada en agenda — KenkoMed',
+            plantilla='emails/reserva_reagendada.html',
+            contexto={**contexto, 'es_paciente': False},
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )
 
 
 def notificar_reserva_cancelada(paciente, clinico, fecha, hora_inicio):
-    """Notifica al paciente cuando su cita es cancelada."""
+    """Notifica al paciente y al clínico cuando su cita es cancelada."""
     contexto = {
-        'paciente_nombre': paciente.nombre,
-        'paciente_apellido': paciente.apellido,
-        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}",
-        'clinico_profesion': clinico.profesion,
+        'paciente_nombre': getattr(paciente, 'nombre', ''),
+        'paciente_apellido': getattr(paciente, 'apellido', ''),
+        'clinico_nombre': f"{clinico.nombre} {clinico.apellido}" if clinico else "Su profesional",
+        'clinico_profesion': getattr(clinico, 'profesion', '') if clinico else '',
         'fecha': _formatear_fecha(fecha, '%d/%m/%Y'),
         'hora_inicio': _formatear_fecha(hora_inicio, '%H:%M'),
     }
 
-    _enviar_correo(
-        asunto='Cancelación de cita — KenkoMed',
-        plantilla='emails/reserva_cancelada.html',
-        contexto=contexto,
-        destinatarios=[getattr(paciente, 'correo', None)],
-        clinica=_clinica_de_paciente(paciente),
-    )
+    clinica = _clinica_de_paciente(paciente)
+
+    if paciente and getattr(paciente, 'correo', None):
+        _enviar_correo(
+            asunto='Cancelación de cita — KenkoMed',
+            plantilla='emails/reserva_cancelada.html',
+            contexto={**contexto, 'es_paciente': True},
+            destinatarios=[paciente.correo],
+            clinica=clinica,
+        )
+
+    if clinico and getattr(clinico, 'correo', None):
+        _enviar_correo(
+            asunto='Cita cancelada en agenda — KenkoMed',
+            plantilla='emails/reserva_cancelada.html',
+            contexto={**contexto, 'es_paciente': False},
+            destinatarios=[clinico.correo],
+            clinica=clinica,
+        )

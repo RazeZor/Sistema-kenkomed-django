@@ -1,12 +1,13 @@
 import json
+import logging
 import threading
 from datetime import datetime
 
 from django.contrib import messages
+from django.db import close_old_connections
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+
+logger = logging.getLogger(__name__)
 
 from Login.auditoria import registrar_auditoria
 from Login.models import Clinico, Paciente, Reserva
@@ -30,8 +31,18 @@ COLORES_PROF = ['#0284c7', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0d9488'
 
 
 def _notificar_en_background(func, *args, **kwargs):
-    """Envía correos en segundo plano para no bloquear la respuesta HTTP."""
-    threading.Thread(target=func, args=args, kwargs=kwargs, daemon=True).start()
+    """Envía correos en segundo plano garantizando la limpieza de conexiones BD."""
+    def worker():
+        close_old_connections()
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            logger.error(f"Error en notificación en background ({func.__name__}): {e}", exc_info=True)
+        finally:
+            close_old_connections()
+
+    threading.Thread(target=worker, daemon=True).start()
+
 
 
 def puede_editar_calendario_clinica(request):
