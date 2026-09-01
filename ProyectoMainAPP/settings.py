@@ -166,8 +166,9 @@ RESEND_API_KEY = _resend_key
 
 _resend_from = os.environ.get('RESEND_FROM_EMAIL', '').strip()
 if not _resend_from:
-    _resend_from = 'KenkoMed <notificaciones@app.kenkomed.cl>'
+    _resend_from = 'KenkoMed <notificaciones@kenkomed.cl>'
 RESEND_FROM_EMAIL = _resend_from
+
 
 
 

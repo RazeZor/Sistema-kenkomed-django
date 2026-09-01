@@ -87,7 +87,8 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
 
     try:
         branding = resolver_branding_correo(clinica)
-        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'KenkoMed <notificaciones@app.kenkomed.cl>')
+        from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'KenkoMed <notificaciones@kenkomed.cl>')
+
         contexto['nombre_sistema'] = 'KenkoMed'
         contexto['correo_contacto'] = from_email
         contexto['nombre_marca'] = branding['nombre_marca']
@@ -135,7 +136,8 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
             try:
                 resend_from = (getattr(settings, 'RESEND_FROM_EMAIL', '') or '').strip()
                 if not resend_from or 'resend.dev' in resend_from:
-                    resend_from = 'KenkoMed <notificaciones@app.kenkomed.cl>'
+                    resend_from = 'KenkoMed <notificaciones@kenkomed.cl>'
+
                 payload = {
                     'from': resend_from,
                     'to': destinatarios,
