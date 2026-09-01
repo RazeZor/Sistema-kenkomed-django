@@ -59,10 +59,10 @@ class ResendEmailBackend(BaseEmailBackend):
                 'html': body_html,
             }
 
-            if message.bcc:
-                payload['bcc'] = list(message.bcc)
-            if message.cc:
-                payload['cc'] = list(message.cc)
+            reply_to_list = list(message.reply_to) if message.reply_to else ['kenkomedplus@gmail.com']
+            if reply_to_list:
+                payload['reply_to'] = reply_to_list
+
 
             req = urllib.request.Request(
                 'https://api.resend.com/emails',

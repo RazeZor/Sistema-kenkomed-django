@@ -121,9 +121,11 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
                     'to': destinatarios,
                     'subject': asunto,
                     'html': html_content,
+                    'reply_to': ['kenkomedplus@gmail.com'],
                 }
                 if bcc_list:
                     payload['bcc'] = bcc_list
+
 
                 req = urllib.request.Request(
                     'https://api.resend.com/emails',
