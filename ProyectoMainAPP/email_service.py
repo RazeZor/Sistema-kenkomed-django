@@ -3,8 +3,11 @@ Servicio centralizado de notificaciones por correo electrónico.
 Todas las funciones son fire-and-forget: si falla el envío, se registra
 en el log pero NO interrumpe el flujo de la aplicación.
 """
+import json
 import logging
 import threading
+import urllib.request
+import urllib.error
 from email.mime.image import MIMEImage
 from pathlib import Path
 from datetime import datetime, date, time
@@ -64,6 +67,7 @@ def _ejecutar_en_background(func, *args, **kwargs):
 def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc=None):
     """
     Función interna para enviar un correo con plantilla HTML.
+    Prioriza el envío vía Resend API (HTTPS Puerto 443, inmune a bloqueos VPS).
     - asunto: str con el asunto del correo
     - plantilla: ruta a la plantilla HTML (ej: 'emails/nuevo_paciente.html')
     - contexto: dict con variables para la plantilla
@@ -107,6 +111,40 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
         if copia_sistema and copia_sistema not in destinatarios and copia_sistema not in bcc_list:
             bcc_list.append(copia_sistema)
 
+        # Intento de envío vía Resend API (HTTPS Puerto 443 - Inmune a bloqueos VPS/DigitalOcean)
+        resend_api_key = getattr(settings, 'RESEND_API_KEY', '')
+        if resend_api_key:
+            try:
+                resend_from = getattr(settings, 'RESEND_FROM_EMAIL', 'KenkoMed <onboarding@resend.dev>')
+                payload = {
+                    'from': resend_from,
+                    'to': destinatarios,
+                    'subject': asunto,
+                    'html': html_content,
+                }
+                if bcc_list:
+                    payload['bcc'] = bcc_list
+
+                req = urllib.request.Request(
+                    'https://api.resend.com/emails',
+                    data=json.dumps(payload).encode('utf-8'),
+                    headers={
+                        'Authorization': f'Bearer {resend_api_key}',
+                        'Content-Type': 'application/json',
+                        'User-Agent': 'Resend/Python-SDK',
+                    }
+                )
+                response = urllib.request.urlopen(req, timeout=10)
+                res_data = json.loads(response.read().decode('utf-8'))
+                logger.info(f"Correo enviado vía Resend API: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list} | ID: {res_data.get('id')}")
+                return True
+            except urllib.error.HTTPError as e:
+                body_err = e.read().decode('utf-8', errors='ignore')
+                logger.error(f"Error HTTP en Resend API ({e.code}): {body_err}. Reintentando vía SMTP...", exc_info=True)
+            except Exception as e:
+                logger.error(f"Error al conectar con Resend API: {e}. Reintentando vía SMTP...", exc_info=True)
+
+        # Respaldar vía SMTP tradicional
         email = EmailMultiAlternatives(
             subject=asunto,
             body=text_content,
@@ -128,12 +166,13 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
                 logger.warning(f'No se pudo adjuntar el logo al correo: {e}')
 
         email.send(fail_silently=False)
-        logger.info(f"Correo enviado: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list}")
+        logger.info(f"Correo enviado vía SMTP: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list}")
         return True
 
     except Exception as e:
         logger.error(f"Error al enviar correo '{asunto}' a {destinatarios}: {str(e)}", exc_info=True)
         return False
+
 
 
 # ============================================================
