@@ -68,7 +68,7 @@ def _ejecutar_en_background(func):
     return wrapper
 
 
-def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc=None):
+def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc=None, reply_to=None):
     """
     Función interna para enviar un correo con plantilla HTML.
     Prioriza el envío vía Resend API (HTTPS Puerto 443, inmune a bloqueos VPS).
@@ -78,6 +78,7 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
     - destinatarios: lista de correos electrónicos
     - clinica: instancia Clinica opcional para logo y nombre del centro
     - bcc: lista o str opcional de copias ocultas
+    - reply_to: lista o str opcional de direcciones de respuesta
     """
     destinatarios = [d.strip() for d in destinatarios if d and isinstance(d, str) and d.strip()]
     if not destinatarios:
@@ -107,13 +108,23 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
         bcc_list = []
         if bcc:
             if isinstance(bcc, list):
-                bcc_list.extend([b.strip() for b in bcc if b and isinstance(b, str) and d and isinstance(d, str) and b.strip()])
+                bcc_list.extend([b.strip() for b in bcc if b and isinstance(b, str) and b.strip()])
             elif isinstance(bcc, str) and bcc.strip():
                 bcc_list.append(bcc.strip())
 
         copia_sistema = getattr(settings, 'EMAIL_BCC_SYSTEM', 'kenkomedplus@gmail.com')
         if copia_sistema and copia_sistema not in destinatarios and copia_sistema not in bcc_list:
             bcc_list.append(copia_sistema)
+
+        # Direcciones de respuesta (Reply-To)
+        reply_to_list = ['kenkomedplus@gmail.com']
+        if reply_to:
+            if isinstance(reply_to, list):
+                for r in reply_to:
+                    if r and isinstance(r, str) and r.strip() and r.strip() not in reply_to_list:
+                        reply_to_list.append(r.strip())
+            elif isinstance(reply_to, str) and reply_to.strip() and reply_to.strip() not in reply_to_list:
+                reply_to_list.append(reply_to.strip())
 
         # Intento de envío vía Resend API (HTTPS Puerto 443 - Inmune a bloqueos VPS/DigitalOcean)
         resend_api_key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
@@ -130,7 +141,7 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
                     'to': destinatarios,
                     'subject': asunto,
                     'html': html_content,
-                    'reply_to': ['kenkomedplus@gmail.com'],
+                    'reply_to': reply_to_list,
                 }
                 if bcc_list:
                     payload['bcc'] = bcc_list
@@ -146,7 +157,7 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
                 )
                 response = urllib.request.urlopen(req, timeout=10)
                 res_data = json.loads(response.read().decode('utf-8'))
-                logger.info(f"Correo enviado vía Resend API: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list} | ID: {res_data.get('id')}")
+                logger.info(f"Correo enviado vía Resend API: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list} | Reply-To: {reply_to_list} | ID: {res_data.get('id')}")
                 return True
             except urllib.error.HTTPError as e:
                 body_err = e.read().decode('utf-8', errors='ignore')
@@ -163,6 +174,7 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
             from_email=from_email,
             to=destinatarios,
             bcc=bcc_list if bcc_list else None,
+            reply_to=reply_to_list,
         )
         email.attach_alternative(html_content, 'text/html')
 
@@ -178,7 +190,7 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
                 logger.warning(f'No se pudo adjuntar el logo al correo: {e}')
 
         email.send(fail_silently=False)
-        logger.info(f"Correo enviado vía SMTP: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list}")
+        logger.info(f"Correo enviado vía SMTP: '{asunto}' → Para: {destinatarios} | BCC: {bcc_list} | Reply-To: {reply_to_list}")
         return True
 
     except Exception as e:
@@ -218,6 +230,7 @@ def notificar_nuevo_paciente(paciente, clinico):
             contexto={**contexto, 'es_paciente': True},
             destinatarios=[paciente.correo],
             clinica=clinica,
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
     # Correo al clínico
@@ -228,6 +241,7 @@ def notificar_nuevo_paciente(paciente, clinico):
             contexto={**contexto, 'es_paciente': False},
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
 
 
@@ -253,6 +267,7 @@ def notificar_formulario_completado(paciente, clinico):
             contexto=contexto,
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
 
 
@@ -278,6 +293,7 @@ def notificar_receta_creada(paciente, clinico, receta):
             contexto=contexto,
             destinatarios=[paciente.correo],
             clinica=_clinica_de_paciente(paciente),
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
 
@@ -335,6 +351,7 @@ def notificar_alta_paciente(paciente, clinico, sesion):
             contexto={**contexto, 'es_paciente': True},
             destinatarios=[paciente.correo],
             clinica=clinica,
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
     # Correo al clínico
@@ -345,6 +362,7 @@ def notificar_alta_paciente(paciente, clinico, sesion):
             contexto={**contexto, 'es_paciente': False},
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
 
 
@@ -374,6 +392,7 @@ def notificar_reserva_creada(paciente, clinico, reserva):
             contexto={**contexto, 'es_paciente': True},
             destinatarios=[paciente.correo],
             clinica=clinica,
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
     # Correo al clínico
@@ -384,6 +403,7 @@ def notificar_reserva_creada(paciente, clinico, reserva):
             contexto={**contexto, 'es_paciente': False},
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
 
 
@@ -409,6 +429,7 @@ def notificar_reserva_reagendada(paciente, clinico, reserva):
             contexto={**contexto, 'es_paciente': True},
             destinatarios=[paciente.correo],
             clinica=clinica,
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
     if clinico and getattr(clinico, 'correo', None):
@@ -418,6 +439,7 @@ def notificar_reserva_reagendada(paciente, clinico, reserva):
             contexto={**contexto, 'es_paciente': False},
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
 
 
@@ -442,6 +464,7 @@ def notificar_reserva_cancelada(paciente, clinico, fecha, hora_inicio):
             contexto={**contexto, 'es_paciente': True},
             destinatarios=[paciente.correo],
             clinica=clinica,
+            reply_to=[clinico.correo] if clinico and getattr(clinico, 'correo', None) else None,
         )
 
     if clinico and getattr(clinico, 'correo', None):
@@ -451,5 +474,7 @@ def notificar_reserva_cancelada(paciente, clinico, fecha, hora_inicio):
             contexto={**contexto, 'es_paciente': False},
             destinatarios=[clinico.correo],
             clinica=clinica,
+            reply_to=[paciente.correo] if paciente and getattr(paciente, 'correo', None) else None,
         )
+
 
