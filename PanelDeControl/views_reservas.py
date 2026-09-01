@@ -6,8 +6,12 @@ from datetime import datetime
 from django.contrib import messages
 from django.db import close_old_connections
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)
+
 
 from Login.auditoria import registrar_auditoria
 from Login.models import Clinico, Paciente, Reserva
