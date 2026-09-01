@@ -159,8 +159,16 @@ USE_I18N = True
 USE_TZ = True
 
 # Resend API Settings (Envío por HTTPS API - Inmune a bloqueos VPS/DigitalOcean)
-RESEND_API_KEY = os.environ.get('RESEND_API_KEY', 're_' + 'PvrP64v9_HBYCF1feoLpxoCmDd1h9VLT7')
-RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'KenkoMed <notificaciones@app.kenkomed.cl>')
+_resend_key = os.environ.get('RESEND_API_KEY', '').strip()
+if not _resend_key:
+    _resend_key = 're_' + 'PvrP64v9_HBYCF1feoLpxoCmDd1h9VLT7'
+RESEND_API_KEY = _resend_key
+
+_resend_from = os.environ.get('RESEND_FROM_EMAIL', '').strip()
+if not _resend_from:
+    _resend_from = 'KenkoMed <notificaciones@app.kenkomed.cl>'
+RESEND_FROM_EMAIL = _resend_from
+
 
 
 

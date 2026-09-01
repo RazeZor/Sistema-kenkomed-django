@@ -34,18 +34,8 @@ HORA_CIERRE = datetime.strptime('22:30', '%H:%M').time()
 COLORES_PROF = ['#0284c7', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0d9488', '#4338ca']
 
 
-def _notificar_en_background(func, *args, **kwargs):
-    """Envía correos en segundo plano garantizando la limpieza de conexiones BD."""
-    def worker():
-        close_old_connections()
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            logger.error(f"Error en notificación en background ({func.__name__}): {e}", exc_info=True)
-        finally:
-            close_old_connections()
 
-    threading.Thread(target=worker, daemon=True).start()
+
 
 
 
@@ -307,7 +297,7 @@ def api_crear_reserva(request):
                 f" — profesional {clinico.nombre} {clinico.apellido}"
             ),
         )
-        _notificar_en_background(notificar_reserva_creada, paciente, clinico, reserva)
+        notificar_reserva_creada(paciente, clinico, reserva)
 
         evento = _serializar_evento(
             Reserva.objects.select_related('paciente', 'clinico').get(pk=reserva.pk),
@@ -362,9 +352,7 @@ def api_mover_reserva(request, reserva_id):
 
         horario_cambio = fecha_anterior != reserva.fecha or hora_anterior != reserva.hora_inicio
         if horario_cambio and reserva.paciente.correo:
-            _notificar_en_background(
-                notificar_reserva_reagendada, reserva.paciente, clinico, reserva
-            )
+            notificar_reserva_reagendada(reserva.paciente, clinico, reserva)
 
         evento = _serializar_evento(
             Reserva.objects.select_related('paciente', 'clinico').get(pk=reserva.pk),
@@ -407,9 +395,8 @@ def api_eliminar_reserva(request, reserva_id):
         reserva.delete()
 
         if paciente.correo:
-            _notificar_en_background(
-                notificar_reserva_cancelada, paciente, clinico, fecha_cita, hora_cita
-            )
+            notificar_reserva_cancelada(paciente, clinico, fecha_cita, hora_cita)
+
 
         return JsonResponse({'status': 'success', 'id': reserva_id_eliminada})
     except Exception as e:

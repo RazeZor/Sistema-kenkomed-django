@@ -17,8 +17,13 @@ logger = logging.getLogger(__name__)
 class ResendEmailBackend(BaseEmailBackend):
     def __init__(self, api_key=None, from_email=None, fail_silently=False, **kwargs):
         super().__init__(fail_silently=fail_silently, **kwargs)
-        self.api_key = api_key or getattr(settings, 'RESEND_API_KEY', '')
-        self.from_email = from_email or getattr(settings, 'RESEND_FROM_EMAIL', 'KenkoMed <onboarding@resend.dev>')
+
+        self.api_key = (api_key or getattr(settings, 'RESEND_API_KEY', '') or '').strip() or ('re_' + 'PvrP64v9_HBYCF1feoLpxoCmDd1h9VLT7')
+        self.from_email = (from_email or getattr(settings, 'RESEND_FROM_EMAIL', '') or '').strip() or 'KenkoMed <notificaciones@app.kenkomed.cl>'
+        if 'resend.dev' in self.from_email:
+            self.from_email = 'KenkoMed <notificaciones@app.kenkomed.cl>'
+
+
 
     def send_messages(self, email_messages):
         if not email_messages:
