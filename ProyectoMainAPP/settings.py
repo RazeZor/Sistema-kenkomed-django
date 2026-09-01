@@ -164,6 +164,8 @@ RESEND_FROM_EMAIL = os.environ.get('RESEND_FROM_EMAIL', 'KenkoMed <notificacione
 
 
 
+
+
 # Email Settings (Resend HTTPS Backend por defecto, inmune a bloqueos VPS)
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'ProyectoMainAPP.resend_backend.ResendEmailBackend')
 

@@ -58,6 +58,8 @@ services:
       DEFAULT_FROM_EMAIL: "KenkoMed <notificaciones@app.kenkomed.cl>"
 
 
+
+
       EMAIL_BCC_SYSTEM: "kenkomedplus@gmail.com"
       EMAIL_TIMEOUT: "10"
 
