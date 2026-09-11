@@ -10,12 +10,14 @@
     <style>
         /* ============================================================
            SISTEMA DE DISEÑO — FICHA CLÍNICA ELECTRÓNICA (FCE)
-           Paleta Médica Profesional · Impresión A4 Optimizada
+           Paleta Médica Profesional · Compacta y responsive
+           Estilo "planilla hospitalaria": grillas densas, tipografía
+           pequeña y jerárquica, poco espacio en blanco desperdiciado.
            ============================================================ */
         *, *::before, *::after { box-sizing: border-box; }
 
         :root {
-            /* Paleta Médica Slate Navy + Blue */
+            /* Paleta Médica Slate Navy + Blue (sin cambios) */
             --c-navy:      #0f172a;
             --c-blue:      #1e3a8a;
             --c-blue-mid:  #2563eb;
@@ -42,15 +44,17 @@
             --c-border-mid:#cbd5e1;
             --c-th-bg:     #f8fafc;
 
-            /* Tipografía */
+            /* Tipografía — escala reducida para densidad tipo hospital */
             --font: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --fs-xs: 9px;
-            --fs-sm: 10.5px;
-            --fs-base: 12px;
-            --fs-md: 13px;
-            --fs-lg: 15px;
-            --fs-xl: 18px;
+            --fs-xs: 8.5px;
+            --fs-sm: 9.5px;
+            --fs-base: 11px;
+            --fs-md: 12px;
+            --fs-lg: 14px;
+            --fs-xl: 17px;
         }
+
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
             font-family: var(--font);
@@ -58,7 +62,7 @@
             background: var(--c-bg);
             color: var(--c-text);
             margin: 0;
-            line-height: 1.5;
+            line-height: 1.45;
             -webkit-font-smoothing: antialiased;
         }
 
@@ -68,7 +72,7 @@
             min-height: 100vh;
             margin: 0 auto;
             background: var(--c-surface);
-            padding: 24px 28px 40px;
+            padding: 12px 12px 96px;
             display: flex;
             flex-direction: column;
         }
@@ -78,34 +82,36 @@
             border: 1.5px solid var(--c-border-mid);
             border-top: 4px solid var(--c-blue);
             border-radius: 4px;
-            margin-bottom: 20px;
+            margin-bottom: 14px;
             overflow: hidden;
             background: #ffffff;
         }
 
         .fce-header-top {
             background: #ffffff;
-            padding: 16px 22px;
+            padding: 10px 14px;
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
+            gap: 8px 16px;
             border-bottom: 1px solid var(--c-border);
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
 
+        .fce-header-top-left { min-width: 0; }
         .fce-header-top-left h1 {
             margin: 0;
-            font-size: var(--fs-lg);
+            font-size: clamp(13px, 3.6vw, var(--fs-lg));
             font-weight: 700;
             color: var(--c-blue);
             letter-spacing: 0.2px;
             line-height: 1.2;
         }
         .fce-header-top-left .fce-subtitle {
-            margin: 4px 0 0;
-            font-size: 10px;
+            margin: 3px 0 0;
+            font-size: var(--fs-xs);
             color: var(--c-text-muted);
             font-weight: 500;
         }
@@ -114,16 +120,16 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 4px;
+            gap: 3px;
             flex-shrink: 0;
         }
         .fce-header-top-right img {
-            height: 56px;
-            max-width: 220px;
+            height: 40px;
+            max-width: 170px;
             object-fit: contain;
         }
         .fce-clinic-name {
-            font-size: var(--fs-md);
+            font-size: var(--fs-base);
             font-weight: 700;
             color: var(--c-blue);
             text-align: right;
@@ -132,95 +138,86 @@
         .fce-header-badge {
             background: var(--c-blue-pale);
             border-bottom: 1.5px solid var(--c-border-mid);
-            padding: 6px 20px;
+            padding: 5px 14px;
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: 12px;
+            gap: 4px 12px;
         }
         .fce-header-badge .badge-legal {
-            font-size: 9px;
+            font-size: var(--fs-xs);
             font-weight: 600;
             color: var(--c-blue);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.4px;
         }
         .fce-header-badge .badge-date {
-            font-size: 10px;
+            font-size: var(--fs-xs);
             color: var(--c-text-muted);
             font-weight: 500;
+            white-space: nowrap;
         }
 
-        /* ── GRILLA RESUMEN DEL PACIENTE ── */
+        /* ── GRILLA RESUMEN DEL PACIENTE (estilo planilla, auto-adaptable) ── */
         .fce-patient-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-        }
-        @media screen and (min-width: 640px) {
-            .fce-patient-grid { grid-template-columns: repeat(3, 1fr); }
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1px;
+            background: var(--c-border);
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .fce-patient-cell {
-            padding: 10px 16px;
-            border-right: 1px solid var(--c-border);
-            border-bottom: 1px solid var(--c-border);
-        }
-        .fce-patient-cell:nth-child(2n) { border-right: 1px solid var(--c-border); }
-        .fce-patient-cell:last-child { border-right: none; }
-
-        @media screen and (min-width: 640px) {
-            .fce-patient-cell:nth-child(3n) { border-right: none; }
-        }
-
-        .fce-patient-cell:nth-last-child(-n+2) { border-bottom: none; }
-        @media screen and (min-width: 640px) {
-            .fce-patient-cell:nth-last-child(-n+3) { border-bottom: none; }
+            background: #ffffff;
+            padding: 6px 10px;
         }
 
         .fce-patient-label {
-            font-size: 8.5px;
+            font-size: 7.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
+            letter-spacing: 0.5px;
             color: var(--c-blue);
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .fce-patient-value {
-            font-size: var(--fs-md);
+            font-size: var(--fs-base);
             font-weight: 600;
             color: var(--c-navy);
             word-break: break-word;
-            line-height: 1.3;
+            line-height: 1.25;
         }
 
         /* ── TARJETAS DE SECCIÓN ── */
         .fce-card {
             border: 1px solid var(--c-border-mid);
             border-radius: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 10px;
             overflow: hidden;
             page-break-inside: avoid;
             break-inside: avoid;
         }
 
         .fce-card-head {
-            padding: 9px 16px;
+            padding: 6px 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 10px;
+            gap: 6px;
+            font-size: var(--fs-sm);
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.7px;
+            letter-spacing: 0.5px;
             border-bottom: 1px solid var(--c-border);
             -webkit-print-color-adjust: exact;
             print-color-adjust: exact;
         }
         .fce-card-head i {
-            font-size: 14px;
+            font-size: 12px;
         }
 
-        /* Variantes de color para encabezados de sección */
+        /* Variantes de color para encabezados de sección (sin cambios) */
         .ch-slate   { background: var(--c-th-bg); color: var(--c-navy); border-left: 3px solid var(--c-blue); }
         .ch-blue    { background: var(--c-blue-pale); color: var(--c-blue); border-left: 3px solid var(--c-blue-mid); }
         .ch-teal    { background: var(--c-teal-soft); color: var(--c-teal); border-left: 3px solid var(--c-teal); }
@@ -232,60 +229,71 @@
         /* Acción dentro del encabezado */
         .ch-action-link {
             margin-left: auto;
-            font-size: 10px;
+            font-size: var(--fs-xs);
             font-weight: 600;
             text-decoration: none;
-            padding: 3px 10px;
+            padding: 2px 8px;
             border-radius: 4px;
             background: rgba(0,0,0,0.06);
             color: inherit;
             display: inline-flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
+            white-space: nowrap;
         }
 
-        .fce-card-body { padding: 14px 16px; }
+        .fce-card-body { padding: 9px 12px; }
         .fce-card-body-flush { padding: 0; }
 
-        /* ── GRILLA GENÉRICA 2 COLUMNAS ── */
-        .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
-        .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 16px; }
+        @media screen and (max-width: 640px) {
+            .fce-card-body, .fce-card-body-flush { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        }
 
-        /* ── CAMPOS KEY-VALUE ── */
+        /* ── GRILLAS DE CAMPOS — estilo planilla clínica, auto-adaptable ── */
+        .g2, .g3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 1px;
+            background: var(--c-border);
+            border: 1px solid var(--c-border);
+            border-radius: 3px;
+            overflow: hidden;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .g3 { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+
+        /* ── CAMPOS KEY-VALUE (celda de planilla: etiqueta arriba, valor abajo) ── */
         .kv {
             display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            gap: 10px;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--c-border);
+            flex-direction: column;
+            gap: 1px;
+            padding: 5px 9px;
+            background: #ffffff;
         }
-        .kv:last-child { border-bottom: none; }
 
         .kv-label {
-            font-size: 10px;
-            font-weight: 600;
+            font-size: 8px;
+            font-weight: 700;
             color: var(--c-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            flex-shrink: 0;
-            white-space: nowrap;
         }
         .kv-value {
             font-size: var(--fs-base);
             font-weight: 500;
             color: var(--c-navy);
-            text-align: right;
+            text-align: left;
             word-break: break-word;
         }
 
         /* ── CAMPO BLOQUE (largo) ── */
-        .kv-block { margin-top: 12px; }
+        .kv-block { margin-top: 9px; }
         .kv-block .kv-label {
             display: block;
-            font-size: 9px;
+            font-size: var(--fs-xs);
             text-align: left;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .kv-block .kv-value { text-align: left; }
 
@@ -293,47 +301,49 @@
         .txt-clinico {
             font-size: var(--fs-base);
             background: var(--c-th-bg);
-            padding: 10px 13px;
+            padding: 8px 10px;
             border-radius: 3px;
             border-left: 3px solid var(--c-blue-mid);
             white-space: pre-wrap;
             word-break: break-word;
-            line-height: 1.6;
+            line-height: 1.55;
             color: var(--c-text);
             display: block;
         }
 
         /* ── SUBTÍTULO DE SUBSECCIÓN ── */
         .sub-title {
-            font-size: 9.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--c-text-muted);
-            margin: 14px 0 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid var(--c-border);
-        }
-
-        /* ── TABLAS ── */
-        .tbl {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 11px;
-        }
-        .tbl thead tr { background: var(--c-th-bg); }
-        .tbl th {
-            padding: 7px 10px;
-            text-align: left;
-            border: 1px solid var(--c-border-mid);
-            font-size: 9px;
+            font-size: var(--fs-xs);
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.4px;
             color: var(--c-text-muted);
+            margin: 10px 0 5px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid var(--c-border);
+        }
+
+        /* ── TABLAS (compactas, con scroll horizontal en pantallas chicas) ── */
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5px;
+            min-width: 420px;
+        }
+        .tbl thead tr { background: var(--c-th-bg); }
+        .tbl th {
+            padding: 5px 8px;
+            text-align: left;
+            border: 1px solid var(--c-border-mid);
+            font-size: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: var(--c-text-muted);
+            white-space: nowrap;
         }
         .tbl td {
-            padding: 7px 10px;
+            padding: 5px 8px;
             border: 1px solid var(--c-border);
             vertical-align: top;
             word-break: break-word;
@@ -345,18 +355,19 @@
         .sesion-bloque {
             border: 1px solid var(--c-border);
             border-radius: 3px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
+            padding: 8px 10px;
+            margin-bottom: 7px;
             background: #fafbfd;
             page-break-inside: avoid;
             break-inside: avoid;
         }
         .sesion-bloque-head {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 10px;
-            gap: 8px;
+            margin-bottom: 7px;
+            gap: 5px 8px;
         }
         .sesion-bloque-title {
             font-size: var(--fs-base);
@@ -365,12 +376,13 @@
             margin: 0;
         }
         .sesion-tipo-badge {
-            font-size: 9px;
+            font-size: 8px;
             font-weight: 700;
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 10px;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
         }
         .badge-inicial  { background: var(--c-blue-soft); color: var(--c-blue); }
         .badge-seguimiento { background: #f1f5f9; color: var(--c-text-muted); }
@@ -379,10 +391,12 @@
         /* ── BLOQUE DE FIRMA PROFESIONAL Y PIE ANCLADO ── */
         .fce-footer {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: flex-end;
+            gap: 16px;
             margin-top: auto;
-            padding-top: 24px;
+            padding-top: 16px;
             border-top: 1.5px solid var(--c-border-mid);
             page-break-inside: avoid;
             break-inside: avoid;
@@ -392,11 +406,11 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
         .firma-canvas-box {
-            width: 260px;
-            height: 75px;
+            width: min(220px, 100%);
+            height: 62px;
             border: 1.5px dashed var(--c-border-mid);
             border-radius: 4px;
             background: #ffffff;
@@ -409,14 +423,14 @@
             print-color-adjust: exact;
         }
         .firma-img {
-            max-height: 70px;
-            max-width: 250px;
+            max-height: 58px;
+            max-width: 210px;
             object-fit: contain;
         }
         .firma-line {
-            width: 280px;
+            width: min(240px, 100%);
             border-top: 1.5px solid var(--c-navy);
-            padding-top: 6px;
+            padding-top: 5px;
             text-align: center;
         }
         .firma-name {
@@ -426,20 +440,20 @@
             margin: 0;
         }
         .firma-prof {
-            font-size: 11px;
+            font-size: var(--fs-sm);
             color: var(--c-text-muted);
             margin: 2px 0 0;
         }
         .firma-reg {
-            font-size: 10.5px;
+            font-size: var(--fs-sm);
             font-weight: 600;
             color: var(--c-blue);
             margin: 2px 0 0;
         }
         .firma-hint {
-            font-size: 9px;
+            font-size: var(--fs-xs);
             color: var(--c-text-light);
-            margin: 4px 0 0;
+            margin: 3px 0 0;
         }
 
         .fce-footer-meta {
@@ -447,18 +461,26 @@
         }
         .fce-footer-meta p {
             margin: 0;
-            font-size: 9.5px;
+            font-size: var(--fs-xs);
             color: var(--c-text-light);
-            line-height: 1.6;
+            line-height: 1.55;
         }
         .fce-footer-meta .meta-clinic {
-            font-size: 11px;
+            font-size: var(--fs-sm);
             font-weight: 700;
             color: var(--c-text-muted);
         }
         .fce-footer-meta .meta-legal {
-            font-size: 9px;
+            font-size: var(--fs-xs);
             color: var(--c-text-light);
+        }
+
+        @media screen and (max-width: 480px) {
+            .fce-footer { flex-direction: column-reverse; align-items: center; text-align: center; }
+            .fce-footer-meta { text-align: center; }
+            .fce-header-top { justify-content: center; text-align: center; }
+            .fce-header-top-left { width: 100%; text-align: center; }
+            .fce-header-top-right { width: 100%; align-items: center; }
         }
 
         /* ── BARRA DIGITAL FLOTANTE (NO IMPRIME) ── */
@@ -470,10 +492,10 @@
             z-index: 200;
             background: var(--c-surface);
             border-top: 2px solid var(--c-blue);
-            padding: 12px 20px;
+            padding: 9px 14px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
             align-items: center;
             box-shadow: 0 -4px 24px rgba(15,23,42,.12);
@@ -481,7 +503,7 @@
         .fce-toolbar p {
             width: 100%;
             text-align: center;
-            font-size: 10.5px;
+            font-size: var(--fs-sm);
             color: var(--c-text-muted);
             margin: 0;
             display: none;
@@ -489,17 +511,18 @@
 
         .btn {
             border: none;
-            padding: 9px 20px;
+            padding: 8px 16px;
             border-radius: 6px;
-            font-size: 12.5px;
+            font-size: 11.5px;
             font-weight: 600;
             cursor: pointer;
             font-family: var(--font);
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 6px;
             text-decoration: none;
             transition: opacity .15s;
+            white-space: nowrap;
         }
         .btn:hover { opacity: 0.88; }
         .btn-pdf    { background: #15803d; color: #fff; }
@@ -510,32 +533,32 @@
         .divider {
             border: none;
             border-top: 1px solid var(--c-border);
-            margin: 14px 0;
+            margin: 10px 0;
         }
 
         /* ============================================================
-           MEDIA PRINT — A4 PROFESIONAL
+           MEDIA PRINT — A4 COMPACTA (tipo epicrisis hospitalaria)
            ============================================================ */
         @media print {
             :root {
-                --fs-base: 8.5pt;
-                --fs-sm: 7.5pt;
-                --fs-xs: 7pt;
-                --fs-md: 9pt;
-                --fs-lg: 11pt;
-                --fs-xl: 14pt;
+                --fs-base: 8pt;
+                --fs-sm: 7pt;
+                --fs-xs: 6.5pt;
+                --fs-md: 8.5pt;
+                --fs-lg: 10.5pt;
+                --fs-xl: 13pt;
             }
 
             @page {
                 size: A4 portrait;
-                margin: 0 !important; /* Elimina automáticamente los bordes del navegador donde van la URL y fecha por defecto */
+                margin: 0 !important;
             }
 
             html, body {
                 background: #ffffff !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                font-size: 8.5pt;
+                font-size: 8pt;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
             }
@@ -545,7 +568,7 @@
             .fce-page {
                 max-width: 100% !important;
                 width: 100% !important;
-                padding: 12mm 12mm 14mm 12mm !important;
+                padding: 9mm 10mm 11mm 10mm !important;
                 margin: 0 !important;
                 box-shadow: none !important;
                 display: block !important;
@@ -554,40 +577,36 @@
                 background: #ffffff !important;
             }
 
-            /* Encabezado limpio con fondo blanco para visibilidad total de logos */
             .fce-header { border-color: #94a3b8 !important; border-top-color: #1e3a8a !important; }
             .fce-header-top { background: #ffffff !important; }
             .fce-header-top-left h1 { color: #1e3a8a !important; }
 
-            /* Encabezados de sección: limpios y con borde solo */
             .ch-slate, .ch-blue, .ch-teal, .ch-green, .ch-amber, .ch-purple, .ch-red {
                 background: #f8fafc !important;
                 border-left-width: 4px !important;
             }
 
-            /* Sin fondos pesados en cuerpos de tabla */
+            .fce-patient-grid, .g2, .g3 { background: #cbd5e1 !important; }
             .tbl tbody tr:nth-child(even) { background: #f9fafb !important; }
             .tbl thead tr { background: #f1f5f9 !important; }
             .txt-clinico { background: #f8fafc !important; }
             .sesion-bloque { background: #fafbfd !important; }
 
-            /* Control de saltos de página */
             .fce-card {
                 break-inside: avoid;
                 page-break-inside: avoid;
-                margin-bottom: 12px !important;
+                margin-bottom: 8px !important;
             }
             .sesion-bloque { break-inside: avoid; page-break-inside: avoid; }
             .tbl tr { break-inside: avoid; page-break-inside: avoid; }
             .tbl thead { display: table-header-group; }
 
-            /* Bloque de Firma y Pie — se ubica de forma natural sin forzar saltos de página falsos */
             .fce-footer {
                 display: flex !important;
                 justify-content: space-between !important;
                 align-items: flex-end !important;
-                margin-top: 28px !important;
-                padding-top: 14px !important;
+                margin-top: 20px !important;
+                padding-top: 10px !important;
                 border-top: 1.5px solid #cbd5e1 !important;
                 break-inside: avoid !important;
                 page-break-inside: avoid !important;
@@ -598,16 +617,16 @@
                 background: #ffffff !important;
             }
 
-            /* No mostrar el botón de editar en secciones */
             .ch-action-link { display: none !important; }
         }
 
-        @media screen and (min-width: 768px) {
+        @media screen and (min-width: 700px) {
             .fce-page {
-                padding: 32px 40px 130px;
+                padding: 22px 28px 110px;
                 box-shadow: 0 4px 32px rgba(15,23,42,.09);
-                margin-top: 16px;
-                margin-bottom: 16px;
+                margin-top: 14px;
+                margin-bottom: 14px;
+                border-radius: 6px;
             }
         }
     </style>
@@ -726,19 +745,15 @@
     </div>
     <div class="fce-card-body">
         <div class="g2">
-            <div>
-                <div class="kv"><span class="kv-label">Nombre completo</span><span class="kv-value">{{ paciente.nombre }} {{ paciente.apellido }}</span></div>
-                <div class="kv"><span class="kv-label">Identificación</span><span class="kv-value">{{ paciente.identificacion_display }}</span></div>
-                <div class="kv"><span class="kv-label">Fecha de nacimiento</span><span class="kv-value">{% if paciente.fechaNacimiento %}{{ paciente.fechaNacimiento|date:"d/m/Y" }}{% else %}—{% endif %}</span></div>
-                <div class="kv"><span class="kv-label">Edad</span><span class="kv-value">{{ paciente.edad_display }}</span></div>
-                <div class="kv"><span class="kv-label">Género</span><span class="kv-value">{{ paciente.genero|default:"—" }}</span></div>
-            </div>
-            <div>
-                <div class="kv"><span class="kv-label">Teléfono / Contacto</span><span class="kv-value">{{ paciente.contacto|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Correo electrónico</span><span class="kv-value">{{ paciente.correo|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Cobertura de salud</span><span class="kv-value">{{ paciente.cobertura_de_salud|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Profesión / Ocupación</span><span class="kv-value">{{ paciente.profesion|default:"—" }}</span></div>
-            </div>
+            <div class="kv"><span class="kv-label">Nombre completo</span><span class="kv-value">{{ paciente.nombre }} {{ paciente.apellido }}</span></div>
+            <div class="kv"><span class="kv-label">Identificación</span><span class="kv-value">{{ paciente.identificacion_display }}</span></div>
+            <div class="kv"><span class="kv-label">Fecha de nacimiento</span><span class="kv-value">{% if paciente.fechaNacimiento %}{{ paciente.fechaNacimiento|date:"d/m/Y" }}{% else %}—{% endif %}</span></div>
+            <div class="kv"><span class="kv-label">Edad</span><span class="kv-value">{{ paciente.edad_display }}</span></div>
+            <div class="kv"><span class="kv-label">Género</span><span class="kv-value">{{ paciente.genero|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Teléfono / Contacto</span><span class="kv-value">{{ paciente.contacto|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Correo electrónico</span><span class="kv-value">{{ paciente.correo|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Cobertura de salud</span><span class="kv-value">{{ paciente.cobertura_de_salud|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Profesión / Ocupación</span><span class="kv-value">{{ paciente.profesion|default:"—" }}</span></div>
         </div>
     </div>
 </div>
@@ -751,25 +766,21 @@
     </div>
     <div class="fce-card-body">
         <div class="g2">
-            <div>
-                <div class="kv"><span class="kv-label">Centro / Clínica</span><span class="kv-value">{% if clinica %}{{ clinica.nombre }}{% else %}—{% endif %}</span></div>
-                {% if clinica and clinica.ciudad %}
-                <div class="kv"><span class="kv-label">Ciudad</span><span class="kv-value">{{ clinica.ciudad }}</span></div>
-                {% endif %}
-                {% if clinica and clinica.telefono %}
-                <div class="kv"><span class="kv-label">Teléfono centro</span><span class="kv-value">{{ clinica.telefono }}</span></div>
-                {% endif %}
-                <div class="kv"><span class="kv-label">Profesional de registro inicial</span><span class="kv-value">{% if clinico %}{{ clinico.nombre }} {{ clinico.apellido }}{% else %}—{% endif %}</span></div>
-            </div>
-            <div>
-                {% if clinico_emisor %}
-                <div class="kv"><span class="kv-label">Profesional emisor de ficha</span><span class="kv-value">{{ clinico_emisor.nombre }} {{ clinico_emisor.apellido }}</span></div>
-                <div class="kv"><span class="kv-label">Especialidad / Profesión</span><span class="kv-value">{{ clinico_emisor.profesion }}</span></div>
-                <div class="kv"><span class="kv-label">N° Registro (SIS)</span><span class="kv-value">{{ clinico_emisor.numero_registro|default:"—" }}</span></div>
-                {% else %}
-                <div class="kv"><span class="kv-label">Profesional emisor</span><span class="kv-value">—</span></div>
-                {% endif %}
-            </div>
+            <div class="kv"><span class="kv-label">Centro / Clínica</span><span class="kv-value">{% if clinica %}{{ clinica.nombre }}{% else %}—{% endif %}</span></div>
+            {% if clinica and clinica.ciudad %}
+            <div class="kv"><span class="kv-label">Ciudad</span><span class="kv-value">{{ clinica.ciudad }}</span></div>
+            {% endif %}
+            {% if clinica and clinica.telefono %}
+            <div class="kv"><span class="kv-label">Teléfono centro</span><span class="kv-value">{{ clinica.telefono }}</span></div>
+            {% endif %}
+            <div class="kv"><span class="kv-label">Profesional de registro inicial</span><span class="kv-value">{% if clinico %}{{ clinico.nombre }} {{ clinico.apellido }}{% else %}—{% endif %}</span></div>
+            {% if clinico_emisor %}
+            <div class="kv"><span class="kv-label">Profesional emisor de ficha</span><span class="kv-value">{{ clinico_emisor.nombre }} {{ clinico_emisor.apellido }}</span></div>
+            <div class="kv"><span class="kv-label">Especialidad / Profesión</span><span class="kv-value">{{ clinico_emisor.profesion }}</span></div>
+            <div class="kv"><span class="kv-label">N° Registro (SIS)</span><span class="kv-value">{{ clinico_emisor.numero_registro|default:"—" }}</span></div>
+            {% else %}
+            <div class="kv"><span class="kv-label">Profesional emisor</span><span class="kv-value">—</span></div>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -787,16 +798,12 @@
     </div>
     <div class="fce-card-body">
         <div class="g2">
-            <div>
-                <div class="kv"><span class="kv-label">Duración del dolor</span><span class="kv-value">{{ formulario.duracionDolor|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Causa referida</span><span class="kv-value">{{ formulario.causaDolor|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Opinión sobre la cura</span><span class="kv-value">{{ formulario.opinionCuraDolor|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Nivel de salud autopercibido</span><span class="kv-value">{{ formulario.pregunta1_nivelDeSalud|default:"—" }}</span></div>
-            </div>
-            <div>
-                <div class="kv"><span class="kv-label">Características del dolor</span><span class="kv-value">{% for c in caracteristicasDeDolor %}{{ c }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
-                <div class="kv"><span class="kv-label">Enfermedades asociadas</span><span class="kv-value">{% for e in TiposDeEnfermedades %}{{ e }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
-            </div>
+            <div class="kv"><span class="kv-label">Duración del dolor</span><span class="kv-value">{{ formulario.duracionDolor|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Causa referida</span><span class="kv-value">{{ formulario.causaDolor|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Opinión sobre la cura</span><span class="kv-value">{{ formulario.opinionCuraDolor|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Nivel de salud autopercibido</span><span class="kv-value">{{ formulario.pregunta1_nivelDeSalud|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Características del dolor</span><span class="kv-value">{% for c in caracteristicasDeDolor %}{{ c }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
+            <div class="kv"><span class="kv-label">Enfermedades asociadas</span><span class="kv-value">{% for e in TiposDeEnfermedades %}{{ e }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</span></div>
         </div>
 
         {% if ubicacion_intensidad_pares %}
@@ -829,16 +836,12 @@
     <div class="fce-card-body">
         {% with ev=primera_sesion.evaluacion_inicial %}
         <div class="g2">
-            <div>
-                <div class="kv"><span class="kv-label">Motivo de consulta</span><span class="kv-value">{{ ev.motivo_consulta|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Causa de lesión</span><span class="kv-value">{{ ev.causa_lesion|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Mecanismo de lesión</span><span class="kv-value">{{ ev.mecanismo_lesion|default:"—" }}</span></div>
-            </div>
-            <div>
-                <div class="kv"><span class="kv-label">Localización del dolor</span><span class="kv-value">{{ ev.dolor_localizacion|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Intensidad (EVA)</span><span class="kv-value">{{ ev.dolor_intensidad|default:"—" }}</span></div>
-                <div class="kv"><span class="kv-label">Tests ortopédicos</span><span class="kv-value">{{ ev.test_ortopedicos|default:"—" }}</span></div>
-            </div>
+            <div class="kv"><span class="kv-label">Motivo de consulta</span><span class="kv-value">{{ ev.motivo_consulta|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Causa de lesión</span><span class="kv-value">{{ ev.causa_lesion|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Mecanismo de lesión</span><span class="kv-value">{{ ev.mecanismo_lesion|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Localización del dolor</span><span class="kv-value">{{ ev.dolor_localizacion|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Intensidad (EVA)</span><span class="kv-value">{{ ev.dolor_intensidad|default:"—" }}</span></div>
+            <div class="kv"><span class="kv-label">Tests ortopédicos</span><span class="kv-value">{{ ev.test_ortopedicos|default:"—" }}</span></div>
         </div>
         {% if primera_sesion.notas_clinicas %}
         <div class="kv-block">
