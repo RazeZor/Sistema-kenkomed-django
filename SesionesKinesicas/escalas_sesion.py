@@ -14,6 +14,7 @@ ESCALAS_POR_CODIGO = {
     'lefs': ('LEFS', 'lefs', 'Función de extremidad inferior'),
     'quickdash': ('QuickDASH', 'quickdash', 'Discapacidad hombro, codo y mano'),
     'womac': ('WOMAC', 'womac', 'Artrosis rodilla/cadera: dolor, rigidez y función'),
+    'tug': ('TUG', 'tug', 'Movilidad funcional y riesgo de caída'),
 }
 
 ESCALAS_PAQUETES = (
@@ -36,7 +37,7 @@ ESCALAS_PAQUETES = (
         'titulo': 'Extremidad inferior',
         'descripcion': 'Rodilla, cadera, tobillo y marcha',
         'icono': 'bx-run',
-        'escalas': ('lefs', 'womac'),
+        'escalas': ('lefs', 'womac', 'tug'),
     },
     {
         'id': 'mmss_hombro',

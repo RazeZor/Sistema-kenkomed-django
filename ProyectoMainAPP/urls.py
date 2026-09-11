@@ -71,6 +71,7 @@ urlpatterns = [
     path('CuestionarioLEFS/', tiposFormularios.renderizar_cuestionario_lefs, name='lefs'),
     path('CuestionarioQuickDASH/', tiposFormularios.renderizar_cuestionario_quickdash, name='quickdash'),
     path('CuestionarioWOMAC/', tiposFormularios.renderizar_cuestionario_womac, name='womac'),
+    path('CuestionarioTUG/', tiposFormularios.renderizar_cuestionario_tug, name='tug'),
     path('RecetaMedica/',recetaViews.renderizar_html_receta,name='receta') ,  
 
     # URLs para sistema de formularios remotos

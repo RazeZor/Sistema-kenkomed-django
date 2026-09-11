@@ -150,7 +150,7 @@ def RenderFichaClinica(request):
     sesiones kinésicas, cuestionarios, diagnóstico y alta.
     """
     from SesionesKinesicas.models import SesionKinesica
-    from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH, EvaluacionWOMAC
+    from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH, EvaluacionWOMAC, EvaluacionTUG
     from Login.models import (
         Clinico, CuestionarioPSFS, Groc, CuestionarioEQ_5D,
         CuestionarioBarthel, CuestionarioScrenning, CuestionarioEvaluacionENA,
@@ -293,11 +293,15 @@ def RenderFichaClinica(request):
         context['evaluaciones_womac'] = list(
             EvaluacionWOMAC.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
         )
+        context['evaluaciones_tug'] = list(
+            EvaluacionTUG.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
     else:
         context['evaluaciones_lefs'] = []
         context['evaluaciones_oswestry'] = []
         context['evaluaciones_quickdash'] = []
         context['evaluaciones_womac'] = []
+        context['evaluaciones_tug'] = []
 
     try:
         context['receta'] = RecetaMedica.objects.select_related('clinico').get(paciente=paciente)

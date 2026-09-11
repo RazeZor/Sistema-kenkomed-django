@@ -189,6 +189,18 @@ def _womac(ciclo):
     }
 
 
+def _tug(ciclo):
+    from TiposDeFormularios.models import EvaluacionTUG
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionTUG.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+    if not qs.exists():
+        return _serie_vacia()
+    labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
+    data = [round(e.tiempo_segundos, 1) for e in qs]
+    return _serie_simple(labels, data, 'TUG (segundos)', '#f97316', 0, None)
+
+
 _BUILDERS = {
     'psfs': _psfs,
     'groc': _groc,
@@ -200,6 +212,7 @@ _BUILDERS = {
     'lefs': _lefs,
     'quickdash': _quickdash,
     'womac': _womac,
+    'tug': _tug,
 }
 
 
@@ -272,6 +285,17 @@ def serie_json_para_vista(ciclo_o_paciente, codigo):
             point['porcentaje'] = point['valor']
         elif codigo == 'womac':
             point['total'] = data[i] if i < len(data) else None
+        elif codigo == 'tug':
+            point['segundos'] = point['valor']
+            t = point['valor'] or 0
+            if t < 10:
+                point['riesgo'] = 'ninguno'
+            elif t < 12:
+                point['riesgo'] = 'leve'
+            elif t <= 20:
+                point['riesgo'] = 'moderado'
+            else:
+                point['riesgo'] = 'severo'
         out.append(point)
     if codigo == 'womac' and cfg.get('datasets') and len(cfg['datasets']) >= 4:
         for i, label in enumerate(cfg['labels']):

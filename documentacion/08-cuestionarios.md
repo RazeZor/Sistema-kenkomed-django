@@ -114,3 +114,60 @@ Ubicación: `TiposDeFormularios/templates/`
 ## Admin
 
 `TiposDeFormularios/admin.py` registra `EvaluacionOswestry` y `EvaluacionLEFS` para soporte.
+
+---
+
+## Timed Up and Go Test (TUG)
+
+### Descripción
+Prueba funcional de movilidad y riesgo de caída. El paciente parte sentado, se levanta, camina 3 metros, gira y regresa a sentarse. Se mide el tiempo en segundos.
+
+### Modelo: `EvaluacionTUG`
+
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| `tiempo_segundos` | `FloatField` | Tiempo total del test (admite décimas) |
+| `usa_ayuda_marcha` | `BooleanField` | Si usó bastón, andador, etc. |
+| `observaciones` | `JSONField` | Lista de observaciones clínicas seleccionadas |
+| `notas_clinicas` | `TextField` | Notas libres del clínico |
+| `ciclo` | `ForeignKey` | Ciclo clínico asociado |
+| `clinico` | `ForeignKey` | Clínico que aplicó el test |
+| `paciente` | `ForeignKey` | Paciente evaluado |
+
+### Baremos clínicos
+
+| Tiempo | Riesgo | DSS status |
+|--------|--------|------------|
+| < 10 s | Sin riesgo de caída | `success` |
+| 10–12 s | Riesgo leve | `warning` |
+| 12–20 s | Riesgo moderado de caída | `danger` |
+| > 20 s | Riesgo severo / dependencia funcional | `danger` |
+
+Referencia: Podsiadlo & Richardson (1991). Punto de corte ≥12 s para riesgo de caída en adultos mayores.
+
+### Método DSS: `get_interpretacion()`
+Retorna un dict con: `nivel`, `riesgo`, `color`, `rango`, `descripcion`, `recomendacion`, `dss_status`, `dss_bullets`.
+
+### URL
+```
+/CuestionarioTUG/?rut=<rut>   [GET + POST]
+name='tug'
+```
+
+### Integración en sesiones kinésicas
+- Código: `'tug'`
+- Paquete: `extremidad_inferior` (junto a LEFS y WOMAC)
+- Aparece en `RegistroEscalaSesion.TIPOS_ESCALA`
+
+### Gráfico de evolución
+Builder `_tug` en `escalas_graficos.py`. Produce serie de `tiempo_segundos` vs `fecha_evaluacion` en color naranja clínico (`#f97316`).
+
+### Observaciones clínicas disponibles (checkboxes)
+1. Paso tentativo lento
+2. Apoyo en paredes
+3. Pérdida de equilibrio
+4. Arrastre de pies
+5. Pasos cortos
+6. Sin balanceo de brazos
+7. Vuelta en bloque
+8. No usa dispositivo de ayuda correctamente

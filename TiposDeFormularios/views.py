@@ -1520,4 +1520,116 @@ def _procesar_womac_post(request, paciente, ciclo, clinico):
     except Exception as e:
         messages.error(request, f'Error al procesar WOMAC: {e}')
 
-    return redirect_cuestionario(request, 'womac', paciente.rut)
+
+# ==================== TIMED UP AND GO TEST (TUG) ====================
+
+def renderizar_cuestionario_tug(request):
+    """Vista para el Timed Up and Go Test (TUG)."""
+    from .models import EvaluacionTUG
+
+    handler = BaseEvaluacionHandler(request)
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+
+    ciclo = handler.ciclo
+
+    if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_tug_post(request, paciente, handler.ciclo, handler.clinico)
+
+    evaluaciones = (
+        EvaluacionTUG.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionTUG.objects.none()
+    )
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
+    chart_config = obtener_graficos_paciente(paciente).get('tug', {})
+
+    OBS_OPCIONES = [
+        'Paso tentativo lento',
+        'Apoyo en paredes',
+        'Pérdida de equilibrio',
+        'Arrastre de pies',
+        'Pasos cortos',
+        'Sin balanceo de brazos',
+        'Vuelta en bloque',
+        'No usa dispositivo de ayuda correctamente',
+    ]
+
+    handler.auditar_consulta('TUG')
+    return render(request, 'CuestionarioTUG.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'evaluations_count': evaluaciones.count(),
+        'evaluations_json': json.dumps(serie_json_para_vista(ciclo or paciente, 'tug'), ensure_ascii=False),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        'obs_opciones': [(label, idx) for idx, label in enumerate(OBS_OPCIONES)],
+        **contexto_ciclo_para_template(ciclo, paciente),
+    })
+
+
+def _procesar_tug_post(request, paciente, ciclo, clinico):
+    """Procesa el POST del TUG: valida, guarda y vincula a sesión kinésica."""
+    from .models import EvaluacionTUG
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'tug', paciente.rut)
+
+    try:
+        tiempo_raw = request.POST.get('tiempo_segundos', '').replace(',', '.')
+        if not tiempo_raw:
+            messages.error(request, 'Debe ingresar el tiempo en segundos.')
+            return redirect_cuestionario(request, 'tug', paciente.rut)
+
+        tiempo = float(tiempo_raw)
+        if tiempo <= 0:
+            messages.error(request, 'El tiempo debe ser mayor a cero.')
+            return redirect_cuestionario(request, 'tug', paciente.rut)
+
+        usa_ayuda = request.POST.get('usa_ayuda_marcha') in ('on', '1', 'true')
+
+        # Checkboxes de observaciones
+        obs_opciones = [
+            'Paso tentativo lento',
+            'Apoyo en paredes',
+            'Pérdida de equilibrio',
+            'Arrastre de pies',
+            'Pasos cortos',
+            'Sin balanceo de brazos',
+            'Vuelta en bloque',
+            'No usa dispositivo de ayuda correctamente',
+        ]
+        observaciones = [op for op in obs_opciones if request.POST.get(f'obs_{obs_opciones.index(op)}')]
+
+        evaluacion = EvaluacionTUG.objects.create(
+            ciclo=ciclo,
+            paciente=paciente,
+            clinico=clinico,
+            tiempo_segundos=tiempo,
+            usa_ayuda_marcha=usa_ayuda,
+            observaciones=observaciones,
+            notas_clinicas=request.POST.get('notas_clinicas', ''),
+        )
+        interp = evaluacion.get_interpretacion()
+
+        auditar_cuestionario_edicion(request, paciente, 'TUG', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'tug',
+            f'{tiempo}s — {interp["nivel"]}',
+            'tug',
+        )
+        messages.success(
+            request,
+            f'TUG guardado. Resultado: {tiempo}s — {interp["nivel"]}',
+        )
+    except (ValueError, TypeError):
+        messages.error(request, 'Tiempo inválido. Ingrese un número válido en segundos.')
+    except Exception as e:
+        messages.error(request, f'Error al procesar TUG: {e}')
+
+    return redirect_cuestionario(request, 'tug', paciente.rut)

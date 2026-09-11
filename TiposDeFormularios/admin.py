@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EvaluacionOswestry, EvaluacionLEFS, EvaluacionQuickDASH, EvaluacionWOMAC
+from .models import EvaluacionOswestry, EvaluacionLEFS, EvaluacionQuickDASH, EvaluacionWOMAC, EvaluacionTUG
 
 @admin.register(EvaluacionLEFS)
 class EvaluacionLEFSAdmin(admin.ModelAdmin):
@@ -94,3 +94,32 @@ class EvaluacionQuickDASHAdmin(admin.ModelAdmin):
 class EvaluacionWOMACAdmin(admin.ModelAdmin):
     list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'get_total_puntos')
     search_fields = ('paciente__nombre', 'paciente__rut')
+
+
+@admin.register(EvaluacionTUG)
+class EvaluacionTUGAdmin(admin.ModelAdmin):
+    list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'tiempo_segundos', 'usa_ayuda_marcha', 'get_nivel_riesgo')
+    list_filter = ('fecha_evaluacion', 'clinico', 'usa_ayuda_marcha')
+    search_fields = ('paciente__nombre', 'paciente__rut', 'clinico__nombre')
+    readonly_fields = ('fecha_evaluacion', 'get_interpretacion_display')
+
+    fieldsets = (
+        ('Información General', {
+            'fields': ('paciente', 'ciclo', 'clinico', 'fecha_evaluacion')
+        }),
+        ('Resultado del Test', {
+            'fields': ('tiempo_segundos', 'usa_ayuda_marcha', 'observaciones', 'get_interpretacion_display')
+        }),
+        ('Notas Clínicas', {
+            'fields': ('notas_clinicas',)
+        }),
+    )
+
+    def get_nivel_riesgo(self, obj):
+        return obj.get_interpretacion()['nivel']
+    get_nivel_riesgo.short_description = 'Nivel de Riesgo'
+
+    def get_interpretacion_display(self, obj):
+        interp = obj.get_interpretacion()
+        return f"{interp['nivel']} ({interp['rango']}): {interp['descripcion']}"
+    get_interpretacion_display.short_description = 'Interpretación Completa'

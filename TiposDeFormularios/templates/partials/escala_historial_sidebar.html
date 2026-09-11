@@ -31,6 +31,16 @@
                         {% if ev.get_porcentaje_incapacidad <= 20 %}bg-green-100 text-green-700{% elif ev.get_porcentaje_incapacidad <= 40 %}bg-amber-100 text-amber-700{% else %}bg-red-100 text-red-700{% endif %}">
                         {{ ev.get_porcentaje_incapacidad }}%
                     </span>
+                    {% elif escala_tipo == 'tug' %}
+                    {% with interp=ev.get_interpretacion %}
+                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-full text-sm font-bold
+                        {% if interp.riesgo == 'ninguno' %}bg-green-100 text-green-700
+                        {% elif interp.riesgo == 'leve' %}bg-yellow-100 text-yellow-700
+                        {% elif interp.riesgo == 'moderado' %}bg-orange-100 text-orange-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ ev.tiempo_segundos }}s
+                    </span>
+                    {% endwith %}
                     {% endif %}
                 </div>
                 <div class="text-xs text-gray-500 font-medium">
@@ -43,6 +53,9 @@
                     {{ ev.get_interpretacion.nivel }} · {{ ev.get_porcentaje_funcionalidad }}% funcional
                     {% elif escala_tipo == 'oswestry' %}
                     {{ ev.get_interpretacion.nivel }} · {{ ev.get_total_puntos }}/50 pts
+                    {% elif escala_tipo == 'tug' %}
+                    {{ ev.get_interpretacion.nivel }}
+                    {% if ev.usa_ayuda_marcha %}<span class="ml-1 text-amber-600">· con ayuda</span>{% endif %}
                     {% endif %}
                 </div>
             </div>

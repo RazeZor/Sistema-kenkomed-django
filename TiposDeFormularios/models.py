@@ -459,3 +459,133 @@ class EvaluacionWOMAC(models.Model):
             ),
         }
 
+
+
+class EvaluacionTUG(models.Model):
+    """
+    Timed Up and Go Test (TUG)
+    El paciente se levanta de una silla, camina 3 metros, da la vuelta y regresa.
+    Se registra el tiempo en segundos. Mayor tiempo = peor movilidad / mayor riesgo de caída.
+
+    Baremos:
+        < 10 s  -> Sin riesgo de caída
+        10-12 s -> Riesgo leve
+        12-20 s -> Riesgo moderado de caída
+        > 20 s  -> Riesgo severo / dependencia funcional
+    """
+
+    paciente = models.ForeignKey(
+        'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_tug',
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_tug',
+    )
+    clinico = models.ForeignKey(
+        'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_tug',
+    )
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+
+    tiempo_segundos = models.FloatField(
+        validators=[MinValueValidator(0)],
+        help_text='Tiempo en segundos que tardó el paciente en completar el test',
+    )
+
+    usa_ayuda_marcha = models.BooleanField(
+        default=False,
+        help_text='El paciente utilizó dispositivo de ayuda durante el test',
+    )
+
+    observaciones = models.JSONField(
+        default=list,
+        blank=True,
+        help_text='Lista de observaciones clínicas marcadas durante el test',
+    )
+
+    notas_clinicas = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Evaluación TUG'
+        verbose_name_plural = 'Evaluaciones TUG'
+        ordering = ['-fecha_evaluacion']
+
+    def __str__(self):
+        return f'TUG - {self.paciente.nombre} ({self.fecha_evaluacion.strftime("%d/%m/%Y")}) — {self.tiempo_segundos}s'
+
+    def get_interpretacion(self):
+        """Devuelve interpretación clínica según los baremos del TUG."""
+        t = self.tiempo_segundos
+
+        if t < 10:
+            return {
+                'nivel': 'Sin riesgo de caída',
+                'riesgo': 'ninguno',
+                'color': 'green',
+                'rango': '< 10 segundos',
+                'descripcion': 'Movilidad funcional normal. Sin riesgo de caída identificado.',
+                'recomendacion': 'Mantener nivel de actividad física. Control periódico.',
+                'dss_status': 'success',
+                'dss_bullets': [
+                    'Movilidad funcional conservada.',
+                    'Tiempo dentro de los rangos normativos para adultos.',
+                ],
+            }
+        elif t < 12:
+            return {
+                'nivel': 'Riesgo leve',
+                'riesgo': 'leve',
+                'color': 'yellow',
+                'rango': '10–12 segundos',
+                'descripcion': 'Movilidad levemente reducida. Zona limítrofe de riesgo de caída.',
+                'recomendacion': 'Valorar entrenamiento de equilibrio y fortalecimiento de MMII.',
+                'dss_status': 'warning',
+                'dss_bullets': [
+                    'Tiempo en zona limítrofe (10–12 s). Vigilancia recomendada.',
+                    'Considerar evaluación de equilibrio estático y dinámico.',
+                    'Valorar entrenamiento preventivo de caídas.',
+                ],
+            }
+        elif t <= 20:
+            return {
+                'nivel': 'Riesgo moderado de caída',
+                'riesgo': 'moderado',
+                'color': 'orange',
+                'rango': '12–20 segundos',
+                'descripcion': 'El paciente presenta riesgo significativo de caída (>=12 s). Movilidad reducida.',
+                'recomendacion': (
+                    'Implementar programa de equilibrio y marcha. '
+                    'Evaluar entorno domiciliario. Considerar fisioterapia preventiva de caídas.'
+                ),
+                'dss_status': 'danger',
+                'dss_bullets': [
+                    'TUG >= 12 s: riesgo de caída confirmado según literatura clínica.',
+                    'Riesgo moderado: el paciente puede movilizarse pero con limitaciones.',
+                    'Recomendar programa de entrenamiento de equilibrio (ej. Otago, Tai Chi).',
+                    'Revisar medicación que pueda afectar el equilibrio.',
+                    'Evaluar necesidad de dispositivo de ayuda a la marcha.',
+                ],
+            }
+        else:
+            return {
+                'nivel': 'Riesgo severo / Dependencia funcional',
+                'riesgo': 'severo',
+                'color': 'red',
+                'rango': '> 20 segundos',
+                'descripcion': (
+                    'Movilidad severamente comprometida. Alto riesgo de caída y dependencia funcional.'
+                ),
+                'recomendacion': (
+                    'Derivar urgente a programa especializado de rehabilitación de marcha y equilibrio. '
+                    'Evaluar necesidad de apoyo domiciliario. Notificar a médico tratante.'
+                ),
+                'dss_status': 'danger',
+                'dss_bullets': [
+                    'TUG > 20 s: dependencia funcional significativa.',
+                    'Alto riesgo de caídas con posibles consecuencias graves.',
+                    'Derivar a programa especializado de rehabilitación.',
+                    'Considerar evaluación de adaptaciones del hogar.',
+                    'Notificar al médico tratante para evaluación integral.',
+                    'Valorar necesidad de apoyo de cuidador.',
+                ],
+            }
