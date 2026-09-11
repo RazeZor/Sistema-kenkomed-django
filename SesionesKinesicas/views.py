@@ -2,7 +2,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+
 from Login.models import Paciente, Clinico
 from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
 from ProyectoMainAPP.email_service import notificar_alta_paciente
@@ -568,7 +568,6 @@ def crear_sesion_final(request):
     return render(request, 'SesionesKinesicas/crear_sesion_final.html', context)
 
 
-@csrf_exempt
 def api_sesiones_paciente(request):
     """
     API para obtener las sesiones de un paciente (usado por el combobox).

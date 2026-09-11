@@ -129,8 +129,6 @@ def _enviar_correo(asunto, plantilla, contexto, destinatarios, clinica=None, bcc
 
         # Intento de envío vía Resend API (HTTPS Puerto 443 - Inmune a bloqueos VPS/DigitalOcean)
         resend_api_key = (getattr(settings, 'RESEND_API_KEY', '') or '').strip()
-        if not resend_api_key:
-            resend_api_key = 're_' + 'PvrP64v9_HBYCF1feoLpxoCmDd1h9VLT7'
 
         if resend_api_key:
             try:
@@ -381,6 +379,7 @@ def notificar_reserva_creada(paciente, clinico, reserva):
         'fecha': _formatear_fecha(getattr(reserva, 'fecha', None), '%d/%m/%Y'),
         'hora_inicio': _formatear_fecha(getattr(reserva, 'hora_inicio', None), '%H:%M'),
         'hora_fin': _formatear_fecha(getattr(reserva, 'hora_fin', None), '%H:%M'),
+        'tipo_atencion': reserva.get_tipo_atencion_display() if hasattr(reserva, 'get_tipo_atencion_display') else 'Consulta Presencial',
         'motivo': getattr(reserva, 'motivo', '') or '',
     }
 
@@ -420,6 +419,7 @@ def notificar_reserva_reagendada(paciente, clinico, reserva):
         'fecha': _formatear_fecha(getattr(reserva, 'fecha', None), '%d/%m/%Y'),
         'hora_inicio': _formatear_fecha(getattr(reserva, 'hora_inicio', None), '%H:%M'),
         'hora_fin': _formatear_fecha(getattr(reserva, 'hora_fin', None), '%H:%M'),
+        'tipo_atencion': reserva.get_tipo_atencion_display() if hasattr(reserva, 'get_tipo_atencion_display') else 'Consulta Presencial',
     }
 
     clinica = _clinica_de_paciente(paciente)

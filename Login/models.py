@@ -115,6 +115,12 @@ class Reserva(models.Model):
         ('Confirmada', 'Confirmada'),
         ('Cancelada', 'Cancelada'),
     ]
+    TIPO_ATENCION_CHOICES = [
+        ('Consulta', 'Consulta Presencial'),
+        ('Domicilio', 'Atención a Domicilio'),
+        ('Telemedicina', 'Telemedicina'),
+        ('Otro', 'Otro'),
+    ]
     
     paciente = models.ForeignKey('Paciente', on_delete=models.CASCADE, related_name='reservas')
     clinico = models.ForeignKey('Clinico', on_delete=models.CASCADE, related_name='reservas_agendadas')
@@ -122,6 +128,7 @@ class Reserva(models.Model):
     hora_inicio = models.TimeField(verbose_name="Hora de Inicio")
     hora_fin = models.TimeField(verbose_name="Hora de Fin")
     estado = models.CharField(max_length=20, choices=ESTADOS, default='Pendiente')
+    tipo_atencion = models.CharField(max_length=20, choices=TIPO_ATENCION_CHOICES, default='Consulta', verbose_name="Tipo de Atención")
     motivo = models.TextField(null=True, blank=True, verbose_name="Motivo o Descripción")
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     

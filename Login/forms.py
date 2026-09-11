@@ -17,9 +17,10 @@ class ClinicoAdminForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['rut'].help_text = (
-            'Identificador único del clínico. No se puede modificar después de crear el registro.'
-        )
+        if 'rut' in self.fields:
+            self.fields['rut'].help_text = (
+                'Identificador único del clínico. No se puede modificar después de crear el registro.'
+            )
         if not self.instance.pk:
             self.fields['nueva_contraseña'].required = True
             self.fields['nueva_contraseña'].help_text = 'Contraseña de acceso al sistema.'

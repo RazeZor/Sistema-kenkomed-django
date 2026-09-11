@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods, require_POST
 from django.http import JsonResponse
 from Login.models import (
     Paciente, formularioClinico, Notas, Clinico,
@@ -725,7 +725,6 @@ def Respuesta_evitativo_persistente(respuestas):
 
 
 @require_http_methods(["POST"])
-@csrf_exempt
 def clear_session_message(request):
     """Vista para limpiar el mensaje de la sesión después de mostrarlo."""
     if 'show_success_message' in request.session:

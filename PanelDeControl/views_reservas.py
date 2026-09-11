@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.db import close_old_connections
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.views.decorators.http import require_GET
 
 logger = logging.getLogger(__name__)
@@ -32,6 +32,12 @@ from clinicas.utils import (
 HORA_APERTURA = datetime.strptime('07:00', '%H:%M').time()
 HORA_CIERRE = datetime.strptime('22:30', '%H:%M').time()
 COLORES_PROF = ['#0284c7', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0d9488', '#4338ca']
+COLORES_TIPO_ATENCION = {
+    'Consulta': '#0284c7',       # Azul Médico
+    'Domicilio': '#059669',      # Verde Esmeralda
+    'Telemedicina': '#7c3aed',   # Púrpura / Violeta
+    'Otro': '#d97706',           # Ámbar / Naranja
+}
 
 
 
@@ -87,7 +93,7 @@ def _queryset_reservas(request, alcance, start=None, end=None):
     rut_clinico = request.session.get('rut_clinico')
 
     base = Reserva.objects.select_related('paciente', 'clinico').only(
-        'id', 'fecha', 'hora_inicio', 'hora_fin', 'estado', 'motivo',
+        'id', 'fecha', 'hora_inicio', 'hora_fin', 'estado', 'tipo_atencion', 'motivo',
         'paciente__rut', 'paciente__nombre', 'paciente__apellido', 'paciente__correo',
         'clinico__rut', 'clinico__nombre', 'clinico__apellido',
     )
@@ -114,15 +120,12 @@ def _serializar_evento(r, alcance):
     if alcance == 'clinica':
         titulo = f"{titulo} — {r.clinico.nombre}"
 
-    if alcance == 'clinica':
-        idx = sum(ord(c) for c in r.clinico.rut) % len(COLORES_PROF)
-        bg = COLORES_PROF[idx]
-    elif r.estado == 'Confirmada':
-        bg = '#10b981'
-    elif r.estado == 'Cancelada':
+    if r.estado == 'Cancelada':
         bg = '#94a3b8'
     else:
-        bg = '#f59e0b'
+        bg = COLORES_TIPO_ATENCION.get(r.tipo_atencion, '#0284c7')
+
+    tipo_display = dict(Reserva.TIPO_ATENCION_CHOICES).get(r.tipo_atencion, 'Consulta Presencial')
 
     return {
         'id': r.id,
@@ -134,6 +137,8 @@ def _serializar_evento(r, alcance):
             'clinico_rut': r.clinico.rut,
             'clinico_nombre': clinico_nombre,
             'estado': r.estado,
+            'tipo_atencion': r.tipo_atencion or 'Consulta',
+            'tipo_atencion_display': tipo_display,
             'motivo': r.motivo or '',
             'correo': r.paciente.correo or '',
         },
@@ -237,7 +242,7 @@ def api_obtener_reservas(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-@csrf_exempt
+
 @requiere_clinico
 def api_crear_reserva(request):
     if request.method != 'POST':
@@ -281,6 +286,11 @@ def api_crear_reserva(request):
         if _validar_solapamiento(clinico, data['fecha'], data['hora_inicio'], data['hora_fin']):
             return JsonResponse({'status': 'error', 'message': 'El profesional ya tiene una cita en ese horario.'}, status=400)
 
+        tipo_atencion = data.get('tipo_atencion', 'Consulta')
+        opciones_validas = dict(Reserva.TIPO_ATENCION_CHOICES)
+        if tipo_atencion not in opciones_validas:
+            tipo_atencion = 'Consulta'
+
         reserva = Reserva.objects.create(
             paciente=paciente,
             clinico=clinico,
@@ -288,12 +298,13 @@ def api_crear_reserva(request):
             hora_inicio=data['hora_inicio'],
             hora_fin=data['hora_fin'],
             estado='Confirmada',
+            tipo_atencion=tipo_atencion,
             motivo=data.get('motivo', ''),
         )
         registrar_auditoria(
             request, 'reserva_crear', paciente,
             detalle=(
-                f"Cita {data['fecha']} {data['hora_inicio']}–{data['hora_fin']}"
+                f"Cita {data['fecha']} {data['hora_inicio']}–{data['hora_fin']} ({opciones_validas.get(tipo_atencion)})"
                 f" — profesional {clinico.nombre} {clinico.apellido}"
             ),
         )
@@ -310,7 +321,7 @@ def api_crear_reserva(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-@csrf_exempt
+
 @requiere_clinico
 def api_mover_reserva(request, reserva_id):
     if request.method != 'POST':
@@ -335,6 +346,12 @@ def api_mover_reserva(request, reserva_id):
         reserva.fecha = data['fecha']
         reserva.hora_inicio = data['hora_inicio']
         reserva.hora_fin = data['hora_fin']
+
+        if 'tipo_atencion' in data:
+            tipo_atencion = data.get('tipo_atencion', 'Consulta')
+            if tipo_atencion in dict(Reserva.TIPO_ATENCION_CHOICES):
+                reserva.tipo_atencion = tipo_atencion
+                campos_update.append('tipo_atencion')
 
         if 'motivo' in data:
             reserva.motivo = data.get('motivo', '')
@@ -365,7 +382,7 @@ def api_mover_reserva(request, reserva_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-@csrf_exempt
+
 @requiere_clinico
 def api_eliminar_reserva(request, reserva_id):
     if request.method not in ('POST', 'DELETE'):

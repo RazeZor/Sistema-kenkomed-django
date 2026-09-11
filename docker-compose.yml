@@ -6,16 +6,16 @@ services:
     container_name: mysql_db
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: my_database
-      MYSQL_USER: django_user
-      MYSQL_PASSWORD: my_password
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME:-my_database}
+      MYSQL_USER: ${DB_USER:-django_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "127.0.0.1:3307:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "django_user", "-pmy_password" ]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-django_user}", "-p${DB_PASSWORD}" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -38,12 +38,12 @@ services:
       - "8000"
     environment:
       DJANGO_SETTINGS_MODULE: ProyectoMainAPP.settings
-      DJANGO_DEBUG: "False"
-      DJANGO_SECRET_KEY: "django-insecure-prod-kM#p9vW2xL7aQ4zY1uN8tB5eR3cO6iJ0"
+      DJANGO_DEBUG: "${DJANGO_DEBUG:-False}"
+      DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY}"
       DB_HOST: db
-      DB_NAME: my_database
-      DB_USER: django_user
-      DB_PASSWORD: my_password
+      DB_NAME: ${DB_NAME:-my_database}
+      DB_USER: ${DB_USER:-django_user}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_PORT: "3306"
       RESEND_API_KEY: "${RESEND_API_KEY:-}"
 

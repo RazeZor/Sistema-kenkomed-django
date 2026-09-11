@@ -39,6 +39,12 @@
         <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;vertical-align:top;">Horario</td>
         <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ hora_inicio }} &ndash; {{ hora_fin }}</td>
     </tr>
+    {% if tipo_atencion %}
+    <tr>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#64748b;font-size:13px;vertical-align:top;">Tipo de Atención</td>
+        <td style="padding:12px 20px;border-bottom:1px solid #eef2f7;color:#0f172a;font-size:14px;font-weight:600;">{{ tipo_atencion }}</td>
+    </tr>
+    {% endif %}
     <tr>
         <td style="padding:12px 20px;color:#64748b;font-size:13px;vertical-align:top;">Profesional</td>
         <td style="padding:12px 20px;color:#0f172a;font-size:14px;font-weight:600;">{{ clinico_nombre }}<br><span style="font-weight:400;color:#64748b;font-size:13px;">{{ clinico_profesion }}</span></td>

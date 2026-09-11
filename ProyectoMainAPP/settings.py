@@ -71,12 +71,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'axes',  # Rate limiting / brute-force protection
     'clinicas.apps.ClinicasConfig',
     'clinicos',
     'Login',
     'PanelDeControl',
     'FormularioInicial',
-    'TiposDeFormularios',	
+    'TiposDeFormularios',
     'RecetasMedicas',
     'SesionesKinesicas',
     'ciclos_clinicos',
@@ -92,6 +93,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'clinicas.middleware.ClinicaMiddleware',
+    'axes.middleware.AxesMiddleware',  # ⚠️ Debe ir último
 ]
 
 ROOT_URLCONF = 'ProyectoMainAPP.urls'
@@ -159,9 +161,15 @@ USE_I18N = True
 USE_TZ = True
 
 # Resend API Settings (Envío por HTTPS API - Inmune a bloqueos VPS/DigitalOcean)
+import logging as _logging
 _resend_key = os.environ.get('RESEND_API_KEY', '').strip()
 if not _resend_key:
-    _resend_key = 're_' + 'PvrP64v9_HBYCF1feoLpxoCmDd1h9VLT7'
+    if DEBUG:
+        _logging.getLogger(__name__).warning(
+            'RESEND_API_KEY no está configurada. Los correos no se enviarán en modo desarrollo.'
+        )
+    else:
+        raise ImproperlyConfigured('RESEND_API_KEY es obligatoria en producción. Configúrala en el .env o en las variables de entorno del servidor.')
 RESEND_API_KEY = _resend_key
 
 _resend_from = os.environ.get('RESEND_FROM_EMAIL', '').strip()
@@ -250,3 +258,24 @@ if not DEBUG:
     SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000'))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = _env_bool('SECURE_HSTS_INCLUDE_SUBDOMAINS', default=True)
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Cookies de sesión — Explícitas para evitar sobreescrituras accidentales
+SESSION_COOKIE_HTTPONLY = True      # Protege contra robo de cookies vía XSS
+SESSION_COOKIE_SAMESITE = 'Lax'    # Protege contra CSRF cross-site
+
+# ─── django-axes: Protección contra fuerza bruta en login ─────────────────────
+# Bloquea la combinación de Usuario + IP tras AXES_FAILURE_LIMIT intentos fallidos.
+# En desarrollo local (DEBUG=True) se desactiva para evitar bloqueos durante pruebas. En producción (DEBUG=False) estará siempre ACTIVO.
+AXES_ENABLED = _env_bool('AXES_ENABLED', default=not DEBUG)
+AXES_FAILURE_LIMIT = int(os.environ.get('AXES_FAILURE_LIMIT', '5'))
+AXES_COOLOFF_TIME = int(os.environ.get('AXES_COOLOFF_HOURS', '1'))  # horas
+AXES_LOCKOUT_PARAMETERS = [['username', 'ip_address']]  # Bloqueo por usuario + IP
+AXES_RESET_ON_SUCCESS = True                    # Reinicia contador tras login exitoso
+AXES_IPWARE_PROXY_COUNT = 1                     # Permite obtener la IP real del cliente tras el proxy Nginx
+AXES_LOCKOUT_TEMPLATE = None                    # Usa la respuesta de la vista de login
+AXES_VERBOSE = False                            # Sin spam de logs
+# Usa el backend de base de datos para persistir bloqueos entre reinicios
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesStandaloneBackend',
+    
+]

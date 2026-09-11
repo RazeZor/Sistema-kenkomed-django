@@ -47,9 +47,9 @@
                     </h3>
                     <div class="text-sm text-red-800/80 bg-red-100/50 p-3 rounded-lg font-mono">
                         {% if mensaje %}
-                            {{ mensaje|safe }}
+                            {{ mensaje }}
                         {% elif error_message %}
-                            {{ error_message|safe }}
+                            {{ error_message }}
                         {% else %}
                             Error inesperado en el servidor.
                         {% endif %}
