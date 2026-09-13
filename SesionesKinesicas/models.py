@@ -169,6 +169,8 @@ class RegistroEscalaSesion(models.Model):
         ('quickdash', 'QuickDASH'),
         ('womac', 'WOMAC'),
         ('tug', 'TUG'),
+        ('berg', 'Berg'),
+        ('tinetti', 'Tinetti'),
     ]
 
     paciente = models.ForeignKey(

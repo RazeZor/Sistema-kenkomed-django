@@ -1,0 +1,368 @@
+{% extends 'base_kenkomed.html' %}
+{% load static %}
+
+{% block title %}Escala de Berg (BBS) — Evaluación del Equilibrio{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+{% include 'partials/escala_cuestionario_estilos.html' %}
+<style>
+    .berg-option-card {
+        border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1rem;
+        cursor: pointer; transition: all 0.2s ease; background: #ffffff;
+        display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .berg-option-card:hover { border-color: #cbd5e1; background: #f8fafc; }
+    .berg-option-card.selected {
+        border-color: #8b5cf6; background: #f5f3ff;
+        box-shadow: 0 2px 8px rgba(139,92,246,0.12);
+    }
+    .berg-radio { accent-color: #8b5cf6; width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; cursor: pointer; }
+    .berg-badge-red { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .berg-badge-orange { background-color: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .berg-badge-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+</style>
+{% endblock %}
+
+{% block header_title %}Escala de Equilibrio de Berg (Berg Balance Scale - BBS){% endblock %}
+
+{% block header_actions %}
+<button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors no-print">
+    <i class='bx bx-arrow-back'></i> Volver
+</button>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    {% include 'partials/escala_paciente_banner.html' %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Principal: Cuestionario -->
+        <div class="lg:col-span-2 space-y-6">
+            <form id="bergForm" method="POST">
+                {% csrf_token %}
+                <div class="section-card space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                <i class='bx bx-run text-purple-600'></i> Evaluación de Equilibrio (14 tareas)
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">Califique el desempeño del paciente en cada ítem de 0 a 4 puntos.</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-extrabold text-purple-600" id="headerScore">0</div>
+                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">/ 56 puntos</div>
+                        </div>
+                    </div>
+
+                    <!-- Instrucciones breves -->
+                    <div class="bg-purple-50/70 border border-purple-100 rounded-xl p-4 text-xs text-purple-900 leading-relaxed space-y-1">
+                        <div class="font-bold flex items-center gap-1.5 text-purple-800">
+                            <i class='bx bx-info-circle text-base'></i> Instrucciones de aplicación:
+                        </div>
+                        <p>Se evalúa la respuesta más baja aplicada a cada ítem. Si la prueba requiere tiempo o distancia determinada, reduzca la puntuación si el paciente no alcanza la meta, requiere supervisión o toca un soporte externo.</p>
+                    </div>
+
+                    <!-- Ítems Cuestionario -->
+                    <div class="space-y-6">
+                        {% for item in berg_items %}
+                        <div class="item-card bg-gray-50/50 p-4 border border-gray-200/80 rounded-xl space-y-3">
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-extrabold">{{ item.num }}</span>
+                                    {{ item.titulo }}
+                                </h4>
+                                <p class="text-xs text-gray-500 mt-1 ml-8 italic">{{ item.instruccion }}</p>
+                            </div>
+                            <div class="space-y-2 ml-1 md:ml-8">
+                                {% for val, label in item.opciones %}
+                                <label for="{{ item.id }}_{{ val }}" class="berg-option-card" id="card_{{ item.id }}_{{ val }}">
+                                    <input type="radio" name="{{ item.id }}" value="{{ val }}" id="{{ item.id }}_{{ val }}" class="berg-radio" onchange="updateResults()">
+                                    <span class="text-xs font-medium text-gray-700 leading-normal">{{ label }}</span>
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Notas clínicas -->
+                    <div class="space-y-2 pt-2">
+                        <label class="block text-sm font-medium text-gray-700">Notas u observaciones clínicas suplementarias:</label>
+                        <textarea name="notas_clinicas" rows="3" class="w-full text-sm border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 p-3" placeholder="Añada cualquier detalle sobre ayudas técnicas, compensaciones posturales o fatiga..."></textarea>
+                    </div>
+
+                    <!-- Semáforo e Interpretación Live -->
+                    <div class="result-display p-5 rounded-2xl border transition-all duration-300 bg-gray-50 border-gray-200" id="liveResultsCard">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="text-center sm:text-left">
+                                <div class="text-3xl font-black text-gray-800" id="resultScore">0 / 56 pts</div>
+                                <div class="text-xs font-semibold uppercase tracking-wider text-gray-500 mt-0.5" id="resultPercentage">0% equilibrio</div>
+                            </div>
+                            <div class="text-center sm:text-right">
+                                <span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide inline-block" id="resultLevelBadge">Incompleto</span>
+                                <div class="text-xs font-medium text-gray-600 mt-1" id="resultGrupo">Complete las 14 tareas</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-200/80 text-xs space-y-1 text-gray-600 hidden" id="dssLiveList">
+                            <div class="font-bold text-gray-700 flex items-center gap-1">
+                                <i class='bx bx-check-shield text-purple-600'></i> Sistema DSS - Análisis de Equilibrio:
+                            </div>
+                            <ul class="list-disc list-inside space-y-0.5 pl-1" id="dssBullets"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Botón Guardar -->
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3.5 px-6 text-sm font-bold text-white bg-purple-600 rounded-xl hover:bg-purple-700 focus:ring-4 focus:ring-purple-200 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-600/20">
+                            <i class='bx bx-save text-lg'></i> Guardar Evaluación Berg
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de Historial -->
+            {% if evaluaciones_historial %}
+            <div class="section-card">
+                <h3 class="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class='bx bx-history text-purple-600'></i> Historial de Evaluaciones Berg
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3">Fecha</th>
+                                <th class="px-4 py-3">Evaluador</th>
+                                <th class="px-4 py-3 text-center">Puntaje Total</th>
+                                <th class="px-4 py-3">Nivel de Riesgo</th>
+                                <th class="px-4 py-3">Grupo Funcional</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for ev in evaluaciones_historial %}
+                            {% with interp=ev.get_interpretacion %}
+                            <tr class="hover:bg-gray-50/80 transition-colors">
+                                <td class="px-4 py-3 font-medium text-gray-900">{{ ev.fecha_evaluacion|date:"d/m/Y H:i" }}</td>
+                                <td class="px-4 py-3">{{ ev.clinico.nombre_completo }}</td>
+                                <td class="px-4 py-3 text-center font-bold text-purple-700">{{ ev.get_total_puntos }}/56</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold 
+                                        {% if interp.dss_status == 'danger' %}berg-badge-red
+                                        {% elif interp.dss_status == 'warning' %}berg-badge-orange
+                                        {% else %}berg-badge-green{% endif %}">
+                                        {{ interp.nivel }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-xs text-gray-600">{{ interp.grupo_funcional }}</td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna Lateral: Gráfico, Baremos y Sidebar -->
+        <div class="space-y-6">
+            <!-- Gráfico evolutivo -->
+            <div class="section-card">
+                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <i class='bx bx-line-chart text-purple-600'></i> Evolución del Equilibrio (BBS)
+                </h4>
+                <div class="h-48 relative">
+                    <canvas id="chart_escala_berg"></canvas>
+                </div>
+            </div>
+
+            <!-- Panel de Baremos Clínicos -->
+            <div class="section-card space-y-4">
+                <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
+                    <i class='bx bx-book-open text-purple-600'></i> Baremos y Grupos Funcionales
+                </h4>
+                <div class="space-y-2 text-xs">
+                    <div class="p-2.5 rounded-lg border border-red-200 bg-red-50/60">
+                        <div class="font-bold text-red-800">0 – 20 Puntos</div>
+                        <div class="text-red-700 mt-0.5">Alto riesgo de caída. Equilibrio severamente afectado.</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-orange-200 bg-orange-50/60">
+                        <div class="font-bold text-orange-800">21 – 40 Puntos</div>
+                        <div class="text-orange-700 mt-0.5">Moderado riesgo de caída (12x más riesgo de caída que >40 pts).</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-green-200 bg-green-50/60">
+                        <div class="font-bold text-green-800">41 – 56 Puntos</div>
+                        <div class="text-green-700 mt-0.5">Leve / Bajo riesgo de caída. Buen control del equilibrio.</div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t text-xs text-gray-600 space-y-1">
+                    <div class="font-bold text-gray-800 mb-1">Categorías de Capacidad Motora:</div>
+                    <ul class="space-y-0.5 pl-2 list-disc list-inside">
+                        <li><b>55–56:</b> Marcha funcional</li>
+                        <li><b>50–54:</b> Marcha independiente</li>
+                        <li><b>45–49:</b> Marcha con/sin ayudas técnicas</li>
+                        <li><b>40–44:</b> Inicio de marcha</li>
+                        <li><b>33–39:</b> Inicio de bipedestación</li>
+                        <li><b>&lt;33:</b> Control postural / sedestación</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sidebar Historial Integrado -->
+            {% include 'partials/escala_historial_sidebar.html' with escala_tipo='berg' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const evaluationsData = {{ evaluations_json|safe }};
+    const chartConfigRaw = {{ chart_config_json|safe }};
+
+    function updateResults() {
+        let total = 0;
+        let answered = 0;
+        const totalItems = 14;
+
+        // Limpiar estilos de radios
+        document.querySelectorAll('.berg-option-card').forEach(c => c.classList.remove('selected'));
+
+        for (let i = 1; i <= totalItems; i++) {
+            const numStr = i < 10 ? '0' + i : '' + i;
+            const fieldName = 'item_' + numStr;
+            const selected = document.querySelector(`input[name="${fieldName}"]:checked`);
+            if (selected) {
+                total += parseInt(selected.value, 10);
+                answered++;
+                const card = document.getElementById(`card_${fieldName}_${selected.value}`);
+                if (card) card.classList.add('selected');
+            }
+        }
+
+        document.getElementById('headerScore').textContent = total;
+        document.getElementById('resultScore').textContent = `${total} / 56 pts`;
+
+        const pct = Math.round((total / 56) * 100);
+        document.getElementById('resultPercentage').textContent = `${pct}% de equilibrio global`;
+
+        const badge = document.getElementById('resultLevelBadge');
+        const grupoEl = document.getElementById('resultGrupo');
+        const dssCard = document.getElementById('liveResultsCard');
+        const dssList = document.getElementById('dssLiveList');
+        const bulletsUl = document.getElementById('dssBullets');
+
+        if (answered === 0) {
+            badge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-gray-200 text-gray-600';
+            badge.textContent = 'Incompleto';
+            grupoEl.textContent = 'Complete las 14 tareas';
+            dssList.classList.add('hidden');
+            return;
+        }
+
+        dssList.classList.remove('hidden');
+
+        // Determinar grupo motor
+        let grupo = '';
+        if (total >= 55) grupo = 'Marcha funcional';
+        else if (total >= 50) grupo = 'Marcha independiente';
+        else if (total >= 45) grupo = 'Marcha con/sin ayudas técnicas';
+        else if (total >= 40) grupo = 'Grupo de inicio de marcha';
+        else if (total >= 33) grupo = 'Grupo de inicio de bipedestación';
+        else grupo = 'Fase inicial de sedestación / control postural';
+
+        let riesgoText = '';
+        let badgeClass = '';
+        let borderClass = '';
+        let dssBullets = [];
+
+        if (total <= 20) {
+            riesgoText = 'Alto riesgo de caída';
+            badgeClass = 'berg-badge-red';
+            borderClass = 'bg-red-50/60 border-red-200';
+            dssBullets.push(`Puntaje actual: ${total}/56. Alto riesgo de caídas.`);
+            dssBullets.push(`Fase motora: ${grupo}. Requiere asistencia constante.`);
+            dssBullets.push(`Punto de corte 45 pts: No alcanzado (Dificultad severa de deambulación).`);
+        } else if (total <= 40) {
+            riesgoText = 'Moderado riesgo de caída';
+            badgeClass = 'berg-badge-orange';
+            borderClass = 'bg-orange-50/60 border-orange-200';
+            dssBullets.push(`Puntaje actual: ${total}/56. Moderado riesgo de caídas (12x más probabilidad de caída que >40).`);
+            dssBullets.push(`Fase motora: ${grupo}.`);
+            dssBullets.push(`Punto de corte 45 pts: No alcanzado. Mantener supervisión.`);
+        } else {
+            riesgoText = 'Leve / Bajo riesgo de caída';
+            badgeClass = 'berg-badge-green';
+            borderClass = 'bg-green-50/60 border-green-200';
+            dssBullets.push(`Puntaje actual: ${total}/56. Buen control del equilibrio.`);
+            dssBullets.push(`Fase motora: ${grupo}.`);
+            dssBullets.push(total >= 45 ? 'Corte >= 45 pts superado: Deambulación independiente segura.' : 'Corte 45 pts no alcanzado: Precaución en giros y transferencias.');
+        }
+
+        badge.className = `px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide ${badgeClass}`;
+        badge.textContent = riesgoText;
+        grupoEl.textContent = `Grupo: ${grupo}`;
+
+        dssCard.className = `result-display p-5 rounded-2xl border transition-all duration-300 ${borderClass}`;
+
+        bulletsUl.innerHTML = dssBullets.map(b => `<li>${b}</li>`).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateResults();
+
+        // Renderizado del gráfico Chart.js
+        const canvas = document.getElementById('chart_escala_berg');
+        if (canvas && chartConfigRaw && chartConfigRaw.labels) {
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: chartConfigRaw.labels,
+                    datasets: chartConfigRaw.datasets || []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 56,
+                            title: { display: true, text: 'Puntos (0-56)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // SweetAlert2 confirmación
+        const form = document.getElementById('bergForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                let answered = 0;
+                for (let i = 1; i <= 14; i++) {
+                    const numStr = i < 10 ? '0' + i : '' + i;
+                    if (document.querySelector(`input[name="item_${numStr}"]:checked`)) answered++;
+                }
+                if (answered < 14) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Evaluación incompleta',
+                        text: `Ha respondido ${answered} de 14 preguntas. Por favor responda todos los ítems antes de guardar.`,
+                        confirmColor: '#8b5cf6'
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

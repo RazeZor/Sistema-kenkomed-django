@@ -41,6 +41,24 @@
                         {{ ev.tiempo_segundos }}s
                     </span>
                     {% endwith %}
+                    {% elif escala_tipo == 'berg' %}
+                    {% with interp=ev.get_interpretacion %}
+                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-full text-sm font-bold
+                        {% if interp.riesgo == 'leve' %}bg-green-100 text-green-700
+                        {% elif interp.riesgo == 'moderado' %}bg-orange-100 text-orange-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ ev.get_total_puntos }}/56
+                    </span>
+                    {% endwith %}
+                    {% elif escala_tipo == 'tinetti' %}
+                    {% with interp=ev.get_interpretacion %}
+                    <span class="inline-flex items-center justify-center min-w-[3rem] px-2 py-1 rounded-full text-sm font-bold
+                        {% if interp.riesgo == 'bajo' %}bg-green-100 text-green-700
+                        {% elif interp.riesgo == 'moderado' %}bg-orange-100 text-orange-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ ev.get_total_puntos }}/28
+                    </span>
+                    {% endwith %}
                     {% endif %}
                 </div>
                 <div class="text-xs text-gray-500 font-medium">
@@ -56,6 +74,10 @@
                     {% elif escala_tipo == 'tug' %}
                     {{ ev.get_interpretacion.nivel }}
                     {% if ev.usa_ayuda_marcha %}<span class="ml-1 text-amber-600">· con ayuda</span>{% endif %}
+                    {% elif escala_tipo == 'berg' %}
+                    {{ ev.get_interpretacion.nivel }} · {{ ev.get_interpretacion.grupo_funcional }}
+                    {% elif escala_tipo == 'tinetti' %}
+                    {{ ev.get_interpretacion.nivel }} · Eq {{ ev.get_puntaje_equilibrio }}/16, Ma {{ ev.get_puntaje_marcha }}/12
                     {% endif %}
                 </div>
             </div>

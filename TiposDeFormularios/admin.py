@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import EvaluacionOswestry, EvaluacionLEFS, EvaluacionQuickDASH, EvaluacionWOMAC, EvaluacionTUG
+from .models import EvaluacionOswestry, EvaluacionLEFS, EvaluacionQuickDASH, EvaluacionWOMAC, EvaluacionTUG, EvaluacionBerg, EvaluacionTinetti
 
 @admin.register(EvaluacionLEFS)
 class EvaluacionLEFSAdmin(admin.ModelAdmin):
@@ -123,3 +123,78 @@ class EvaluacionTUGAdmin(admin.ModelAdmin):
         interp = obj.get_interpretacion()
         return f"{interp['nivel']} ({interp['rango']}): {interp['descripcion']}"
     get_interpretacion_display.short_description = 'Interpretación Completa'
+
+
+@admin.register(EvaluacionBerg)
+class EvaluacionBergAdmin(admin.ModelAdmin):
+    list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'get_total_puntos', 'get_nivel_riesgo')
+    list_filter = ('fecha_evaluacion', 'clinico')
+    search_fields = ('paciente__nombre', 'paciente__rut', 'clinico__nombre')
+    readonly_fields = ('fecha_evaluacion', 'get_interpretacion_display')
+
+    fieldsets = (
+        ('Información General', {
+            'fields': ('paciente', 'ciclo', 'clinico', 'fecha_evaluacion')
+        }),
+        ('Ítems del Test (14 Tareas)', {
+            'fields': (
+                'item_01', 'item_02', 'item_03', 'item_04', 'item_05',
+                'item_06', 'item_07', 'item_08', 'item_09', 'item_10',
+                'item_11', 'item_12', 'item_13', 'item_14',
+            )
+        }),
+        ('Interpretación y Notas', {
+            'fields': ('get_interpretacion_display', 'notas_clinicas')
+        }),
+    )
+
+    def get_nivel_riesgo(self, obj):
+        return obj.get_interpretacion()['nivel']
+    get_nivel_riesgo.short_description = 'Nivel de Riesgo'
+
+    def get_interpretacion_display(self, obj):
+        interp = obj.get_interpretacion()
+        return f"{interp['nivel']} ({interp['total']}/56 pts) — Grupo: {interp['grupo_funcional']}"
+    get_interpretacion_display.short_description = 'Interpretación Completa'
+
+
+@admin.register(EvaluacionTinetti)
+class EvaluacionTinettiAdmin(admin.ModelAdmin):
+    list_display = ('paciente', 'clinico', 'fecha_evaluacion', 'get_total_puntos', 'get_puntaje_equilibrio', 'get_puntaje_marcha', 'get_nivel_riesgo')
+    list_filter = ('fecha_evaluacion', 'clinico')
+    search_fields = ('paciente__nombre', 'paciente__rut', 'clinico__nombre')
+    readonly_fields = ('fecha_evaluacion', 'get_interpretacion_display')
+
+    fieldsets = (
+        ('Información General', {
+            'fields': ('paciente', 'ciclo', 'clinico', 'fecha_evaluacion')
+        }),
+        ('Subescala Equilibrio (9 ítems)', {
+            'fields': (
+                'eq_01_sentado', 'eq_02_levantarse', 'eq_03_intentos',
+                'eq_04_equi_inmediato', 'eq_05_equi_bipedestacion',
+                'eq_06_empujon', 'eq_07_ojos_cerrados', 'eq_08_giro_360',
+                'eq_09_sentarse',
+            )
+        }),
+        ('Subescala Marcha (7 ítems)', {
+            'fields': (
+                'ma_01_iniciacion', 'ma_02_longitud_altura', 'ma_03_simetria',
+                'ma_04_continuidad', 'ma_05_trayectoria', 'ma_06_tronco',
+                'ma_07_postura_marcha',
+            )
+        }),
+        ('Interpretación y Notas', {
+            'fields': ('get_interpretacion_display', 'notas_clinicas')
+        }),
+    )
+
+    def get_nivel_riesgo(self, obj):
+        return obj.get_interpretacion()['nivel']
+    get_nivel_riesgo.short_description = 'Nivel de Riesgo'
+
+    def get_interpretacion_display(self, obj):
+        interp = obj.get_interpretacion()
+        return f"{interp['nivel']} ({interp['total']}/28 pts: Eq {interp['equilibrio']}/16, Ma {interp['marcha']}/12)"
+    get_interpretacion_display.short_description = 'Interpretación Completa'
+

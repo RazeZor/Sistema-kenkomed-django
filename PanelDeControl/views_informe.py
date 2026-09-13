@@ -296,12 +296,20 @@ def RenderFichaClinica(request):
         context['evaluaciones_tug'] = list(
             EvaluacionTUG.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
         )
+        context['evaluaciones_berg'] = list(
+            EvaluacionBerg.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
+        context['evaluaciones_tinetti'] = list(
+            EvaluacionTinetti.objects.filter(ciclo=ciclo).select_related('clinico').order_by('-fecha_evaluacion')
+        )
     else:
         context['evaluaciones_lefs'] = []
         context['evaluaciones_oswestry'] = []
         context['evaluaciones_quickdash'] = []
         context['evaluaciones_womac'] = []
         context['evaluaciones_tug'] = []
+        context['evaluaciones_berg'] = []
+        context['evaluaciones_tinetti'] = []
 
     try:
         context['receta'] = RecetaMedica.objects.select_related('clinico').get(paciente=paciente)

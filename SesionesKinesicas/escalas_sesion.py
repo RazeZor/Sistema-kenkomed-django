@@ -15,6 +15,8 @@ ESCALAS_POR_CODIGO = {
     'quickdash': ('QuickDASH', 'quickdash', 'Discapacidad hombro, codo y mano'),
     'womac': ('WOMAC', 'womac', 'Artrosis rodilla/cadera: dolor, rigidez y función'),
     'tug': ('TUG', 'tug', 'Movilidad funcional y riesgo de caída'),
+    'berg': ('Berg (BBS)', 'berg', 'Equilibrio funcional en 14 tareas (0–56 pts)'),
+    'tinetti': ('Tinetti', 'tinetti', 'Equilibrio y marcha (0–28 pts)'),
 }
 
 ESCALAS_PAQUETES = (
@@ -26,6 +28,13 @@ ESCALAS_PAQUETES = (
         'escalas': ('ena', 'groc', 'psfs'),
     },
     {
+        'id': 'equilibrio_marcha',
+        'titulo': 'Equilibrio, marcha y caídas',
+        'descripcion': 'Valoración del riesgo de caídas y control postural',
+        'icono': 'bx-walk',
+        'escalas': ('berg', 'tinetti', 'tug'),
+    },
+    {
         'id': 'columna_lumbar',
         'titulo': 'Columna lumbar',
         'descripcion': 'Pacientes con dolor lumbar o lumbociática',
@@ -35,9 +44,9 @@ ESCALAS_PAQUETES = (
     {
         'id': 'extremidad_inferior',
         'titulo': 'Extremidad inferior',
-        'descripcion': 'Rodilla, cadera, tobillo y marcha',
+        'descripcion': 'Rodilla, cadera y tobillo',
         'icono': 'bx-run',
-        'escalas': ('lefs', 'womac', 'tug'),
+        'escalas': ('lefs', 'womac'),
     },
     {
         'id': 'mmss_hombro',

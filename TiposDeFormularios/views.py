@@ -1633,3 +1633,467 @@ def _procesar_tug_post(request, paciente, ciclo, clinico):
         messages.error(request, f'Error al procesar TUG: {e}')
 
     return redirect_cuestionario(request, 'tug', paciente.rut)
+
+
+# ==================== ESCALA DE BERG (BERG BALANCE SCALE - BBS) ====================
+
+BERG_ITEMS = [
+    {
+        'num': 1, 'id': 'item_01', 'titulo': '1. De sedestación a bipedestación',
+        'instruccion': 'Por favor, levántese. Intente no ayudarse de las manos.',
+        'opciones': [
+            (4, '4 - Capaz de levantarse sin usar las manos y de estabilizarse independientemente'),
+            (3, '3 - Capaz de levantarse independientemente usando las manos'),
+            (2, '2 - Capaz de levantarse usando las manos y tras varios intentos'),
+            (1, '1 - Necesita una mínima ayuda para levantarse o estabilizarse'),
+            (0, '0 - Necesita una asistencia de moderada a máxima para levantarse'),
+        ]
+    },
+    {
+        'num': 2, 'id': 'item_02', 'titulo': '2. Bipedestación sin ayuda',
+        'instruccion': 'Por favor, permanezca de pie durante dos minutos sin agarrarse.',
+        'opciones': [
+            (4, '4 - Capaz de estar de pie durante 2 minutos de manera segura'),
+            (3, '3 - Capaz de estar de pie durante 2 minutos con supervisión'),
+            (2, '2 - Capaz de estar de pie durante 30 segundos sin agarrarse'),
+            (1, '1 - Necesita varios intentos para permanecer de pie durante 30 segundos sin agarrarse'),
+            (0, '0 - Incapaz de estar de pie durante 30 segundos sin asistencia'),
+        ]
+    },
+    {
+        'num': 3, 'id': 'item_03', 'titulo': '3. Sedestación sin apoyar la espalda',
+        'instruccion': 'Por favor, siéntese con los brazos junto al cuerpo durante 2 minutos.',
+        'opciones': [
+            (4, '4 - Capaz de permanecer sentado de manera segura durante 2 minutos'),
+            (3, '3 - Capaz de permanecer sentado durante 2 minutos bajo supervisión'),
+            (2, '2 - Capaz de permanecer sentado durante 30 segundos'),
+            (1, '1 - Capaz de permanecer sentado durante 10 segundos'),
+            (0, '0 - Incapaz de permanecer sentado sin ayuda durante 10 segundos'),
+        ]
+    },
+    {
+        'num': 4, 'id': 'item_04', 'titulo': '4. De bipedestación a sedestación',
+        'instruccion': 'Por favor, siéntese.',
+        'opciones': [
+            (4, '4 - Se sienta de manera segura con un mínimo uso de las manos'),
+            (3, '3 - Controla el descenso mediante el uso de las manos'),
+            (2, '2 - Usa la parte posterior de los muslos contra la silla para controlar el descenso'),
+            (1, '1 - Se sienta independientemente, pero no controla el descenso'),
+            (0, '0 - Necesita ayuda para sentarse'),
+        ]
+    },
+    {
+        'num': 5, 'id': 'item_05', 'titulo': '5. Transferencias',
+        'instruccion': 'Pase primero a un asiento con apoyabrazos y a continuación a otro asiento sin apoyabrazos.',
+        'opciones': [
+            (4, '4 - Capaz de transferir de manera segura con un mínimo uso de las manos'),
+            (3, '3 - Capaz de transferir de manera segura con ayuda de las manos'),
+            (2, '2 - Capaz de transferir con indicaciones verbales y/o supervisión'),
+            (1, '1 - Necesita una persona que le asista'),
+            (0, '0 - Necesita dos personas que le asistan o supervisen la transferencia'),
+        ]
+    },
+    {
+        'num': 6, 'id': 'item_06', 'titulo': '6. Bipedestación sin ayuda con ojos cerrados',
+        'instruccion': 'Por favor, cierre los ojos y permanezca de pie durante 10 segundos.',
+        'opciones': [
+            (4, '4 - Capaz de permanecer de pie durante 10 segundos de manera segura'),
+            (3, '3 - Capaz de permanecer de pie durante 10 segundos con supervisión'),
+            (2, '2 - Capaz de permanecer de pie durante 3 segundos'),
+            (1, '1 - Incapaz de mantener los ojos cerrados durante 3 segundos pero capaz de permanecer firme'),
+            (0, '0 - Necesita ayuda para no caerse'),
+        ]
+    },
+    {
+        'num': 7, 'id': 'item_07', 'titulo': '7. Bipedestación sin agarrarse con los pies juntos',
+        'instruccion': 'Por favor, junte los pies y permanezca de pie sin agarrarse.',
+        'opciones': [
+            (4, '4 - Capaz de permanecer de pie con los pies juntos de manera segura e independiente durante 1 minuto'),
+            (3, '3 - Capaz de permanecer de pie con los pies juntos independientemente durante 1 minuto con supervisión'),
+            (2, '2 - Capaz de permanecer de pie con los pies juntos independientemente, pero incapaz durante 30 segundos'),
+            (1, '1 - Necesita ayuda para lograr la postura, pero capaz de permanecer de pie durante 15 segundos'),
+            (0, '0 - Necesita ayuda para lograr la postura e incapaz de mantenerla durante 15 segundos'),
+        ]
+    },
+    {
+        'num': 8, 'id': 'item_08', 'titulo': '8. Llevar el brazo extendido hacia delante en bipedestación',
+        'instruccion': 'Levante el brazo a 90°. Estire los dedos y llévelo hacia delante todo lo que pueda.',
+        'opciones': [
+            (4, '4 - Puede inclinarse hacia delante de manera cómoda > 25 cm'),
+            (3, '3 - Puede inclinarse hacia delante de manera segura > 12 cm'),
+            (2, '2 - Puede inclinarse hacia delante de manera segura > 5 cm'),
+            (1, '1 - Se inclina hacia delante pero requiere supervisión'),
+            (0, '0 - Pierde el equilibrio mientras intenta inclinarse hacia delante o requiere ayuda'),
+        ]
+    },
+    {
+        'num': 9, 'id': 'item_09', 'titulo': '9. En bipedestación, recoger un objeto del suelo',
+        'instruccion': 'Recoger el objeto (zapato/zapatilla) situado delante de los pies.',
+        'opciones': [
+            (4, '4 - Capaz de recoger el objeto de manera cómoda y segura'),
+            (3, '3 - Capaz de recoger el objeto pero requiere supervisión'),
+            (2, '2 - Incapaz de coger el objeto pero llega a 2-5 cm y mantiene equilibrio independientemente'),
+            (1, '1 - Incapaz de recoger el objeto y necesita supervisión al intentarlo'),
+            (0, '0 - Incapaz de intentarlo o necesita asistencia para no perder el equilibrio o caer'),
+        ]
+    },
+    {
+        'num': 10, 'id': 'item_10', 'titulo': '10. En bipedestación, girarse para mirar atrás',
+        'instruccion': 'Gire para mirar atrás a la izquierda. Repita lo mismo a la derecha.',
+        'opciones': [
+            (4, '4 - Mira hacia atrás hacia ambos lados y desplaza bien el peso'),
+            (3, '3 - Mira hacia atrás desde un solo lado, en el otro presenta menor desplazamiento de peso'),
+            (2, '2 - Gira hacia un solo lado pero mantiene el equilibrio'),
+            (1, '1 - Necesita supervisión al girar'),
+            (0, '0 - Necesita asistencia para no perder el equilibrio o caer'),
+        ]
+    },
+    {
+        'num': 11, 'id': 'item_11', 'titulo': '11. Girar 360 grados',
+        'instruccion': 'Dar una vuelta completa de 360 grados. Pausa. A continuación repetir hacia el otro lado.',
+        'opciones': [
+            (4, '4 - Capaz de girar 360 grados de manera segura en 4 segundos o menos'),
+            (3, '3 - Capaz de girar 360 grados de manera segura sólo hacia un lado en 4 segundos o menos'),
+            (2, '2 - Capaz de girar 360 grados de manera segura, pero lentamente'),
+            (1, '1 - Necesita supervisión cercana o indicaciones verbales'),
+            (0, '0 - Necesita asistencia al girar'),
+        ]
+    },
+    {
+        'num': 12, 'id': 'item_12', 'titulo': '12. Subir alternante los pies a un escalón o taburete',
+        'instruccion': 'Sitúe cada pie alternativamente sobre un escalón/taburete. Repetir 4 veces por pie (total 8 escalones).',
+        'opciones': [
+            (4, '4 - Capaz de permanecer de pie de manera segura e independiente y completar 8 escalones en 20 segundos'),
+            (3, '3 - Capaz de permanecer de pie de manera independiente y completar 8 escalones en más de 20 segundos'),
+            (2, '2 - Capaz de completar 4 escalones sin ayuda o con supervisión'),
+            (1, '1 - Capaz de completar más de 2 escalones necesitando una mínima asistencia'),
+            (0, '0 - Necesita asistencia para no caer o es incapaz de intentarlo'),
+        ]
+    },
+    {
+        'num': 13, 'id': 'item_13', 'titulo': '13. Bipedestación con los pies en tándem',
+        'instruccion': 'Sitúe un pie delante del otro. Si no puede colocarlo justo delante, intente dar un paso hacia delante.',
+        'opciones': [
+            (4, '4 - Capaz de colocar el pie en tándem independientemente y sostenerlo durante 30 segundos'),
+            (3, '3 - Capaz de colocar el pie por delante del otro de manera independiente y sostenerlo durante 30 segundos'),
+            (2, '2 - Capaz de dar un pequeño paso de manera independiente y sostenerlo durante 30 segundos'),
+            (1, '1 - Necesita ayuda para dar el paso, pero puede mantenerlo durante 15 segundos'),
+            (0, '0 - Pierde el equilibrio al dar el paso o al estar de pie'),
+        ]
+    },
+    {
+        'num': 14, 'id': 'item_14', 'titulo': '14. Bipedestación sobre un pie',
+        'instruccion': 'Apoyo sobre un pie sin agarrarse.',
+        'opciones': [
+            (4, '4 - Capaz de levantar la pierna independientemente y sostenerla durante > 10 segundos'),
+            (3, '3 - Capaz de levantar la pierna independientemente y sostenerla entre 5-10 segundos'),
+            (2, '2 - Capaz de levantar la pierna independientemente y sostenerla durante 3 o más segundos'),
+            (1, '1 - Intenta levantar la pierna, incapaz de sostenerla 3 segundos, pero permanece firme independientemente'),
+            (0, '0 - Incapaz de intentarlo o necesita ayuda para prevenir una caída'),
+        ]
+    },
+]
+
+
+def renderizar_cuestionario_berg(request):
+    """Vista para la Escala de Equilibrio de Berg."""
+    from .models import EvaluacionBerg
+
+    handler = BaseEvaluacionHandler(request)
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+
+    ciclo = handler.ciclo
+
+    if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_berg_post(request, paciente, handler.ciclo, handler.clinico)
+
+    evaluaciones = (
+        EvaluacionBerg.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionBerg.objects.none()
+    )
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
+    chart_config = obtener_graficos_paciente(paciente).get('berg', {})
+
+    handler.auditar_consulta('Berg')
+    return render(request, 'CuestionarioBerg.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'evaluations_count': evaluaciones.count(),
+        'evaluations_json': json.dumps(serie_json_para_vista(ciclo or paciente, 'berg'), ensure_ascii=False),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        'berg_items': BERG_ITEMS,
+        **contexto_ciclo_para_template(ciclo, paciente),
+    })
+
+
+def _procesar_berg_post(request, paciente, ciclo, clinico):
+    """Procesa el POST de Berg: valida los 14 ítems, guarda y vincula a sesión kinésica."""
+    from .models import EvaluacionBerg
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'berg', paciente.rut)
+
+    try:
+        data_items = {}
+        for item in BERG_ITEMS:
+            item_id = item['id']
+            val = request.POST.get(item_id)
+            if val is None or val == '':
+                messages.error(request, f'Debe responder la pregunta: {item["titulo"]}')
+                return redirect_cuestionario(request, 'berg', paciente.rut)
+            data_items[item_id] = int(val)
+
+        evaluacion = EvaluacionBerg.objects.create(
+            ciclo=ciclo,
+            paciente=paciente,
+            clinico=clinico,
+            notas_clinicas=request.POST.get('notas_clinicas', ''),
+            **data_items
+        )
+        total = evaluacion.get_total_puntos()
+        interp = evaluacion.get_interpretacion()
+
+        auditar_cuestionario_edicion(request, paciente, 'Berg', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'berg',
+            f'{total}/56 pts — {interp["nivel"]}',
+            'berg',
+        )
+        messages.success(
+            request,
+            f'Escala de Berg guardada. Puntaje Total: {total}/56 pts ({interp["nivel"]})',
+        )
+    except (ValueError, TypeError) as e:
+        messages.error(request, f'Valores inválidos en los ítems de Berg: {e}')
+    except Exception as e:
+        messages.error(request, f'Error al procesar la Escala de Berg: {e}')
+
+    return redirect_cuestionario(request, 'berg', paciente.rut)
+
+
+# ==================== ESCALA DE TINETTI (EQUILIBRIO Y MARCHA) ====================
+
+TINETTI_EQUILIBRIO_ITEMS = [
+    {
+        'id': 'eq_01_sentado', 'num': 1, 'titulo': '1. Equilibrio sentado',
+        'opciones': [
+            (0, '0 - Se desliza o se inclina en la silla'),
+            (1, '1 - Seguro y firme en la silla'),
+        ]
+    },
+    {
+        'id': 'eq_02_levantarse', 'num': 2, 'titulo': '2. Levantarse de la silla',
+        'opciones': [
+            (0, '0 - Incapaz sin ayuda de otra persona'),
+            (1, '1 - Capaz, pero necesita impulsarse con los brazos'),
+            (2, '2 - Capaz de levantarse sin usar los brazos'),
+        ]
+    },
+    {
+        'id': 'eq_03_intentos', 'num': 3, 'titulo': '3. Intentos para levantarse',
+        'opciones': [
+            (0, '0 - Incapaz de levantarse sin ayuda'),
+            (1, '1 - Capaz, pero requiere más de un intento'),
+            (2, '2 - Capaz de levantarse al primer intento'),
+        ]
+    },
+    {
+        'id': 'eq_04_equi_inmediato', 'num': 4, 'titulo': '4. Equilibrio inmediato al levantarse (primeros 5 segundos)',
+        'opciones': [
+            (0, '0 - Inestable, vacila, se tambalea o mueve los pies'),
+            (1, '1 - Estable pero requiere andador, bastón u otro soporte'),
+            (2, '2 - Estable sin apoyos ni soportes externos'),
+        ]
+    },
+    {
+        'id': 'eq_05_equi_bipedestacion', 'num': 5, 'titulo': '5. Equilibrio en bipedestación prolongada',
+        'opciones': [
+            (0, '0 - Inestable en bipedestación'),
+            (1, '1 - Estable pero abre la base de sustentación o usa apoyo'),
+            (2, '2 - Estable con base estrecha/normal sin ningún apoyo'),
+        ]
+    },
+    {
+        'id': 'eq_06_empujon', 'num': 6, 'titulo': '6. Empujón en el esternón (3 empujones suaves)',
+        'opciones': [
+            (0, '0 - Empieza a caerse o requiere asistencia'),
+            (1, '1 - Se tambalea, se coge pero logra mantenerse de pie'),
+            (2, '2 - Permanece firme y totalmente estable'),
+        ]
+    },
+    {
+        'id': 'eq_07_ojos_cerrados', 'num': 7, 'titulo': '7. Con ojos cerrados (pies juntos)',
+        'opciones': [
+            (0, '0 - Inestable o pierde el equilibrio'),
+            (1, '1 - Estable y mantiene la posición'),
+        ]
+    },
+    {
+        'id': 'eq_08_giro_360', 'num': 8, 'titulo': '8. Giro de 360 grados',
+        'opciones': [
+            (0, '0 - Pasos discontinuos E inestable'),
+            (1, '1 - Pasos continuos PERO inestable (o pasos discontinuos y estable)'),
+            (2, '2 - Pasos continuos Y completamente estable'),
+        ]
+    },
+    {
+        'id': 'eq_09_sentarse', 'num': 9, 'titulo': '9. Sentarse',
+        'opciones': [
+            (0, '0 - Inseguro, calcula mal la distancia o cae bruscamente'),
+            (1, '1 - Usa los brazos o el movimiento no es del todo fluido'),
+            (2, '2 - Seguro, movimiento suave y fluido'),
+        ]
+    },
+]
+
+TINETTI_MARCHA_ITEMS = [
+    {
+        'id': 'ma_01_iniciacion', 'num': 10, 'titulo': '10. Iniciación de la marcha',
+        'opciones': [
+            (0, '0 - Vacilación o múltiples intentos para comenzar a caminar'),
+            (1, '1 - Sin vacilación, inicio fluido e inmediato'),
+        ]
+    },
+    {
+        'id': 'ma_02_longitud_altura', 'num': 11, 'titulo': '11. Longitud y altura del paso',
+        'opciones': [
+            (0, '0 - El pie no sobrepasa al otro o no despega bien del suelo'),
+            (1, '1 - Un solo pie sobrepasa y despega adecuadamente'),
+            (2, '2 - Ambos pies sobrepasan al opuesto y despegan completamente del suelo'),
+        ]
+    },
+    {
+        'id': 'ma_03_simetria', 'num': 12, 'titulo': '12. Simetría del paso',
+        'opciones': [
+            (0, '0 - La longitud de los pasos parece desigual entre piernas'),
+            (1, '1 - Los pasos parecen de igual longitud'),
+        ]
+    },
+    {
+        'id': 'ma_04_continuidad', 'num': 13, 'titulo': '13. Continuidad de los pasos',
+        'opciones': [
+            (0, '0 - Detenciones o discontinuidad apreciable entre pasos'),
+            (1, '1 - Los pasos son continuos y fluidos'),
+        ]
+    },
+    {
+        'id': 'ma_05_trayectoria', 'num': 14, 'titulo': '14. Trayectoria (desviación)',
+        'opciones': [
+            (0, '0 - Marcada desviación de la línea de marcha'),
+            (1, '1 - Desviación moderada/leve o requiere dispositivo de ayuda'),
+            (2, '2 - Camino en línea recta sin desviación ni ayudas'),
+        ]
+    },
+    {
+        'id': 'ma_06_tronco', 'num': 15, 'titulo': '15. Estabilidad del tronco',
+        'opciones': [
+            (0, '0 - Balanceo marcado del tronco o necesidad de apoyos'),
+            (1, '1 - Sin balanceo marcado pero flexiona rodillas/tronco o abre brazos'),
+            (2, '2 - Tronco erecto, firme y sin oscilaciones posturales'),
+        ]
+    },
+    {
+        'id': 'ma_07_postura_marcha', 'num': 16, 'titulo': '16. Postura al caminar (base de sustentación)',
+        'opciones': [
+            (0, '0 - Talones muy separados al caminar'),
+            (1, '1 - Los talones casi se tocan al caminar'),
+        ]
+    },
+]
+
+
+def renderizar_cuestionario_tinetti(request):
+    """Vista para la Escala de Tinetti (Equilibrio y Marcha)."""
+    from .models import EvaluacionTinetti
+
+    handler = BaseEvaluacionHandler(request)
+    if not handler.validar_sesion():
+        return handler.redirect_to_login()
+
+    paciente = handler.obtener_paciente()
+    if not paciente:
+        return HttpResponse('Paciente no encontrado', status=404)
+
+    ciclo = handler.ciclo
+
+    if request.method == 'POST':
+        if not handler.ciclo and handler.clinico:
+            handler.resolver_ciclo(crear_si_ausente=True)
+        return _procesar_tinetti_post(request, paciente, handler.ciclo, handler.clinico)
+
+    evaluaciones = (
+        EvaluacionTinetti.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+        if ciclo else EvaluacionTinetti.objects.none()
+    )
+    from TiposDeFormularios.escalas_graficos import obtener_graficos_paciente, serie_json_para_vista
+    chart_config = obtener_graficos_paciente(paciente).get('tinetti', {})
+
+    handler.auditar_consulta('Tinetti')
+    return render(request, 'CuestionarioTinetti.html', {
+        'rut': paciente.rut,
+        'paciente': paciente,
+        'evaluaciones_historial': evaluaciones.order_by('-fecha_evaluacion'),
+        'evaluations_count': evaluaciones.count(),
+        'evaluations_json': json.dumps(serie_json_para_vista(ciclo or paciente, 'tinetti'), ensure_ascii=False),
+        'chart_config_json': json.dumps(chart_config, ensure_ascii=False),
+        'equilibrio_items': TINETTI_EQUILIBRIO_ITEMS,
+        'marcha_items': TINETTI_MARCHA_ITEMS,
+        **contexto_ciclo_para_template(ciclo, paciente),
+    })
+
+
+def _procesar_tinetti_post(request, paciente, ciclo, clinico):
+    """Procesa el POST de Tinetti: valida subescalas, guarda y vincula a sesión kinésica."""
+    from .models import EvaluacionTinetti
+
+    if not _asegurar_ciclo_editable_o_error(request, ciclo):
+        return redirect_cuestionario(request, 'tinetti', paciente.rut)
+
+    try:
+        data_items = {}
+        all_items = TINETTI_EQUILIBRIO_ITEMS + TINETTI_MARCHA_ITEMS
+        for item in all_items:
+            item_id = item['id']
+            val = request.POST.get(item_id)
+            if val is None or val == '':
+                messages.error(request, f'Debe responder la pregunta: {item["titulo"]}')
+                return redirect_cuestionario(request, 'tinetti', paciente.rut)
+            data_items[item_id] = int(val)
+
+        evaluacion = EvaluacionTinetti.objects.create(
+            ciclo=ciclo,
+            paciente=paciente,
+            clinico=clinico,
+            notas_clinicas=request.POST.get('notas_clinicas', ''),
+            **data_items
+        )
+        total = evaluacion.get_total_puntos()
+        eq = evaluacion.get_puntaje_equilibrio()
+        ma = evaluacion.get_puntaje_marcha()
+        interp = evaluacion.get_interpretacion()
+
+        auditar_cuestionario_edicion(request, paciente, 'Tinetti', 'nueva evaluación')
+        vincular_escala_a_sesion(
+            request, paciente, 'tinetti',
+            f'Total: {total}/28 pts (Eq: {eq}/16, Ma: {ma}/12) — {interp["nivel"]}',
+            'tinetti',
+        )
+        messages.success(
+            request,
+            f'Escala de Tinetti guardada. Total: {total}/28 pts (Equilibrio: {eq}/16, Marcha: {ma}/12) — {interp["nivel"]}',
+        )
+    except (ValueError, TypeError) as e:
+        messages.error(request, f'Valores inválidos en los ítems de Tinetti: {e}')
+    except Exception as e:
+        messages.error(request, f'Error al procesar la Escala de Tinetti: {e}')
+
+    return redirect_cuestionario(request, 'tinetti', paciente.rut)
+

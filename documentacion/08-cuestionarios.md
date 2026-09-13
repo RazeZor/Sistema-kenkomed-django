@@ -171,3 +171,65 @@ Builder `_tug` en `escalas_graficos.py`. Produce serie de `tiempo_segundos` vs `
 6. Sin balanceo de brazos
 7. Vuelta en bloque
 8. No usa dispositivo de ayuda correctamente
+
+---
+
+## 6. Escala de Equilibrio de Berg (Berg Balance Scale - BBS)
+
+### Modelo
+`EvaluacionBerg` (`TiposDeFormularios.models`)
+
+### Estructura
+- 14 tareas de equilibrio funcional evaluadas de 0 a 4 puntos.
+- Puntaje Total: 0 a 56 puntos. Mayor puntaje = mejor equilibrio postural.
+
+### Baremos de Riesgo de Caídas
+- **0 - 20 pts**: Alto riesgo de caída.
+- **21 - 40 pts**: Moderado riesgo de caída (12 veces más probabilidad de caída).
+- **41 - 56 pts**: Leve / Bajo riesgo de caída.
+
+### Grupos de Capacidad Motora
+- **55 - 56 pts**: Marcha funcional
+- **50 - 54 pts**: Marcha independiente
+- **45 - 49 pts**: Marcha con/sin ayudas técnicas
+- **40 - 44 pts**: Grupo de inicio de marcha
+- **33 - 39 pts**: Grupo de inicio de bipedestación
+- **< 33 pts**: Control postural inicial / sedestación
+
+### URL
+```
+/CuestionarioBerg/?rut=<rut>   [GET + POST]
+name='berg'
+```
+
+### Integración en sesiones kinésicas
+- Código: `'berg'`
+- Paquete: `equilibrio_marcha` (junto a Tinetti y TUG)
+
+---
+
+## 7. Escala de Tinetti (Equilibrio y Marcha)
+
+### Modelo
+`EvaluacionTinetti` (`TiposDeFormularios.models`)
+
+### Estructura
+- **Subescala de Equilibrio**: 9 tareas (0 a 1 o 0 a 2 pts) — Puntuación Máx: 16 pts.
+- **Subescala de Marcha**: 7 tareas (0 a 1 o 0 a 2 pts) — Puntuación Máx: 12 pts.
+- **Puntuación Total**: 0 a 28 puntos.
+
+### Baremos de Riesgo de Caídas
+- **≤ 18 pts**: Alto riesgo de caída.
+- **19 - 24 pts**: Moderado riesgo de caída.
+- **25 - 28 pts**: Bajo / Sin riesgo de caída.
+
+### URL
+```
+/CuestionarioTinetti/?rut=<rut>   [GET + POST]
+name='tinetti'
+```
+
+### Integración en sesiones kinésicas
+- Código: `'tinetti'`
+- Paquete: `equilibrio_marcha` (junto a Berg y TUG)
+

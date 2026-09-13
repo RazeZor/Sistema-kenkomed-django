@@ -1,0 +1,423 @@
+{% extends 'base_kenkomed.html' %}
+{% load static %}
+
+{% block title %}Escala de Tinetti — Evaluación de Equilibrio y Marcha{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+{% include 'partials/escala_cuestionario_estilos.html' %}
+<style>
+    .tinetti-option-card {
+        border: 2px solid #e2e8f0; border-radius: 12px; padding: 0.75rem 1rem;
+        cursor: pointer; transition: all 0.2s ease; background: #ffffff;
+        display: flex; align-items: flex-start; gap: 0.75rem;
+    }
+    .tinetti-option-card:hover { border-color: #cbd5e1; background: #f8fafc; }
+    .tinetti-option-card.selected {
+        border-color: #0284c7; background: #f0f9ff;
+        box-shadow: 0 2px 8px rgba(2,132,199,0.12);
+    }
+    .tinetti-radio { accent-color: #0284c7; width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; cursor: pointer; }
+    .tinetti-badge-red { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .tinetti-badge-orange { background-color: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; }
+    .tinetti-badge-green { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+</style>
+{% endblock %}
+
+{% block header_title %}Escala de Tinetti (Evaluación de Equilibrio y Marcha){% endblock %}
+
+{% block header_actions %}
+<button onclick="window.history.back();" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition-colors no-print">
+    <i class='bx bx-arrow-back'></i> Volver
+</button>
+{{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto space-y-6">
+    {% include 'partials/escala_paciente_banner.html' %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Columna Principal: Cuestionario -->
+        <div class="lg:col-span-2 space-y-6">
+            <form id="tinettiForm" method="POST">
+                {% csrf_token %}
+                <div class="section-card space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-gray-100">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                                <i class='bx bx-walk text-sky-600'></i> Evaluación Tinetti (16 ítems)
+                            </h3>
+                            <p class="text-sm text-gray-500 mt-1">Valora 9 aspectos de equilibrio (0-16 pts) y 7 de marcha (0-12 pts).</p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-3xl font-extrabold text-sky-600" id="headerScore">0</div>
+                            <div class="text-xs text-gray-500 font-semibold uppercase tracking-wider">/ 28 puntos</div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen del Score por Subescalas -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-3.5 bg-sky-50/80 border border-sky-100 rounded-xl flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-bold text-sky-800 uppercase tracking-wide">Subescala Equilibrio</div>
+                                <div class="text-xs text-sky-600 mt-0.5">9 ítems clínicos</div>
+                            </div>
+                            <div class="text-xl font-extrabold text-sky-700" id="subScoreEq">0 / 16</div>
+                        </div>
+                        <div class="p-3.5 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-bold text-blue-800 uppercase tracking-wide">Subescala Marcha</div>
+                                <div class="text-xs text-blue-600 mt-0.5">7 ítems clínicos</div>
+                            </div>
+                            <div class="text-xl font-extrabold text-blue-700" id="subScoreMa">0 / 12</div>
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 1: EQUILIBRIO (9 ítems) -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-gray-200">
+                            <span class="px-2.5 py-1 rounded-md bg-sky-600 text-white font-bold text-xs uppercase tracking-wider">Parte I</span>
+                            <h4 class="text-sm font-bold text-gray-800">Evaluación del Equilibrio (Máx. 16 pts)</h4>
+                        </div>
+
+                        <div class="space-y-4">
+                            {% for item in equilibrio_items %}
+                            <div class="item-card bg-gray-50/50 p-4 border border-gray-200/80 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center text-xs font-extrabold">{{ item.num }}</span>
+                                        {{ item.titulo }}
+                                    </h4>
+                                </div>
+                                <div class="space-y-2 ml-1 md:ml-8">
+                                    {% for val, label in item.opciones %}
+                                    <label for="{{ item.id }}_{{ val }}" class="tinetti-option-card" id="card_{{ item.id }}_{{ val }}">
+                                        <input type="radio" name="{{ item.id }}" value="{{ val }}" id="{{ item.id }}_{{ val }}" class="tinetti-radio" onchange="updateResults()">
+                                        <span class="text-xs font-medium text-gray-700 leading-normal">{{ label }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN 2: MARCHA (7 ítems) -->
+                    <div class="space-y-4 pt-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-gray-200">
+                            <span class="px-2.5 py-1 rounded-md bg-blue-600 text-white font-bold text-xs uppercase tracking-wider">Parte II</span>
+                            <h4 class="text-sm font-bold text-gray-800">Evaluación de la Marcha (Máx. 12 pts)</h4>
+                        </div>
+
+                        <div class="space-y-4">
+                            {% for item in marcha_items %}
+                            <div class="item-card bg-gray-50/50 p-4 border border-gray-200/80 rounded-xl space-y-3">
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-extrabold">{{ item.num }}</span>
+                                        {{ item.titulo }}
+                                    </h4>
+                                </div>
+                                <div class="space-y-2 ml-1 md:ml-8">
+                                    {% for val, label in item.opciones %}
+                                    <label for="{{ item.id }}_{{ val }}" class="tinetti-option-card" id="card_{{ item.id }}_{{ val }}">
+                                        <input type="radio" name="{{ item.id }}" value="{{ val }}" id="{{ item.id }}_{{ val }}" class="tinetti-radio" onchange="updateResults()">
+                                        <span class="text-xs font-medium text-gray-700 leading-normal">{{ label }}</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Notas clínicas -->
+                    <div class="space-y-2 pt-2">
+                        <label class="block text-sm font-medium text-gray-700">Notas u observaciones clínicas suplementarias:</label>
+                        <textarea name="notas_clinicas" rows="3" class="w-full text-sm border-gray-300 rounded-lg focus:ring-sky-500 focus:border-sky-500 p-3" placeholder="Añada observaciones sobre dispositivos de apoyo, calzado, asistencias..."></textarea>
+                    </div>
+
+                    <!-- Semáforo e Interpretación Live -->
+                    <div class="result-display p-5 rounded-2xl border transition-all duration-300 bg-gray-50 border-gray-200" id="liveResultsCard">
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="text-center sm:text-left">
+                                <div class="text-3xl font-black text-gray-800" id="resultScore">0 / 28 pts</div>
+                                <div class="text-xs font-semibold text-gray-500 mt-0.5" id="resultSubDesglose">Equilibrio: 0/16 | Marcha: 0/12</div>
+                            </div>
+                            <div class="text-center sm:text-right">
+                                <span class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide inline-block" id="resultLevelBadge">Incompleto</span>
+                                <div class="text-xs font-medium text-gray-600 mt-1" id="resultDesc">Complete los 16 ítems</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-gray-200/80 text-xs space-y-1 text-gray-600 hidden" id="dssLiveList">
+                            <div class="font-bold text-gray-700 flex items-center gap-1">
+                                <i class='bx bx-check-shield text-sky-600'></i> Sistema DSS - Recomendaciones Tinetti:
+                            </div>
+                            <ul class="list-disc list-inside space-y-0.5 pl-1" id="dssBullets"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Botón Guardar -->
+                    <div class="pt-2">
+                        <button type="submit" class="w-full py-3.5 px-6 text-sm font-bold text-white bg-sky-600 rounded-xl hover:bg-sky-700 focus:ring-4 focus:ring-sky-200 transition-all flex items-center justify-center gap-2 shadow-lg shadow-sky-600/20">
+                            <i class='bx bx-save text-lg'></i> Guardar Evaluación Tinetti
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Tabla de Historial -->
+            {% if evaluaciones_historial %}
+            <div class="section-card">
+                <h3 class="text-md font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class='bx bx-history text-sky-600'></i> Historial de Evaluaciones Tinetti
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-500 uppercase bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3">Fecha</th>
+                                <th class="px-4 py-3">Evaluador</th>
+                                <th class="px-4 py-3 text-center">Total</th>
+                                <th class="px-4 py-3 text-center">Equilibrio</th>
+                                <th class="px-4 py-3 text-center">Marcha</th>
+                                <th class="px-4 py-3">Nivel de Riesgo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for ev in evaluaciones_historial %}
+                            {% with interp=ev.get_interpretacion %}
+                            <tr class="hover:bg-gray-50/80 transition-colors">
+                                <td class="px-4 py-3 font-medium text-gray-900">{{ ev.fecha_evaluacion|date:"d/m/Y H:i" }}</td>
+                                <td class="px-4 py-3">{{ ev.clinico.nombre_completo }}</td>
+                                <td class="px-4 py-3 text-center font-bold text-sky-700">{{ ev.get_total_puntos }}/28</td>
+                                <td class="px-4 py-3 text-center text-xs text-gray-700">{{ ev.get_puntaje_equilibrio }}/16</td>
+                                <td class="px-4 py-3 text-center text-xs text-gray-700">{{ ev.get_puntaje_marcha }}/12</td>
+                                <td class="px-4 py-3">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold 
+                                        {% if interp.dss_status == 'danger' %}tinetti-badge-red
+                                        {% elif interp.dss_status == 'warning' %}tinetti-badge-orange
+                                        {% else %}tinetti-badge-green{% endif %}">
+                                        {{ interp.nivel }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endwith %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna Lateral: Gráfico, Baremos y Sidebar -->
+        <div class="space-y-6">
+            <!-- Gráfico evolutivo -->
+            <div class="section-card">
+                <h4 class="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                    <i class='bx bx-line-chart text-sky-600'></i> Evolución Tinetti (Total / Subescalas)
+                </h4>
+                <div class="h-48 relative">
+                    <canvas id="chart_escala_tinetti"></canvas>
+                </div>
+            </div>
+
+            <!-- Panel de Baremos Clínicos -->
+            <div class="section-card space-y-4">
+                <h4 class="text-sm font-bold text-gray-800 flex items-center gap-2 border-b pb-2">
+                    <i class='bx bx-book-open text-sky-600'></i> Baremos Clínicos de Tinetti
+                </h4>
+                <div class="space-y-2 text-xs">
+                    <div class="p-2.5 rounded-lg border border-red-200 bg-red-50/60">
+                        <div class="font-bold text-red-800">≤ 18 Puntos</div>
+                        <div class="text-red-700 mt-0.5">Alto riesgo de caída. Severo compromiso funcional.</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-orange-200 bg-orange-50/60">
+                        <div class="font-bold text-orange-800">19 – 24 Puntos</div>
+                        <div class="text-orange-700 mt-0.5">Moderado riesgo de caída. Riesgo intermedio.</div>
+                    </div>
+                    <div class="p-2.5 rounded-lg border border-green-200 bg-green-50/60">
+                        <div class="font-bold text-green-800">25 – 28 Puntos</div>
+                        <div class="text-green-700 mt-0.5">Bajo / Sin riesgo de caída. Patrón funcional.</div>
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t text-xs text-gray-600 space-y-1">
+                    <div class="font-bold text-gray-800 mb-1">Estructura del Test:</div>
+                    <ul class="space-y-0.5 pl-2 list-disc list-inside">
+                        <li><b>Parte I (Equilibrio):</b> 9 tareas — Máx. 16 pts</li>
+                        <li><b>Parte II (Marcha):</b> 7 tareas — Máx. 12 pts</li>
+                        <li><b>Puntuación Total:</b> 28 puntos</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Sidebar Historial Integrado -->
+            {% include 'partials/escala_historial_sidebar.html' with escala_tipo='tinetti' %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const evaluationsData = {{ evaluations_json|safe }};
+    const chartConfigRaw = {{ chart_config_json|safe }};
+
+    const eqIds = [
+        'eq_01_sentado', 'eq_02_levantarse', 'eq_03_intentos',
+        'eq_04_equi_inmediato', 'eq_05_equi_bipedestacion',
+        'eq_06_empujon', 'eq_07_ojos_cerrados', 'eq_08_giro_360', 'eq_09_sentarse'
+    ];
+
+    const maIds = [
+        'ma_01_iniciacion', 'ma_02_longitud_altura', 'ma_03_simetria',
+        'ma_04_continuidad', 'ma_05_trayectoria', 'ma_06_tronco', 'ma_07_postura_marcha'
+    ];
+
+    function updateResults() {
+        let eqTotal = 0;
+        let maTotal = 0;
+        let eqAnswered = 0;
+        let maAnswered = 0;
+
+        document.querySelectorAll('.tinetti-option-card').forEach(c => c.classList.remove('selected'));
+
+        eqIds.forEach(id => {
+            const selected = document.querySelector(`input[name="${id}"]:checked`);
+            if (selected) {
+                eqTotal += parseInt(selected.value, 10);
+                eqAnswered++;
+                const card = document.getElementById(`card_${id}_${selected.value}`);
+                if (card) card.classList.add('selected');
+            }
+        });
+
+        maIds.forEach(id => {
+            const selected = document.querySelector(`input[name="${id}"]:checked`);
+            if (selected) {
+                maTotal += parseInt(selected.value, 10);
+                maAnswered++;
+                const card = document.getElementById(`card_${id}_${selected.value}`);
+                if (card) card.classList.add('selected');
+            }
+        });
+
+        const total = eqTotal + maTotal;
+        const totalAnswered = eqAnswered + maAnswered;
+
+        document.getElementById('headerScore').textContent = total;
+        document.getElementById('resultScore').textContent = `${total} / 28 pts`;
+        document.getElementById('subScoreEq').textContent = `${eqTotal} / 16`;
+        document.getElementById('subScoreMa').textContent = `${maTotal} / 12`;
+        document.getElementById('resultSubDesglose').textContent = `Equilibrio: ${eqTotal}/16 | Marcha: ${maTotal}/12`;
+
+        const badge = document.getElementById('resultLevelBadge');
+        const descEl = document.getElementById('resultDesc');
+        const dssCard = document.getElementById('liveResultsCard');
+        const dssList = document.getElementById('dssLiveList');
+        const bulletsUl = document.getElementById('dssBullets');
+
+        if (totalAnswered === 0) {
+            badge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide bg-gray-200 text-gray-600';
+            badge.textContent = 'Incompleto';
+            descEl.textContent = 'Complete los 16 ítems';
+            dssList.classList.add('hidden');
+            return;
+        }
+
+        dssList.classList.remove('hidden');
+
+        let riesgoText = '';
+        let badgeClass = '';
+        let borderClass = '';
+        let dssBullets = [];
+
+        if (total <= 18) {
+            riesgoText = 'Alto riesgo de caída';
+            badgeClass = 'tinetti-badge-red';
+            borderClass = 'bg-red-50/60 border-red-200';
+            dssBullets.push(`Total: ${total}/28 pts (<=18). Riesgo elevado de caídas.`);
+            dssBullets.push(`Desglose: Equilibrio ${eqTotal}/16 pts, Marcha ${maTotal}/12 pts.`);
+            dssBullets.push('Recomendación: Reeducación intensiva del patrón de marcha y uso de ayuda técnica.');
+        } else if (total <= 24) {
+            riesgoText = 'Moderado riesgo de caída';
+            badgeClass = 'tinetti-badge-orange';
+            borderClass = 'bg-orange-50/60 border-orange-200';
+            dssBullets.push(`Total: ${total}/28 pts (19–24). Riesgo intermedio de caídas.`);
+            dssBullets.push(`Desglose: Equilibrio ${eqTotal}/16 pts, Marcha ${maTotal}/12 pts.`);
+            dssBullets.push('Recomendación: Entrenamiento de equilibrio dinámico y marcha en superficies irregulares.');
+        } else {
+            riesgoText = 'Bajo / Sin riesgo de caída';
+            badgeClass = 'tinetti-badge-green';
+            borderClass = 'bg-green-50/60 border-green-200';
+            dssBullets.push(`Total: ${total}/28 pts (25–28). Patrón funcional.`);
+            dssBullets.push(`Desglose: Equilibrio ${eqTotal}/16 pts, Marcha ${maTotal}/12 pts.`);
+            dssBullets.push('Recomendación: Acondicionamiento físico general y controles de seguimiento.');
+        }
+
+        badge.className = `px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wide ${badgeClass}`;
+        badge.textContent = riesgoText;
+        descEl.textContent = `${totalAnswered} de 16 ítems respondidos`;
+
+        dssCard.className = `result-display p-5 rounded-2xl border transition-all duration-300 ${borderClass}`;
+        bulletsUl.innerHTML = dssBullets.map(b => `<li>${b}</li>`).join('');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        updateResults();
+
+        // Renderizado del gráfico Chart.js
+        const canvas = document.getElementById('chart_escala_tinetti');
+        if (canvas && chartConfigRaw && chartConfigRaw.labels) {
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: chartConfigRaw.labels,
+                    datasets: chartConfigRaw.datasets || []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            min: 0,
+                            max: 28,
+                            title: { display: true, text: 'Puntos (0-28)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: true, position: 'bottom' }
+                    }
+                }
+            });
+        }
+
+        // SweetAlert2 confirmación
+        const form = document.getElementById('tinettiForm');
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                let answered = 0;
+                eqIds.concat(maIds).forEach(id => {
+                    if (document.querySelector(`input[name="${id}"]:checked`)) answered++;
+                });
+                if (answered < 16) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Evaluación incompleta',
+                        text: `Ha respondido ${answered} de 16 preguntas. Por favor responda todos los ítems antes de guardar.`,
+                        confirmColor: '#0284c7'
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

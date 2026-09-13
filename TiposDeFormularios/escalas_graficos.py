@@ -201,6 +201,38 @@ def _tug(ciclo):
     return _serie_simple(labels, data, 'TUG (segundos)', '#f97316', 0, None)
 
 
+def _berg(ciclo):
+    from TiposDeFormularios.models import EvaluacionBerg
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionBerg.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+    if not qs.exists():
+        return _serie_vacia()
+    labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
+    data = [e.get_total_puntos() for e in qs]
+    return _serie_simple(labels, data, 'Berg (puntos 0–56)', '#8b5cf6', 0, 56)
+
+
+def _tinetti(ciclo):
+    from TiposDeFormularios.models import EvaluacionTinetti
+    if not ciclo:
+        return _serie_vacia()
+    qs = EvaluacionTinetti.objects.filter(ciclo=ciclo).order_by('fecha_evaluacion')
+    if not qs.exists():
+        return _serie_vacia()
+    labels = [e.fecha_evaluacion.strftime('%d/%m/%y') for e in qs]
+    return {
+        'labels': labels,
+        'datasets': [
+            {'label': 'Total', 'data': [e.get_total_puntos() for e in qs], 'borderColor': '#0284c7', 'backgroundColor': 'rgba(2,132,199,0.1)', 'fill': False, 'tension': 0.3},
+            {'label': 'Equilibrio', 'data': [e.get_puntaje_equilibrio() for e in qs], 'borderColor': '#06b6d4', 'backgroundColor': 'rgba(6,182,212,0.08)', 'fill': False, 'tension': 0.3},
+            {'label': 'Marcha', 'data': [e.get_puntaje_marcha() for e in qs], 'borderColor': '#3b82f6', 'backgroundColor': 'rgba(59,130,246,0.08)', 'fill': False, 'tension': 0.3},
+        ],
+        'ymin': 0,
+        'ymax': 28,
+    }
+
+
 _BUILDERS = {
     'psfs': _psfs,
     'groc': _groc,
@@ -213,6 +245,8 @@ _BUILDERS = {
     'quickdash': _quickdash,
     'womac': _womac,
     'tug': _tug,
+    'berg': _berg,
+    'tinetti': _tinetti,
 }
 
 
@@ -296,6 +330,17 @@ def serie_json_para_vista(ciclo_o_paciente, codigo):
                 point['riesgo'] = 'moderado'
             else:
                 point['riesgo'] = 'severo'
+        elif codigo == 'berg':
+            point['total'] = point['valor']
+            tot = point['valor'] or 0
+            if tot <= 20:
+                point['riesgo'] = 'alto'
+            elif tot <= 40:
+                point['riesgo'] = 'moderado'
+            else:
+                point['riesgo'] = 'leve'
+        elif codigo == 'tinetti':
+            point['total'] = data[i] if i < len(data) else None
         out.append(point)
     if codigo == 'womac' and cfg.get('datasets') and len(cfg['datasets']) >= 4:
         for i, label in enumerate(cfg['labels']):
@@ -304,4 +349,18 @@ def serie_json_para_vista(ciclo_o_paciente, codigo):
                 out[i]['rigidez'] = cfg['datasets'][2]['data'][i] if i < len(cfg['datasets'][2]['data']) else 0
                 out[i]['funcion'] = cfg['datasets'][3]['data'][i] if i < len(cfg['datasets'][3]['data']) else 0
                 out[i]['total'] = cfg['datasets'][0]['data'][i] if i < len(cfg['datasets'][0]['data']) else 0
+    elif codigo == 'tinetti' and cfg.get('datasets') and len(cfg['datasets']) >= 3:
+        for i, label in enumerate(cfg['labels']):
+            if i < len(out):
+                out[i]['total'] = cfg['datasets'][0]['data'][i] if i < len(cfg['datasets'][0]['data']) else 0
+                out[i]['equilibrio'] = cfg['datasets'][1]['data'][i] if i < len(cfg['datasets'][1]['data']) else 0
+                out[i]['marcha'] = cfg['datasets'][2]['data'][i] if i < len(cfg['datasets'][2]['data']) else 0
+                tot = out[i]['total'] or 0
+                if tot <= 18:
+                    out[i]['riesgo'] = 'alto'
+                elif tot <= 24:
+                    out[i]['riesgo'] = 'moderado'
+                else:
+                    out[i]['riesgo'] = 'bajo'
     return out
+

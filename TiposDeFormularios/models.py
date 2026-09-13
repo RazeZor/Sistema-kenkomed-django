@@ -589,3 +589,268 @@ class EvaluacionTUG(models.Model):
                     'Valorar necesidad de apoyo de cuidador.',
                 ],
             }
+
+
+class EvaluacionBerg(models.Model):
+    """
+    Escala de Equilibrio de Berg (Berg Balance Scale - BBS)
+    Evaluación cuantitativa del equilibrio funcional en 14 tareas diarias (0-4 pts por ítem).
+    Puntuación total: 0 a 56. Mayor puntaje = mejor equilibrio.
+
+    Baremos de Riesgo de Caída:
+        0-20  -> Alto riesgo de caída
+        21-40 -> Moderado riesgo de caída
+        41-56 -> Leve / Bajo riesgo de caída
+
+    Corte clínico: < 45 indica alteración del equilibrio. >= 45 para deambulación independiente segura.
+
+    Grupos Funcionales:
+        33-39 -> Inicio de bipedestación
+        40-44 -> Inicio de marcha
+        45-49 -> Marcha con/sin ayudas técnicas
+        50-54 -> Marcha independiente
+        55-56 -> Marcha funcional
+    """
+
+    paciente = models.ForeignKey(
+        'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_berg',
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_berg',
+    )
+    clinico = models.ForeignKey(
+        'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_berg',
+    )
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+
+    item_01 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="1. Sedestación a bipedestación (0-4)")
+    item_02 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="2. Bipedestación sin ayuda 2 min (0-4)")
+    item_03 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="3. Sedestación sin apoyar espalda 2 min (0-4)")
+    item_04 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="4. Bipedestación a sedestación (0-4)")
+    item_05 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="5. Transferencias (0-4)")
+    item_06 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="6. Bipedestación ojos cerrados 10s (0-4)")
+    item_07 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="7. Bipedestación pies juntos 1 min (0-4)")
+    item_08 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="8. Brazo extendido hacia delante (0-4)")
+    item_09 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="9. Recoger objeto del suelo (0-4)")
+    item_10 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="10. Girarse para mirar atrás (0-4)")
+    item_11 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="11. Girar 360 grados (0-4)")
+    item_12 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="12. Subir pies al escalón alternante (0-4)")
+    item_13 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="13. Pies en tándem (0-4)")
+    item_14 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(4)], help_text="14. Bipedestación sobre un pie (0-4)")
+
+    notas_clinicas = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Evaluación Berg'
+        verbose_name_plural = 'Evaluaciones Berg'
+        ordering = ['-fecha_evaluacion']
+
+    def __str__(self):
+        return f'Berg - {self.paciente.nombre} ({self.fecha_evaluacion.strftime("%d/%m/%Y")}) — {self.get_total_puntos()}/56 pts'
+
+    def get_total_puntos(self):
+        items = [
+            self.item_01, self.item_02, self.item_03, self.item_04, self.item_05,
+            self.item_06, self.item_07, self.item_08, self.item_09, self.item_10,
+            self.item_11, self.item_12, self.item_13, self.item_14,
+        ]
+        return sum(item for item in items if item is not None)
+
+    def get_interpretacion(self):
+        total = self.get_total_puntos()
+
+        # Grupo funcional motor
+        if total >= 55:
+            grupo = 'Marcha funcional'
+        elif total >= 50:
+            grupo = 'Marcha independiente'
+        elif total >= 45:
+            grupo = 'Marcha con/sin ayudas técnicas'
+        elif total >= 40:
+            grupo = 'Inicio de marcha'
+        elif total >= 33:
+            grupo = 'Inicio de bipedestación'
+        else:
+            grupo = 'Fase inicial de sedestación / control postural'
+
+        # Deambulación independiente
+        deambulación_segura = total >= 45
+
+        # Baremos de riesgo de caída
+        if total <= 20:
+            nivel = 'Alto riesgo de caída'
+            riesgo = 'alto'
+            color = 'red'
+            dss_status = 'danger'
+            rango = '0–20 puntos'
+            descripcion = 'Equilibrio severamente afectado. Alto riesgo de caídas recurrentes.'
+            recomendacion = 'Requerimiento de supervisión continua y asistencia asistencial. Entrenamiento intenso de control postural estático.'
+        elif total <= 40:
+            nivel = 'Moderado riesgo de caída'
+            riesgo = 'moderado'
+            color = 'orange'
+            dss_status = 'warning'
+            rango = '21–40 puntos'
+            descripcion = 'Equilibrio moderadamente alterado. Mayor a 12 veces más probabilidad de caída que pacientes >40 pts.'
+            recomendacion = 'Programa enfocado en transferencias, transferencias de peso y apoyo en marcha asistida.'
+        else:
+            nivel = 'Leve / Bajo riesgo de caída'
+            riesgo = 'leve'
+            color = 'green'
+            dss_status = 'success'
+            rango = '41–56 puntos'
+            descripcion = 'Buen control del equilibrio postural estático y dinámico.'
+            recomendacion = 'Mantenimiento y reeducación de la marcha independiente sin apoyos o con asistencia mínima.'
+
+        bullets = [
+            f'Puntaje total: {total}/56 puntos ({rango}).',
+            f'Nivel de riesgo de caídas: {nivel}.',
+            f'Grupo de capacidad motora/funcional: {grupo}.',
+            'Punto de corte >= 45 pts: ' + ('Superado (Deambulación independiente segura).' if deambulación_segura else 'No alcanzado (Indicador de alteración del equilibrio).'),
+        ]
+
+        if total < 40:
+            bullets.append('Nota clínica: Pacientes con < 40 pts presentan casi 12 veces más probabilidad de sufrir caídas.')
+
+        return {
+            'nivel': nivel,
+            'riesgo': riesgo,
+            'color': color,
+            'rango': rango,
+            'total': total,
+            'grupo_funcional': grupo,
+            'deambulacion_segura': deambulación_segura,
+            'descripcion': descripcion,
+            'recomendacion': recomendacion,
+            'dss_status': dss_status,
+            'dss_bullets': bullets,
+        }
+
+
+class EvaluacionTinetti(models.Model):
+    """
+    Escala de Tinetti para la Evaluación de Equilibrio y Marcha
+    Subescala de Equilibrio (9 ítems, 0-16 pts) + Subescala de Marcha (7 ítems, 0-12 pts).
+    Puntuación Total: 0 a 28 pts.
+
+    Baremos de Riesgo de Caída:
+        <= 18 pts -> Alto riesgo de caída
+        19-24 pts -> Moderado riesgo de caída
+        25-28 pts -> Bajo / Sin riesgo de caída
+    """
+
+    paciente = models.ForeignKey(
+        'Login.Paciente', on_delete=models.CASCADE, related_name='evaluaciones_tinetti',
+    )
+    ciclo = models.ForeignKey(
+        'ciclos_clinicos.CicloClinico',
+        on_delete=models.CASCADE,
+        related_name='evaluaciones_tinetti',
+    )
+    clinico = models.ForeignKey(
+        'Login.Clinico', on_delete=models.CASCADE, related_name='evaluaciones_tinetti',
+    )
+    fecha_evaluacion = models.DateTimeField(auto_now_add=True)
+
+    # Subescala Equilibrio (9 ítems)
+    eq_01_sentado = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Equilibrio sentado (0-1)")
+    eq_02_levantarse = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Levantarse (0-2)")
+    eq_03_intentos = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Intentos para levantarse (0-2)")
+    eq_04_equi_inmediato = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Equilibrio inmediato primeros 5s (0-2)")
+    eq_05_equi_bipedestacion = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Equilibrio en bipedestación (0-2)")
+    eq_06_empujon = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Empujón tórax 3 veces (0-2)")
+    eq_07_ojos_cerrados = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Ojos cerrados pies juntos (0-1)")
+    eq_08_giro_360 = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Giro 360 grados (0-2)")
+    eq_09_sentarse = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Sentarse (0-2)")
+
+    # Subescala Marcha (7 ítems)
+    ma_01_iniciacion = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Iniciación de la marcha (0-1)")
+    ma_02_longitud_altura = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Longitud y altura del paso (0-2)")
+    ma_03_simetria = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Simetría del paso (0-1)")
+    ma_04_continuidad = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Continuidad de los pasos (0-1)")
+    ma_05_trayectoria = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Trayectoria (0-2)")
+    ma_06_tronco = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(2)], help_text="Tronco (0-2)")
+    ma_07_postura_marcha = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(1)], help_text="Postura al caminar (0-1)")
+
+    notas_clinicas = models.TextField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Evaluación Tinetti'
+        verbose_name_plural = 'Evaluaciones Tinetti'
+        ordering = ['-fecha_evaluacion']
+
+    def __str__(self):
+        return f'Tinetti - {self.paciente.nombre} ({self.fecha_evaluacion.strftime("%d/%m/%Y")}) — Total: {self.get_total_puntos()}/28 pts'
+
+    def get_puntaje_equilibrio(self):
+        items = [
+            self.eq_01_sentado, self.eq_02_levantarse, self.eq_03_intentos,
+            self.eq_04_equi_inmediato, self.eq_05_equi_bipedestacion,
+            self.eq_06_empujon, self.eq_07_ojos_cerrados, self.eq_08_giro_360,
+            self.eq_09_sentarse,
+        ]
+        return sum(item for item in items if item is not None)
+
+    def get_puntaje_marcha(self):
+        items = [
+            self.ma_01_iniciacion, self.ma_02_longitud_altura, self.ma_03_simetria,
+            self.ma_04_continuidad, self.ma_05_trayectoria, self.ma_06_tronco,
+            self.ma_07_postura_marcha,
+        ]
+        return sum(item for item in items if item is not None)
+
+    def get_total_puntos(self):
+        return self.get_puntaje_equilibrio() + self.get_puntaje_marcha()
+
+    def get_interpretacion(self):
+        total = self.get_total_puntos()
+        eq = self.get_puntaje_equilibrio()
+        ma = self.get_puntaje_marcha()
+
+        if total <= 18:
+            nivel = 'Alto riesgo de caída'
+            riesgo = 'alto'
+            color = 'red'
+            dss_status = 'danger'
+            rango = '<= 18 puntos'
+            descripcion = 'Riesgo elevado de caídas con compromiso severo de la marcha y/o el equilibrio.'
+            recomendacion = 'Diseñar plan de intervención integral con énfasis en reeducación de la marcha, fortalecimiento y uso de órtesis/ayuda técnica.'
+        elif total <= 24:
+            nivel = 'Moderado riesgo de caída'
+            riesgo = 'moderado'
+            color = 'orange'
+            dss_status = 'warning'
+            rango = '19–24 puntos'
+            descripcion = 'Alteración moderada del equilibrio o de la marcha. Riesgo intermedio de caídas.'
+            recomendacion = 'Treinamiento dinámico del equilibrio, ejercicios de coordinación y prevención de caídas.'
+        else:
+            nivel = 'Bajo / Sin riesgo de caída'
+            riesgo = 'bajo'
+            color = 'green'
+            dss_status = 'success'
+            rango = '25–28 puntos'
+            descripcion = 'Patrón de marcha y equilibrio funcionales sin riesgo elevado de caídas.'
+            recomendacion = 'Mantener acondicionamiento físico y reevaluar periódicamente.'
+
+        bullets = [
+            f'Puntuación total: {total}/28 pts (Equilibrio: {eq}/16 pts, Marcha: {ma}/12 pts).',
+            f'Nivel de riesgo de caídas: {nivel} ({rango}).',
+            'Desglose subescalas: ' + ('Equilibrio descendido' if eq < 10 else 'Equilibrio funcional') + ' | ' + ('Marcha descendida' if ma < 8 else 'Marcha funcional'),
+        ]
+
+        return {
+            'nivel': nivel,
+            'riesgo': riesgo,
+            'color': color,
+            'rango': rango,
+            'total': total,
+            'equilibrio': eq,
+            'marcha': ma,
+            'descripcion': descripcion,
+            'recomendacion': recomendacion,
+            'dss_status': dss_status,
+            'dss_bullets': bullets,
+        }
+
