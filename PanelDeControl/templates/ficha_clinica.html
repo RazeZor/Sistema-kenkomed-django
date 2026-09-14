@@ -855,7 +855,7 @@
 {% endif %}
 
 <!-- ══ 5. CUESTIONARIOS ESTANDARIZADOS ═══════════════════════════ -->
-{% if psfs or groc or eq5d or barthel or screening or ena or evaluaciones_lefs or evaluaciones_oswestry or evaluaciones_quickdash or evaluaciones_womac %}
+{% if psfs or groc or eq5d or barthel or screening or ena or evaluaciones_lefs or evaluaciones_oswestry or evaluaciones_quickdash or evaluaciones_womac or evaluaciones_tug or evaluaciones_berg or evaluaciones_tinetti %}
 <div class="fce-card">
     <div class="fce-card-head ch-amber">
         <i class='bx bx-bar-chart-alt-2'></i>
@@ -940,6 +940,58 @@
                 <td>{{ ev.fecha_evaluacion|date:"d/m/Y" }}</td>
                 <td><strong>{{ ev.puntaje_total|default:"—" }}</strong></td>
                 <td>{{ ev.get_interpretacion|default:"—" }}</td>
+                <td>{{ ev.clinico.nombre }} {{ ev.clinico.apellido }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if evaluaciones_tug %}
+        <p class="sub-title">TUG — Timed Up and Go Test</p>
+        <table class="tbl">
+            <thead><tr><th>Fecha</th><th>Tiempo (seg)</th><th>Ayuda marcha</th><th>Interpretación / Nivel</th><th>Profesional</th></tr></thead>
+            <tbody>
+            {% for ev in evaluaciones_tug %}
+            <tr>
+                <td>{{ ev.fecha_evaluacion|date:"d/m/Y" }}</td>
+                <td><strong>{{ ev.tiempo_segundos }} s</strong></td>
+                <td>{% if ev.usa_ayuda_marcha %}Sí{% else %}No{% endif %}</td>
+                <td>{{ ev.get_interpretacion.nivel }}</td>
+                <td>{{ ev.clinico.nombre }} {{ ev.clinico.apellido }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if evaluaciones_berg %}
+        <p class="sub-title">BBS — Escala de Equilibrio de Berg</p>
+        <table class="tbl">
+            <thead><tr><th>Fecha</th><th>Puntaje</th><th>Interpretación / Nivel</th><th>Profesional</th></tr></thead>
+            <tbody>
+            {% for ev in evaluaciones_berg %}
+            <tr>
+                <td>{{ ev.fecha_evaluacion|date:"d/m/Y" }}</td>
+                <td><strong>{{ ev.get_total_puntos }}/56</strong></td>
+                <td>{{ ev.get_interpretacion.nivel }}</td>
+                <td>{{ ev.clinico.nombre }} {{ ev.clinico.apellido }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+
+        {% if evaluaciones_tinetti %}
+        <p class="sub-title">Tinetti — Marcha y Equilibrio</p>
+        <table class="tbl">
+            <thead><tr><th>Fecha</th><th>Puntaje Total</th><th>Interpretación / Nivel</th><th>Profesional</th></tr></thead>
+            <tbody>
+            {% for ev in evaluaciones_tinetti %}
+            <tr>
+                <td>{{ ev.fecha_evaluacion|date:"d/m/Y" }}</td>
+                <td><strong>{{ ev.get_total_puntos }}/28</strong> (Eq: {{ ev.get_puntaje_equilibrio }}/16, Mar: {{ ev.get_puntaje_marcha }}/12)</td>
+                <td>{{ ev.get_interpretacion.nivel }}</td>
                 <td>{{ ev.clinico.nombre }} {{ ev.clinico.apellido }}</td>
             </tr>
             {% endfor %}

@@ -152,7 +152,10 @@ def RenderFichaClinica(request):
     sesiones kinésicas, cuestionarios, diagnóstico y alta.
     """
     from SesionesKinesicas.models import SesionKinesica
-    from TiposDeFormularios.models import EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH, EvaluacionWOMAC, EvaluacionTUG
+    from TiposDeFormularios.models import (
+        EvaluacionLEFS, EvaluacionOswestry, EvaluacionQuickDASH,
+        EvaluacionWOMAC, EvaluacionTUG, EvaluacionBerg, EvaluacionTinetti
+    )
     from Login.models import (
         Clinico, CuestionarioPSFS, Groc, CuestionarioEQ_5D,
         CuestionarioBarthel, CuestionarioScrenning, CuestionarioEvaluacionENA,
