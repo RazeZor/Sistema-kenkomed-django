@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from Login.auditoria import registrar_auditoria
 from Login.models import AuditoriaAcceso, Clinico
-from ProyectoMainAPP.decorators.login_requerido import requiere_admin_auditoria, requiere_clinico
+from ProyectoMainAPP.decorators.login_requerido import requiere_admin_auditoria, requiere_clinico, requiere_no_secretaria
 from clinicas.utils import (
     filtrar_auditoria_por_sesion,
     obtener_clinica_de_sesion,
@@ -43,6 +43,7 @@ def _queryset_auditoria(request, dias):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def exportar_ficha(request):
     """
     Exporta la ficha completa del paciente (portabilidad ARCO).

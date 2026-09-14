@@ -277,5 +277,6 @@ AXES_VERBOSE = False                            # Sin spam de logs
 # Usa el backend de base de datos para persistir bloqueos entre reinicios
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
-    
+    'django.contrib.auth.backends.ModelBackend',
 ]
+

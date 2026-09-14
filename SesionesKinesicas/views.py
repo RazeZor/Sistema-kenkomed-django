@@ -4,7 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
 from Login.models import Paciente, Clinico
-from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from ProyectoMainAPP.decorators.login_requerido import requiere_clinico, requiere_no_secretaria
 from ProyectoMainAPP.email_service import notificar_alta_paciente
 from Login.auditoria import registrar_auditoria
 from clinicas.utils import obtener_paciente_por_rut
@@ -55,6 +55,7 @@ def _ctx_tratamiento(request, paciente, ciclo, sesiones_qs=None):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def listar_sesiones_paciente(request):
     """
     Lista todas las sesiones kinésicas de un paciente.
@@ -117,6 +118,7 @@ def listar_sesiones_paciente(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def crear_primera_sesion(request):
     """
     Crea la primera sesión kinésica de un paciente con formulario detallado.
@@ -207,6 +209,7 @@ def crear_primera_sesion(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def crear_sesion_seguimiento(request):
     """
     Crea una sesión de seguimiento (sesión posterior a la primera).
@@ -304,6 +307,7 @@ def crear_sesion_seguimiento(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def ver_sesion_kinesica(request):
     """
     Visualiza una sesión kinésica específica.
@@ -370,6 +374,7 @@ def ver_sesion_kinesica(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def editar_sesion_kinesica(request):
     """
     Edita una sesión kinésica existente.
@@ -452,6 +457,7 @@ def editar_sesion_kinesica(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def crear_sesion_final(request):
     """
     Crea una sesión final/de cierre del tratamiento.

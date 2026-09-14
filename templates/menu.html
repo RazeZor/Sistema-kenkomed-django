@@ -143,14 +143,23 @@
                     <span class="hidden xl:block ml-3 text-sm font-medium">Inicio</span>
                 </a>
                 
+                {% if not es_secretaria %}
                 <a href="{% url 'calendario_personal' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-calendar'></i>
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium">Mi Agenda</span>
                 </a>
+                {% endif %}
 
-                {% if puede_ver_agenda_centro %}
+                {% if puede_gestionar_agenda_centro %}
+                <a href="{% url 'calendario_clinica' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/clinica' in request.path %}nav-link-active{% endif %}">
+                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
+                        <i class='text-lg bx bx-buildings'></i>
+                    </div>
+                    <span class="hidden xl:block ml-3 text-sm font-medium">Agenda Centro</span>
+                </a>
+                {% elif puede_ver_agenda_centro %}
                 <a href="{% url 'calendario_clinica' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/clinica' in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-buildings'></i>
@@ -166,6 +175,7 @@
                     <span class="hidden xl:block ml-3 text-sm font-medium">Pacientes</span>
                 </a>
 
+                {% if not es_secretaria %}
                 <a href="{% url 'historialClinico' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'historialClinico' in request.path %}nav-link-active{% endif %}">
                     <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'historialClinico' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
                         <i class='text-lg bx bx-file'></i>
@@ -179,6 +189,7 @@
                     </div>
                     <span class="hidden xl:block ml-3 text-sm font-medium">Mi Centro</span>
                 </a>
+                {% endif %}
 
                 {% if puede_ver_estadisticas_centro or estadisticas_globales %}
                 <a href="{% url 'estadisticas' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}nav-link-active{% endif %}">

@@ -19,10 +19,12 @@ class ClinicaMiddleware:
                 request.session['clinica_id'] = membresia.clinica.id
                 request.session['clinica_nombre'] = membresia.clinica.nombre
                 request.session['es_admin_clinica'] = membresia.rol == 'admin'
+                request.session['es_secretaria'] = membresia.rol == 'secretaria'
             else:
                 request.session.pop('clinica_id', None)
                 request.session.pop('clinica_nombre', None)
                 request.session['es_admin_clinica'] = False
+                request.session['es_secretaria'] = False
 
         response = self.get_response(request)
         return response

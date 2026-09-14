@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect
 from Login.models import Paciente, formularioClinico
 from django.contrib import messages
 import json
-from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from ProyectoMainAPP.decorators.login_requerido import requiere_clinico, requiere_no_secretaria
 from clinicas.utils import obtener_paciente_por_rut
 from clinicas.branding import url_logo_clinica
 from django.utils.html import escape
@@ -35,6 +35,7 @@ def _parse_json_list(value):
     return [str(value)]
 
 @requiere_clinico
+@requiere_no_secretaria
 def RenderInforme(request):
     rut = request.GET.get('rut', '') or request.POST.get('rut', '')
     paciente = obtener_paciente_por_rut(request, rut)
@@ -143,6 +144,7 @@ def RenderInforme(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def RenderFichaClinica(request):
     """
     Ficha Clínica Profesional completa.

@@ -9,6 +9,7 @@ from Login.models import Paciente, Clinico, RecetaMedica
 from Login.auditoria import registrar_auditoria
 from ProyectoMainAPP.email_service import notificar_receta_creada, notificar_receta_actualizada
 from clinicas.utils import obtener_paciente_por_rut, paciente_pertenece_a_sesion
+from ProyectoMainAPP.decorators.login_requerido import requiere_no_secretaria
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +326,7 @@ class RequestProcessor:
 
 
 # ========== VISTA PRINCIPAL ==========
+@requiere_no_secretaria
 def renderizar_html_receta(request):
     """Vista principal para gestionar recetas médicas"""
     try:

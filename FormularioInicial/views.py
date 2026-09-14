@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponse, Http404
 from django.urls import reverse
 from ProyectoMainAPP.email_service import notificar_nuevo_paciente, notificar_formulario_completado
+from ProyectoMainAPP.decorators.login_requerido import requiere_no_secretaria
 from clinicas.utils import (
     filtrar_pacientes_por_sesion,
     filtrar_tokens_formulario_por_sesion,
@@ -260,6 +261,7 @@ def _contexto_anamnesis_paciente(request, paciente):
 
 # --------------------------
 # Vista principal
+@requiere_no_secretaria
 def FormularioInicial(request):
 
     try:
@@ -427,6 +429,7 @@ def FormularioInicial(request):
 # SISTEMA DE FORMULARIOS REMOTOS
 # ================================
 
+@requiere_no_secretaria
 def generar_token_formulario(request):
     """Gestor de formularios remotos. Genera tokens vinculados a pacientes pre-registrados."""
     try:

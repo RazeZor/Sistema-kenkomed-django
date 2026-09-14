@@ -32,6 +32,7 @@ class MembresiaClinica(models.Model):
     ROL_CHOICES = [
         ('admin', 'Administrador de Clínica'),
         ('miembro', 'Miembro'),
+        ('secretaria', 'Secretaria / Recepción'),
     ]
     
     clinico = models.ForeignKey('Login.Clinico', on_delete=models.CASCADE, related_name='membresias')

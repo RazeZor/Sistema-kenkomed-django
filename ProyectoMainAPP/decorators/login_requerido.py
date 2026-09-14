@@ -49,3 +49,18 @@ def requiere_admin_auditoria(view_func):
             return redirect('panel')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def requiere_no_secretaria(view_func):
+    """
+    Bloquea el acceso a secretarias / recepción.
+    Úsalo en vistas con contenido clínico sensible:
+    historial, cuestionarios, sesiones, notas, recetas, informes.
+    """
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.session.get('es_secretaria'):
+            messages.error(request, 'No tienes permisos para acceder a esta sección clínica.')
+            return redirect('calendario_clinica')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view

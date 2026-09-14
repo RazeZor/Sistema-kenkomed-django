@@ -11,6 +11,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from datetime import datetime
 from clinicas.utils import obtener_paciente_por_rut
 from Login.auditoria import auditar_cuestionario_consulta, auditar_cuestionario_edicion
+from ProyectoMainAPP.decorators.login_requerido import requiere_no_secretaria
 from TiposDeFormularios.escala_hooks import (
     redirect_cuestionario,
     sincronizar_numero_sesion_kine,
@@ -115,6 +116,7 @@ def _asegurar_ciclo_editable_o_error(request, ciclo):
         return False
 
 
+@requiere_no_secretaria
 def RenderizarGROC(request):
     """Vista refactorizada para GROC"""
     handler = BaseEvaluacionHandler(request)
@@ -202,6 +204,7 @@ def _procesar_groc_post(request, paciente, ciclo, evaluacion_existente):
     return HttpResponseRedirect(request.get_full_path())
 
 
+@requiere_no_secretaria
 def gestionar_psfs(request):
     """Vista para manejar el cuestionario PSFS con actividades manuales"""
     handler = BaseEvaluacionHandler(request)
@@ -377,6 +380,7 @@ def _actualizar_nota_psfs(ciclo, nota):
         return False
 
 
+@requiere_no_secretaria
 def RenderizarEQ_5D(request):
     """Vista refactorizada para EQ-5D"""
     handler = BaseEvaluacionHandler(request)
@@ -542,6 +546,7 @@ def _obtener_puntajes_eq5d(ciclo):
     return puntajes_por_sesion
 
 
+@requiere_no_secretaria
 def renderizar_CuestionarioBarthel(request):
     """Vista refactorizada para Cuestionario Barthel"""
     handler = BaseEvaluacionHandler(request)
@@ -749,6 +754,7 @@ def _obtener_sesiones_barthel(cuestionario):
     return sesiones
 
 
+@requiere_no_secretaria
 def renderizar_cuestionarioScrening(request):
     """Vista corregida para Cuestionario Screening"""
     handler = BaseEvaluacionHandler(request)
@@ -943,6 +949,7 @@ def generar_alerta(puntaje):
         'mensaje': mensaje
     }
 
+@requiere_no_secretaria
 def renderizar_CuestionarioENA(request):
     handler = BaseEvaluacionHandler(request)
 
@@ -1043,6 +1050,7 @@ def renderizar_CuestionarioENA(request):
 
 # ==================== CUESTIONARIO OSWESTRY (ODI) ====================
 
+@requiere_no_secretaria
 def renderizar_cuestionario_oswestry(request):
     """Vista para manejar el cuestionario Oswestry (ODI)"""
     from .models import EvaluacionOswestry
@@ -1173,6 +1181,7 @@ def _procesar_oswestry_post(request, paciente, ciclo, clinico):
 
 # ==================== ESCALA FUNCIONAL EXTREMIDAD INFERIOR (LEFS) ====================
 
+@requiere_no_secretaria
 def renderizar_cuestionario_lefs(request):
     """Vista para manejar la Escala Funcional de la Extremidad Inferior (LEFS)"""
     from .models import EvaluacionLEFS
@@ -1334,6 +1343,7 @@ def _procesar_lefs_post(request, paciente, ciclo, clinico):
 
 # ==================== QUICKDASH ====================
 
+@requiere_no_secretaria
 def renderizar_cuestionario_quickdash(request):
     from .models import EvaluacionQuickDASH
     from .quickdash_data import ESCALAS_RESPUESTA, QUICKDASH_INSTRUCCIONES, QUICKDASH_PREGUNTAS
@@ -1427,6 +1437,7 @@ def _procesar_quickdash_post(request, paciente, ciclo, clinico):
 
 # ==================== WOMAC ====================
 
+@requiere_no_secretaria
 def renderizar_cuestionario_womac(request):
     from .models import EvaluacionWOMAC
     from .womac_data import WOMAC_ETIQUETAS, WOMAC_INSTRUCCIONES, WOMAC_SECCIONES
@@ -1523,6 +1534,7 @@ def _procesar_womac_post(request, paciente, ciclo, clinico):
 
 # ==================== TIMED UP AND GO TEST (TUG) ====================
 
+@requiere_no_secretaria
 def renderizar_cuestionario_tug(request):
     """Vista para el Timed Up and Go Test (TUG)."""
     from .models import EvaluacionTUG
@@ -1795,6 +1807,7 @@ BERG_ITEMS = [
 ]
 
 
+@requiere_no_secretaria
 def renderizar_cuestionario_berg(request):
     """Vista para la Escala de Equilibrio de Berg."""
     from .models import EvaluacionBerg
@@ -2010,6 +2023,7 @@ TINETTI_MARCHA_ITEMS = [
 ]
 
 
+@requiere_no_secretaria
 def renderizar_cuestionario_tinetti(request):
     """Vista para la Escala de Tinetti (Equilibrio y Marcha)."""
     from .models import EvaluacionTinetti

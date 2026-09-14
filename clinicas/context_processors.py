@@ -24,11 +24,15 @@ def clinica_sesion(request):
           MembresiaClinica.objects.filter(clinica_id=clinica_id, activo=True).count() > 1
         )
 
+  es_secretaria = bool(request.session.get('es_secretaria', False))
+
   # Vista global solo cuando es admin KenkoMed sin centro activo en sesión
   estadisticas_globales = es_admin_sistema and not tiene_centro
   puede_ver_estadisticas_centro = tiene_centro and es_admin_clinica
   puede_ver_auditoria = tiene_centro and es_admin_clinica
   puede_ver_agenda_centro = tiene_centro and (es_admin_clinica or es_centro_compartido)
+  # Secretaria puede gestionar la agenda del centro (crear/mover/cancelar)
+  puede_gestionar_agenda_centro = tiene_centro and (es_admin_clinica or es_secretaria or es_centro_compartido)
 
   return {
     'clinica_id': clinica_id,
@@ -37,12 +41,14 @@ def clinica_sesion(request):
     'tiene_logo_clinica': bool(clinica_logo_url),
     'es_admin_sistema': es_admin_sistema,
     'es_admin_clinica': es_admin_clinica,
+    'es_secretaria': es_secretaria,
     'tiene_centro': tiene_centro,
     'es_centro_compartido': es_centro_compartido,
     'estadisticas_globales': estadisticas_globales,
     'estadisticas_centro': puede_ver_estadisticas_centro,
     'puede_ver_estadisticas_centro': puede_ver_estadisticas_centro,
     'puede_ver_agenda_centro': puede_ver_agenda_centro,
+    'puede_gestionar_agenda_centro': puede_gestionar_agenda_centro,
     'puede_ver_auditoria': puede_ver_auditoria,
     # Compatibilidad con templates existentes
     'es_admin': es_admin_sistema,

@@ -46,8 +46,11 @@ COLORES_TIPO_ATENCION = {
 
 
 def puede_editar_calendario_clinica(request):
-    """Solo admin del centro activo (no confundir con admin KenkoMed)."""
-    return request.session.get('es_admin_clinica', False)
+    """Admin del centro O secretaria / recepción pueden gestionar la agenda."""
+    return (
+        request.session.get('es_admin_clinica', False)
+        or request.session.get('es_secretaria', False)
+    )
 
 
 def _contexto_calendario(request, modo):
@@ -201,6 +204,7 @@ def calendario_personal_view(request):
 @requiere_clinico
 def calendario_clinica_view(request):
     es_admin = request.session.get('es_admin_clinica', False)
+    es_secretaria = request.session.get('es_secretaria', False)
     es_compartido = False
     clinica_id = request.session.get('clinica_id')
     if clinica_id:
@@ -208,7 +212,7 @@ def calendario_clinica_view(request):
         clinica = Clinica.objects.filter(id=clinica_id, activa=True).only('tipo').first()
         if clinica and clinica.tipo == 'clinica':
             es_compartido = MembresiaClinica.objects.filter(clinica_id=clinica_id, activo=True).count() > 1
-    if not es_admin and not es_compartido:
+    if not es_admin and not es_secretaria and not es_compartido:
         messages.error(request, 'No tienes acceso a la agenda del centro.')
         return redirect('calendario_personal')
     registrar_auditoria(

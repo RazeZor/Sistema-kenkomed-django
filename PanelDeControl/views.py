@@ -21,7 +21,7 @@ from ciclos_clinicos.clinical_data import formulario_del_ciclo, tiene_anamnesis_
 from django.http import HttpResponse, JsonResponse
 from datetime import datetime, timedelta, date
 import time 
-from ProyectoMainAPP.decorators.login_requerido import requiere_clinico
+from ProyectoMainAPP.decorators.login_requerido import requiere_clinico, requiere_no_secretaria
 from Login.identificacion_context import contexto_identificacion_paciente
 from clinicas.utils import filtrar_pacientes_por_sesion, obtener_clinicos_de_sesion, obtener_paciente_por_rut
 from django.utils.html import escape
@@ -95,6 +95,7 @@ def cerrar_sesion(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def HistorialClinico(request):
     if 'nombre_clinico' in request.session:
         nombre_clinico = request.session['nombre_clinico']
@@ -201,6 +202,7 @@ def HistorialClinico(request):
     else:
         return redirect('login')
 @requiere_clinico
+@requiere_no_secretaria
 def VerInformePacientes(request):
     """Redirige a la vista moderna de informe DSS."""
     rut = request.GET.get('rut', '')
@@ -734,6 +736,7 @@ def clear_session_message(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def estadisticas(request):
     """Estadísticas del centro activo o vista global KenkoMed (sin centro en sesión)."""
     from clinicas.utils import (
@@ -942,6 +945,7 @@ def estadisticas(request):
 
 
 @requiere_clinico
+@requiere_no_secretaria
 def estadisticas_paciente_view(request):
     if 'nombre_clinico' not in request.session:
         return redirect('login')
