@@ -72,12 +72,14 @@
                             <i class='bx bx-search-alt text-base'></i>
                             <span>Buscar Historial</span>
                         </a>
+                        {% if features.qr_anamnesis %}
                         <a href="{% url 'generar_qr' %}"
                            class="btn btn-on-dark btn-touch">
                             <i class='bx bx-send text-base'></i>
                             <span class="hidden xs:inline">Formularios Remotos</span>
                             <span class="xs:hidden">Remoto</span>
                         </a>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -138,6 +140,7 @@
                 </div>
             </div>
 
+            {% if features.recetas_digitales %}
             <!-- Recetas Médicas -->
             <a href="{% url 'receta' %}"
                class="group flex items-start gap-4 p-4 sm:p-5 bg-white border border-gray-100 rounded-2xl shadow-sm card-hover xs:col-span-2 sm:col-span-1">
@@ -152,6 +155,7 @@
                     </span>
                 </div>
             </a>
+            {% endif %}
         </div>
     </section>
 

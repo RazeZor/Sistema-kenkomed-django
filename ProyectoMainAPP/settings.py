@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'RecetasMedicas',
     'SesionesKinesicas',
     'ciclos_clinicos',
+    'planes.apps.PlanesConfig',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +111,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'clinicas.context_processors.clinica_sesion',
+                'planes.context_processors.plan_features',
             ],
         },
     },

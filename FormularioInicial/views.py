@@ -8,6 +8,7 @@ from django.http import HttpResponse, Http404
 from django.urls import reverse
 from ProyectoMainAPP.email_service import notificar_nuevo_paciente, notificar_formulario_completado
 from ProyectoMainAPP.decorators.login_requerido import requiere_no_secretaria
+from planes.decorators import requiere_feature
 from clinicas.utils import (
     filtrar_pacientes_por_sesion,
     filtrar_tokens_formulario_por_sesion,
@@ -430,6 +431,7 @@ def FormularioInicial(request):
 # ================================
 
 @requiere_no_secretaria
+@requiere_feature('permite_qr_anamnesis')
 def generar_token_formulario(request):
     """Gestor de formularios remotos. Genera tokens vinculados a pacientes pre-registrados."""
     try:
@@ -702,6 +704,7 @@ def aviso_privacidad_paciente(request):
     return render(request, 'privacidad_paciente.html')
 
 
+@requiere_feature('permite_qr_anamnesis')
 def generar_token_desde_historial(request):
     """Genera token rápido desde el historial clínico del paciente (AJAX-friendly)."""
     if request.method != 'POST':

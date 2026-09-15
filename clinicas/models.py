@@ -44,5 +44,24 @@ class MembresiaClinica(models.Model):
     class Meta:
         unique_together = ('clinico', 'clinica')
 
+    def clean(self):
+        super().clean()
+        if self.activo:
+            from planes.services import verificar_limite_kinesiologos
+            from django.core.exceptions import ValidationError
+            # Validar solo si es nuevo o si se está activando
+            es_nuevo = self.pk is None
+            se_activa = False
+            if not es_nuevo:
+                viejo = MembresiaClinica.objects.get(pk=self.pk)
+                se_activa = not viejo.activo and self.activo
+                
+            if (es_nuevo or se_activa) and not verificar_limite_kinesiologos(self.clinica):
+                raise ValidationError("Límite de kinesiólogos excedido para el plan actual de la clínica.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.clinico.nombre} {self.clinico.apellido} en {self.clinica.nombre} ({self.rol})"

@@ -22,11 +22,13 @@
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 <a href="{% url 'panel' %}" class="text-sm text-indigo-600 hover:text-indigo-800 px-3 py-2">← Panel</a>
+                {% if features.auditoria_pdf %}
                 <a href="{% url 'exportar_auditoria_pdf' %}?dias={{ dias }}"
                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm">
                     <i class='bx bxs-file-pdf text-lg'></i>
                     Exportar PDF
                 </a>
+                {% endif %}
             </div>
         </div>
 
