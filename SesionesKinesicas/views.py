@@ -54,6 +54,20 @@ def _ctx_tratamiento(request, paciente, ciclo, sesiones_qs=None):
     return contexto_tratamiento_ux(request, paciente, ciclo, sesiones_qs)
 
 
+def _dictado_ctx(request):
+    """Devuelve si el clínico ya aceptó los términos de dictado por voz.
+    Lee primero de la sesión HTTP (cacheado) y, si no está, consulta la BD."""
+    if request.session.get('acepta_terminos_dictado'):
+        return {'acepta_terminos_dictado': True}
+    rut_clinico = request.session.get('rut_clinico')
+    if not rut_clinico:
+        return {'acepta_terminos_dictado': False}
+    acepta = Clinico.objects.filter(rut=rut_clinico, acepta_terminos_dictado=True).exists()
+    if acepta:
+        request.session['acepta_terminos_dictado'] = True
+    return {'acepta_terminos_dictado': acepta}
+
+
 @requiere_clinico
 @requiere_no_secretaria
 def listar_sesiones_paciente(request):
@@ -203,6 +217,7 @@ def crear_primera_sesion(request):
         'rut': rut_paciente,
         **contexto_ciclo_para_template(ciclo, paciente),
         **_ctx_tratamiento(request, paciente, ciclo, sesiones),
+        **_dictado_ctx(request),
     }
 
     return render(request, 'SesionesKinesicas/crear_primera_sesion.html', context)
@@ -301,6 +316,7 @@ def crear_sesion_seguimiento(request):
         'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo, proximo_numero),
         **contexto_ciclo_para_template(ciclo, paciente),
         **_ctx_tratamiento(request, paciente, ciclo, sesiones_ciclo),
+        **_dictado_ctx(request),
     }
 
     return render(request, 'SesionesKinesicas/crear_sesion_seguimiento.html', context)
@@ -569,6 +585,7 @@ def crear_sesion_final(request):
         'paquetes_escalas': paquetes_escalas_para_ciclo(paciente.rut, ciclo, proximo_numero),
         **contexto_ciclo_para_template(ciclo, paciente),
         **_ctx_tratamiento(request, paciente, ciclo, sesiones_ciclo),
+        **_dictado_ctx(request),
     }
 
     return render(request, 'SesionesKinesicas/crear_sesion_final.html', context)
@@ -618,3 +635,27 @@ def api_sesiones_paciente(request):
         return JsonResponse({'error': 'Paciente no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@require_http_methods(['POST'])
+def aceptar_terminos_dictado(request):
+    """
+    Endpoint AJAX: guarda que el clínico aceptó los términos de dictado por voz.
+    Actualiza el campo acepta_terminos_dictado en el modelo Clinico.
+    No requiere decorador @requiere_clinico para simplificar la llamada AJAX,
+    pero verifica la sesión manualmente.
+    """
+    rut_clinico = request.session.get('rut_clinico')
+    if not rut_clinico:
+        return JsonResponse({'error': 'Sesión no encontrada'}, status=401)
+
+    try:
+        clinico = Clinico.objects.get(rut=rut_clinico)
+        clinico.acepta_terminos_dictado = True
+        clinico.save(update_fields=['acepta_terminos_dictado'])
+        # Guardar también en sesión para no consultar la BD en cada carga
+        request.session['acepta_terminos_dictado'] = True
+        return JsonResponse({'ok': True})
+    except Clinico.DoesNotExist:
+        return JsonResponse({'error': 'Clínico no encontrado'}, status=404)
+

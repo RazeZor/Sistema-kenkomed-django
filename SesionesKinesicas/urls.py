@@ -24,4 +24,7 @@ urlpatterns = [
     
     # API para combobox
     path('api/sesiones/', views.api_sesiones_paciente, name='api_sesiones'),
+
+    # Consentimiento dictado por voz (AJAX)
+    path('api/aceptar-dictado/', views.aceptar_terminos_dictado, name='aceptar_dictado'),
 ]

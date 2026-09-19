@@ -15,4 +15,7 @@ urlpatterns = [
     path('api/reservas/crear/', views_reservas.api_crear_reserva, name='api_crear_reserva'),
     path('api/reservas/mover/<int:reserva_id>/', views_reservas.api_mover_reserva, name='api_mover_reserva'),
     path('api/reservas/eliminar/<int:reserva_id>/', views_reservas.api_eliminar_reserva, name='api_eliminar_reserva'),
+    
+    # Novedades / Release Notes
+    path('api/novedades/marcar-leidas/', views.marcar_novedades_leidas, name='marcar_novedades_leidas'),
 ]

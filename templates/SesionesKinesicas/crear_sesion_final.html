@@ -1,100 +1,136 @@
-{% extends 'base_kenkomed.html' %}
-
-{% block title %}Cierre de tratamiento — {{ paciente.nombre }}{% endblock %}
-{% block header_title %}Cierre de tratamiento{% endblock %}
-
-{% block content %}
-<div class="max-w-3xl mx-auto space-y-6">
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-semibold text-gray-800">{{ paciente.nombre }} {{ paciente.apellido }}</h2>
-        <p class="text-sm text-gray-500">{{ paciente.identificacion_display }} · Sesión final #{{ proximo_numero }}</p>
-    </div>
-
-    {% include 'SesionesKinesicas/partials/barra_tratamiento.html' with mostrar_ctas=False %}
-
-    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700">
-        Al guardar se registrará la <strong>sesión de alta</strong> y este tratamiento quedará cerrado (solo lectura). Podrá iniciar un nuevo tratamiento después desde el historial clínico.
-    </div>
-
-    {% if messages %}
-    {% for message in messages %}
-    <div class="p-4 rounded-lg text-sm border bg-gray-50 border-gray-200 text-gray-700">{{ message }}</div>
-    {% endfor %}
-    {% endif %}
-
-    {% include 'SesionesKinesicas/partials/escalas_prominentes.html' with numero_sesion=proximo_numero prefix='alta' %}
-
-    <form method="POST" class="bg-white rounded-xl shadow-sm border border-gray-100"
-          data-confirm-submit="¿Confirma el cierre del tratamiento?&#10;&#10;Se guardará la sesión de alta y este episodio quedará en solo lectura.">
-        {% csrf_token %}
-        <input type="hidden" name="rut" value="{{ rut }}">
-        {% if ciclo_id %}<input type="hidden" name="ciclo_id" value="{{ ciclo_id }}">{% endif %}
-
-        <div class="border-b border-gray-100 px-6 py-4">
-            <h3 class="text-base font-semibold text-gray-800">Alta kinésica</h3>
-        </div>
-
-        <div class="p-6 space-y-4">
-            <div>
-                <label for="diagnostico_final" class="block text-sm font-medium text-gray-700 mb-1">Diagnóstico kinésico final <span class="text-red-500">*</span></label>
-                <textarea id="diagnostico_final" name="diagnostico_final" rows="4" required
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
-            </div>
-            <div>
-                <label for="estado_al_alta" class="block text-sm font-medium text-gray-700 mb-1">Estado al alta <span class="text-red-500">*</span></label>
-                <select id="estado_al_alta" name="estado_al_alta" required
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
-                    <option value="">Seleccione…</option>
-                    {% for value, label in estado_choices %}
-                    <option value="{{ value }}">{{ label }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <label for="resumen_tratamiento" class="block text-sm font-medium text-gray-700 mb-1">Resumen del tratamiento</label>
-                <textarea id="resumen_tratamiento" name="resumen_tratamiento" rows="3"
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
-            </div>
-            <div>
-                <label for="logros_obtenidos" class="block text-sm font-medium text-gray-700 mb-1">Logros obtenidos</label>
-                <textarea id="logros_obtenidos" name="logros_obtenidos" rows="2"
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
-            </div>
-            <div>
-                <label for="recomendaciones_alta" class="block text-sm font-medium text-gray-700 mb-1">Recomendaciones al alta</label>
-                <textarea id="recomendaciones_alta" name="recomendaciones_alta" rows="2"
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
-            </div>
-            <div>
-                <label for="plan_seguimiento" class="block text-sm font-medium text-gray-700 mb-1">Plan de seguimiento</label>
-                <textarea id="plan_seguimiento" name="plan_seguimiento" rows="2"
-                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
-                <div>
-                    <label for="notas_clinicas" class="block text-sm font-medium text-gray-700 mb-1">Notas clínicas</label>
-                    <textarea id="notas_clinicas" name="notas_clinicas" rows="3"
-                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 resize-none"></textarea>
-                </div>
-                <div>
-                    <label for="evolucion" class="block text-sm font-medium text-gray-700 mb-1">Evolución final</label>
-                    <textarea id="evolucion" name="evolucion" rows="3"
-                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 resize-none"></textarea>
-                </div>
-            </div>
-        </div>
-
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class='bx bx-check'></i> Guardar alta y cerrar tratamiento
-            </button>
-            <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline">Cancelar</a>
-        </div>
-    </form>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-{% include 'SesionesKinesicas/partials/confirm_links.js.html' %}
-{% endblock %}
+{% extends 'base_kenkomed.html' %}
+
+{% block title %}Cierre de tratamiento — {{ paciente.nombre }}{% endblock %}
+{% block header_title %}Cierre de tratamiento{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800">{{ paciente.nombre }} {{ paciente.apellido }}</h2>
+        <p class="text-sm text-gray-500">{{ paciente.identificacion_display }} · Sesión final #{{ proximo_numero }}</p>
+    </div>
+
+    {% include 'SesionesKinesicas/partials/barra_tratamiento.html' with mostrar_ctas=False %}
+
+    <div class="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-sm text-gray-700">
+        Al guardar se registrará la <strong>sesión de alta</strong> y este tratamiento quedará cerrado (solo lectura). Podrá iniciar un nuevo tratamiento después desde el historial clínico.
+    </div>
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm border bg-gray-50 border-gray-200 text-gray-700">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
+
+    {% include 'SesionesKinesicas/partials/escalas_prominentes.html' with numero_sesion=proximo_numero prefix='alta' %}
+
+    <form method="POST" class="bg-white rounded-xl shadow-sm border border-gray-100"
+          data-confirm-submit="¿Confirma el cierre del tratamiento?&#10;&#10;Se guardará la sesión de alta y este episodio quedará en solo lectura.">
+        {% csrf_token %}
+        <input type="hidden" name="rut" value="{{ rut }}">
+        {% if ciclo_id %}<input type="hidden" name="ciclo_id" value="{{ ciclo_id }}">{% endif %}
+
+        <div class="border-b border-gray-100 px-6 py-4">
+            <h3 class="text-base font-semibold text-gray-800">Alta kinésica</h3>
+        </div>
+
+        <div class="p-6 space-y-4">
+            <div>
+                <div class="label-with-mic">
+                    <span>Diagnóstico kinésico final <span class="text-red-500">*</span></span>
+                    <button type="button" class="btn-mic" data-dictado-btn="diagnostico_final" onclick="iniciarDictado('diagnostico_final')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="diagnostico_final" name="diagnostico_final" rows="4" required
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
+            </div>
+            <div>
+                <label for="estado_al_alta" class="block text-sm font-medium text-gray-700 mb-1">Estado al alta <span class="text-red-500">*</span></label>
+                <select id="estado_al_alta" name="estado_al_alta" required
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue">
+                    <option value="">Seleccione…</option>
+                    {% for value, label in estado_choices %}
+                    <option value="{{ value }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <div class="label-with-mic">
+                    <span>Resumen del tratamiento</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="resumen_tratamiento" onclick="iniciarDictado('resumen_tratamiento')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="resumen_tratamiento" name="resumen_tratamiento" rows="3"
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
+            </div>
+            <div>
+                <div class="label-with-mic">
+                    <span>Logros obtenidos</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="logros_obtenidos" onclick="iniciarDictado('logros_obtenidos')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="logros_obtenidos" name="logros_obtenidos" rows="2"
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
+            </div>
+            <div>
+                <div class="label-with-mic">
+                    <span>Recomendaciones al alta</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="recomendaciones_alta" onclick="iniciarDictado('recomendaciones_alta')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="recomendaciones_alta" name="recomendaciones_alta" rows="2"
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
+            </div>
+            <div>
+                <div class="label-with-mic">
+                    <span>Plan de seguimiento</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="plan_seguimiento" onclick="iniciarDictado('plan_seguimiento')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="plan_seguimiento" name="plan_seguimiento" rows="2"
+                    class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:ring-medical-blue focus:border-medical-blue resize-none"></textarea>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-gray-100">
+                <div>
+                    <div class="label-with-mic">
+                        <span>Notas clínicas</span>
+                        <button type="button" class="btn-mic" data-dictado-btn="notas_clinicas" onclick="iniciarDictado('notas_clinicas')" title="Activar dictado por voz">
+                            <i class='bx bx-microphone'></i> Dictar
+                        </button>
+                    </div>
+                    <textarea id="notas_clinicas" name="notas_clinicas" rows="3"
+                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 resize-none"></textarea>
+                </div>
+                <div>
+                    <div class="label-with-mic">
+                        <span>Evolución final</span>
+                        <button type="button" class="btn-mic" data-dictado-btn="evolucion" onclick="iniciarDictado('evolucion')" title="Activar dictado por voz">
+                            <i class='bx bx-microphone'></i> Dictar
+                        </button>
+                    </div>
+                    <textarea id="evolucion" name="evolucion" rows="3"
+                        class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-check'></i> Guardar alta y cerrar tratamiento
+            </button>
+            <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'SesionesKinesicas/partials/confirm_links.js.html' %}
+{% include 'SesionesKinesicas/partials/dictado_voz.html' %}
+{% endblock %}

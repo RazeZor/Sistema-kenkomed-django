@@ -437,10 +437,82 @@
                         {% endif %}
                     </div>
                     {% block header_actions %}
-                    <button class="header-btn relative text-gray-500 hover:text-medical-blue transition-colors" aria-label="Notificaciones">
-                        <i class='text-xl bx bx-bell'></i>
-                        <span class="absolute w-2 h-2 rounded-full top-2 right-2 bg-medical-red ring-2 ring-white"></span>
-                    </button>
+                    <div class="relative" id="novedades-dropdown-container">
+                        <button id="novedades-btn" class="header-btn relative text-gray-500 hover:text-medical-blue transition-colors focus:outline-none" aria-label="Notificaciones">
+                            <i class='text-xl bx bx-bell'></i>
+                            {% if hay_novedades %}
+                            <span class="absolute w-2 h-2 rounded-full top-2 right-2 bg-medical-red ring-2 ring-white" id="badge-novedades"></span>
+                            {% endif %}
+                        </button>
+                        
+                        <!-- Dropdown de Novedades -->
+                        <div id="novedades-dropdown" class="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden hidden transition-opacity duration-200 opacity-0">
+                            <div class="p-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                                <h3 class="text-sm font-semibold text-gray-800">Actualizaciones ({{ version_novedades_actual }})</h3>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto scrollbar-hide">
+                                {% if historial_novedades %}
+                                    {% for novedad in historial_novedades %}
+                                        <div class="p-4 {% if not forloop.last %}border-b border-gray-50{% endif %}">
+                                            <p class="text-xs text-gray-500 mb-2 font-medium">{{ novedad.fecha }}</p>
+                                            <div class="space-y-3">
+                                                {% for item in novedad.items %}
+                                                <div class="flex gap-3">
+                                                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-medical-blue/10 flex items-center justify-center">
+                                                        <i class='bx {{ item.icono }} text-medical-blue text-lg'></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="text-sm font-medium text-gray-800">{{ item.titulo }}</h4>
+                                                        <p class="text-xs text-gray-500 leading-relaxed mt-1">{{ item.descripcion }}</p>
+                                                    </div>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="p-6 text-center text-gray-500">
+                                        <i class='bx bx-bell-off text-3xl mb-2 text-gray-300'></i>
+                                        <p class="text-sm">No hay notificaciones recientes</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const btn = document.getElementById('novedades-btn');
+                            const dropdown = document.getElementById('novedades-dropdown');
+                            if (btn && dropdown) {
+                                btn.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    if (dropdown.classList.contains('hidden')) {
+                                        dropdown.classList.remove('hidden');
+                                        // Trigger un pequeño reflow para que la transición de opacidad funcione
+                                        void dropdown.offsetWidth;
+                                        dropdown.classList.remove('opacity-0');
+                                        dropdown.classList.add('opacity-100');
+                                        
+                                        // Disparar evento para que el popup (si existe) sepa que se abrió la campana
+                                        window.dispatchEvent(new Event('novedades-opened'));
+                                    } else {
+                                        dropdown.classList.remove('opacity-100');
+                                        dropdown.classList.add('opacity-0');
+                                        setTimeout(() => dropdown.classList.add('hidden'), 200);
+                                    }
+                                });
+                                
+                                document.addEventListener('click', function(e) {
+                                    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+                                        dropdown.classList.remove('opacity-100');
+                                        dropdown.classList.add('opacity-0');
+                                        setTimeout(() => dropdown.classList.add('hidden'), 200);
+                                    }
+                                });
+                            }
+                        });
+                    </script>
                     <a href="{% url 'perfilClinico' %}" class="flex items-center gap-2 px-2 sm:px-3 py-2 rounded-xl hover:bg-gray-50 transition-all" aria-label="Mi perfil">
                         <div class="flex items-center justify-center w-8 h-8 text-white rounded-full bg-medical-blue-dark flex-shrink-0">
                             <i class='bx bx-user text-sm'></i>

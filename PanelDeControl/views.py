@@ -1065,3 +1065,22 @@ def estadisticas_paciente_view(request):
 def sidebar(request):
     return render(request, 'menu.html')
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .novedades import VERSION_ACTUAL
+
+@require_POST
+@requiere_clinico
+def marcar_novedades_leidas(request):
+    """
+    Marca las novedades de la versión actual como leídas para el clínico logueado.
+    """
+    rut_clinico = request.session.get('rut_clinico')
+    if rut_clinico:
+        clinico = Clinico.objects.filter(rut=rut_clinico).first()
+        if clinico:
+            clinico.version_novedades_leida = VERSION_ACTUAL
+            clinico.save()
+            return JsonResponse({'status': 'ok', 'version': VERSION_ACTUAL})
+    return JsonResponse({'status': 'error'}, status=400)
+

@@ -112,6 +112,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'clinicas.context_processors.clinica_sesion',
                 'planes.context_processors.plan_features',
+                'PanelDeControl.context_processors.novedades_processor',
             ],
         },
     },

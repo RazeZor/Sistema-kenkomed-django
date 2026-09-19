@@ -1,69 +1,83 @@
-{% extends 'base_kenkomed.html' %}
-
-{% block title %}Nueva sesión #{{ proximo_numero }} — {{ paciente.nombre }}{% endblock %}
-{% block header_title %}Sesión de seguimiento{% endblock %}
-
-{% block content %}
-<div class="max-w-3xl mx-auto space-y-6">
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 class="text-lg font-semibold text-gray-800">{{ paciente.nombre }} {{ paciente.apellido }}</h2>
-        <p class="text-sm text-gray-500">{{ paciente.identificacion_display }} · Sesión #{{ proximo_numero }}</p>
-    </div>
-
-    {% include 'SesionesKinesicas/partials/barra_tratamiento.html' with mostrar_ctas=False %}
-
-    {% if messages %}
-    {% for message in messages %}
-    <div class="p-4 rounded-lg text-sm border flex items-center gap-2
-        {% if message.tags == 'error' %}bg-red-50 border-red-100 text-red-700
-        {% elif message.tags == 'success' %}bg-green-50 border-green-100 text-green-700
-        {% else %}bg-gray-50 border-gray-200 text-gray-700{% endif %}">
-        {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-
-    {% if ultima_sesion %}
-    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-600 flex items-center gap-3">
-        <i class='bx bx-history text-lg text-gray-400'></i>
-        <span>Última sesión: #{{ ultima_sesion.numero_sesion }} · {{ ultima_sesion.fecha_creacion|date:"d/m/Y H:i" }}</span>
-    </div>
-    {% endif %}
-
-    {% include 'SesionesKinesicas/partials/escalas_prominentes.html' with numero_sesion=proximo_numero prefix='nueva' %}
-
-    <form method="POST" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {% csrf_token %}
-        <input type="hidden" name="rut" value="{{ rut }}">
-        {% if ciclo_id %}<input type="hidden" name="ciclo_id" value="{{ ciclo_id }}">{% endif %}
-
-        <div class="border-b border-gray-100 px-6 py-4">
-            <h3 class="text-base font-semibold text-gray-800">Registro de la sesión</h3>
-            <p class="text-xs text-gray-500 mt-1">Anote evolución y técnicas aplicadas. Las escalas se registran arriba antes o después de guardar.</p>
-        </div>
-
-        <div class="p-6 space-y-5">
-            <div>
-                <label for="notas_clinicas" class="block text-sm font-medium text-gray-700 mb-1.5">Notas clínicas</label>
-                <textarea id="notas_clinicas" name="notas_clinicas" rows="4"
-                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none"
-                    placeholder="Observaciones, técnicas aplicadas, estado del paciente…"></textarea>
-            </div>
-            <div>
-                <label for="evolucion" class="block text-sm font-medium text-gray-700 mb-1.5">Evolución del paciente</label>
-                <textarea id="evolucion" name="evolucion" rows="4"
-                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none"
-                    placeholder="Cambios en dolor, movilidad, funcionalidad…"></textarea>
-            </div>
-        </div>
-
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
-            <button type="submit" class="btn btn-primary">
-                <i class='bx bx-save'></i> Guardar sesión #{{ proximo_numero }}
-            </button>
-            <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline">Cancelar</a>
-        </div>
-    </form>
-</div>
-{% endblock %}
+{% extends 'base_kenkomed.html' %}
+
+{% block title %}Nueva sesión #{{ proximo_numero }} — {{ paciente.nombre }}{% endblock %}
+{% block header_title %}Sesión de seguimiento{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6">
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-semibold text-gray-800">{{ paciente.nombre }} {{ paciente.apellido }}</h2>
+        <p class="text-sm text-gray-500">{{ paciente.identificacion_display }} · Sesión #{{ proximo_numero }}</p>
+    </div>
+
+    {% include 'SesionesKinesicas/partials/barra_tratamiento.html' with mostrar_ctas=False %}
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="p-4 rounded-lg text-sm border flex items-center gap-2
+        {% if message.tags == 'error' %}bg-red-50 border-red-100 text-red-700
+        {% elif message.tags == 'success' %}bg-green-50 border-green-100 text-green-700
+        {% else %}bg-gray-50 border-gray-200 text-gray-700{% endif %}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if ultima_sesion %}
+    <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 text-sm text-gray-600 flex items-center gap-3">
+        <i class='bx bx-history text-lg text-gray-400'></i>
+        <span>Última sesión: #{{ ultima_sesion.numero_sesion }} · {{ ultima_sesion.fecha_creacion|date:"d/m/Y H:i" }}</span>
+    </div>
+    {% endif %}
+
+    {% include 'SesionesKinesicas/partials/escalas_prominentes.html' with numero_sesion=proximo_numero prefix='nueva' %}
+
+    <form method="POST" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {% csrf_token %}
+        <input type="hidden" name="rut" value="{{ rut }}">
+        {% if ciclo_id %}<input type="hidden" name="ciclo_id" value="{{ ciclo_id }}">{% endif %}
+
+        <div class="border-b border-gray-100 px-6 py-4">
+            <h3 class="text-base font-semibold text-gray-800">Registro de la sesión</h3>
+            <p class="text-xs text-gray-500 mt-1">Anote evolución y técnicas aplicadas. Las escalas se registran arriba antes o después de guardar.</p>
+        </div>
+
+        <div class="p-6 space-y-5">
+            <div>
+                <div class="label-with-mic">
+                    <span>Notas clínicas</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="notas_clinicas" onclick="iniciarDictado('notas_clinicas')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="notas_clinicas" name="notas_clinicas" rows="4"
+                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none"
+                    placeholder="Observaciones, técnicas aplicadas, estado del paciente…"></textarea>
+            </div>
+            <div>
+                <div class="label-with-mic">
+                    <span>Evolución del paciente</span>
+                    <button type="button" class="btn-mic" data-dictado-btn="evolucion" onclick="iniciarDictado('evolucion')" title="Activar dictado por voz">
+                        <i class='bx bx-microphone'></i> Dictar
+                    </button>
+                </div>
+                <textarea id="evolucion" name="evolucion" rows="4"
+                    class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-medical-blue focus:border-medical-blue resize-none"
+                    placeholder="Cambios en dolor, movilidad, funcionalidad…"></textarea>
+            </div>
+        </div>
+
+        <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex flex-wrap gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class='bx bx-save'></i> Guardar sesión #{{ proximo_numero }}
+            </button>
+            <a href="{% url 'sesiones_kinesicas:listar' %}?rut={{ rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="btn btn-outline">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% include 'SesionesKinesicas/partials/dictado_voz.html' %}
+{% endblock %}

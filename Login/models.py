@@ -28,6 +28,21 @@ class Clinico(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de registro", null=True)
     ultima_actualizacion = models.DateTimeField(auto_now=True, verbose_name="Última actualización")
     activo = models.BooleanField(default=True, verbose_name="Cuenta activa")
+
+    # --- Dictado por voz ---
+    acepta_terminos_dictado = models.BooleanField(
+        default=False,
+        verbose_name="Aceptó términos de dictado por voz",
+        help_text="El profesional aceptó los términos de uso y privacidad del dictado por voz."
+    )
+    
+    # --- Centro de Novedades ---
+    version_novedades_leida = models.CharField(
+        max_length=20,
+        default='',
+        blank=True,
+        verbose_name="Última versión de novedades leída"
+    )
     
     class Meta:
         verbose_name = "Clínico"

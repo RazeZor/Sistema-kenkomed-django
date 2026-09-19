@@ -384,4 +384,111 @@
     </section>
 
 </div>
+
+<!-- Modal de Novedades (Pop-up automático) -->
+{% if hay_novedades and novedades_recientes %}
+<div id="modal-novedades" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+    <div id="modal-novedades-content" class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col max-h-[85vh] transition-all duration-300 transform scale-95 translate-y-4 opacity-0">
+        
+        <!-- Header Ilustración -->
+        <div class="bg-gradient-to-r from-medical-blue to-blue-500 px-6 py-8 text-center relative overflow-hidden">
+            <div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
+            <div class="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm ring-4 ring-white/10">
+                <i class='bx bx-rocket text-3xl text-white'></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-1">{{ novedades_recientes.titulo }}</h2>
+            <p class="text-blue-100 text-sm font-medium">Actualización {{ novedades_recientes.version }} - {{ novedades_recientes.fecha }}</p>
+        </div>
+
+        <!-- Body -->
+        <div class="p-6 overflow-y-auto scrollbar-hide flex-1 bg-gray-50/50">
+            <div class="space-y-6">
+                {% for item in novedades_recientes.items %}
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-12 h-12 bg-white border border-gray-100 rounded-xl shadow-sm flex items-center justify-center">
+                        <i class='bx {{ item.icono }} text-medical-blue text-2xl'></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-semibold text-gray-800 mb-1">{{ item.titulo }}</h3>
+                        <p class="text-sm text-gray-500 leading-relaxed">{{ item.descripcion }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-5 border-t border-gray-100 bg-white flex justify-end gap-3">
+            <button onclick="cerrarNovedades()" class="px-6 py-2.5 bg-medical-blue hover:bg-medical-blue-dark text-white text-sm font-medium rounded-xl transition-colors w-full sm:w-auto shadow-sm shadow-blue-500/20">
+                ¡Entendido, gracias!
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar el modal con animación al cargar
+        setTimeout(() => {
+            const modal = document.getElementById('modal-novedades');
+            const content = document.getElementById('modal-novedades-content');
+            if(modal && content) {
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+                content.classList.remove('opacity-0', 'scale-95', 'translate-y-4');
+                content.classList.add('opacity-100', 'scale-100', 'translate-y-0');
+            }
+        }, 100);
+
+        // Click fuera del modal para cerrar
+        const modal = document.getElementById('modal-novedades');
+        const content = document.getElementById('modal-novedades-content');
+        if (modal && content) {
+            modal.addEventListener('click', function(e) {
+                if (!content.contains(e.target)) {
+                    cerrarNovedades();
+                }
+            });
+        }
+    });
+
+    function cerrarNovedades() {
+        const modal = document.getElementById('modal-novedades');
+        const content = document.getElementById('modal-novedades-content');
+        
+        if(modal && content) {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            content.classList.remove('opacity-100', 'scale-100', 'translate-y-0');
+            content.classList.add('opacity-0', 'scale-95', 'translate-y-4');
+            
+            setTimeout(() => {
+                modal.style.display = 'none';
+            }, 300);
+        }
+        
+        // Esconder bolita de la campanita inmediatamente para UX fluida
+        const badge = document.getElementById('badge-novedades');
+        if(badge) badge.style.display = 'none';
+
+        // Llamar AJAX para marcar como leídas
+        const csrftoken = (document.cookie.match(/csrftoken=([^;]+)/) || [])[1] || '';
+        fetch('{% url "marcar_novedades_leidas" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            }
+        }).catch(err => console.error("Error al marcar novedades:", err));
+    }
+
+    // Escuchar el click en la campanita para marcar también como leído si se abre desde ahí
+    window.addEventListener('novedades-opened', () => {
+        const badge = document.getElementById('badge-novedades');
+        if (badge && badge.style.display !== 'none') {
+            cerrarNovedades(); // Reutilizamos la función porque hace exactamente lo necesario
+        }
+    });
+</script>
+{% endif %}
 {% endblock %}
