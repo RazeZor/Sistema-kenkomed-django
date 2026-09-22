@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     'SesionesKinesicas',
     'ciclos_clinicos',
     'planes.apps.PlanesConfig',
+    'pagos.apps.PagosConfig',
 ]
 
 MIDDLEWARE = [
@@ -113,6 +114,7 @@ TEMPLATES = [
                 'clinicas.context_processors.clinica_sesion',
                 'planes.context_processors.plan_features',
                 'PanelDeControl.context_processors.novedades_processor',
+                'pagos.context_processors.resumen_pagos_paciente',
             ],
         },
     },

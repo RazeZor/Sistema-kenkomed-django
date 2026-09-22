@@ -542,6 +542,12 @@ class AuditoriaAcceso(models.Model):
         ('inicio_ciclo_clinico', 'Inició nuevo ciclo clínico'),
         ('cierre_ciclo_clinico', 'Cerró ciclo clínico'),
         ('consulta_ciclo_historico', 'Consultó historial de ciclos clínicos'),
+        # Módulo de Pagos & Packs
+        ('registro_pago', 'Registró pago de paciente'),
+        ('consulta_pagos', 'Consultó historial de pagos'),
+        ('creacion_pack', 'Creó pack de atenciones'),
+        ('consumo_pack', 'Registró sesión consumida del pack'),
+        ('anulacion_pago', 'Anuló un registro de pago'),
     ]
 
     paciente = models.ForeignKey(

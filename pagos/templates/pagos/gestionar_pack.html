@@ -1,0 +1,157 @@
+{% extends "base_kenkomed.html" %}
+{% load static %}
+
+{% block title %}Crear Pack de Atenciones — KenkoMed{% endblock %}
+
+{% block extra_head %}
+<style>
+  .gp-container { max-width:560px; margin:0 auto; }
+  .gp-header { margin-bottom:24px; }
+  .gp-header h1 { font-size:20px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; margin:0 0 4px; }
+  .gp-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px; margin-bottom:16px; }
+  .gp-card h2 { font-size:13px; font-weight:700; color:#0f172a; margin:0 0 16px 0; display:flex; align-items:center; gap:6px; }
+  .gp-card h2 i { color:#2563eb; }
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px;
+    font-size:13px; color:#0f172a; background:#fff;
+    transition:border-color .15s, box-shadow .15s; box-sizing:border-box;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline:none; border-color:#2563eb; box-shadow:0 0 0 3px #dbeafe;
+  }
+  .form-help { font-size:10.5px; color:#94a3b8; margin-top:3px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:500px){ .form-row { grid-template-columns:1fr; } }
+  .btn-pagos { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; text-decoration:none; border:none; transition:all .15s; }
+  .btn-primary { background:#2563eb; color:#fff; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-secondary { background:#f1f5f9; color:#374151; border:1px solid #e2e8f0; }
+  .btn-secondary:hover { background:#e2e8f0; }
+  .paciente-info { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:16px; }
+  .paciente-info .pi-nombre { font-size:15px; font-weight:800; color:#0f172a; }
+  .paciente-info .pi-sub { font-size:11px; color:#64748b; margin-top:2px; }
+
+  /* Presets de pack */
+  .pack-presets { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .pack-preset { padding:6px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; font-size:11.5px; font-weight:600; color:#1d4ed8; cursor:pointer; transition:all .15s; }
+  .pack-preset:hover { background:#dbeafe; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="gp-container">
+  <div class="gp-header">
+    <h1><i class='bx bx-package' style="color:#2563eb;"></i> Nuevo Pack de Atenciones</h1>
+    <a href="{% url 'pagos:dashboard' %}" style="font-size:12px; color:#64748b; text-decoration:none;">← Volver al dashboard</a>
+  </div>
+
+  {% if messages %}
+    {% for msg in messages %}
+    <div style="background:{% if msg.tags == 'error' %}#fee2e2{% else %}#dcfce7{% endif %}; border:1px solid {% if msg.tags == 'error' %}#fecaca{% else %}#bbf7d0{% endif %}; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:{% if msg.tags == 'error' %}#b91c1c{% else %}#15803d{% endif %};">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Paciente -->
+    <div class="gp-card">
+      <h2><i class='bx bx-user'></i> Paciente</h2>
+      {% if paciente %}
+      <div class="paciente-info">
+        <div class="pi-nombre">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+        <div class="pi-sub">{{ paciente.identificacion_display }} · {{ paciente.cobertura_de_salud }}</div>
+      </div>
+      <input type="hidden" name="rut" value="{{ paciente.rut }}">
+      {% else %}
+      <div class="form-group">
+        <label for="rut">RUT del paciente</label>
+        <input type="text" name="rut" id="rut" value="{{ rut }}" placeholder="Ej: 12.345.678-9" required>
+      </div>
+      <button type="submit" name="_buscar" value="1" class="btn-pagos btn-secondary" style="margin-bottom:8px;">
+        <i class='bx bx-search'></i> Buscar paciente
+      </button>
+      {% endif %}
+    </div>
+
+    {% if paciente %}
+    <!-- Detalle del pack -->
+    <div class="gp-card">
+      <h2><i class='bx bx-detail'></i> Configurar Pack</h2>
+
+      <!-- Presets rápidos -->
+      <div class="form-group">
+        <label>Presets rápidos</label>
+        <div class="pack-presets">
+          <span class="pack-preset" onclick="setPreset('Pack 5 sesiones', 5)">📦 5 sesiones</span>
+          <span class="pack-preset" onclick="setPreset('Pack 10 sesiones', 10)">📦 10 sesiones</span>
+          <span class="pack-preset" onclick="setPreset('Pack 20 sesiones', 20)">📦 20 sesiones</span>
+          <span class="pack-preset" onclick="setPreset('Pack mensual', 12)">📅 Mensual (12)</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="nombre">Nombre del pack *</label>
+        <input type="text" name="nombre" id="nombre" placeholder="Ej: Pack 10 sesiones" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="total_sesiones">N° de sesiones *</label>
+          <input type="number" name="total_sesiones" id="total_sesiones" min="1" max="999" placeholder="10" required>
+        </div>
+        <div class="form-group">
+          <label for="precio_total">Precio total ($)</label>
+          <input type="number" name="precio_total" id="precio_total" min="0" placeholder="0">
+          <div class="form-help">Monto cobrado al comprar el pack.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="medio_pago">Medio de Pago (Opcional)</label>
+        <select name="medio_pago" id="medio_pago">
+          <option value="">-- No registrar pago en la caja ahora --</option>
+          {% for value, label in medios_pago %}
+            {% if value != 'pack' %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+        <div class="form-help">Si seleccionas un medio de pago, el monto total ingresará a la caja de la clínica automáticamente.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="fecha_vencimiento">Fecha de vencimiento</label>
+        <input type="date" name="fecha_vencimiento" id="fecha_vencimiento">
+        <div class="form-help">Opcional. Si el pack no se usa antes de esta fecha, se marca como vencido.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas</label>
+        <textarea name="notas" id="notas" rows="2" placeholder="Observaciones, acuerdos especiales..."></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn-pagos btn-secondary">Cancelar</a>
+      <button type="submit" class="btn-pagos btn-primary">
+        <i class='bx bx-save'></i> Crear pack
+      </button>
+    </div>
+    {% endif %}
+  </form>
+</div>
+
+<script>
+function setPreset(nombre, sesiones) {
+  const n = document.getElementById('nombre');
+  const s = document.getElementById('total_sesiones');
+  if (n) n.value = nombre;
+  if (s) s.value = sesiones;
+}
+</script>
+{% endblock %}

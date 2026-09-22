@@ -1,0 +1,54 @@
+{% comment %}
+Badge de deuda/estado financiero del paciente.
+Requiere: pago_deuda_paciente (DeudaPaciente), pago_pack_activo (PackAtencion)
+Incluir en ficha clínica e historial: {% include 'pagos/partials/badge_deuda.html' %}
+{% endcomment %}
+{% if features.gestion_pagos %}
+<div class="pagos-badge-wrapper" style="display:inline-flex; gap:6px; flex-wrap:wrap; align-items:center;">
+
+  {% if pago_deuda_paciente and pago_deuda_paciente.tiene_deuda %}
+    <span class="badge-deuda badge-danger" title="Paciente con pagos pendientes">
+      <i class='bx bx-error-circle'></i>
+      {% if pago_deuda_paciente.sesiones_sin_pago > 0 %}
+        {{ pago_deuda_paciente.sesiones_sin_pago }} sesión{% if pago_deuda_paciente.sesiones_sin_pago != 1 %}es{% endif %} sin pagar
+      {% endif %}
+      {% if pago_deuda_paciente.bonos_por_llegar > 0 %}
+        · {{ pago_deuda_paciente.bonos_por_llegar }} bono{% if pago_deuda_paciente.bonos_por_llegar != 1 %}s{% endif %} por llegar
+      {% endif %}
+    </span>
+  {% endif %}
+
+  {% if pago_pack_activo %}
+    <span class="badge-deuda badge-pack" title="Pack activo: {{ pago_pack_activo.nombre }}">
+      <i class='bx bx-package'></i>
+      Pack: {{ pago_pack_activo.sesiones_disponibles }}/{{ pago_pack_activo.total_sesiones }} sesiones
+    </span>
+  {% endif %}
+
+  {% if not pago_deuda_paciente or not pago_deuda_paciente.tiene_deuda %}
+    {% if not pago_pack_activo %}
+    <span class="badge-deuda badge-ok" title="Sin deuda registrada">
+      <i class='bx bx-check-circle'></i> Al día
+    </span>
+    {% endif %}
+  {% endif %}
+
+</div>
+
+<style>
+.badge-deuda {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.badge-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-pack   { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+.badge-ok     { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+</style>
+{% endif %}

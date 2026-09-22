@@ -1,0 +1,263 @@
+{% extends "base_kenkomed.html" %}
+{% load static %}
+
+{% block title %}Pagos — {{ paciente.nombre }} {{ paciente.apellido }} — KenkoMed{% endblock %}
+
+{% block extra_head %}
+<style>
+  .dp-header { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:24px; }
+  .dp-paciente { display:flex; flex-direction:column; gap:4px; }
+  .dp-paciente h1 { font-size:20px; font-weight:800; color:#0f172a; margin:0; }
+  .dp-paciente .dp-rut { font-size:12px; color:#64748b; }
+  .acciones-bar { display:flex; gap:8px; flex-wrap:wrap; }
+  .btn-pagos { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:8px; font-size:12.5px; font-weight:600; cursor:pointer; text-decoration:none; border:none; transition:all .15s; }
+  .btn-primary { background:#2563eb; color:#fff; }
+  .btn-primary:hover { background:#1d4ed8; color:#fff; }
+  .btn-secondary { background:#f1f5f9; color:#374151; border:1px solid #e2e8f0; }
+  .btn-secondary:hover { background:#e2e8f0; }
+  .btn-danger { background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+
+  .dp-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  @media(max-width:700px){ .dp-grid { grid-template-columns:1fr; } }
+  .dp-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; }
+  .dp-card h2 { font-size:13px; font-weight:700; color:#0f172a; margin:0 0 12px 0; display:flex; align-items:center; gap:6px; }
+  .dp-card h2 i { color:#2563eb; }
+
+  .estado-badge { display:inline-block; padding:2px 9px; border-radius:999px; font-size:10.5px; font-weight:700; }
+  .estado-pagado    { background:#dcfce7; color:#15803d; }
+  .estado-pendiente { background:#fee2e2; color:#b91c1c; }
+  .estado-bono_por_llegar { background:#fef3c7; color:#b45309; }
+  .estado-anulado   { background:#f1f5f9; color:#94a3b8; }
+
+  .pagos-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .pagos-table th { background:#f8fafc; color:#475569; font-weight:700; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; padding:7px 10px; border-bottom:2px solid #e2e8f0; text-align:left; }
+  .pagos-table td { padding:8px 10px; border-bottom:1px solid #f1f5f9; vertical-align:middle; }
+  .pagos-table tr:last-child td { border-bottom:none; }
+  .pagos-table tr:hover td { background:#f8fafc; }
+
+  .deuda-alert { background:#fee2e2; border:1px solid #fecaca; border-radius:10px; padding:14px 16px; margin-bottom:16px; display:flex; align-items:center; gap:10px; font-size:13px; color:#b91c1c; font-weight:600; }
+  .deuda-alert i { font-size:20px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dp-header">
+  <div class="dp-paciente">
+    <h1>{{ paciente.nombre }} {{ paciente.apellido }}</h1>
+    <span class="dp-rut">{{ paciente.identificacion_display }} · {{ paciente.cobertura_de_salud }}</span>
+    <div style="margin-top:6px;">
+      {% include 'pagos/partials/badge_deuda.html' with pago_deuda_paciente=deuda pago_pack_activo=pack_activo %}
+    </div>
+  </div>
+  <div class="acciones-bar">
+    {% if deuda.monto_pendiente > 0 %}
+    <button onclick="document.getElementById('modalPagoMasivo').style.display='flex'" class="btn-pagos" style="background:#10b981; color:white;">
+      <i class='bx bx-check-double'></i> Saldar deuda (${{ deuda.monto_pendiente|floatformat:0 }})
+    </button>
+    {% endif %}
+    <a href="{% url 'pagos:registrar' %}?rut={{ paciente.rut }}" class="btn-pagos btn-primary">
+      <i class='bx bx-plus-circle'></i> Pago Manual
+    </a>
+    <a href="{% url 'pagos:crear_pack' %}?rut={{ paciente.rut }}" class="btn-pagos btn-secondary">
+      <i class='bx bx-package'></i> Nuevo pack
+    </a>
+    <a href="{% url 'pagos:dashboard' %}" class="btn-pagos btn-secondary">
+      <i class='bx bx-arrow-back'></i> Volver
+    </a>
+  </div>
+</div>
+
+{% if tiene_deuda %}
+<div style="background-color:#fef2f2; border-left:4px solid #ef4444; color:#991b1b; padding:12px 16px; border-radius:6px; font-size:14px; margin-bottom:24px; display:flex; align-items:center;">
+  <i class='bx bx-error-circle' style="font-size:20px; margin-right:8px; color:#ef4444;"></i>
+  <span><strong>Información Contable:</strong> Este paciente tiene {{ deuda.sesiones_sin_pago }} sesión(es) clínica(s) que aún no tienen un pago asociado.</span>
+</div>
+{% endif %}
+
+<div class="dp-grid">
+  <!-- Resumen deuda -->
+  <div class="dp-card">
+    <h2><i class='bx bx-wallet'></i> Estado Financiero</h2>
+    {% if deuda %}
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border-radius:8px;">
+        <span style="font-size:12px; color:#475569;">Sesiones sin pago</span>
+        <span style="font-weight:800; color:{% if deuda.sesiones_sin_pago > 0 %}#b91c1c{% else %}#15803d{% endif %}; font-size:18px;">{{ deuda.sesiones_sin_pago }}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border-radius:8px;">
+        <span style="font-size:12px; color:#475569;">Bonos por llegar</span>
+        <span style="font-weight:800; color:{% if deuda.bonos_por_llegar > 0 %}#b45309{% else %}#15803d{% endif %}; font-size:18px;">{{ deuda.bonos_por_llegar }}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:#f8fafc; border-radius:8px;">
+        <span style="font-size:12px; color:#475569;">Monto pendiente</span>
+        <span style="font-weight:800; color:{% if deuda.monto_pendiente > 0 %}#b91c1c{% elif deuda.monto_pendiente < 0 %}#059669{% else %}#15803d{% endif %}; font-size:18px;">
+          {% if deuda.monto_pendiente < 0 %}
+            Saldo a favor: ${{ deuda.monto_pendiente|floatformat:0|cut:"-" }}
+          {% else %}
+            ${{ deuda.monto_pendiente|floatformat:0 }}
+          {% endif %}
+        </span>
+      </div>
+    </div>
+    {% else %}
+    <p style="color:#94a3b8; font-size:12px;">Sin registros de deuda.</p>
+    {% endif %}
+  </div>
+
+  <!-- Pack activo -->
+  <div class="dp-card">
+    <h2><i class='bx bx-package'></i> Pack Activo</h2>
+    {% include 'pagos/partials/resumen_pack.html' with pack=pack_activo %}
+    {% if not pack_activo %}
+    <p style="color:#94a3b8; font-size:12px;">No hay pack activo para este paciente.</p>
+    <a href="{% url 'pagos:crear_pack' %}?rut={{ paciente.rut }}" class="btn-pagos btn-secondary" style="margin-top:8px; font-size:11px; padding:6px 12px;">
+      <i class='bx bx-plus'></i> Crear pack
+    </a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Historial de packs -->
+{% if packs_historico %}
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:20px;">
+  <h2 style="font-size:13px; font-weight:700; color:#0f172a; margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
+    <i class='bx bx-history' style="color:#2563eb;"></i> Historial de Packs
+  </h2>
+  <table class="pagos-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Sesiones</th>
+        <th>Precio</th>
+        <th>Estado</th>
+        <th>Compra</th>
+        <th>Vencimiento</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pack in packs_historico %}
+      <tr>
+        <td style="font-weight:600;">{{ pack.nombre }}</td>
+        <td>{{ pack.sesiones_usadas }}/{{ pack.total_sesiones }}</td>
+        <td>${{ pack.precio_total|floatformat:0 }}</td>
+        <td><span class="estado-badge estado-{{ pack.estado }}">{{ pack.get_estado_display }}</span></td>
+        <td style="font-size:11px; color:#64748b;">{{ pack.fecha_compra|date:"d/m/Y" }}</td>
+        <td style="font-size:11px; color:#64748b;">{% if pack.fecha_vencimiento %}{{ pack.fecha_vencimiento|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+        <td>
+          <a href="{% url 'pagos:detalle_pack' pack.id %}" class="btn-pagos btn-secondary" style="padding:3px 8px; font-size:10px;">Ver</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- Historial de pagos -->
+<div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px;">
+  <h2 style="font-size:13px; font-weight:700; color:#0f172a; margin:0 0 12px 0; display:flex; align-items:center; gap:6px;">
+    <i class='bx bx-list-ul' style="color:#2563eb;"></i> Historial de Pagos
+  </h2>
+  {% if pagos_recientes %}
+  <table class="pagos-table">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Medio de pago</th>
+        <th>Monto</th>
+        <th>Estado</th>
+        <th>Folio / Ref.</th>
+        <th>Sesión</th>
+        <th>Notas</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for pago in pagos_recientes %}
+      <tr style="{% if pago.estado == 'anulado' %}opacity:0.5;{% endif %}">
+        <td style="font-size:11px; color:#64748b;">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
+        <td>{{ pago.get_medio_pago_display }}</td>
+        <td style="font-weight:700;">${{ pago.monto|floatformat:0 }}</td>
+        <td><span class="estado-badge estado-{{ pago.estado }}">{{ pago.get_estado_display }}</span></td>
+        <td style="font-size:11px; color:#64748b;">
+          {% if pago.folio_bono %}🔖 {{ pago.folio_bono }}{% elif pago.comprobante %}{{ pago.comprobante }}{% else %}—{% endif %}
+        </td>
+        <td style="font-size:11px; color:#64748b;">
+          {% if pago.sesion_kinesica %}#{{ pago.sesion_kinesica.numero_sesion }}{% elif pago.pack %}📦 Pack{% else %}—{% endif %}
+        </td>
+        <td style="font-size:11px; color:#64748b; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ pago.notas|default:"—" }}</td>
+        <td>
+          {% if puede_gestionar %}
+          <div style="display:flex; gap:5px;">
+            {% if pago.estado != 'anulado' %}
+            <form method="post" action="{% url 'pagos:anular_pago' pago.id %}" onsubmit="return confirm('¿Anular este pago? (Quedará en el historial como anulado)');" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" class="btn-pagos btn-secondary" style="padding:3px 8px; font-size:10px; background:#64748b; color:white; border:none; border-radius:4px; cursor:pointer;" title="Anular (Soft delete)">Anular</button>
+            </form>
+            {% endif %}
+            
+            <a href="{% url 'pagos:editar_pago' pago.id %}" style="padding:3px 8px; font-size:10px; background:#e2e8f0; color:#334155; text-decoration:none; border-radius:4px;" title="Editar">✏️</a>
+            
+            <form method="post" action="{% url 'pagos:eliminar_pago' pago.id %}" onsubmit="return confirm('ATENCIÓN: ¿Eliminar FÍSICAMENTE este pago? (No se puede deshacer)');" style="margin:0;">
+              {% csrf_token %}
+              <button type="submit" style="padding:3px 8px; font-size:10px; background:#ef4444; color:white; border:none; border-radius:4px; cursor:pointer;" title="Eliminar definitivamente">🗑️</button>
+            </form>
+          </div>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="text-align:center; color:#94a3b8; font-size:12px; padding:20px 0;">No hay pagos registrados para este paciente.</p>
+  {% endif %}
+</div>
+
+<!-- Modal Pago Masivo -->
+<div id="modalPagoMasivo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+  <div style="background:#fff; width:100%; max-width:400px; border-radius:16px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;"><i class='bx bx-money' style="color:#10b981;"></i> Saldar Deuda</h3>
+      <i class='bx bx-x' style="font-size:24px; cursor:pointer; color:#64748b;" onclick="document.getElementById('modalPagoMasivo').style.display='none'"></i>
+    </div>
+    
+    <p style="font-size:13px; color:#475569; margin-bottom:16px;">Se crearán los registros de pago correspondientes para liquidar las {{ deuda.sesiones_sin_pago }} sesiones pendientes de este paciente.</p>
+
+    <form method="post" action="{% url 'pagos:pago_masivo' %}">
+      {% csrf_token %}
+      <input type="hidden" name="rut" value="{{ paciente.rut }}">
+      
+      <div style="margin-bottom:16px;">
+        <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">
+          <span>Monto a Ingresar *</span>
+          <span style="color:#b91c1c; font-weight:600;">Deuda Total: ${{ deuda.monto_pendiente|floatformat:0 }}</span>
+        </label>
+        <div style="position:relative;">
+          <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:700; color:#64748b;">$</span>
+          <input type="number" name="monto_total" value="{{ deuda.monto_pendiente|floatformat:0 }}" required min="1" step="1" style="width:100%; padding:10px 12px 10px 24px; border:1px solid #d1d5db; border-radius:8px; font-size:16px; font-weight:700; color:#0f172a;">
+        </div>
+        <p style="margin:4px 0 0 0; font-size:10.5px; color:#64748b;">Puedes ingresar un abono parcial o saldar el total.</p>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Medio de Pago *</label>
+        <select name="medio_pago" required style="width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+          {% for value, label in medios_pago %}
+            {% if value != 'pack' %}
+            <option value="{{ value }}">{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
+        <button type="button" onclick="document.getElementById('modalPagoMasivo').style.display='none'" style="padding:10px 16px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; cursor:pointer;">Cancelar</button>
+        <button type="submit" style="padding:10px 16px; border-radius:8px; border:none; background:#10b981; color:#fff; font-weight:700; cursor:pointer; box-shadow:0 4px 6px -1px rgba(16, 185, 129, 0.2);">Confirmar Pago</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}

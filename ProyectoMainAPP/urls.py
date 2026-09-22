@@ -87,6 +87,7 @@ urlpatterns = [
     path('clinicas/', include('clinicas.urls')),
     path('clinicos/', include('clinicos.urls')),
     path('ciclos/', include('ciclos_clinicos.urls')),
+    path('pagos/', include('pagos.urls')),
 ]
 
 handler400 = 'ProyectoMainAPP.error_handlers.handler400'

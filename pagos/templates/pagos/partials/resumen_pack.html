@@ -1,0 +1,50 @@
+{% comment %}
+Tarjeta resumen del pack activo del paciente.
+Uso: {% include 'pagos/partials/resumen_pack.html' with pack=pago_pack_activo %}
+{% endcomment %}
+{% if pack %}
+<div class="resumen-pack-card">
+  <div class="rpc-header">
+    <i class='bx bx-package' style="font-size:18px; color:#1d4ed8;"></i>
+    <span class="rpc-title">{{ pack.nombre }}</span>
+    <span class="rpc-estado rpc-estado-{{ pack.estado }}">{{ pack.get_estado_display }}</span>
+  </div>
+  <div class="rpc-progress-wrap">
+    <div class="rpc-progress-bar">
+      <div class="rpc-progress-fill" style="width: {{ pack.porcentaje_uso }}%;"></div>
+    </div>
+    <span class="rpc-progress-label">{{ pack.sesiones_usadas }} / {{ pack.total_sesiones }} sesiones usadas</span>
+  </div>
+  <div class="rpc-meta" style="display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; gap:10px;">
+      <span><i class='bx bx-check'></i> <strong>{{ pack.sesiones_disponibles }}</strong> disponibles</span>
+      {% if pack.fecha_vencimiento %}<span><i class='bx bx-calendar'></i> Vence: {{ pack.fecha_vencimiento|date:"d/m/Y" }}</span>{% endif %}
+      <span><i class='bx bx-money'></i> ${{ pack.precio_total|floatformat:0 }}</span>
+    </div>
+    {% if pack.sesiones_disponibles > 0 %}
+    <form method="post" action="{% url 'pagos:descontar_pack_rapido' 0 %}" style="margin:0;">
+      {% csrf_token %}
+      <input type="hidden" name="rut" value="{{ pack.paciente.rut }}">
+      <button type="submit" style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+        <i class='bx bx-minus-circle'></i> Descontar 1
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+<style>
+.resumen-pack-card { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin:8px 0; }
+.rpc-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.rpc-title { font-weight:700; font-size:13px; color:#1e3a8a; flex:1; }
+.rpc-estado { font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; text-transform:uppercase; }
+.rpc-estado-activo { background:#dcfce7; color:#15803d; }
+.rpc-estado-agotado { background:#fee2e2; color:#b91c1c; }
+.rpc-estado-vencido { background:#fef3c7; color:#b45309; }
+.rpc-progress-wrap { margin-bottom:8px; }
+.rpc-progress-bar { background:#dbeafe; border-radius:999px; height:8px; overflow:hidden; margin-bottom:4px; }
+.rpc-progress-fill { background:#2563eb; height:100%; border-radius:999px; transition:width .4s; }
+.rpc-progress-label { font-size:11px; color:#475569; }
+.rpc-meta { display:flex; flex-wrap:wrap; gap:10px; font-size:11px; color:#475569; }
+.rpc-meta i { vertical-align:middle; }
+</style>
+{% endif %}

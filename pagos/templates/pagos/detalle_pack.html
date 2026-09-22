@@ -1,0 +1,56 @@
+{% extends "base_kenkomed.html" %}
+{% load static %}
+
+{% block title %}Pack {{ pack.nombre }} — KenkoMed{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:0 auto;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+    <div>
+      <h1 style="font-size:19px; font-weight:800; color:#0f172a; margin:0 0 4px;">
+        <i class='bx bx-package' style="color:#2563eb;"></i> {{ pack.nombre }}
+      </h1>
+      <span style="font-size:12px; color:#64748b;">{{ pack.paciente.nombre }} {{ pack.paciente.apellido }} · {{ pack.paciente.identificacion_display }}</span>
+    </div>
+    <a href="{% url 'pagos:detalle_paciente' %}?rut={{ pack.paciente.rut }}" style="display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; font-weight:600; color:#374151; text-decoration:none;">
+      ← Volver al paciente
+    </a>
+  </div>
+
+  {% include 'pagos/partials/resumen_pack.html' with pack=pack %}
+
+  <div style="background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-top:16px;">
+    <h2 style="font-size:13px; font-weight:700; color:#0f172a; margin:0 0 14px 0; display:flex; align-items:center; gap:6px;">
+      <i class='bx bx-list-ul' style="color:#2563eb;"></i> Sesiones descontadas del pack
+    </h2>
+    {% if pagos_pack %}
+    <table style="width:100%; border-collapse:collapse; font-size:12px;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="padding:7px 10px; text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#475569; border-bottom:2px solid #e2e8f0;">Fecha</th>
+          <th style="padding:7px 10px; text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#475569; border-bottom:2px solid #e2e8f0;">Sesión kinésica</th>
+          <th style="padding:7px 10px; text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#475569; border-bottom:2px solid #e2e8f0;">Registrado por</th>
+          <th style="padding:7px 10px; text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#475569; border-bottom:2px solid #e2e8f0;">Notas</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pago in pagos_pack %}
+        <tr>
+          <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; color:#64748b;">{{ pago.fecha_registro|date:"d/m/Y H:i" }}</td>
+          <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9;">
+            {% if pago.sesion_kinesica %}Sesión #{{ pago.sesion_kinesica.numero_sesion }}{% else %}—{% endif %}
+          </td>
+          <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; font-size:11px; color:#64748b;">
+            {% if pago.registrado_por %}{{ pago.registrado_por.nombre }} {{ pago.registrado_por.apellido }}{% else %}—{% endif %}
+          </td>
+          <td style="padding:8px 10px; border-bottom:1px solid #f1f5f9; font-size:11px; color:#64748b;">{{ pago.notas|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="text-align:center; color:#94a3b8; font-size:12px; padding:20px 0;">Aún no se han descontado sesiones de este pack.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

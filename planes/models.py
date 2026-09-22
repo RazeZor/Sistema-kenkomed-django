@@ -29,6 +29,7 @@ class Plan(models.Model):
     permite_roles_avanzados = models.BooleanField(default=False, verbose_name="Roles Avanzados (Secretaría/Admin)")
     permite_logo_personalizado = models.BooleanField(default=False, verbose_name="Logo Personalizado en Informes")
     permite_dashboard_gerencial = models.BooleanField(default=False, verbose_name="Dashboard Gerencial & Métricas")
+    permite_gestion_pagos = models.BooleanField(default=True, verbose_name="Gestión de Pagos & Packs de Atención")
 
     class Meta:
         verbose_name = "Plan de Suscripción"

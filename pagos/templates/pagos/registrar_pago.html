@@ -1,0 +1,208 @@
+{% extends "base_kenkomed.html" %}
+{% load static %}
+
+{% block title %}{% if es_edicion %}Editar Pago{% else %}Registrar Pago{% endif %}{% if paciente %} — {{ paciente.nombre }} {{ paciente.apellido }}{% endif %} — KenkoMed{% endblock %}
+
+{% block extra_head %}
+<style>
+  .rp-container { max-width:640px; margin:0 auto; }
+  .rp-header { margin-bottom:24px; }
+  .rp-header h1 { font-size:20px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px; margin:0 0 4px; }
+  .rp-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:24px; margin-bottom:16px; }
+  .rp-card h2 { font-size:13px; font-weight:700; color:#0f172a; margin:0 0 16px 0; display:flex; align-items:center; gap:6px; }
+  .rp-card h2 i { color:#2563eb; }
+
+  .form-group { margin-bottom:16px; }
+  .form-group label { display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px;
+    font-size:13px; color:#0f172a; background:#fff;
+    transition:border-color .15s, box-shadow .15s;
+    box-sizing:border-box;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline:none; border-color:#2563eb; box-shadow:0 0 0 3px #dbeafe;
+  }
+  .form-help { font-size:10.5px; color:#94a3b8; margin-top:3px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:500px){ .form-row { grid-template-columns:1fr; } }
+
+  .btn-pagos { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; cursor:pointer; text-decoration:none; border:none; transition:all .15s; }
+  .btn-primary { background:#2563eb; color:#fff; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-secondary { background:#f1f5f9; color:#374151; border:1px solid #e2e8f0; }
+  .btn-secondary:hover { background:#e2e8f0; }
+
+  .pack-banner { background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:16px; display:flex; align-items:center; gap:10px; font-size:12.5px; }
+  .pack-banner i { color:#2563eb; font-size:20px; }
+  .pack-info { flex:1; }
+  .pack-info strong { color:#1e3a8a; }
+
+  .toggle-pack { display:flex; align-items:center; gap:8px; background:#f0f9ff; border:1px solid #bae6fd; border-radius:8px; padding:10px 14px; cursor:pointer; margin-bottom:12px; }
+  .toggle-pack input[type=checkbox] { width:16px; height:16px; accent-color:#2563eb; cursor:pointer; }
+  .toggle-pack label { font-size:12.5px; font-weight:600; color:#0369a1; cursor:pointer; }
+
+  .paciente-info { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 16px; margin-bottom:16px; }
+  .paciente-info .pi-nombre { font-size:15px; font-weight:800; color:#0f172a; }
+  .paciente-info .pi-sub { font-size:11px; color:#64748b; margin-top:2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rp-container">
+  <div class="rp-header">
+    <h1><i class='bx bx-credit-card' style="color:#2563eb;"></i> {% if es_edicion %}Editar Pago #{{ pago.id }}{% else %}Registrar Pago{% endif %}</h1>
+    <a href="{% url 'pagos:dashboard' %}" style="font-size:12px; color:#64748b; text-decoration:none;">← Volver al dashboard</a>
+  </div>
+
+  {% if messages %}
+    {% for msg in messages %}
+    <div style="background:{% if msg.tags == 'error' %}#fee2e2{% else %}#dcfce7{% endif %}; border:1px solid {% if msg.tags == 'error' %}#fecaca{% else %}#bbf7d0{% endif %}; border-radius:8px; padding:10px 14px; margin-bottom:14px; font-size:12.5px; color:{% if msg.tags == 'error' %}#b91c1c{% else %}#15803d{% endif %};">
+      {{ msg }}
+    </div>
+    {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Buscar paciente -->
+    <div class="rp-card">
+      <h2><i class='bx bx-user'></i> Paciente</h2>
+
+      {% if paciente %}
+      <div class="paciente-info">
+        <div class="pi-nombre">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+        <div class="pi-sub">{{ paciente.identificacion_display }} · {{ paciente.cobertura_de_salud }}</div>
+        <div style="margin-top:6px;">
+          {% include 'pagos/partials/badge_deuda.html' with pago_deuda_paciente=None pago_pack_activo=pack_activo %}
+        </div>
+      </div>
+      <input type="hidden" name="rut" value="{{ paciente.rut }}">
+      {% else %}
+      <div class="form-group">
+        <label for="rut">RUT del paciente</label>
+        <input type="text" name="rut" id="rut" value="{{ rut }}" placeholder="Ej: 12.345.678-9" required>
+        <div class="form-help">Ingresa el RUT y el formulario mostrará los datos del paciente.</div>
+      </div>
+      <button type="submit" name="_buscar" value="1" class="btn-pagos btn-secondary" style="margin-bottom:16px;">
+        <i class='bx bx-search'></i> Buscar paciente
+      </button>
+      {% endif %}
+    </div>
+
+    {% if paciente %}
+
+    <!-- Pack disponible -->
+    {% if pack_activo and not es_edicion %}
+    <div class="pack-banner">
+      <i class='bx bx-package'></i>
+      <div class="pack-info">
+        <strong>Pack activo:</strong> {{ pack_activo.nombre }} —
+        {{ pack_activo.sesiones_disponibles }} sesión{% if pack_activo.sesiones_disponibles != 1 %}es{% endif %} disponibles
+      </div>
+    </div>
+    <div class="toggle-pack">
+      <input type="checkbox" name="usar_pack" id="usar_pack" value="1">
+      <label for="usar_pack">Descontar esta sesión del pack activo (sin cobro adicional)</label>
+    </div>
+    {% endif %}
+
+    <!-- Detalle del pago -->
+    <div class="rp-card" id="detalle-pago">
+      <h2><i class='bx bx-receipt'></i> Detalle del Pago</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="medio_pago">Medio de pago *</label>
+          <select name="medio_pago" id="medio_pago" required>
+            <option value="">— Seleccionar —</option>
+            {% for value, label in medios_pago %}
+            <option value="{{ value }}" {% if es_edicion and pago.medio_pago == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="monto">Monto ($)</label>
+          <input type="number" name="monto" id="monto" value="{% if es_edicion %}{{ pago.monto|floatformat:0 }}{% else %}{{ config.precio_sesion_default|default:0 }}{% endif %}" min="0" placeholder="0">
+          <div class="form-help">Déjalo en 0 si usas pack o cortesía.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="estado">Estado del pago *</label>
+          <select name="estado" id="estado" required>
+            {% for value, label in estados_pago %}
+            <option value="{{ value }}" {% if es_edicion %}{% if pago.estado == value %}selected{% endif %}{% elif value == 'pagado' %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="folio_bono">Folio / N° bono</label>
+          <input type="text" name="folio_bono" id="folio_bono" value="{{ pago.folio_bono|default:'' }}" placeholder="Ej: 12345678">
+          <div class="form-help">Obligatorio para bonos Fonasa / Isapre.</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comprobante">Referencia / Comprobante</label>
+        <input type="text" name="comprobante" id="comprobante" value="{{ pago.comprobante|default:'' }}" placeholder="N° transferencia, voucher, etc.">
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas adicionales</label>
+        <textarea name="notas" id="notas" rows="2" placeholder="Observaciones...">{{ pago.notas|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn-pagos btn-secondary">Cancelar</a>
+      <button type="submit" class="btn-pagos btn-primary">
+        <i class='bx bx-save'></i> {% if es_edicion %}Guardar Cambios{% else %}Registrar pago{% endif %}
+      </button>
+    </div>
+
+    {% endif %}
+  </form>
+</div>
+
+<script>
+// Ocultar/mostrar detalle según si se usa el pack
+const checkPack = document.getElementById('usar_pack');
+const detallePago = document.getElementById('detalle-pago');
+const selectMedio = document.getElementById('medio_pago');
+const selectEstado = document.getElementById('estado');
+
+if (checkPack) {
+  checkPack.addEventListener('change', function () {
+    if (this.checked) {
+      detallePago.style.opacity = '0.4';
+      detallePago.style.pointerEvents = 'none';
+      if (selectMedio) selectMedio.required = false;
+      if (selectEstado) selectEstado.required = false;
+    } else {
+      detallePago.style.opacity = '1';
+      detallePago.style.pointerEvents = 'auto';
+      if (selectMedio) selectMedio.required = true;
+      if (selectEstado) selectEstado.required = true;
+    }
+  });
+}
+
+// Autocompletar folio si elige bono
+const medioSelect = document.getElementById('medio_pago');
+const folioInput = document.getElementById('folio_bono');
+if (medioSelect && folioInput) {
+  medioSelect.addEventListener('change', function () {
+    if (this.value === 'bono_fonasa' || this.value === 'bono_isapre') {
+      folioInput.required = true;
+      folioInput.style.borderColor = '#f59e0b';
+    } else {
+      folioInput.required = false;
+      folioInput.style.borderColor = '';
+    }
+  });
+}
+</script>
+{% endblock %}

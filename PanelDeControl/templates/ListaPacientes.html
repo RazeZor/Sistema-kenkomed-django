@@ -30,6 +30,14 @@
                         </a>
                     </div>
                     
+                    <!-- Leyenda de iconos (solo desktop) -->
+                    <div class="flex items-center justify-end gap-4 px-2 mb-2 text-xs text-gray-500 hidden md:flex">
+                        <span class="font-medium">Leyenda de acciones:</span>
+                        <span class="flex items-center gap-1"><i class='bx bx-history text-base'></i> Historial</span>
+                        <span class="flex items-center gap-1"><i class='bx bx-wallet text-base'></i> Pagos</span>
+                        <span class="flex items-center gap-1"><i class='bx bx-line-chart text-base'></i> Estadísticas</span>
+                    </div>
+
                     <!-- Lista de pacientes -->
                     <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
                         <!-- Encabezado de tabla en desktop -->
@@ -76,10 +84,18 @@
                                             {{ paciente.cobertura_de_salud }}
                                         </span>
                                     </div>
-                                    <div class="pt-2">
-                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-primary btn-block">
-                                            <i class='bx bx-history'></i> Ver Historial
+                                    <div class="flex flex-col gap-2 pt-2">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-primary btn-block text-sm">
+                                            <i class='bx bx-history'></i> Historial
                                         </a>
+                                        <div class="grid grid-cols-2 gap-2">
+                                            <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-block text-sm">
+                                                <i class='bx bx-wallet'></i> Pagos
+                                            </a>
+                                            <a href="{% url 'estadisticas_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-block text-sm">
+                                                <i class='bx bx-line-chart'></i> Estadísticas
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -102,9 +118,15 @@
                                             {{ paciente.cobertura_de_salud }}
                                         </span>
                                     </div>
-                                    <div class="flex justify-center">
-                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm" title="Ver historial clínico">
-                                            <i class='bx bx-history'></i> Historial
+                                    <div class="flex items-center justify-center gap-2">
+                                        <a href="{% url 'historialClinico' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver historial clínico">
+                                            <i class='bx bx-history text-lg'></i>
+                                        </a>
+                                        <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver pagos del paciente">
+                                            <i class='bx bx-wallet text-lg'></i>
+                                        </a>
+                                        <a href="{% url 'estadisticas_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver estadísticas del paciente">
+                                            <i class='bx bx-line-chart text-lg'></i>
                                         </a>
                                     </div>
                                 </div>
