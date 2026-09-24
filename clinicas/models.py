@@ -16,6 +16,7 @@ class Clinica(models.Model):
     ]
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='individual')
     max_clinicos = models.PositiveIntegerField(default=1)
+    capacidad_simultanea = models.PositiveIntegerField(default=1, verbose_name="Capacidad de Boxes Simultáneos")
     logo = models.ImageField(
         upload_to='clinicas/logos/',
         blank=True,

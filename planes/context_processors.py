@@ -7,6 +7,7 @@ def plan_features(request):
     # Por defecto (sin clínica activa), si es Admin KenkoMed tiene acceso total
     if not clinica_id:
         return {
+            'max_adjuntos_fichas': 0,
             'features': {
                 'qr_anamnesis': es_admin_sistema,
                 'recetas_digitales': es_admin_sistema,
@@ -34,6 +35,7 @@ def plan_features(request):
     if not suscripcion:
         # Fallback de seguridad: si existe la clínica pero aún no tiene objeto SuscripcionClinica
         return {
+            'max_adjuntos_fichas': 0,
             'features': {
                 'qr_anamnesis': True,
                 'recetas_digitales': True,
@@ -51,6 +53,7 @@ def plan_features(request):
         }
 
     return {
+        'max_adjuntos_fichas': suscripcion.override_max_adjuntos,
         'features': {
             'qr_anamnesis': suscripcion.tiene_feature('permite_qr_anamnesis'),
             'recetas_digitales': suscripcion.tiene_feature('permite_recetas_digitales'),

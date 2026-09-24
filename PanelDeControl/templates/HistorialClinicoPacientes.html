@@ -205,6 +205,48 @@
                     </form>
                     {% endif %}
 
+                    <!-- Archivos Adjuntos (Excepción Regaloneo) -->
+                    {% if max_adjuntos_fichas > 0 and ciclo %}
+                    <div id="adjuntosBox" class="border border-gray-100 rounded-lg p-4 bg-gray-50 mt-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                                <i class='bx bx-file'></i>
+                            </div>
+                            <h3 class="font-medium text-gray-800 flex items-center gap-2">
+                                Archivos Adjuntos
+                                <span class="text-xs font-normal bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200 shadow-sm">
+                                    Límite: {{ max_adjuntos_fichas }}
+                                </span>
+                            </h3>
+                        </div>
+                        
+                        <ul id="listaAdjuntos" class="space-y-2 mb-3">
+                            {% for adjunto in ciclo.adjuntos.all %}
+                                <li class="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg shadow-sm">
+                                    <a href="{{ adjunto.archivo.url }}" target="_blank" class="text-sm text-medical-blue font-medium hover:underline flex items-center gap-2" style="max-width: 85%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                        <i class='bx bxs-file-pdf'></i> {{ adjunto.nombre_original }}
+                                    </a>
+                                    <button type="button" onclick="eliminarAdjunto({{ adjunto.id }}, this)" class="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors border border-transparent hover:border-red-100" title="Eliminar archivo">
+                                        <i class='bx bx-trash'></i>
+                                    </button>
+                                </li>
+                            {% empty %}
+                                <p id="sinAdjuntosText" class="text-sm text-gray-500 italic px-1">No hay archivos adjuntos en este ciclo.</p>
+                            {% endfor %}
+                        </ul>
+
+                        <form id="formSubirAdjunto" class="flex flex-col sm:flex-row items-center gap-2 bg-white p-2 rounded-lg border border-gray-200">
+                            {% csrf_token %}
+                            <input type="hidden" name="ciclo_id" value="{{ ciclo.id }}">
+                            <input type="file" name="archivo" id="archivoSubir" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" required class="block w-full text-sm text-gray-500 file:mr-4 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer outline-none"/>
+                            <button type="submit" id="btnSubir" class="btn btn-primary btn-sm flex-shrink-0 w-full sm:w-auto">
+                                <i class='bx bx-upload'></i> Subir
+                            </button>
+                        </form>
+                        <div id="uploadFeedback" class="text-sm mt-2 font-medium hidden"></div>
+                    </div>
+                    {% endif %}
+
                 </div>
             </div>
         </div>
@@ -405,6 +447,44 @@
                 comboSesiones.dispatchEvent(new Event('change'));
             }
         }
+
+        // --- Lógica Adjuntos ---
+        const formSubir = document.getElementById('formSubirAdjunto');
+        if (formSubir) {
+            formSubir.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnSubir');
+                const feedback = document.getElementById('uploadFeedback');
+                btn.disabled = true;
+                btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Subiendo...";
+                feedback.classList.add('hidden');
+
+                try {
+                    const response = await fetch("{% url 'ciclos_clinicos:subir_adjunto' %}", {
+                        method: 'POST',
+                        body: new FormData(e.target),
+                        headers: {'X-Requested-With': 'XMLHttpRequest'}
+                    });
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        feedback.className = "text-sm mt-2 font-medium text-green-600 block";
+                        feedback.innerText = "\u2705 " + data.mensaje;
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        feedback.className = "text-sm mt-2 font-medium text-red-600 block";
+                        feedback.innerText = "\u274c Error: " + data.error;
+                        btn.disabled = false;
+                        btn.innerHTML = "<i class='bx bx-upload'></i> Subir";
+                    }
+                } catch(err) {
+                    feedback.className = "text-sm mt-2 font-medium text-red-600 block";
+                    feedback.innerText = "\u274c Error de conexi\u00f3n al servidor.";
+                    btn.disabled = false;
+                    btn.innerHTML = "<i class='bx bx-upload'></i> Subir";
+                }
+            });
+        }
     });
 
     function configurarSesionesKinesicas(rut) {
@@ -482,5 +562,36 @@
     if (typeof initializeKenkomedUtils === 'function') {
         initializeKenkomedUtils();
     }
+
+// Función global para eliminar adjuntos
+async function eliminarAdjunto(id, btnElement) {
+    if(!confirm("¿Estás seguro de eliminar este archivo? No se puede recuperar.")) return;
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('adjunto_id', id);
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    btnElement.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i>";
+    try {
+        const response = await fetch("{% url 'ciclos_clinicos:eliminar_adjunto' %}", {
+            method: 'POST', body: formData, headers: {'X-Requested-With': 'XMLHttpRequest'}
+        });
+        const data = await response.json();
+        if(response.ok) {
+            btnElement.closest('li').remove();
+            const lista = document.getElementById('listaAdjuntos');
+            if (lista.children.length === 0 || (lista.children.length === 1 && lista.children[0].id === 'sinAdjuntosText')) {
+                lista.innerHTML = '<p id="sinAdjuntosText" class="text-sm text-gray-500 italic px-1">No hay archivos adjuntos en este ciclo.</p>';
+            }
+        } else {
+            alert("Error: " + data.error);
+            btnElement.innerHTML = "<i class='bx bx-trash'></i>";
+        }
+    } catch (e) {
+        alert("Error de conexión al eliminar.");
+        btnElement.innerHTML = "<i class='bx bx-trash'></i>";
+    }
+}
 </script>
 {% endblock %}

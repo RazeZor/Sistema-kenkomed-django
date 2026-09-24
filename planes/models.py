@@ -30,6 +30,7 @@ class Plan(models.Model):
     permite_logo_personalizado = models.BooleanField(default=False, verbose_name="Logo Personalizado en Informes")
     permite_dashboard_gerencial = models.BooleanField(default=False, verbose_name="Dashboard Gerencial & Métricas")
     permite_gestion_pagos = models.BooleanField(default=True, verbose_name="Gestión de Pagos & Packs de Atención")
+    permite_capacidad_multibox = models.BooleanField(default=False, verbose_name="Gestión Multi-Box / Capacidad Simultánea")
 
     class Meta:
         verbose_name = "Plan de Suscripción"
@@ -57,6 +58,13 @@ class SuscripcionClinica(models.Model):
     fecha_inicio = models.DateTimeField(auto_now_add=True)
     fecha_vencimiento = models.DateTimeField(null=True, blank=True)
     es_legacy = models.BooleanField(default=False, help_text="Aplica para cuentas iniciales de producción con acceso completo")
+    
+    # Excepción por Clínica (Regaloneo)
+    override_max_adjuntos = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Máximo de Archivos por Ficha (Excepción)",
+        help_text="0 significa desactivado. Ponle 3 o 5 para habilitar la subida solo a esta clínica en específico."
+    )
 
     class Meta:
         verbose_name = "Suscripción de Clínica"

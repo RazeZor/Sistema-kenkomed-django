@@ -137,3 +137,76 @@ def listar_ciclos_view(request):
         for c in ciclos
     ]
     return JsonResponse({'ciclos': data})
+
+
+@requiere_clinico
+@require_http_methods(['POST'])
+def subir_adjunto_view(request):
+    ciclo_id = request.POST.get('ciclo_id')
+    archivo = request.FILES.get('archivo')
+    
+    if not ciclo_id or not archivo:
+        return JsonResponse({'error': 'Datos incompletos.'}, status=400)
+        
+    try:
+        ciclo = CicloClinico.objects.get(pk=ciclo_id)
+        # Verificar permisos
+        if not ciclo_pertenece_a_sesion(request, ciclo):
+            return JsonResponse({'error': 'No tienes permisos sobre este ciclo.'}, status=403)
+            
+        from ciclos_clinicos.models import AdjuntoHistorialClinico
+        
+        # Validar tamaño (ej. max 10MB)
+        if archivo.size > 10 * 1024 * 1024:
+            return JsonResponse({'error': 'El archivo supera el tamaño máximo de 10 MB.'}, status=400)
+            
+        adjunto = AdjuntoHistorialClinico(
+            ciclo=ciclo,
+            archivo=archivo,
+            nombre_original=archivo.name,
+            peso_bytes=archivo.size
+        )
+        adjunto.full_clean() # Valida extensión y límite de archivos (regaloneo)
+        adjunto.save()
+        
+        return JsonResponse({
+            'success': True,
+            'mensaje': 'Archivo subido correctamente.',
+            'adjunto': {
+                'id': adjunto.id,
+                'nombre': adjunto.nombre_original,
+                'url': adjunto.archivo.url,
+                'fecha': adjunto.fecha_subida.strftime('%d/%m/%Y')
+            }
+        })
+        
+    except CicloClinico.DoesNotExist:
+        return JsonResponse({'error': 'Ciclo no encontrado.'}, status=404)
+    except Exception as e:
+        # Podría ser ValidationError
+        if hasattr(e, 'message_dict'):
+            return JsonResponse({'error': str(e.message_dict)}, status=400)
+        elif hasattr(e, 'messages'):
+            return JsonResponse({'error': e.messages[0]}, status=400)
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@requiere_clinico
+@require_http_methods(['POST'])
+def eliminar_adjunto_view(request):
+    adjunto_id = request.POST.get('adjunto_id')
+    if not adjunto_id:
+        return JsonResponse({'error': 'ID no proporcionado.'}, status=400)
+        
+    from ciclos_clinicos.models import AdjuntoHistorialClinico
+    try:
+        adjunto = AdjuntoHistorialClinico.objects.get(pk=adjunto_id)
+        if not ciclo_pertenece_a_sesion(request, adjunto.ciclo):
+            return JsonResponse({'error': 'No tienes permisos para eliminar este archivo.'}, status=403)
+            
+        adjunto.archivo.delete(save=False) # Borra archivo del disco/S3
+        adjunto.delete()
+        
+        return JsonResponse({'success': True, 'mensaje': 'Archivo eliminado.'})
+    except AdjuntoHistorialClinico.DoesNotExist:
+        return JsonResponse({'error': 'Archivo no encontrado.'}, status=404)

@@ -3,7 +3,17 @@ from django.contrib import admin, messages
 from Login.models import Paciente
 
 from .models import Clinica, MembresiaClinica
+from planes.models import SuscripcionClinica
 from .services import ClinicaServiceError, convertir_a_centro, unir_clinico_a_centro
+
+
+class SuscripcionClinicaInline(admin.StackedInline):
+    model = SuscripcionClinica
+    can_delete = False
+    verbose_name = 'Suscripción y Permisos Especiales (Archivos Adjuntos)'
+    verbose_name_plural = 'Suscripción y Permisos Especiales (Archivos Adjuntos)'
+    fields = ('plan', 'estado', 'es_legacy', 'override_max_adjuntos')
+    extra = 0
 
 
 def _aplicar_membresia_desde_admin(request, clinico, clinica, rol='miembro'):
@@ -85,14 +95,14 @@ class MembresiaClinicaInline(admin.TabularInline):
 
 @admin.register(Clinica)
 class ClinicaAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'tipo', 'miembros_activos', 'pacientes_centro', 'max_clinicos', 'ciudad', 'activa')
+    list_display = ('nombre', 'tipo', 'miembros_activos', 'pacientes_centro', 'adjuntos_permitidos', 'max_clinicos', 'ciudad', 'activa')
     list_filter = ('tipo', 'activa', 'ciudad')
     search_fields = ('nombre', 'rut_empresa', 'ciudad', 'correo')
     list_editable = ('tipo', 'max_clinicos', 'activa')
-    inlines = [MembresiaClinicaInline]
+    inlines = [MembresiaClinicaInline, SuscripcionClinicaInline]
     fieldsets = (
         ('Datos del centro', {
-            'fields': ('nombre', 'tipo', 'max_clinicos', 'activa'),
+            'fields': ('nombre', 'tipo', 'max_clinicos', 'capacidad_simultanea', 'activa'),
             'description': (
                 'Para un centro con varios kinesiólogos: tipo «Clínica / Centro», '
                 'max_clinicos ≥ cantidad de profesionales, y agregar cada uno en la tabla inferior.'
@@ -111,6 +121,13 @@ class ClinicaAdmin(admin.ModelAdmin):
     )
 
     actions = ['convertir_en_centro_compartido']
+
+    @admin.display(description='Adjuntos Ficha')
+    def adjuntos_permitidos(self, obj):
+        suscripcion = getattr(obj, 'suscripcion', None)
+        if suscripcion and suscripcion.override_max_adjuntos > 0:
+            return f"✅ Activo ({suscripcion.override_max_adjuntos} máx)"
+        return "❌ 0 (Desactivado)"
 
     @admin.display(description='Miembros')
     def miembros_activos(self, obj):
@@ -131,6 +148,7 @@ class ClinicaAdmin(admin.ModelAdmin):
         if obj.tipo == 'clinica' and obj.max_clinicos < 2:
             obj.max_clinicos = 10
             obj.save(update_fields=['max_clinicos'])
+            
 
     def save_formset(self, request, form, formset, change):
         if formset.model is not MembresiaClinica:

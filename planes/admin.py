@@ -11,6 +11,8 @@ class PlanAdmin(admin.ModelAdmin):
 
 @admin.register(SuscripcionClinica)
 class SuscripcionClinicaAdmin(admin.ModelAdmin):
-    list_display = ('clinica', 'plan', 'estado', 'es_legacy', 'fecha_inicio', 'fecha_vencimiento')
+    list_display = ('clinica', 'plan', 'estado', 'override_max_adjuntos', 'es_legacy', 'fecha_inicio', 'fecha_vencimiento')
+    list_editable = ('override_max_adjuntos',)
     list_filter = ('estado', 'es_legacy', 'plan')
     search_fields = ('clinica__nombre', 'clinica__rut_empresa')
+

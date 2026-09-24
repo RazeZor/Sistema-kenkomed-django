@@ -180,7 +180,7 @@ def _parse_horas(data):
     return h_inicio, h_fin
 
 
-def _validar_solapamiento(clinico, fecha, hora_inicio, hora_fin, excluir_id=None):
+def _validar_solapamiento(request, clinico, fecha, hora_inicio, hora_fin, excluir_id=None):
     qs = Reserva.objects.filter(
         clinico=clinico,
         fecha=fecha,
@@ -189,7 +189,19 @@ def _validar_solapamiento(clinico, fecha, hora_inicio, hora_fin, excluir_id=None
     ).exclude(estado='Cancelada')
     if excluir_id:
         qs = qs.exclude(id=excluir_id)
-    return qs.exists()
+
+    capacidad = 1
+    clinica_id = request.session.get('clinica_id')
+    if clinica_id:
+        try:
+            from clinicas.models import Clinica
+            clinica = Clinica.objects.get(id=clinica_id)
+            # El administrador tiene control total por cuenta cambiando este valor
+            capacidad = clinica.capacidad_simultanea
+        except Exception:
+            pass
+
+    return qs.count() >= capacidad
 
 
 @requiere_clinico
@@ -287,8 +299,8 @@ def api_crear_reserva(request):
 
         _parse_horas(data)
 
-        if _validar_solapamiento(clinico, data['fecha'], data['hora_inicio'], data['hora_fin']):
-            return JsonResponse({'status': 'error', 'message': 'El profesional ya tiene una cita en ese horario.'}, status=400)
+        if _validar_solapamiento(request, clinico, data['fecha'], data['hora_inicio'], data['hora_fin']):
+            return JsonResponse({'status': 'error', 'message': 'El profesional ya tiene una cita en ese horario o excedió su capacidad multibox.'}, status=400)
 
         tipo_atencion = data.get('tipo_atencion', 'Consulta')
         opciones_validas = dict(Reserva.TIPO_ATENCION_CHOICES)
@@ -343,8 +355,8 @@ def api_mover_reserva(request, reserva_id):
         hora_anterior = reserva.hora_inicio
         _parse_horas(data)
 
-        if _validar_solapamiento(clinico, data['fecha'], data['hora_inicio'], data['hora_fin'], excluir_id=reserva_id):
-            return JsonResponse({'status': 'error', 'message': 'El profesional ya tiene una cita en ese horario.'}, status=400)
+        if _validar_solapamiento(request, clinico, data['fecha'], data['hora_inicio'], data['hora_fin'], excluir_id=reserva_id):
+            return JsonResponse({'status': 'error', 'message': 'El profesional ya tiene una cita en ese horario o excedió su capacidad multibox.'}, status=400)
 
         campos_update = ['fecha', 'hora_inicio', 'hora_fin']
         reserva.fecha = data['fecha']

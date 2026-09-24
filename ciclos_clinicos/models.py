@@ -71,3 +71,54 @@ class CicloClinico(models.Model):
 
     def etiqueta_display(self):
         return f'Ciclo #{self.numero_ciclo} — {self.get_estado_display()}'
+
+import uuid
+from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+
+def path_adjunto_historial(instance, filename):
+    clinica_id = instance.ciclo.clinica_id
+    paciente_id = instance.ciclo.paciente_id
+    ext = filename.split('.')[-1].lower()
+    filename_clean = f"{uuid.uuid4().hex[:12]}.{ext}"
+    return f"clinicas/{clinica_id}/pacientes/{paciente_id}/historiales/{filename_clean}"
+
+class AdjuntoHistorialClinico(models.Model):
+    ciclo = models.ForeignKey(
+        CicloClinico,
+        on_delete=models.CASCADE,
+        related_name='adjuntos'
+    )
+    archivo = models.FileField(
+        upload_to=path_adjunto_historial,
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'])
+        ]
+    )
+    nombre_original = models.CharField(max_length=255, blank=True)
+    peso_bytes = models.BigIntegerField(null=True, blank=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Adjunto de Historial Clínico"
+        verbose_name_plural = "Adjuntos de Historial Clínico"
+        ordering = ['-fecha_subida']
+
+    def __str__(self):
+        return f"{self.nombre_original} - Ciclo #{self.ciclo.numero_ciclo}"
+
+    def clean(self):
+        super().clean()
+        from django.core.exceptions import ObjectDoesNotExist
+        try:
+            # Validar usando el nuevo campo de excepción "regaloneo"
+            suscripcion = self.ciclo.clinica.suscripcion
+            limite = suscripcion.override_max_adjuntos
+            
+            if limite == 0:
+                raise ValidationError("La clínica no tiene habilitada la subida de archivos (override_max_adjuntos=0).")
+                
+            if not self.pk and self.ciclo.adjuntos.count() >= limite:
+                raise ValidationError(f"No se pueden adjuntar más de {limite} archivos a este historial clínico.")
+        except ObjectDoesNotExist:
+            raise ValidationError("La clínica no tiene suscripción activa, por lo que no puede subir archivos.")
