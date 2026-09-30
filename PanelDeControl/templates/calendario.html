@@ -71,13 +71,14 @@
 
         /* ── Nav ── */
         .nav {
-            height: 56px;
+            height: 64px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1.25rem;
+            padding: 0 1.5rem;
+            flex-shrink: 0;
         }
 
         .nav-brand {
@@ -724,22 +725,13 @@
         <div id="main-area">
             <!-- Navigation -->
             <header class="nav">
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                    <a href="{% url 'panel' %}" class="btn-back" title="Volver al panel principal">
-                        <i class="bx bx-arrow-back" style="font-size:1.125rem;"></i>
-                        Volver al Panel
+                <div class="flex items-center gap-2.5">
+                    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+                        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
                     </a>
-                    <div class="nav-brand"
-                        style="margin-left: 1rem; border-left: 1px solid var(--border); padding-left: 1.25rem;">
-                        <div class="nav-icon">
-                            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed">
-                        </div>
-                        <div>
-                            <div class="nav-title">{{ titulo_calendario }}</div>
-                            <div class="nav-status" style="color:var(--text-muted)">
-                                {{ subtitulo_calendario }}
-                            </div>
-                        </div>
+                    <div>
+                        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">{{ titulo_calendario }}</div>
+                        <div class="text-xs text-gray-500 font-normal">{{ subtitulo_calendario }}</div>
                     </div>
                 </div>
 
