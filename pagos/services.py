@@ -5,6 +5,7 @@ Todas las funciones son puras y no acceden a request directamente.
 from decimal import Decimal
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Sum, F, Q, Count
 
 from .models import PackAtencion, RegistroPago, DeudaPaciente, ConfiguracionPagos
 
@@ -26,7 +27,7 @@ def obtener_pack_activo(paciente, clinica):
     )
 
 
-def crear_pack(paciente, clinica, nombre, total_sesiones, precio, registrado_por, medio_pago=None, fecha_vencimiento=None, notas=''):
+def crear_pack(paciente, clinica, nombre, total_sesiones, precio, registrado_por, medio_pago=None, fecha_vencimiento=None, notas='', folio_bono='', comprobante='', estado=RegistroPago.ESTADO_PAGADO, adjunto=None):
     """Crea un nuevo pack de atenciones para un paciente y registra el ingreso."""
     with transaction.atomic():
         pack = PackAtencion.objects.create(
@@ -39,20 +40,85 @@ def crear_pack(paciente, clinica, nombre, total_sesiones, precio, registrado_por
             fecha_vencimiento=fecha_vencimiento,
             notas=notas,
         )
-        # Crear el pago para que cuadre en la caja inmediatamente
-        if pack.precio_total > 0 and medio_pago:
-            RegistroPago.objects.create(
-                paciente=paciente,
-                clinica=clinica,
-                pack=pack,
-                medio_pago=medio_pago,
-                monto=pack.precio_total,
-                estado=RegistroPago.ESTADO_PAGADO,
-                registrado_por=registrado_por,
-                notas=f'Pago por compra de pack: {pack.nombre}',
-            )
+        if pack.precio_total > 0:
+            if medio_pago:
+                # Pago inmediato: entra a caja con el estado seleccionado
+                RegistroPago.objects.create(
+                    paciente=paciente,
+                    clinica=clinica,
+                    pack=pack,
+                    medio_pago=medio_pago,
+                    monto=pack.precio_total,
+                    estado=estado,
+                    folio_bono=folio_bono,
+                    comprobante=comprobante,
+                    adjunto=adjunto,
+                    registrado_por=registrado_por,
+                    notas=f'Pago por compra de pack: {pack.nombre}. {notas}'.strip(),
+                )
+            else:
+                # Sin pago inmediato: queda como deuda pendiente del paciente
+                RegistroPago.objects.create(
+                    paciente=paciente,
+                    clinica=clinica,
+                    pack=pack,
+                    medio_pago=RegistroPago.MEDIO_EFECTIVO,  # medio provisional; se actualizará al pagar
+                    monto=pack.precio_total,
+                    estado=RegistroPago.ESTADO_PENDIENTE,
+                    registrado_por=registrado_por,
+                    notas=f'Deuda por pack: {pack.nombre} (pendiente de pago)',
+                )
+            recalcular_deuda(paciente, clinica)
     return pack
 
+
+def acumular_sesiones_pack(pack, sesiones_extra, precio_extra, registrado_por, medio_pago=None, notas='', folio_bono='', comprobante='', estado=RegistroPago.ESTADO_PAGADO, adjunto=None):
+    """
+    Suma sesiones y precio a un pack activo existente en lugar de crear uno nuevo.
+    Registra el ingreso (o deuda) correspondiente al aporte adicional.
+    """
+    with transaction.atomic():
+        pack = PackAtencion.objects.select_for_update().get(id=pack.id)
+        pack.total_sesiones += int(sesiones_extra)
+        pack.precio_total += Decimal(str(precio_extra)) if precio_extra else Decimal('0')
+        if notas:
+            pack.notas = (pack.notas + f'\n+ {sesiones_extra} sesiones acumuladas. {notas}').strip()
+        else:
+            pack.notas = (pack.notas + f'\n+ {sesiones_extra} sesiones acumuladas.').strip()
+        # Si estaba agotado, reactivar
+        if pack.estado == PackAtencion.ESTADO_AGOTADO and pack.sesiones_disponibles > 0:
+            pack.estado = PackAtencion.ESTADO_ACTIVO
+        pack.save(update_fields=['total_sesiones', 'precio_total', 'notas', 'estado'])
+
+        precio_dec = Decimal(str(precio_extra)) if precio_extra else Decimal('0')
+        if precio_dec > 0:
+            if medio_pago:
+                RegistroPago.objects.create(
+                    paciente=pack.paciente,
+                    clinica=pack.clinica,
+                    pack=pack,
+                    medio_pago=medio_pago,
+                    monto=precio_dec,
+                    estado=estado,
+                    folio_bono=folio_bono,
+                    comprobante=comprobante,
+                    adjunto=adjunto,
+                    registrado_por=registrado_por,
+                    notas=f'Recarga pack: +{sesiones_extra} sesiones — {pack.nombre}. {notas}'.strip(),
+                )
+            else:
+                RegistroPago.objects.create(
+                    paciente=pack.paciente,
+                    clinica=pack.clinica,
+                    pack=pack,
+                    medio_pago=RegistroPago.MEDIO_EFECTIVO,
+                    monto=precio_dec,
+                    estado=RegistroPago.ESTADO_PENDIENTE,
+                    registrado_por=registrado_por,
+                    notas=f'Deuda recarga pack: +{sesiones_extra} sesiones — {pack.nombre} (pendiente de pago)',
+                )
+            recalcular_deuda(pack.paciente, pack.clinica)
+    return pack
 
 def consumir_sesion_pack(pack, sesion_kinesica, registrado_por):
     """
@@ -145,6 +211,10 @@ def registrar_pago(
     comprobante='',
     estado=RegistroPago.ESTADO_PAGADO,
     notas='',
+    medio_pago_2='',
+    monto_2=0,
+    comprobante_2='',
+    adjunto=None,
 ):
     """Registra un pago individual. Recalcula la deuda al terminar."""
     pago = RegistroPago.objects.create(
@@ -159,6 +229,10 @@ def registrar_pago(
         estado=estado,
         registrado_por=registrado_por,
         notas=notas,
+        medio_pago_2=medio_pago_2,
+        monto_2=Decimal(str(monto_2)) if monto_2 else Decimal('0'),
+        comprobante_2=comprobante_2,
+        adjunto=adjunto,
     )
     recalcular_deuda(paciente, clinica)
     return pago
@@ -186,14 +260,31 @@ def anular_pago(pago, registrado_por):
     return pago
 
 
-def pago_masivo_deuda(paciente, clinica, monto_total, medio_pago, registrado_por, folio_bono='', notas=''):
-    """Liquida o abona a las sesiones con deuda usando un solo pago."""
+def pago_masivo_deuda(
+    paciente,
+    clinica,
+    monto_total,
+    medio_pago,
+    registrado_por,
+    folio_bono='',
+    notas='',
+    medio_pago_2='',
+    monto_2=0,
+    comprobante_2='',
+    comprobante='',
+    monto_1=None,
+    adjunto=None,
+    estado=RegistroPago.ESTADO_PAGADO,
+):
+    """Liquida o abona a las sesiones con deuda usando un pago (soporta pago mixto y adjunto)."""
     from SesionesKinesicas.models import SesionKinesica
-    from django.db.models import Sum
     
     monto_ingresado = Decimal(str(monto_total))
     if monto_ingresado <= 0:
         return False
+
+    m2 = Decimal(str(monto_2)) if (medio_pago_2 and monto_2) else Decimal('0')
+    m1 = Decimal(str(monto_1)) if monto_1 is not None else (monto_ingresado - m2)
         
     with transaction.atomic():
         pagos_activos = RegistroPago.objects.filter(
@@ -204,6 +295,7 @@ def pago_masivo_deuda(paciente, clinica, monto_total, medio_pago, registrado_por
         precio_default = config.precio_sesion_default
         
         monto_restante = monto_ingresado
+        pago_afectado = False
         
         # 1. Intentar saldar pagos explícitos 'Pendientes'
         pagos_pendientes = pagos_activos.filter(
@@ -213,58 +305,94 @@ def pago_masivo_deuda(paciente, clinica, monto_total, medio_pago, registrado_por
         for p in pagos_pendientes:
             if monto_restante <= 0:
                 break
-            monto_aplicar = min(monto_restante, p.monto if p.monto > 0 else precio_default)
-            if monto_aplicar >= p.monto:
-                p.estado = RegistroPago.ESTADO_PAGADO
+            p_total = p.monto_total
+            costo_base = p_total if p_total > 0 else (precio_default if precio_default > 0 else Decimal('25000'))
+            monto_aplicar = min(monto_restante, costo_base)
+            
+            if monto_aplicar >= p_total and p_total > 0:
+                p.estado = estado
                 p.medio_pago = medio_pago
+                if m2 > 0 and medio_pago_2:
+                    p.monto = m1
+                    p.medio_pago_2 = medio_pago_2
+                    p.monto_2 = m2
+                    p.comprobante_2 = comprobante_2
+                else:
+                    p.monto = monto_aplicar
+                    p.medio_pago_2 = ''
+                    p.monto_2 = Decimal('0')
                 if folio_bono: p.folio_bono = folio_bono
-                p.notas = (p.notas + f" | Saldado masivamente. {notas}").strip()
-                p.save(update_fields=['estado', 'medio_pago', 'folio_bono', 'notas'])
-                monto_restante -= p.monto
+                if comprobante: p.comprobante = comprobante
+                if adjunto: p.adjunto = adjunto
+                p.fecha_registro = timezone.now()
+                p.notas = (p.notas + f" | Saldado. {notas}").strip()
+                p.save()
+                monto_restante -= p.monto_total
+                pago_afectado = True
             else:
                 RegistroPago.objects.create(
                     paciente=paciente, clinica=clinica, sesion_kinesica=p.sesion_kinesica,
-                    pack=p.pack, medio_pago=medio_pago, monto=monto_aplicar,
-                    estado=RegistroPago.ESTADO_PAGADO, folio_bono=folio_bono,
+                    pack=p.pack, medio_pago=medio_pago,
+                    monto=m1 if (m2 > 0 and medio_pago_2) else monto_aplicar,
+                    medio_pago_2=medio_pago_2 if (m2 > 0 and medio_pago_2) else '',
+                    monto_2=m2 if (m2 > 0 and medio_pago_2) else Decimal('0'),
+                    comprobante_2=comprobante_2 if (m2 > 0 and medio_pago_2) else '',
+                    estado=estado, folio_bono=folio_bono,
+                    comprobante=comprobante, adjunto=adjunto,
                     registrado_por=registrado_por, notas=f"Abono parcial a deuda. {notas}".strip()
                 )
-                p.monto -= monto_aplicar
+                p.monto = max(Decimal('0'), p_total - monto_aplicar)
                 p.save(update_fields=['monto'])
                 monto_restante = Decimal('0')
+                pago_afectado = True
 
-        # 2. Buscar sesiones con deuda (huérfanas o parcialmente pagadas)
-        sesiones = SesionKinesica.objects.filter(
-            paciente=paciente, ciclo__clinica=clinica
-        ).order_by('fecha_creacion')
-        
-        for sesion in sesiones:
-            if monto_restante <= 0:
-                break
-                
-            pagos_sesion = pagos_activos.filter(sesion_kinesica=sesion)
-            if pagos_sesion.filter(medio_pago=RegistroPago.MEDIO_PACK).exists():
-                continue
-                
-            pagado = pagos_sesion.filter(estado__in=[RegistroPago.ESTADO_PAGADO, RegistroPago.ESTADO_BONO_POR_LLEGAR]).aggregate(total=Sum('monto'))['total'] or Decimal('0')
-            deuda_sesion = precio_default - pagado
+        # 2. Buscar sesiones con deuda (huérfanas o sin pago)
+        if monto_restante > 0 or not pago_afectado:
+            sesiones = SesionKinesica.objects.filter(
+                paciente=paciente, ciclo__clinica=clinica
+            ).order_by('fecha_creacion')
             
-            if deuda_sesion > 0:
-                monto_aplicar = min(monto_restante, deuda_sesion)
-                RegistroPago.objects.create(
-                    paciente=paciente, clinica=clinica, sesion_kinesica=sesion,
-                    medio_pago=medio_pago, monto=monto_aplicar,
-                    estado=RegistroPago.ESTADO_PAGADO, folio_bono=folio_bono,
-                    registrado_por=registrado_por, notas=f"Abono automático. {notas}".strip()
-                )
-                monto_restante -= monto_aplicar
+            for sesion in sesiones:
+                if monto_restante <= 0:
+                    break
+                    
+                pagos_sesion = pagos_activos.filter(sesion_kinesica=sesion)
+                if pagos_sesion.filter(medio_pago=RegistroPago.MEDIO_PACK).exists():
+                    continue
+                    
+                pagado = pagos_sesion.filter(estado__in=[RegistroPago.ESTADO_PAGADO, RegistroPago.ESTADO_BONO_POR_LLEGAR]).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
+                costo_ref = precio_default if precio_default > 0 else Decimal('25000')
+                deuda_sesion = costo_ref - pagado
                 
-        # 3. Si sobró plata (Abono Libre a favor del paciente)
-        if monto_restante > 0:
+                if deuda_sesion > 0:
+                    monto_aplicar = min(monto_restante, deuda_sesion)
+                    RegistroPago.objects.create(
+                        paciente=paciente, clinica=clinica, sesion_kinesica=sesion,
+                        medio_pago=medio_pago,
+                        monto=m1 if (m2 > 0 and medio_pago_2) else monto_aplicar,
+                        medio_pago_2=medio_pago_2 if (m2 > 0 and medio_pago_2) else '',
+                        monto_2=m2 if (m2 > 0 and medio_pago_2) else Decimal('0'),
+                        comprobante_2=comprobante_2 if (m2 > 0 and medio_pago_2) else '',
+                        estado=estado, folio_bono=folio_bono,
+                        comprobante=comprobante, adjunto=adjunto,
+                        registrado_por=registrado_por, notas=f"Pago deuda sesión #{sesion.numero_sesion}. {notas}".strip()
+                    )
+                    monto_restante -= (monto_aplicar if not (m2 > 0 and medio_pago_2) else (m1 + m2))
+                    pago_afectado = True
+                    
+        # 3. Si no había deuda específica o sobró saldo (Abono Libre a favor del paciente)
+        if monto_restante > 0 or not pago_afectado:
+            monto_final = m1 if (m2 > 0 and medio_pago_2) else (monto_restante if monto_restante > 0 else monto_ingresado)
             RegistroPago.objects.create(
                 paciente=paciente, clinica=clinica, sesion_kinesica=None,
-                medio_pago=medio_pago, monto=monto_restante,
-                estado=RegistroPago.ESTADO_PAGADO, folio_bono=folio_bono,
-                registrado_por=registrado_por, notas=f"Abono libre a favor. {notas}".strip()
+                medio_pago=medio_pago,
+                monto=monto_final,
+                medio_pago_2=medio_pago_2 if (m2 > 0 and medio_pago_2) else '',
+                monto_2=m2 if (m2 > 0 and medio_pago_2) else Decimal('0'),
+                comprobante_2=comprobante_2 if (m2 > 0 and medio_pago_2) else '',
+                estado=estado, folio_bono=folio_bono,
+                comprobante=comprobante, adjunto=adjunto,
+                registrado_por=registrado_por, notas=f"Abono a deuda. {notas}".strip()
             )
             
     recalcular_deuda(paciente, clinica)
@@ -278,9 +406,11 @@ def pago_masivo_deuda(paciente, clinica, monto_total, medio_pago, registrado_por
 def recalcular_deuda(paciente, clinica):
     """
     Recalcula el resumen de deuda del paciente evaluando micromorososidades por sesión.
+    Los pagos asociados a una sesión cubren únicamente dicha sesión y no se consideran
+    abonos libres para descontar deudas de otras sesiones o packs.
+    Suma tanto el monto principal como el monto del segundo medio (monto_2).
     """
     from SesionesKinesicas.models import SesionKinesica
-    from django.db.models import Sum
 
     pagos_activos = RegistroPago.objects.filter(
         paciente=paciente,
@@ -294,20 +424,20 @@ def recalcular_deuda(paciente, clinica):
 
     config = obtener_configuracion(clinica)
     precio_default = config.precio_sesion_default
+    costo_referencia = precio_default if precio_default > 0 else Decimal('25000')
 
-    # 1. Abonos Libres (Pagos sin sesión y sin pack)
+    # 1. Abonos Libres (Pagos sin sesión y sin pack confirmados a favor del paciente)
     abonos_libres = pagos_activos.filter(
         sesion_kinesica__isnull=True,
         pack__isnull=True,
         estado=RegistroPago.ESTADO_PAGADO
-    ).aggregate(total=Sum('monto'))['total'] or Decimal('0')
+    ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
 
-    # 2. Deuda explícita sin sesión (Registros manuales pendientes)
+    # 2. Deuda explícita sin sesión (Registros manuales pendientes + deudas de packs sin pago)
     deuda_explicita_sin_sesion = pagos_activos.filter(
         sesion_kinesica__isnull=True,
-        pack__isnull=True,
         estado__in=[RegistroPago.ESTADO_PENDIENTE, RegistroPago.ESTADO_BONO_POR_LLEGAR]
-    ).aggregate(total=Sum('monto'))['total'] or Decimal('0')
+    ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
 
     # 3. Calcular deuda sesión por sesión
     monto_pendiente_sesiones = Decimal('0')
@@ -316,24 +446,33 @@ def recalcular_deuda(paciente, clinica):
     for sesion in total_sesiones:
         pagos_sesion = pagos_activos.filter(sesion_kinesica=sesion)
         
+        # Si fue pagada con pack, la sesión está completamente cubierta
         if pagos_sesion.filter(medio_pago=RegistroPago.MEDIO_PACK).exists():
             continue
             
         pagado_a_sesion = pagos_sesion.filter(
             estado__in=[RegistroPago.ESTADO_PAGADO, RegistroPago.ESTADO_BONO_POR_LLEGAR]
-        ).aggregate(total=Sum('monto'))['total'] or Decimal('0')
+        ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
         
-        deuda_sesion = precio_default - pagado_a_sesion
-        
-        if deuda_sesion > 0:
-            monto_pendiente_sesiones += deuda_sesion
-            sesiones_sin_pago_completo += 1
-        elif deuda_sesion < 0:
-            # Sobrepago: el exceso se suma a los abonos libres
-            abonos_libres += abs(deuda_sesion)
+        if pagado_a_sesion > 0:
+            # La sesión fue pagada directamente. NO tiene deuda.
+            # Su pago pertenece a esta sesión y NUNCA se descuenta de la deuda de otras sesiones ni packs.
+            continue
 
-    # 4. Cálculo final
+        # Si no tiene pago confirmado, verificar si tiene un registro de pago pendiente explícito
+        pago_pendiente = pagos_sesion.filter(estado=RegistroPago.ESTADO_PENDIENTE).first()
+        if pago_pendiente and (pago_pendiente.monto + pago_pendiente.monto_2) > 0:
+            monto_pendiente_sesiones += (pago_pendiente.monto + pago_pendiente.monto_2)
+            sesiones_sin_pago_completo += 1
+        else:
+            # Sesión sin ningún pago asociado
+            monto_pendiente_sesiones += costo_referencia
+            sesiones_sin_pago_completo += 1
+
+    # 4. Cálculo final: solo los abonos explícitamente libres disminuyen la deuda
     monto_pendiente_total = monto_pendiente_sesiones + deuda_explicita_sin_sesion - abonos_libres
+    if monto_pendiente_total < Decimal('0'):
+        monto_pendiente_total = Decimal('0')
     
     bonos_por_llegar = pagos_activos.filter(estado=RegistroPago.ESTADO_BONO_POR_LLEGAR).count()
 
@@ -348,7 +487,7 @@ def recalcular_deuda(paciente, clinica):
     )
     return deuda
 
-def editar_pago(pago, monto, medio_pago, estado, folio_bono='', comprobante='', notas=''):
+def editar_pago(pago, monto, medio_pago, estado, folio_bono='', comprobante='', notas='', medio_pago_2='', monto_2=0, comprobante_2='', adjunto=None):
     """Edita un pago existente y recalcula la deuda."""
     with transaction.atomic():
         pago.monto = Decimal(str(monto))
@@ -357,7 +496,12 @@ def editar_pago(pago, monto, medio_pago, estado, folio_bono='', comprobante='', 
         pago.folio_bono = folio_bono
         pago.comprobante = comprobante
         pago.notas = notas
-        pago.save(update_fields=['monto', 'medio_pago', 'estado', 'folio_bono', 'comprobante', 'notas'])
+        pago.medio_pago_2 = medio_pago_2
+        pago.monto_2 = Decimal(str(monto_2)) if monto_2 else Decimal('0')
+        pago.comprobante_2 = comprobante_2
+        if adjunto:
+            pago.adjunto = adjunto
+        pago.save()
         
     recalcular_deuda(pago.paciente, pago.clinica)
     return pago
@@ -431,16 +575,18 @@ def obtener_resumen_financiero_clinica(clinica):
 
     ingresos_mes = pagos_mes.filter(
         estado=RegistroPago.ESTADO_PAGADO
-    ).aggregate(total=Sum('monto'))['total'] or 0
+    ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or 0
 
     bonos_pendientes = RegistroPago.objects.filter(
         clinica=clinica,
         estado=RegistroPago.ESTADO_BONO_POR_LLEGAR,
     ).count()
 
+    from django.db.models import Q
     pacientes_con_deuda = DeudaPaciente.objects.filter(
         clinica=clinica,
-        sesiones_sin_pago__gt=0,
+    ).filter(
+        Q(sesiones_sin_pago__gt=0) | Q(monto_pendiente__gt=0)
     ).count()
 
     packs_activos = PackAtencion.objects.filter(

@@ -417,9 +417,17 @@
             <header id="main-header" class="flex items-center justify-between px-4 sm:px-6 bg-white border-b border-gray-100 shadow-sm">
                 <!-- Izquierda: Título de la vista -->
                 <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <h1 class="text-base sm:text-lg font-semibold text-gray-800 truncate">
-                        {% block header_title %}Panel Médico{% endblock %}
-                    </h1>
+                    {% block header_title %}
+                    <div class="flex items-center gap-2.5">
+                        <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+                            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+                        </a>
+                        <div>
+                            <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Panel Médico</div>
+                            <div class="text-xs text-gray-500 font-normal">Gestión clínica y pacientes</div>
+                        </div>
+                    </div>
+                    {% endblock %}
                 </div>
 
                 <!-- Derecha: Marca del centro + KenkoMed + perfil -->

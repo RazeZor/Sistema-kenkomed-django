@@ -241,6 +241,10 @@ if _csrf_origins:
     CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_origins.split(',') if o.strip()]
 else:
     CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8080',
+        'http://127.0.0.1:8080',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
         'https://2695-2803-c600-8104-8392-89f9-6098-6dd5-84db.ngrok-free.app',
         'https://*.ngrok-free.app',
         'https://software.kenkomed.cl',

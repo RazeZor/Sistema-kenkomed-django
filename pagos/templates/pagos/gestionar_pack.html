@@ -1,7 +1,8 @@
 {% extends "base_kenkomed.html" %}
 {% load static %}
 
-{% block title %}Crear Pack de Atenciones — KenkoMed{% endblock %}
+{% block title %}{% if pack_activo %}Acumular Sesiones al Pack{% else %}Crear Pack de Atenciones{% endif %} — KenkoMed{% endblock %}
+{% block header_title %}{% if pack_activo %}Acumular Sesiones al Pack{% else %}Nuevo Pack de Atenciones{% endif %}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -43,7 +44,7 @@
 {% block content %}
 <div class="gp-container">
   <div class="gp-header">
-    <h1><i class='bx bx-package' style="color:#2563eb;"></i> Nuevo Pack de Atenciones</h1>
+    <h1><i class='bx bx-package' style="color:#2563eb;"></i> {% if pack_activo %}Acumular Sesiones al Pack{% else %}Nuevo Pack de Atenciones{% endif %}</h1>
     <a href="{% url 'pagos:dashboard' %}" style="font-size:12px; color:#64748b; text-decoration:none;">← Volver al dashboard</a>
   </div>
 
@@ -55,7 +56,7 @@
     {% endfor %}
   {% endif %}
 
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
     <!-- Paciente -->
@@ -83,9 +84,23 @@
     <div class="gp-card">
       <h2><i class='bx bx-detail'></i> Configurar Pack</h2>
 
+      {% if pack_activo %}
+      <!-- Banner pack activo -->
+      <input type="hidden" name="acumular_pack" value="1">
+      <div style="background:#eff6ff; border:1.5px solid #bfdbfe; border-radius:10px; padding:14px 16px; margin-bottom:18px; display:flex; align-items:center; gap:12px;">
+        <i class='bx bx-package' style="font-size:24px; color:#2563eb; flex-shrink:0;"></i>
+        <div>
+          <div style="font-size:13px; font-weight:700; color:#1e3a8a;">Pack activo detectado: {{ pack_activo.nombre }}</div>
+          <div style="font-size:11.5px; color:#475569; margin-top:2px;">
+            El paciente tiene <strong>{{ pack_activo.sesiones_disponibles }}</strong> sesiones disponibles de {{ pack_activo.total_sesiones }} totales. Las sesiones se sumarán automáticamente a este pack.
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
       <!-- Presets rápidos -->
       <div class="form-group">
-        <label>Presets rápidos</label>
+        <label>{% if pack_activo %}Sesiones a sumar al pack{% else %}Sesiones a agregar{% endif %}</label>
         <div class="pack-presets">
           <span class="pack-preset" onclick="setPreset('Pack 5 sesiones', 5)">📦 5 sesiones</span>
           <span class="pack-preset" onclick="setPreset('Pack 10 sesiones', 10)">📦 10 sesiones</span>
@@ -94,10 +109,12 @@
         </div>
       </div>
 
-      <div class="form-group">
+      {% if not pack_activo %}
+      <div class="form-group" id="nombre-pack-field">
         <label for="nombre">Nombre del pack *</label>
         <input type="text" name="nombre" id="nombre" placeholder="Ej: Pack 10 sesiones" required>
       </div>
+      {% endif %}
 
       <div class="form-row">
         <div class="form-group">
@@ -113,15 +130,46 @@
 
       <div class="form-group">
         <label for="medio_pago">Medio de Pago (Opcional)</label>
-        <select name="medio_pago" id="medio_pago">
-          <option value="">-- No registrar pago en la caja ahora --</option>
+        <select name="medio_pago" id="medio_pago" onchange="toggleDetallePagoPack(this.value)">
+          <option value="">Dejar como deuda pendiente (pagar después)</option>
           {% for value, label in medios_pago %}
             {% if value != 'pack' %}
               <option value="{{ value }}">{{ label }}</option>
             {% endif %}
           {% endfor %}
         </select>
-        <div class="form-help">Si seleccionas un medio de pago, el monto total ingresará a la caja de la clínica automáticamente.</div>
+        <div class="form-help">Si seleccionas un medio de pago, el monto entra a caja inmediatamente. Si lo dejas vacío, el monto queda como <strong>deuda pendiente</strong> del paciente y aparecerá en el panel de pagos.</div>
+      </div>
+
+      <!-- Detalles del pago si se selecciona medio de pago -->
+      <div id="seccion-pago-pack" style="display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:16px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="estado_pack">Estado del Pago *</label>
+            <select name="estado" id="estado_pack">
+              {% for val, lab in estados_pago %}
+                {% if val != 'anulado' %}
+                <option value="{{ val }}" {% if val == 'pagado' %}selected{% endif %}>{{ lab }}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="folio_bono_pack">Folio / N° Bono</label>
+            <input type="text" name="folio_bono" id="folio_bono_pack" placeholder="Ej: 123456">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="comprobante_pack">Comprobante / Referencia</label>
+          <input type="text" name="comprobante" id="comprobante_pack" placeholder="N° transferencia, voucher...">
+        </div>
+
+        <div class="form-group" style="margin-bottom:0;">
+          <label for="adjunto_pack"><i class='bx bx-image' style="color:#2563eb;"></i> Adjuntar Imagen / Comprobante (Opcional)</label>
+          <input type="file" name="adjunto" id="adjunto_pack" accept="image/*,.pdf" style="padding:6px; font-size:12px; background:#fff; width:100%; border:1px dashed #cbd5e1; border-radius:6px;">
+          <div class="form-help">Opcional: foto o pantallazo del comprobante de pago.</div>
+        </div>
       </div>
 
       <div class="form-group">
@@ -138,8 +186,8 @@
 
     <div style="display:flex; gap:10px; justify-content:flex-end;">
       <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn-pagos btn-secondary">Cancelar</a>
-      <button type="submit" class="btn-pagos btn-primary">
-        <i class='bx bx-save'></i> Crear pack
+      <button type="submit" class="btn-pagos btn-primary" id="btn-submit-pack">
+        <i class='bx {% if pack_activo %}bx-plus-circle{% else %}bx-save{% endif %}'></i> {% if pack_activo %}Acumular sesiones al pack{% else %}Crear pack{% endif %}
       </button>
     </div>
     {% endif %}
@@ -152,6 +200,11 @@ function setPreset(nombre, sesiones) {
   const s = document.getElementById('total_sesiones');
   if (n) n.value = nombre;
   if (s) s.value = sesiones;
+}
+
+function toggleDetallePagoPack(val) {
+  const sec = document.getElementById('seccion-pago-pack');
+  if (sec) sec.style.display = val ? 'block' : 'none';
 }
 </script>
 {% endblock %}

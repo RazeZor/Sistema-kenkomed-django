@@ -1,11 +1,22 @@
 {% extends 'base_kenkomed.html' %}
+{% load static %}
 
 {% block title %}Mi Centro | KenkoMed{% endblock %}
 
-{% block header_title %}Mi Centro{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Mi Centro</div>
+        <div class="text-xs text-gray-500 font-normal">Información de tu centro médico</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="px-4 py-8 mx-auto max-w-6xl sm:px-6 lg:px-8">
+<div class="px-4 mx-auto max-w-6xl sm:px-6 lg:px-8">
 
     {% if clinica %}
     <!-- Hero Banner (Premium SaaS Style) -->
@@ -14,7 +25,7 @@
         <div class="absolute top-0 right-0 -mr-20 -mt-20 w-72 h-72 rounded-full bg-white/5 blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
         <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-60 h-60 rounded-full bg-medical-blue/20 blur-3xl group-hover:bg-medical-blue/30 transition-all duration-700"></div>
         
-        <div class="relative p-8 md:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-8 z-10">
+        <div class="relative p-3 md:p-8 flex flex-col md:flex-row md:items-center md:justify-between gap-8 z-10">
             <div class="flex items-center gap-6">
                 {% if clinica.logo %}
                 <div class="w-24 h-24 p-1.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner flex items-center justify-center">
@@ -30,10 +41,6 @@
                     <div class="flex items-center gap-3 mb-2">
                         <span class="px-3 py-1 text-xs font-bold tracking-wider text-white uppercase bg-white/10 backdrop-blur-sm rounded-full border border-white/20 shadow-sm">
                             Mi Centro
-                        </span>
-                        <span class="flex items-center gap-1.5 text-xs font-medium text-emerald-400 bg-emerald-400/10 px-2.5 py-1 rounded-full border border-emerald-400/20">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Activo
                         </span>
                     </div>
                     <h2 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-sm">{{ clinica.nombre }}</h2>
@@ -55,10 +62,10 @@
 
     <!-- Key Metrics Grid -->
     <div class="grid grid-cols-1 gap-5 mb-10 sm:grid-cols-3 -mt-6 relative z-20 px-4 md:px-8">
-        <div class="p-6 rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
+        <div class="p-6 rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/40">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Profesionales</p>
-                <div class="w-10 h-10 rounded-xl bg-blue-50 text-medical-blue flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-xl bg-blue-50 text-medical-blue flex items-center justify-center">
                     <i class='bx bx-group text-xl'></i>
                 </div>
             </div>
@@ -66,10 +73,10 @@
             <p class="text-sm text-gray-500 font-medium mt-1">Miembros activos</p>
         </div>
         
-        <div class="p-6 rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
+        <div class="p-6 rounded-2xl bg-white border border-gray-100 shadow-xl shadow-gray-200/40">
             <div class="flex items-center justify-between mb-4">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Tipo de Centro</p>
-                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
                     <i class='bx bx-category text-xl'></i>
                 </div>
             </div>
@@ -105,7 +112,7 @@
     </div>
 
     <!-- Team Section -->
-    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden mb-8">
+    <div class="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
         <div class="px-8 py-6 border-b border-gray-50 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
                 <h3 class="text-xl font-bold text-gray-900 flex items-center gap-2">

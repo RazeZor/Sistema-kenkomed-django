@@ -10,6 +10,30 @@
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.4/boxicons.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        medical: {
+                            blue: '#0284c7',
+                            'blue-light': '#38bdf8',
+                            'blue-dark': '#0369a1',
+                            green: '#10b981',
+                            red: '#ef4444',
+                            orange: '#f59e0b',
+                            teal: '#14b8a6'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 
     <style>
         *,
@@ -47,13 +71,14 @@
 
         /* ── Nav ── */
         .nav {
-            height: 56px;
+            height: 64px;
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 1.25rem;
+            padding: 0 1.5rem;
+            flex-shrink: 0;
         }
 
         .nav-brand {
@@ -159,12 +184,34 @@
             background: #075985;
         }
 
+        /* ── App Shell & Layout ── */
+        #app-shell {
+            display: flex;
+            height: 100dvh;
+            overflow: hidden;
+        }
+
+        #main-area {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
         /* ── Calendar Wrapper ── */
         .cal-wrapper {
-            height: calc(100vh - 56px);
+            flex: 1;
             padding: 1.25rem;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+
+        @media (max-width: 1023px) {
+            .cal-wrapper {
+                padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+            }
         }
 
         .cal-card {
@@ -670,85 +717,82 @@
     </style>
 </head>
 
-<body>
+<body class="bg-white">
 
-    <!-- Navigation -->
-    <header class="nav">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-            <a href="{% url 'panel' %}" class="btn-back" title="Volver al panel principal">
-                <i class="bx bx-arrow-back" style="font-size:1.125rem;"></i>
-                Volver al Panel
-            </a>
-            <div class="nav-brand"
-                style="margin-left: 1rem; border-left: 1px solid var(--border); padding-left: 1.25rem;">
-                <div class="nav-icon">
-                    <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed">
-                </div>
-                <div>
-                    <div class="nav-title">{{ titulo_calendario }}</div>
-                    <div class="nav-status" style="color:var(--text-muted)">
-                        {{ subtitulo_calendario }}
+    <div id="app-shell">
+        {% include 'menu.html' %}
+
+        <div id="main-area">
+            <!-- Navigation -->
+            <header class="nav">
+                <div class="flex items-center gap-2.5">
+                    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+                        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+                    </a>
+                    <div>
+                        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">{{ titulo_calendario }}</div>
+                        <div class="text-xs text-gray-500 font-normal">{{ subtitulo_calendario }}</div>
                     </div>
                 </div>
+
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    {% if es_centro_compartido %}
+                    {% if modo_calendario == 'personal' %}
+                    <a href="{% url 'calendario_clinica' %}" class="btn-switch">
+                        <i class="bx bx-buildings"></i> Agenda del centro
+                    </a>
+                    {% else %}
+                    <a href="{% url 'calendario_personal' %}" class="btn-switch">
+                        <i class="bx bx-user"></i> Mi agenda
+                    </a>
+                    {% endif %}
+                    {% endif %}
+                    <button id="btnNuevaReserva" onclick="abrirModalCrear()" class="btn-primary" {% if solo_lectura %}style="display:none"{% endif %}>
+                        <i class="bx bx-plus" style="font-size:1rem;"></i>
+                        Nueva reserva
+                    </button>
+                </div>
+            </header>
+
+            {% if solo_lectura %}
+            <div class="readonly-banner">
+                <i class="bx bx-show"></i>
+                Modo solo lectura — las citas del centro no se pueden modificar. Usa <strong>Mi agenda</strong> para gestionar
+                tus propias citas.
             </div>
-        </div>
-
-        <div style="display:flex;align-items:center;gap:0.5rem;">
-            {% if es_centro_compartido %}
-            {% if modo_calendario == 'personal' %}
-            <a href="{% url 'calendario_clinica' %}" class="btn-switch">
-                <i class="bx bx-buildings"></i> Agenda del centro
-            </a>
-            {% else %}
-            <a href="{% url 'calendario_personal' %}" class="btn-switch">
-                <i class="bx bx-user"></i> Mi agenda
-            </a>
             {% endif %}
-            {% endif %}
-            <button id="btnNuevaReserva" onclick="abrirModalCrear()" class="btn-primary" {% if solo_lectura %}style="display:none"{% endif %}>
-                <i class="bx bx-plus" style="font-size:1rem;"></i>
-                Nueva reserva
-            </button>
-        </div>
-    </header>
 
-    {% if solo_lectura %}
-    <div class="readonly-banner">
-        <i class="bx bx-show"></i>
-        Modo solo lectura — las citas del centro no se pueden modificar. Usa <strong>Mi agenda</strong> para gestionar
-        tus propias citas.
+            <!-- Calendar -->
+            <main class="cal-wrapper">
+                <div class="cal-card">
+                    <div class="legend-bar">
+                        <span class="legend-title">Modalidad de atención:</span>
+                        <div class="legend-item">
+                            <span class="legend-badge" style="background:#0284c7;"></span>
+                            <i class="bx bx-building"></i> Presencial
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge" style="background:#059669;"></span>
+                            <i class="bx bx-home"></i> Domicilio
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge" style="background:#7c3aed;"></span>
+                            <i class="bx bx-laptop"></i> Telemedicina
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge" style="background:#d97706;"></span>
+                            <i class="bx bx-map-pin"></i> Otro
+                        </div>
+                        <div class="legend-item" style="margin-left:auto;">
+                            <span class="legend-badge" style="background:#94a3b8;"></span>
+                            <i class="bx bx-x-circle"></i> Cancelada
+                        </div>
+                    </div>
+                    <div id="calendar"></div>
+                </div>
+            </main>
+        </div>
     </div>
-    {% endif %}
-
-    <!-- Calendar -->
-    <main class="cal-wrapper">
-        <div class="cal-card">
-            <div class="legend-bar">
-                <span class="legend-title">Modalidad de atención:</span>
-                <div class="legend-item">
-                    <span class="legend-badge" style="background:#0284c7;"></span>
-                    <i class="bx bx-building"></i> Presencial
-                </div>
-                <div class="legend-item">
-                    <span class="legend-badge" style="background:#059669;"></span>
-                    <i class="bx bx-home"></i> Domicilio
-                </div>
-                <div class="legend-item">
-                    <span class="legend-badge" style="background:#7c3aed;"></span>
-                    <i class="bx bx-laptop"></i> Telemedicina
-                </div>
-                <div class="legend-item">
-                    <span class="legend-badge" style="background:#d97706;"></span>
-                    <i class="bx bx-map-pin"></i> Otro
-                </div>
-                <div class="legend-item" style="margin-left:auto;">
-                    <span class="legend-badge" style="background:#94a3b8;"></span>
-                    <i class="bx bx-x-circle"></i> Cancelada
-                </div>
-            </div>
-            <div id="calendar"></div>
-        </div>
-    </main>
 
     <!-- Modal -->
     <div id="reservaModal" class="modal-overlay">
@@ -1034,6 +1078,20 @@
                 }
             });
             calendar.render();
+            if (window.ResizeObserver) {
+                let rafId;
+                const ro = new ResizeObserver(() => {
+                    cancelAnimationFrame(rafId);
+                    rafId = requestAnimationFrame(() => {
+                        if (calendar) {
+                            calendar.updateSize();
+                        }
+                    });
+                });
+                const calEl = document.getElementById('calendar');
+                if (calEl) ro.observe(calEl);
+            }
+
 
             document.getElementById('paciente_rut').addEventListener('change', function (e) {
                 const option = e.target.options[e.target.selectedIndex];

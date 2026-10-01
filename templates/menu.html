@@ -38,16 +38,91 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* Sidebar slide animation */
-        #sidebar {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                        width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        /* Prevent animated transitions during initial page load to eliminate flicker */
+        .sidebar-initial-load,
+        .sidebar-initial-load * {
+            transition: none !important;
         }
 
-        /* Nav link active state */
-        .nav-link-active .nav-icon {
-            background-color: #0284c7 !important;
-            color: white !important;
+        /* Sidebar collapse transitions & styles */
+        #sidebar {
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+        }
+
+        #sidebar.sidebar-collapsed {
+            width: 90px !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        #sidebar.sidebar-collapsed .sidebar-text-content,
+        #sidebar.sidebar-collapsed .sidebar-brand-text {
+            display: none !important;
+            opacity: 0;
+        }
+
+        #sidebar.sidebar-collapsed .sidebar-item-link {
+            justify-content: center !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+        }
+
+        #sidebar.sidebar-collapsed .sidebar-header-title {
+            display: flex !important;
+            justify-content: center !important;
+        }
+
+        #sidebar.sidebar-collapsed .sidebar-header-box {
+            justify-content: center !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+        }
+
+        /* Tooltip on hover when collapsed */
+        #sidebar.sidebar-collapsed .sidebar-item-link:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            margin-left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #18181b;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            z-index: 100;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.15);
+            pointer-events: none;
+        }
+
+        /* Hover micro-interactions for menu items */
+        .sidebar-item-link {
+            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-item-link:hover {
+            background-color: rgba(2, 132, 199, 0.08) !important;
+            transform: translateX(4px);
+        }
+
+        .sidebar-item-link:hover .sidebar-text-content span {
+            color: #0284c7 !important;
+            font-weight: 600;
+        }
+
+        .sidebar-item-link:hover i {
+            color: #0284c7 !important;
+            transform: scale(1.15);
+            transition: transform 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-item-link:hover div:first-child {
+            background-color: rgba(2, 132, 199, 0.2) !important;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
         }
 
         /* Bottom nav item */
@@ -116,116 +191,178 @@
 </head>
 <body class="font-sans">
 
-    <!-- ============================================================ -->
-    <!-- SIDEBAR DESKTOP (lg+) - Siempre visible, colapsable en md    -->
-    <!-- ============================================================ -->
-    <aside class="hidden lg:flex flex-col h-screen bg-white border-r border-gray-100 transition-all duration-300 flex-shrink-0 w-20 xl:w-64" id="sidebar">
-        <!-- Logo -->
-        <div class="flex items-center justify-center xl:justify-start min-h-16 px-3 xl:px-4 py-3 border-b border-gray-100 flex-shrink-0">
-            <a href="{% url 'panel' %}" class="flex flex-col xl:flex-row xl:items-center gap-2 xl:gap-3 w-full">
-                <div class="flex items-center justify-center xl:justify-start w-full">
-                    {% include 'partials/marca_dual.html' with variant='sidebar' %}
-                </div>
-                {% if clinica_nombre and not clinica_logo_url %}
-                <span class="hidden xl:block text-xs text-gray-500 truncate max-w-[10rem]">{{ clinica_nombre }}</span>
-                {% endif %}
-            </a>
-        </div>
+    <!-- Immediate inline check to prevent any layout shift or flicker on page load -->
+    <script>
+        (function() {
+            try {
+                if (localStorage.getItem('kenko_sidebar_collapsed') === 'true') {
+                    document.write('<style id="sidebar-preload-style">#sidebar{width:90px!important;padding-left:0.5rem!important;padding-right:0.5rem!important;}#sidebar .sidebar-text-content,#sidebar .sidebar-brand-text{display:none!important;}#sidebar .sidebar-item-link,#sidebar .sidebar-header-box{justify-content:center!important;padding-left:0.25rem!important;padding-right:0.25rem!important;}</style>');
+                }
+            } catch(e) {}
+        })();
+    </script>
 
-        <!-- Nav principal -->
-        <div class="flex flex-col flex-1 py-4 overflow-y-auto scrollbar-hide">
-            <nav class="px-2 space-y-1">
-
-                <a href="{% url 'panel' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if request.path == '/panel/' %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if request.path == '/panel/' %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-home'></i>
+    <!-- ============================================================ -->
+    <!-- SIDEBAR DESKTOP (lg+) - Estilo Blanco Desplegable / Colapsable -->
+    <!-- ============================================================ -->
+    <aside class="hidden lg:flex flex-col h-screen bg-white text-gray-800 sidebar-initial-load flex-shrink-0 w-64 select-none z-30" id="sidebar">
+        <!-- Inner Card Container -->
+        <div class="flex flex-col h-full bg-white rounded-2xl shadow-sm overflow-hidden">
+            
+            <!-- Header -->
+            <div class="sidebar-header-box flex items-center justify-between px-3.5   flex-shrink-0 min-h-[64px]">
+                <a href="{% url 'panel' %}" class="sidebar-header-title flex items-center gap-3 min-w-0 overflow-hidden transition-all duration-300">
+                    <div class="flex items-center gap-2">
+                        {% include 'partials/marca_dual.html' with variant='sidebar' %}
                     </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Inicio</span>
                 </a>
                 
-                {% if not es_secretaria %}
-                <a href="{% url 'calendario_personal' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-calendar'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Mi Agenda</span>
-                </a>
-                {% endif %}
-
-                {% if puede_gestionar_agenda_centro %}
-                <a href="{% url 'calendario_clinica' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/clinica' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-buildings'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Agenda Centro</span>
-                </a>
-                {% elif puede_ver_agenda_centro %}
-                <a href="{% url 'calendario_clinica' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/calendario/clinica' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-buildings'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Agenda Centro</span>
-                </a>
-                {% endif %}
-
-                <a href="{% url 'pacientes' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/ListaPacientes' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/ListaPacientes' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-folder-open'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Mis Pacientes</span>
-                </a>
-
-                {% if features.gestion_pagos %}
-                <a href="{% url 'pagos:dashboard' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/pagos/' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/pagos/' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-wallet'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Pagos & Packs</span>
-                </a>
-                {% endif %}
-                {% if not es_secretaria %}
-                <a href="{% url 'mi_centro' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/clinicas/mi-centro' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-buildings'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Mi Centro</span>
-                </a>
-                {% endif %}
-
-                {% if puede_ver_estadisticas_centro or estadisticas_globales %}
-                <a href="{% url 'estadisticas' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-bar-chart-alt-2'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">
-                        {% if estadisticas_globales %}Estad. Globales{% else %}Estad. Centro{% endif %}
-                    </span>
-                </a>
-                {% endif %}
-
-                {% if puede_ver_auditoria %}
-                <a href="{% url 'auditoria_accesos' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all group rounded-xl hover:bg-gray-50 {% if 'auditoria-accesos' in request.path %}nav-link-active{% endif %}">
-                    <div class="nav-icon flex items-center justify-center flex-shrink-0 w-9 h-9 rounded-lg transition-all {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-600 group-hover:bg-medical-blue group-hover:text-white{% endif %}">
-                        <i class='text-lg bx bx-shield-quarter'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Auditoría</span>
-                </a>
-                {% endif %}
-
-
-
-            </nav>
-
-            <!-- Logout -->
-            <div class="px-2 mt-auto pt-4">
-                <hr class="mb-4 border-gray-100">
-                <a href="{% url 'cerrarSesion' %}" class="flex items-center p-2.5 xl:p-3 text-gray-700 transition-all rounded-xl hover:bg-red-50 hover:text-red-500 group">
-                    <div class="flex items-center justify-center flex-shrink-0 w-9 h-9 bg-gray-100 rounded-lg group-hover:bg-red-100 group-hover:text-red-500 transition-all">
-                        <i class='text-lg bx bx-log-out'></i>
-                    </div>
-                    <span class="hidden xl:block ml-3 text-sm font-medium">Cerrar Sesión</span>
-                </a>
+                <!-- Collapse Toggle Button -->
+                <button type="button" id="sidebarToggleBtn" onclick="toggleSidebarCollapse()" 
+                        class="flex items-center justify-center w-8 h-8 rounded-xl bg-gray-100 hover:bg-medical-blue/10 text-gray-500 hover:text-medical-blue border border-gray-200/60 transition-all shrink-0 ml-auto focus:outline-none shadow-xs cursor-pointer"
+                        title="Contraer / Expandir menú">
+                    <i id="sidebarToggleIcon" class='text-lg bx bx-chevron-left'></i>
+                </button>
             </div>
+            <!-- Nav principal -->
+            <div class="flex flex-col flex-1 py-3 px-2 space-y-1.5 overflow-y-auto scrollbar-hide">
+                
+                <!-- 1. Inicio -->
+                <a href="{% url 'panel' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if request.path == '/panel/' %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Inicio">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if request.path == '/panel/' %}bg-medical-blue/20 text-medical-blue{% else %}bg-indigo-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-home-alt {% if request.path == "/panel/" %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Inicio</span>
+                    </div>
+                </a>
+
+                <!-- 2. Mi Agenda -->
+                {% if not es_secretaria %}
+                <a href="{% url 'calendario_personal' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Mi Agenda">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue/20 text-medical-blue{% else %}bg-sky-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-calendar {% if "/calendario/personal" in request.path or request.path == "/calendario/" %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Mi Agenda</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 3. Agenda Centro -->
+                {% if puede_gestionar_agenda_centro or puede_ver_agenda_centro %}
+                <a href="{% url 'calendario_clinica' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/calendario/clinica' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Agenda Centro">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/clinica' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-teal-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-buildings {% if "/calendario/clinica" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Agenda Centro</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 4. Mis Pacientes -->
+                <a href="{% url 'pacientes' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/ListaPacientes' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Mis Pacientes">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/ListaPacientes' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-purple-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-folder-open {% if "/ListaPacientes" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Mis Pacientes</span>
+                    </div>
+                </a>
+
+                <!-- 5. Pagos & Packs -->
+                {% if features.gestion_pagos %}
+                <a href="{% url 'pagos:dashboard' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/pagos/' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Pagos & Packs">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/pagos/' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-amber-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-wallet {% if "/pagos/" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Pagos & Packs</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 6. Mi Centro -->
+                {% if not es_secretaria %}
+                <a href="{% url 'mi_centro' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Mi Centro">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-emerald-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-store-alt {% if "/clinicas/mi-centro" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Mi Centro</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 7. Estadísticas -->
+                {% if puede_ver_estadisticas_centro or estadisticas_globales %}
+                <a href="{% url 'estadisticas' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Estadísticas">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-cyan-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-bar-chart-alt-2 {% if "/estadisticas/" in request.path and "paciente" not in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">
+                            {% if estadisticas_globales %}Estad. Globales{% else %}Estad. Centro{% endif %}
+                        </span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 8. Auditoría -->
+                {% if puede_ver_auditoria %}
+                <a href="{% url 'auditoria_accesos' %}" 
+                   class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if 'auditoria-accesos' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
+                   data-tooltip="Auditoría">
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if 'auditoria-accesos' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-blue-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-shield-quarter {% if "auditoria-accesos" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    </div>
+                    <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                        <span class="text-sm font-medium leading-none truncate block">Auditoría</span>
+                    </div>
+                </a>
+                {% endif %}
+
+                <!-- 9. Cerrar Sesión -->
+                <div class="pt-2 mt-auto">
+                    <a href="{% url 'cerrarSesion' %}" 
+                       class="sidebar-item-link flex items-center p-2 rounded-xl text-red-600 hover:bg-red-50 transition-all group relative"
+                       data-tooltip="Cerrar Sesión">
+                        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl bg-rose-500/40 text-black/50 shadow-xs group-hover:scale-105 transition-transform">
+                            <i class='text-xl bx bx-log-out text-black/50'></i>
+                        </div>
+                        <div class="sidebar-text-content ml-3 flex-1 min-w-0">
+                            <span class="text-sm font-medium leading-none truncate block">Cerrar Sesión</span>
+                        </div>
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- Bottom Card -->
+            <div class="sidebar-text-content p-3.5 m-2.5 rounded-xl bg-gradient-to-b from-sky-50 to-blue-50/50 border border-sky-100 text-gray-800 shadow-xs overflow-hidden flex-shrink-0">
+                <div class="flex items-center gap-2 mb-1.5">
+                    <div class="w-2 h-2 rounded-full bg-medical-green animate-pulse"></div>
+                    <span class="text-[11px] font-bold tracking-wider uppercase text-medical-blue">KenkoMed</span>
+                </div>
+                <p class="text-xs text-gray-800 font-semibold leading-snug">Gestión Médica Profesional</p>
+                <p class="text-[10px] text-gray-500 mt-0.5">Control de pacientes & kinesiología</p>
+            </div>
+
         </div>
     </aside>
 
@@ -397,6 +534,54 @@
     </div>
 
     <script>
+        function toggleSidebarCollapse() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.getElementById('sidebarToggleIcon');
+            const preloadStyle = document.getElementById('sidebar-preload-style');
+            if (preloadStyle) preloadStyle.remove();
+            
+            if (!sidebar) return;
+            
+            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+            if (isCollapsed) {
+                sidebar.classList.remove('sidebar-collapsed');
+                if (toggleIcon) toggleIcon.className = "text-lg bx bx-chevron-left";
+                localStorage.setItem('kenko_sidebar_collapsed', 'false');
+            } else {
+                sidebar.classList.add('sidebar-collapsed');
+                if (toggleIcon) toggleIcon.className = "text-lg bx bx-chevron-right";
+                localStorage.setItem('kenko_sidebar_collapsed', 'true');
+            }
+            // Trigger window resize events throughout the CSS transition timeline
+            [0, 50, 150, 250, 320, 400].forEach(delay => {
+                setTimeout(() => {
+                    window.dispatchEvent(new Event('resize'));
+                }, delay);
+            });
+        }
+
+        (function() {
+            function applySidebarState() {
+                const isCollapsed = localStorage.getItem('kenko_sidebar_collapsed') === 'true';
+                const sidebar = document.getElementById('sidebar');
+                const toggleIcon = document.getElementById('sidebarToggleIcon');
+                if (sidebar) {
+                    if (isCollapsed) {
+                        sidebar.classList.add('sidebar-collapsed');
+                        if (toggleIcon) toggleIcon.className = "text-lg bx bx-chevron-right";
+                    }
+                    setTimeout(function() {
+                        sidebar.classList.remove('sidebar-initial-load');
+                    }, 60);
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', applySidebarState);
+            } else {
+                applySidebarState();
+            }
+        })();
+
         function openDrawer() {
             const overlay = document.getElementById('drawerOverlay');
             const drawer = document.getElementById('sideDrawer');

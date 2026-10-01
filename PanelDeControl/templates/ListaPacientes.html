@@ -1,8 +1,19 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Lista de Pacientes - Sistema Clínico{% endblock %}
-{% block header_title %}Lista de Pacientes{% endblock %}
+{% block title %}Lista de Pacientes - KenkoMed{% endblock %}
+
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Lista de Pacientes</div>
+        <div class="text-xs text-gray-500 font-normal">Gestión y registro de pacientes</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="space-y-6">

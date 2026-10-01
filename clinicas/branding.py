@@ -61,9 +61,6 @@ def url_logo_clinica(clinica, request=None):
     try:
         if not clinica.logo.storage.exists(clinica.logo.name):
             return None
-        url = clinica.logo.url
-        if request:
-            return request.build_absolute_uri(url)
-        return url
+        return clinica.logo.url
     except (ValueError, OSError):
         return None

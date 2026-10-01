@@ -12,7 +12,7 @@
 
     <!-- Header -->
     <div class="flex items-center gap-4">
-        <a href="/panel/historialClinico/?rut={{ paciente.rut }}"
+        <a href="/panel/historialClinico/?rut={{ paciente.rut }}" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }"
            class="inline-flex items-center gap-2 px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all">
             <i class='bx bx-arrow-back'></i> Volver al Historial
         </a>
@@ -155,7 +155,7 @@
 
         <!-- Acciones -->
         <div class="flex items-center justify-between pb-6">
-            <a href="/panel/historialClinico/?rut={{ paciente.rut }}" class="btn btn-secondary">
+            <a href="/panel/historialClinico/?rut={{ paciente.rut }}" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="btn btn-secondary">
                 <i class='bx bx-x'></i> Cancelar
             </a>
             <button type="submit" class="btn btn-primary">

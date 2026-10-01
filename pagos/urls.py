@@ -10,8 +10,11 @@ urlpatterns = [
     # Detalle financiero de un paciente
     path('paciente/', views.detalle_pagos_paciente, name='detalle_paciente'),
 
-    # Registrar pago individual
+    # Registrar pago individual (solo para pagar deudas)
     path('registrar/', views.registrar_pago_view, name='registrar'),
+
+    # Registrar nueva sesión (pagar, descontar de pack o deuda)
+    path('sesion/nueva/', views.registrar_nueva_sesion_view, name='nueva_sesion'),
 
     # Packs de atenciones
     path('pack/crear/', views.crear_pack_view, name='crear_pack'),

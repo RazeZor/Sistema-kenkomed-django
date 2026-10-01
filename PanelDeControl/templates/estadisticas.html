@@ -1,7 +1,7 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Estadísticas y Análisis - Sistema Clínico{% endblock %}
+{% block title %}Estadísticas del Centro - KenkoMed{% endblock %}
 
 {% block extra_head %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -61,10 +61,7 @@
             transform: translate(30%, -30%);
         }
 
-        .kpi-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.15);
-        }
+
 
         .metric-trend {
             display: inline-flex;
@@ -124,15 +121,17 @@
 {% endblock %}
 
 {% block header_title %}
-    <div class="flex items-center gap-2">
-        <i class='text-2xl bx bx-bar-chart-alt-2 text-primary-600'></i>
+    <div class="flex items-center gap-2.5">
+        <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+        </a>
         <div class="flex flex-col">
             {% if alcance_global %}
-            <span>Estadísticas globales — KenkoMed</span>
-            <span class="text-sm text-slate-500 font-normal">Todos los centros del sistema</span>
+            <span class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Estadísticas globales — KenkoMed</span>
+            <span class="text-xs text-gray-500 font-normal">Todos los centros del sistema</span>
             {% else %}
-            <span>Estadísticas — {{ clinica_nombre }}</span>
-            <span class="text-sm text-slate-500 font-normal">Datos solo de tu centro de trabajo</span>
+            <span class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Estadísticas — {{ clinica_nombre }}</span>
+            <span class="text-xs text-gray-500 font-normal">Datos solo de tu centro de trabajo</span>
             {% endif %}
         </div>
     </div>
@@ -153,7 +152,6 @@
                     <div>
                         <div class="section-header">
                             <h2 class="section-title">
-                                <i class='bx bx-trending-up text-primary-600'></i>
                                 Indicadores Clave de Rendimiento
                             </h2>
                         </div>
@@ -236,7 +234,6 @@
                     <div>
                         <div class="section-header">
                             <h2 class="section-title">
-                                <i class='bx bx-group text-primary-600'></i>
                                 Perfil Demográfico de Pacientes
                             </h2>
                         </div>
@@ -245,7 +242,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-male-female text-purple-500'></i>
                                         Distribución por Género
                                     </h3>
                                     <span class="badge bg-purple-50 text-purple-700">{{ total_pacientes }} total</span>
@@ -258,7 +254,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-line-chart text-success-500'></i>
                                         Tendencia de Nuevos Pacientes
                                     </h3>
                                     <span class="badge bg-success-50 text-success-700">Últimos 6 meses</span>
@@ -274,7 +269,6 @@
                     <div>
                         <div class="section-header">
                             <h2 class="section-title">
-                                <i class='bx bx-health text-danger-600'></i>
                                 Análisis Integral del Dolor
                             </h2>
                         </div>
@@ -283,7 +277,6 @@
                             <div class="stat-card lg:col-span-2">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-body text-danger-500'></i>
                                         Ubicaciones Más Afectadas
                                     </h3>
                                     <span class="badge bg-danger-50 text-danger-700">Top 10</span>
@@ -308,8 +301,7 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-trending-up text-warning-500'></i>
-                                        Nivel de Intensidad
+                                       Nivel de Intensidad
                                     </h3>
                                     <span class="badge bg-warning-50 text-warning-700">Escala 0-10</span>
                                 </div>
@@ -323,7 +315,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-brain text-purple-500'></i>
                                         Respuesta Conductual
                                     </h3>
                                     <span class="badge bg-purple-50 text-purple-700">Comportamiento</span>
@@ -336,7 +327,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-plus-medical text-primary-500'></i>
                                         Condiciones Asociadas
                                     </h3>
                                     <span class="badge bg-primary-50 text-primary-700">Más frecuentes</span>
@@ -352,7 +342,6 @@
                     <div>
                         <div class="section-header">
                             <h2 class="section-title">
-                                <i class='bx bx-heart-circle text-success-600'></i>
                                 Estado de Salud y Hábitos de Vida
                             </h2>
                         </div>
@@ -361,7 +350,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-heart text-success-500'></i>
                                         Salud Percibida
                                     </h3>
                                     <span class="badge bg-success-50 text-success-700">Autoevaluación</span>
@@ -374,7 +362,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-restaurant text-warning-500'></i>
                                         Hábitos Alimenticios
                                     </h3>
                                     <span class="badge bg-warning-50 text-warning-700">Comida rápida</span>
@@ -387,7 +374,6 @@
                             <div class="stat-card">
                                 <div class="flex items-center justify-between mb-4">
                                     <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                                        <i class='bx bx-moon text-primary-500'></i>
                                         Calidad del Sueño
                                     </h3>
                                     <span class="badge bg-primary-50 text-primary-700">Problemas detectados</span>

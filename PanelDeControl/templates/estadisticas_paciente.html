@@ -1,9 +1,19 @@
 {% extends 'base_kenkomed.html' %}
 {% load static %}
 
-{% block title %}Evolución Clínica - Sistema Clínico{% endblock %}
+{% block title %}Evolución Clínica — KenkoMed{% endblock %}
 
-{% block header_title %}Evolución Clínica del Paciente{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Evolución Clínica del Paciente</div>
+        <div class="text-xs text-gray-500 font-normal">Análisis clínico y evolución por paciente</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

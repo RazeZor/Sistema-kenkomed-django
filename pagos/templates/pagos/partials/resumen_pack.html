@@ -22,13 +22,25 @@ Uso: {% include 'pagos/partials/resumen_pack.html' with pack=pago_pack_activo %}
       <span><i class='bx bx-money'></i> ${{ pack.precio_total|floatformat:0 }}</span>
     </div>
     {% if pack.sesiones_disponibles > 0 %}
-    <form method="post" action="{% url 'pagos:descontar_pack_rapido' 0 %}" style="margin:0;">
+    <form method="post" action="{% url 'pagos:descontar_pack_rapido' 0 %}" style="margin:0;" onsubmit="return confirmarDescuento(this)">
       {% csrf_token %}
       <input type="hidden" name="rut" value="{{ pack.paciente.rut }}">
-      <button type="submit" style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
+      <button type="submit" id="btn-descontar-{{ pack.id }}"
+        style="background:#2563eb; color:white; border:none; padding:4px 10px; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer;">
         <i class='bx bx-minus-circle'></i> Descontar 1
       </button>
     </form>
+    <script>
+    function confirmarDescuento(form) {
+      const btn = form.querySelector('button[type="submit"]');
+      if (btn.disabled) return false; // ya se envió, bloquear
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'not-allowed';
+      btn.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Procesando...";
+      return true;
+    }
+    </script>
     {% endif %}
   </div>
 </div>

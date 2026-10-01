@@ -4,7 +4,6 @@
 {% block title %}Dashboard - KenkoMed{% endblock %}
 {% block header_title %}
 <span class="flex items-center gap-2">
-    <i class='bx bx-heart-circle text-medical-blue text-xl'></i>
     Panel de Control
 </span>
 {% endblock %}
@@ -47,14 +46,9 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
                 <!-- Texto de bienvenida -->
                 <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/15 rounded-full text-xs font-semibold text-white/90">
-                            <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
-                            En línea
-                        </span>
-                    </div>
+
                     <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1 truncate">
-                        Hola, {{ nombre_clinico }} 👋
+                        Hola, {{ nombre_clinico }}
                     </h2>
                     <p class="text-white/70 text-sm sm:text-base">
                         Bienvenido al panel de control de KenkoMed
@@ -77,7 +71,7 @@
                            class="btn btn-on-dark btn-touch">
                             <i class='bx bx-send text-base'></i>
                             <span class="hidden xs:inline">Formularios Remotos</span>
-                            <span class="xs:hidden">Remoto</span>
+                            <span class="xs:hidden">Formularios Remotos</span>
                         </a>
                         {% endif %}
                     </div>
@@ -87,8 +81,8 @@
                 <div class="hidden sm:flex items-center justify-center w-32 h-32 float-animation flex-shrink-0">
                     <div class="relative">
                         <div class="absolute inset-0 bg-white/10 rounded-3xl blur-xl"></div>
-                        <div class="relative w-24 h-24 bg-white/10 rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden p-1">
-                            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain drop-shadow-lg">
+                        <div class="relative w-24 h-24 bg-black/20 rounded-3xl flex items-center justify-center border border-white/20 overflow-hidden p-1">
+                            <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="w-full h-full object-contain [filter:drop-shadow(1.1px_1.1px_19px_black)]">
                         </div>
                     </div>
                 </div>
@@ -102,7 +96,6 @@
     <section>
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                <i class='bx bx-grid-alt text-medical-blue'></i>
                 Accesos Rápidos
             </h2>
         </div>
@@ -167,19 +160,13 @@
     <section>
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                <i class='bx bx-bar-chart-alt-2 text-medical-blue'></i>
                 Métricas{% if clinica_nombre %} — {{ clinica_nombre }}{% endif %}
             </h2>
-            {% if puede_ver_estadisticas_centro %}
-            <a href="{% url 'estadisticas' %}" class="text-xs sm:text-sm text-medical-blue font-medium hover:underline flex items-center gap-1">
-                Ver estadísticas del centro <i class='bx bx-chevron-right'></i>
-            </a>
-            {% endif %}
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm ">
                 <div class="flex items-start justify-between mb-2">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs text-gray-500 mb-1 font-medium">Pacientes del centro</p>
@@ -195,7 +182,7 @@
                 </p>
             </div>
 
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm ">
                 <div class="flex items-start justify-between mb-2">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs text-gray-500 mb-1 font-medium">{{ etiqueta_citas_hoy|default:"Citas hoy" }}</p>
@@ -208,7 +195,7 @@
                 <p class="text-xs text-gray-500">Confirmadas o pendientes</p>
             </div>
 
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm ">
                 <div class="flex items-start justify-between mb-2">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs text-gray-500 mb-1 font-medium">{{ etiqueta_citas_semana|default:"Citas esta semana" }}</p>
@@ -221,7 +208,7 @@
                 <p class="text-xs text-gray-500">Lunes a domingo de esta semana</p>
             </div>
 
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm card-hover">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 shadow-sm ">
                 <div class="flex items-start justify-between mb-2">
                     <div class="flex-1 min-w-0">
                         <p class="text-xs text-gray-500 mb-1 font-medium">Anamnesis completadas</p>
@@ -276,7 +263,6 @@
     <section>
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                <i class='bx bx-calendar-event text-medical-blue'></i>
                 Próximos Agendamientos
             </h2>
             <a href="{% url 'calendario_personal' %}" class="text-xs sm:text-sm text-medical-blue font-medium hover:underline flex items-center gap-1">
@@ -309,9 +295,9 @@
                 </div>
 
                 <!-- Avatar inicial paciente -->
-                <div class="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-medical-blue to-sky-400 flex items-center justify-center text-white font-bold text-base shadow-sm">
+                <!-- <div class="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-medical-blue to-sky-400 flex items-center justify-center text-white font-bold text-base shadow-sm">
                     {{ reserva.paciente.nombre|slice:'0:1'|upper }}{{ reserva.paciente.apellido|slice:'0:1'|upper }}
-                </div>
+                </div> -->
 
                 <!-- Datos principales -->
                 <div class="flex-1 min-w-0">
