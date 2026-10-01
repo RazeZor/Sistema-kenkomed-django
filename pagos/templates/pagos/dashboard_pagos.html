@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Pagos & Packs — KenkoMed{% endblock %}
+{% block header_title %}Pagos & Packs de Atención{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -59,14 +60,14 @@
 
 {% block content %}
 <div class="pagos-header">
-  <h1><i class='bx bx-wallet'></i> Pagos & Packs de Atención</h1>
+  <div>
+    <h1><i class='bx bx-wallet'></i> Pagos & Packs de Atención</h1>
+    <p style="font-size:12px;color:#64748b;margin:4px 0 0;">Control de pagos, saldos y packs de atención del centro</p>
+  </div>
   <div class="acciones-bar" style="margin-bottom:0;">
-    <a href="{% url 'pagos:registrar' %}" class="btn-pagos btn-primary">
-      <i class='bx bx-plus-circle'></i> Registrar Pago
-    </a>
-    <a href="{% url 'pagos:crear_pack' %}" class="btn-pagos btn-secondary">
-      <i class='bx bx-package'></i> Nuevo Pack
-    </a>
+    <button type="button" class="btn-pagos btn-primary" onclick="openModalBuscarPaciente()">
+      <i class='bx bx-search'></i> Buscar Paciente
+    </button>
   </div>
 </div>
 
@@ -141,8 +142,8 @@
               <i class='bx bx-check-double'></i> Saldar
             </button>
             {% endif %}
-            <a href="{% url 'pagos:registrar' %}?rut={{ deuda.paciente.rut }}" class="btn-pagos btn-primary" style="padding:5px 10px; font-size:11px;">
-              <i class='bx bx-plus'></i> Manual
+            <a href="{% url 'pagos:detalle_paciente' %}?rut={{ deuda.paciente.rut }}" class="btn-pagos btn-secondary" style="padding:5px 10px; font-size:11px;">
+              <i class='bx bx-user'></i> Ver Ficha
             </a>
           </div>
         </td>
@@ -150,6 +151,38 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if deudas.paginator.num_pages > 1 %}
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b; flex-wrap:wrap; gap:8px;">
+    <div>
+      Mostrando <strong>{{ deudas.start_index }}</strong> - <strong>{{ deudas.end_index }}</strong> de <strong>{{ deudas.paginator.count }}</strong> pacientes
+    </div>
+    <div style="display:inline-flex; align-items:center; gap:4px;">
+      {% if deudas.has_previous %}
+        <a href="?page_deudas={{ deudas.previous_page_number }}&page_packs={{ packs_activos.number }}&page_pagos={{ pagos_recientes.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </span>
+      {% endif %}
+
+      <span style="padding:4px 10px; font-weight:700; color:#1e293b; background:#f1f5f9; border-radius:6px; font-size:11.5px;">
+        {{ deudas.number }} / {{ deudas.paginator.num_pages }}
+      </span>
+
+      {% if deudas.has_next %}
+        <a href="?page_deudas={{ deudas.next_page_number }}&page_packs={{ packs_activos.number }}&page_pagos={{ pagos_recientes.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   {% else %}
   <div class="empty-state">
     <i class='bx bx-check-circle' style="color:#22c55e;"></i>
@@ -202,6 +235,38 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if packs_activos.paginator.num_pages > 1 %}
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b; flex-wrap:wrap; gap:8px;">
+    <div>
+      Mostrando <strong>{{ packs_activos.start_index }}</strong> - <strong>{{ packs_activos.end_index }}</strong> de <strong>{{ packs_activos.paginator.count }}</strong> packs
+    </div>
+    <div style="display:inline-flex; align-items:center; gap:4px;">
+      {% if packs_activos.has_previous %}
+        <a href="?page_packs={{ packs_activos.previous_page_number }}&page_deudas={{ deudas.number }}&page_pagos={{ pagos_recientes.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </span>
+      {% endif %}
+
+      <span style="padding:4px 10px; font-weight:700; color:#1e293b; background:#f1f5f9; border-radius:6px; font-size:11.5px;">
+        {{ packs_activos.number }} / {{ packs_activos.paginator.num_pages }}
+      </span>
+
+      {% if packs_activos.has_next %}
+        <a href="?page_packs={{ packs_activos.next_page_number }}&page_deudas={{ deudas.number }}&page_pagos={{ pagos_recientes.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   {% else %}
   <div class="empty-state">
     <i class='bx bx-package'></i>
@@ -237,8 +302,21 @@
             {{ pago.paciente.nombre }} {{ pago.paciente.apellido }}
           </a>
         </td>
-        <td>{{ pago.get_medio_pago_display }}</td>
-        <td style="font-weight:700;">${{ pago.monto|floatformat:0 }}</td>
+        <td>
+          {{ pago.get_medio_pago_display }}
+          {% if pago.medio_pago_2 and pago.monto_2 %}
+          <br><span style="font-size:10px; color:#7c3aed; font-weight:600;">
+            <i class='bx bx-transfer' style="vertical-align:middle;"></i>
+            + {{ pago.get_medio_pago_2_display }} (${{ pago.monto_2|floatformat:0 }})
+          </span>
+          {% endif %}
+        </td>
+        <td style="font-weight:700;">
+          ${{ pago.monto|floatformat:0 }}
+          {% if pago.medio_pago_2 and pago.monto_2 %}
+          <br><span style="font-size:10px; color:#7c3aed;">Total: ${{ pago.monto_total|floatformat:0 }}</span>
+          {% endif %}
+        </td>
         <td><span class="estado-badge estado-{{ pago.estado }}">{{ pago.get_estado_display }}</span></td>
         <td style="font-size:11px; color:#64748b;">
           {% if pago.folio_bono %}{{ pago.folio_bono }}{% elif pago.comprobante %}{{ pago.comprobante }}{% else %}—{% endif %}
@@ -251,6 +329,38 @@
       {% endfor %}
     </tbody>
   </table>
+  {% if pagos_recientes.paginator.num_pages > 1 %}
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b; flex-wrap:wrap; gap:8px;">
+    <div>
+      Mostrando <strong>{{ pagos_recientes.start_index }}</strong> - <strong>{{ pagos_recientes.end_index }}</strong> de <strong>{{ pagos_recientes.paginator.count }}</strong> pagos
+    </div>
+    <div style="display:inline-flex; align-items:center; gap:4px;">
+      {% if pagos_recientes.has_previous %}
+        <a href="?page_pagos={{ pagos_recientes.previous_page_number }}&page_deudas={{ deudas.number }}&page_packs={{ packs_activos.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          <i class='bx bx-chevron-left'></i> Anterior
+        </span>
+      {% endif %}
+
+      <span style="padding:4px 10px; font-weight:700; color:#1e293b; background:#f1f5f9; border-radius:6px; font-size:11.5px;">
+        {{ pagos_recientes.number }} / {{ pagos_recientes.paginator.num_pages }}
+      </span>
+
+      {% if pagos_recientes.has_next %}
+        <a href="?page_pagos={{ pagos_recientes.next_page_number }}&page_deudas={{ deudas.number }}&page_packs={{ packs_activos.number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </a>
+      {% else %}
+        <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+          Siguiente <i class='bx bx-chevron-right'></i>
+        </span>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
   {% else %}
   <div class="empty-state">
     <i class='bx bx-credit-card'></i>
@@ -260,8 +370,8 @@
 </div>
 
 <!-- Modal Pago Masivo para Dashboard -->
-<div id="modalPagoMasivo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
-  <div style="background:#fff; width:100%; max-width:400px; border-radius:16px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.1);">
+<div id="modalPagoMasivo" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(2px); padding:16px; overflow-y:auto;">
+  <div style="background:#fff; width:100%; max-width:440px; max-height:90vh; overflow-y:auto; border-radius:16px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.15); margin:auto;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a;"><i class='bx bx-money' style="color:#10b981;"></i> Saldar Deuda Completa</h3>
       <i class='bx bx-x' style="font-size:24px; cursor:pointer; color:#64748b;" onclick="document.getElementById('modalPagoMasivo').style.display='none'"></i>
@@ -269,11 +379,11 @@
     
     <p style="font-size:13px; color:#475569; margin-bottom:16px;">Se crearán los registros de pago correspondientes para liquidar las <strong id="modalSesionesText"></strong> sesiones pendientes de este paciente.</p>
 
-    <form method="post" action="{% url 'pagos:pago_masivo' %}">
+    <form method="post" action="{% url 'pagos:pago_masivo' %}" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="rut" id="modalRut" value="">
       
-      <div style="margin-bottom:16px;">
+      <div style="margin-bottom:14px;">
         <label style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">
           <span>Monto a Ingresar *</span>
           <span style="color:#b91c1c; font-weight:600;">Deuda Total: $<span id="modalMontoDisplay"></span></span>
@@ -285,20 +395,137 @@
         <p style="margin:4px 0 0 0; font-size:10.5px; color:#64748b;">Puedes ingresar un abono parcial o saldar el total.</p>
       </div>
 
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Medio de Pago *</label>
+          <select name="medio_pago" required style="width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+            {% for value, label in medios_pago %}
+              {% if value != 'pack' %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Estado *</label>
+          <select name="estado" required style="width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
+            {% for value, label in estados_pago %}
+              {% if value != 'anulado' %}
+              <option value="{{ value }}" {% if value == 'pagado' %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Folio / N° Bono</label>
+          <input type="text" name="folio_bono" placeholder="Ej: 123456" style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:12.5px;">
+        </div>
+        <div>
+          <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Comprobante / Ref.</label>
+          <input type="text" name="comprobante" placeholder="N° voucher / transf." style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:12.5px;">
+        </div>
+      </div>
+
+      <!-- Pago mixto en modal saldar deuda -->
+      <div style="margin-bottom:12px;">
+        <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; color:#6d28d9; cursor:pointer;">
+          <input type="checkbox" id="toggle-masivo-mixto-dash" onchange="toggleMasivoMixtoDash(this)">
+          Dividir en dos medios de pago (pago mixto)
+        </label>
+      </div>
+
+      <div id="seccion-masivo-mixto-dash" style="display:none; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:8px; padding:12px; margin-bottom:14px;">
+        <div style="margin-bottom:10px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#5b21b6; margin-bottom:4px;">Segundo Medio de Pago</label>
+          <select name="medio_pago_2" id="masivo_medio_pago_2_dash" style="width:100%; padding:7px 10px; border:1px solid #c4b5fd; border-radius:6px; font-size:12px;">
+            <option value="">— Seleccionar —</option>
+            {% for value, label in medios_pago %}
+              {% if value != 'pack' %}
+              <option value="{{ value }}">{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div style="margin-bottom:8px;">
+          <label style="display:block; font-size:11px; font-weight:700; color:#5b21b6; margin-bottom:4px;">Monto Segundo Pago ($)</label>
+          <input type="number" name="monto_2" id="masivo_monto_2_dash" placeholder="0" min="0" style="width:100%; padding:7px 10px; border:1px solid #c4b5fd; border-radius:6px; font-size:13px; font-weight:700;">
+        </div>
+        <div>
+          <label style="display:block; font-size:11px; font-weight:700; color:#5b21b6; margin-bottom:4px;">Referencia / Comprobante 2 (Opcional)</label>
+          <input type="text" name="comprobante_2" placeholder="N° transferencia, voucher..." style="width:100%; padding:7px 10px; border:1px solid #c4b5fd; border-radius:6px; font-size:12px;">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">
+          <i class='bx bx-image' style="color:#2563eb;"></i> Adjuntar Imagen / Comprobante (Opcional)
+        </label>
+        <input type="file" name="adjunto" accept="image/*,.pdf" style="width:100%; font-size:12px; color:#475569; padding:7px 10px; border:1px dashed #cbd5e1; border-radius:8px; background:#f8fafc;">
+        <p style="margin:3px 0 0 0; font-size:10.5px; color:#94a3b8;">Foto o pantallazo del comprobante de pago.</p>
+      </div>
+
       <div style="margin-bottom:16px;">
-        <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Medio de Pago *</label>
-        <select name="medio_pago" required style="width:100%; padding:9px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:13px;">
-          {% for value, label in medios_pago %}
-            {% if value != 'pack' %}
-            <option value="{{ value }}">{{ label }}</option>
-            {% endif %}
-          {% endfor %}
-        </select>
+        <label style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:5px;">Notas / Observaciones (Opcional)</label>
+        <textarea name="notas" rows="2" placeholder="Observaciones del pago..." style="width:100%; padding:8px 12px; border:1px solid #d1d5db; border-radius:8px; font-size:12px;"></textarea>
       </div>
 
       <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:24px;">
         <button type="button" onclick="document.getElementById('modalPagoMasivo').style.display='none'" style="padding:10px 16px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; cursor:pointer;">Cancelar</button>
         <button type="submit" style="padding:10px 16px; border-radius:8px; border:none; background:#10b981; color:#fff; font-weight:700; cursor:pointer; box-shadow:0 4px 6px -1px rgba(16, 185, 129, 0.2);">Confirmar Pago</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Buscar Paciente por RUT -->
+<div id="modalBuscarPaciente" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.5); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(2px); padding:16px; overflow-y:auto;">
+  <div style="background:#fff; width:100%; max-width:420px; max-height:90vh; overflow-y:auto; border-radius:16px; padding:24px; box-shadow:0 10px 25px rgba(0,0,0,0.15); margin:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0; font-size:16px; font-weight:800; color:#0f172a; display:flex; align-items:center; gap:8px;">
+        <i class='bx bx-search-alt' style="color:#2563eb; font-size:22px;"></i> Buscar Paciente
+      </h3>
+      <i class='bx bx-x' style="font-size:24px; cursor:pointer; color:#64748b;" onclick="closeModalBuscarPaciente()"></i>
+    </div>
+    
+    <p style="font-size:13px; color:#475569; margin-bottom:18px; line-height:1.4;">
+      Ingresa el RUT del paciente para consultar su historial de pagos, saldos y packs de atención.
+    </p>
+
+    <form method="get" action="{% url 'pagos:detalle_paciente' %}" id="formBuscarPaciente">
+      <div style="margin-bottom:20px;">
+        <label for="buscarRutInput" style="display:block; font-size:12px; font-weight:700; color:#374151; margin-bottom:6px;">
+          RUT del Paciente *
+        </label>
+        <div style="position:relative;">
+          <input type="text" 
+                 name="rut" 
+                 id="buscarRutInput" 
+                 required 
+                 placeholder="12.345.678-9 o 12345678-9" 
+                 maxlength="12"
+                 style="width:100%; padding:10px 14px; border:1px solid #d1d5db; border-radius:8px; font-size:14px; font-weight:600; color:#0f172a; outline:none; transition:border-color .15s;"
+                 onfocus="this.style.borderColor='#2563eb'"
+                 onblur="this.style.borderColor='#d1d5db'"
+                 oninput="formatRutInput(this)">
+        </div>
+        <p style="margin:6px 0 0 0; font-size:11px; color:#64748b;">
+          Puedes ingresar el RUT con o sin puntos y guión.
+        </p>
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" 
+                onclick="closeModalBuscarPaciente()" 
+                style="padding:9px 16px; border-radius:8px; border:1px solid #e2e8f0; background:#f8fafc; color:#475569; font-weight:600; font-size:13px; cursor:pointer;">
+          Cancelar
+        </button>
+        <button type="submit" 
+                style="padding:9px 18px; border-radius:8px; border:none; background:#2563eb; color:#fff; font-weight:700; font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 4px 6px -1px rgba(37, 99, 235, 0.25);">
+          <i class='bx bx-search'></i> Buscar
+        </button>
       </div>
     </form>
   </div>
@@ -312,5 +539,53 @@
     document.getElementById('modalSesionesText').textContent = sesiones;
     document.getElementById('modalPagoMasivo').style.display = 'flex';
   }
+
+  function toggleMasivoMixtoDash(cb) {
+    const sec = document.getElementById('seccion-masivo-mixto-dash');
+    if (sec) {
+      sec.style.display = cb.checked ? 'block' : 'none';
+      if (!cb.checked) {
+        const m2 = document.getElementById('masivo_monto_2_dash');
+        const mp2 = document.getElementById('masivo_medio_pago_2_dash');
+        if (m2) m2.value = '';
+        if (mp2) mp2.value = '';
+      }
+    }
+  }
+
+  function openModalBuscarPaciente() {
+    const modal = document.getElementById('modalBuscarPaciente');
+    if (modal) {
+      modal.style.display = 'flex';
+      const input = document.getElementById('buscarRutInput');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 50);
+      }
+    }
+  }
+
+  function closeModalBuscarPaciente() {
+    const modal = document.getElementById('modalBuscarPaciente');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function formatRutInput(input) {
+    let valor = input.value.replace(/[^0-9kK]/g, '');
+    if (valor.length > 1) {
+      let cuerpo = valor.slice(0, -1);
+      let dv = valor.slice(-1).toUpperCase();
+      cuerpo = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+      input.value = cuerpo + '-' + dv;
+    } else {
+      input.value = valor.toUpperCase();
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeModalBuscarPaciente();
+    }
+  });
 </script>
 {% endblock %}

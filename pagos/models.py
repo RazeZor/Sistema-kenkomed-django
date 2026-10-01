@@ -187,6 +187,34 @@ class RegistroPago(models.Model):
         verbose_name='Referencia / Comprobante',
         help_text='N° de transferencia, voucher, etc.',
     )
+    # ── Pago mixto (segundo medio) ──────────────────────────────────────
+    medio_pago_2 = models.CharField(
+        max_length=30,
+        choices=MEDIOS_PAGO,
+        blank=True,
+        default='',
+        verbose_name='Segundo medio de pago (pago mixto)',
+    )
+    monto_2 = models.DecimalField(
+        max_digits=10,
+        decimal_places=0,
+        default=0,
+        verbose_name='Monto segundo medio ($)',
+    )
+    comprobante_2 = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        verbose_name='Referencia segundo pago',
+    )
+    # ── Adjunto de comprobante ──────────────────────────────────────────
+    adjunto = models.ImageField(
+        upload_to='pagos/adjuntos/%Y/%m/',
+        null=True,
+        blank=True,
+        verbose_name='Adjunto (voucher / comprobante)',
+        help_text='Imagen del voucher, pantallazo de transferencia, etc.',
+    )
     estado = models.CharField(
         max_length=20,
         choices=ESTADOS,
@@ -206,6 +234,20 @@ class RegistroPago(models.Model):
         verbose_name='Registrado por',
     )
     notas = models.TextField(blank=True, default='', verbose_name='Notas')
+
+    @property
+    def es_pago_mixto(self):
+        return bool(self.medio_pago_2 and self.monto_2 > 0)
+
+    def get_medio_pago_2_display(self):
+        if not self.medio_pago_2:
+            return ''
+        return dict(self.MEDIOS_PAGO).get(self.medio_pago_2, self.medio_pago_2)
+
+    @property
+    def monto_total(self):
+        """Suma del pago principal + segundo medio (si aplica)."""
+        return self.monto + (self.monto_2 if self.monto_2 else 0)
 
     class Meta:
         verbose_name = 'Registro de Pago'

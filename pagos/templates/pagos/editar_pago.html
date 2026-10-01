@@ -1,0 +1,204 @@
+{% extends "base_kenkomed.html" %}
+{% load static %}
+
+{% block title %}Editar Pago — {{ paciente.nombre }} {{ paciente.apellido }} — KenkoMed{% endblock %}
+{% block header_title %}Editar Pago — {{ paciente.nombre }} {{ paciente.apellido }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .rp-container { max-width: 760px; margin: 0 auto; }
+  .rp-back { display:inline-flex; align-items:center; gap:5px; font-size:12px; color:#64748b; text-decoration:none; margin-bottom:20px; }
+  .rp-back:hover { color:#2563eb; }
+  .rp-card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:22px 24px; margin-bottom:16px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+  .rp-card-title { font-size:13.5px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:7px; margin:0 0 18px 0; padding-bottom:12px; border-bottom:1px solid #f1f5f9; }
+  .rp-card-title i { color:#2563eb; font-size:18px; }
+  .paciente-card { background:linear-gradient(135deg,#eff6ff 0%,#f8fafc 100%); border:1.5px solid #bfdbfe; border-radius:10px; padding:14px 16px; display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+  .paciente-avatar { width:42px; height:42px; border-radius:50%; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .paciente-nombre { font-size:15px; font-weight:800; color:#1e3a8a; }
+  .paciente-sub { font-size:11.5px; color:#475569; margin-top:2px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:600px){ .form-row { grid-template-columns:1fr; } }
+  .form-group { margin-bottom:14px; }
+  .form-group label { display:block; font-size:11.5px; font-weight:700; color:#374151; margin-bottom:5px; }
+  .form-group input, .form-group select, .form-group textarea { width:100%; padding:9px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:13px; color:#0f172a; background:#fff; transition:border-color .15s, box-shadow .15s; box-sizing:border-box; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline:none; border-color:#2563eb; box-shadow:0 0 0 3px #dbeafe; }
+  .form-help { font-size:10.5px; color:#94a3b8; margin-top:3px; }
+  .field-required { color:#ef4444; }
+  .monto-input-wrap { position:relative; }
+  .monto-prefix { position:absolute; left:12px; top:50%; transform:translateY(-50%); font-weight:800; color:#64748b; font-size:16px; pointer-events:none; }
+  .monto-input { padding-left:26px !important; font-size:18px !important; font-weight:800 !important; color:#0f172a !important; }
+  .drop-zone { border:2px dashed #cbd5e1; border-radius:10px; padding:20px; text-align:center; cursor:pointer; transition:all .2s; background:#f8fafc; position:relative; }
+  .drop-zone:hover { border-color:#2563eb; background:#eff6ff; }
+  .drop-zone input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+  .drop-zone i { font-size:28px; color:#94a3b8; display:block; margin-bottom:6px; }
+  .drop-zone p { font-size:12px; color:#64748b; margin:0; }
+  .drop-zone strong { color:#2563eb; }
+  .file-preview { display:none; align-items:center; gap:10px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; padding:10px 14px; margin-top:8px; }
+  .file-preview img { height:44px; width:44px; object-fit:cover; border-radius:6px; }
+  .file-preview span { font-size:12px; color:#1e3a8a; font-weight:600; flex:1; }
+  .file-preview button { background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer; padding:0; }
+  .btn-cta { display:inline-flex; align-items:center; gap:7px; padding:11px 22px; border-radius:9px; font-size:13.5px; font-weight:700; cursor:pointer; text-decoration:none; border:none; transition:all .15s; }
+  .btn-cta-primary { background:#2563eb; color:#fff; }
+  .btn-cta-primary:hover { background:#1d4ed8; color:#fff; }
+  .btn-cta-secondary { background:#f1f5f9; color:#374151; border:1px solid #e2e8f0; }
+  .btn-cta-secondary:hover { background:#e2e8f0; color:#374151; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="rp-container">
+
+  <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="rp-back">
+    <i class='bx bx-arrow-back'></i> Volver a la cuenta del paciente
+  </a>
+
+  <!-- Datos del Paciente -->
+  <div class="paciente-card">
+    <div class="paciente-avatar"><i class='bx bx-user'></i></div>
+    <div>
+      <div class="paciente-nombre">{{ paciente.nombre }} {{ paciente.apellido }}</div>
+      <div class="paciente-sub">{{ paciente.identificacion_display }} · {{ paciente.cobertura_de_salud }}</div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- DETALLE DEL PAGO -->
+    <div class="rp-card">
+      <h2 class="rp-card-title"><i class='bx bx-edit'></i> Editar Registro de Pago #{{ pago.id }}</h2>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="monto">Monto Principal ($) <span class="field-required">*</span></label>
+          <div class="monto-input-wrap">
+            <span class="monto-prefix">$</span>
+            <input type="number" name="monto" id="monto" class="monto-input"
+              value="{{ pago.monto|floatformat:0 }}"
+              required min="0" step="1">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="estado">Estado del Pago <span class="field-required">*</span></label>
+          <select name="estado" id="estado" required>
+            {% for value, label in estados_pago %}
+            <option value="{{ value }}" {% if pago.estado == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="medio_pago">Medio de Pago Principal <span class="field-required">*</span></label>
+          <select name="medio_pago" id="medio_pago" required>
+            {% for value, label in medios_pago %}
+            <option value="{{ value }}" {% if pago.medio_pago == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="folio_bono">Folio / N° Bono</label>
+          <input type="text" name="folio_bono" id="folio_bono" value="{{ pago.folio_bono|default:'' }}" placeholder="Ej: 123456">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="comprobante">Referencia / Comprobante</label>
+        <input type="text" name="comprobante" id="comprobante" value="{{ pago.comprobante|default:'' }}" placeholder="N° transferencia, voucher...">
+      </div>
+
+      <div class="form-group">
+        <label for="notas">Notas / Observaciones</label>
+        <textarea name="notas" id="notas" rows="2" placeholder="Observaciones...">{{ pago.notas|default:'' }}</textarea>
+      </div>
+    </div>
+
+    <!-- PAGO MIXTO (SEGUNDO MEDIO) -->
+    <div class="rp-card">
+      <h2 class="rp-card-title"><i class='bx bx-git-branch' style="color:#7c3aed;"></i> Segundo Medio de Pago (Pago Mixto)</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="medio_pago_2">Segundo Medio de Pago</label>
+          <select name="medio_pago_2" id="medio_pago_2">
+            <option value="">— Ninguno (Pago simple) —</option>
+            {% for value, label in medios_pago %}
+              {% if value != 'pack' %}
+              <option value="{{ value }}" {% if pago.medio_pago_2 == value %}selected{% endif %}>{{ label }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="monto_2">Monto Segundo Pago ($)</label>
+          <input type="number" name="monto_2" id="monto_2" value="{{ pago.monto_2|floatformat:0 }}" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:0;">
+        <label for="comprobante_2">Referencia / Comprobante 2</label>
+        <input type="text" name="comprobante_2" id="comprobante_2" value="{{ pago.comprobante_2|default:'' }}" placeholder="N° transferencia, voucher 2...">
+      </div>
+    </div>
+
+    <!-- ADJUNTO DE COMPROBANTE -->
+    <div class="rp-card">
+      <h2 class="rp-card-title"><i class='bx bx-paperclip'></i> Comprobante / Voucher (Imagen)</h2>
+      {% if pago and pago.adjunto %}
+      <div style="margin-bottom:12px; padding:10px 14px; background:#eff6ff; border:1px solid #bfdbfe; border-radius:8px; display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:8px; font-size:12.5px; color:#1e40af;">
+          <i class='bx bx-check-circle' style="font-size:18px; color:#2563eb;"></i>
+          <span>Comprobante actual:</span>
+          <a href="{{ pago.adjunto.url }}" target="_blank" style="color:#2563eb; font-weight:700; text-decoration:underline;">Ver archivo cargado</a>
+        </div>
+      </div>
+      {% endif %}
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" name="adjunto" id="adjunto" accept="image/*,.pdf" onchange="previewFile(this)">
+        <i class='bx bx-cloud-upload'></i>
+        <p><strong>Haz clic aquí o arrastra</strong> una nueva imagen para cambiar o subir el comprobante</p>
+        <p style="margin-top:4px; font-size:11px; color:#94a3b8;">JPG, PNG, PDF — máx. 5 MB</p>
+      </div>
+      <div class="file-preview" id="file-preview">
+        <img id="preview-img" src="" alt="preview">
+        <span id="preview-name"></span>
+        <button type="button" onclick="removeFile()" title="Quitar adjunto"><i class='bx bx-x'></i></button>
+      </div>
+    </div>
+
+    <!-- BOTONES -->
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-bottom:24px; align-items:center;">
+      <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn-cta btn-cta-secondary">Cancelar</a>
+      <button type="submit" class="btn-cta btn-cta-primary">
+        <i class='bx bx-save'></i> Guardar Cambios
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+function previewFile(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const preview = document.getElementById('file-preview');
+    const img = document.getElementById('preview-img');
+    const name = document.getElementById('preview-name');
+    name.textContent = file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = e => { img.src = e.target.result; img.style.display = 'block'; };
+      reader.readAsDataURL(file);
+    } else {
+      img.style.display = 'none';
+    }
+    preview.style.display = 'flex';
+  }
+}
+
+function removeFile() {
+  const inp = document.getElementById('adjunto');
+  inp.value = '';
+  document.getElementById('file-preview').style.display = 'none';
+}
+</script>
+{% endblock %}

@@ -48,6 +48,38 @@
         {% endfor %}
       </tbody>
     </table>
+    {% if pagos_pack.paginator.num_pages > 1 %}
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid #f1f5f9; font-size:12px; color:#64748b; flex-wrap:wrap; gap:8px;">
+      <div>
+        Mostrando <strong>{{ pagos_pack.start_index }}</strong> - <strong>{{ pagos_pack.end_index }}</strong> de <strong>{{ pagos_pack.paginator.count }}</strong> sesiones
+      </div>
+      <div style="display:inline-flex; align-items:center; gap:4px;">
+        {% if pagos_pack.has_previous %}
+          <a href="?page={{ pagos_pack.previous_page_number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+            <i class='bx bx-chevron-left'></i> Anterior
+          </a>
+        {% else %}
+          <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+            <i class='bx bx-chevron-left'></i> Anterior
+          </span>
+        {% endif %}
+
+        <span style="padding:4px 10px; font-weight:700; color:#1e293b; background:#f1f5f9; border-radius:6px; font-size:11.5px;">
+          {{ pagos_pack.number }} / {{ pagos_pack.paginator.num_pages }}
+        </span>
+
+        {% if pagos_pack.has_next %}
+          <a href="?page={{ pagos_pack.next_page_number }}" class="btn-pagos btn-secondary" style="padding:4px 9px; font-size:11px;">
+            Siguiente <i class='bx bx-chevron-right'></i>
+          </a>
+        {% else %}
+          <span class="btn-pagos" style="padding:4px 9px; font-size:11px; background:#f8fafc; color:#cbd5e1; border:1px solid #e2e8f0; cursor:not-allowed;">
+            Siguiente <i class='bx bx-chevron-right'></i>
+          </span>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
     {% else %}
     <p style="text-align:center; color:#94a3b8; font-size:12px; padding:20px 0;">Aún no se han descontado sesiones de este pack.</p>
     {% endif %}
