@@ -2,7 +2,17 @@
 {% load static %}
 
 {% block title %}Mi Perfil | KenkoMed{% endblock %}
-{% block header_title %}Mi Perfil{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Mi Perfil</div>
+        <div class="text-xs text-gray-500 font-normal">Información de tu cuenta y preferencias</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block header_actions %}
 <button type="button" onclick="openEditModal()" class="btn btn-primary">
@@ -214,59 +224,59 @@
         <!-- Datos del clínico -->
         <div class="perfil-card">
             <div class="perfil-card-head perfil-card-head--pro">
-                <i class='bx bx-user-circle text-lg'></i> Tus datos profesionales
+                 Tus datos profesionales
             </div>
             <div>
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-id-card'></i> RUT</p>
+                    <p class="perfil-field-label"> RUT</p>
                     <p class="perfil-field-value">{{ perfil.rut }}</p>
                 </div>
                 {% if perfil.correo %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-envelope'></i> Correo</p>
+                    <p class="perfil-field-label"> Correo</p>
                     <p class="perfil-field-value">{{ perfil.correo }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.telefono %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-phone'></i> Teléfono</p>
+                    <p class="perfil-field-label">Teléfono</p>
                     <p class="perfil-field-value">{{ perfil.telefono }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.numero_registro %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-badge-check'></i> Registro profesional</p>
+                    <p class="perfil-field-label">Registro profesional</p>
                     <p class="perfil-field-value">{{ perfil.numero_registro }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.ciudad %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-map'></i> Ciudad / región</p>
+                    <p class="perfil-field-label">Ciudad / región</p>
                     <p class="perfil-field-value">{{ perfil.ciudad }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.centro_trabajo %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-building'></i> Centro de trabajo</p>
+                    <p class="perfil-field-label">Centro de trabajo</p>
                     <p class="perfil-field-value">{{ perfil.centro_trabajo }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.experiencia %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-time-five'></i> Experiencia</p>
+                    <p class="perfil-field-label">Experiencia</p>
                     <p class="perfil-field-value">{{ perfil.experiencia }} año{{ perfil.experiencia|pluralize:"s" }}</p>
                 </div>
                 {% endif %}
                 {% if perfil.fecha_registro %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-calendar'></i> En KenkoMed desde</p>
+                    <p class="perfil-field-label"> En KenkoMed desde</p>
                     <p class="perfil-field-value">{{ perfil.fecha_registro|date:"d \d\e F, Y" }}</p>
                 </div>
                 {% endif %}
             </div>
             {% if perfil.descripcion %}
             <div class="px-5 py-4 bg-slate-50 border-t border-slate-100">
-                <p class="perfil-field-label text-slate-500 mb-2"><i class='bx bx-book-open'></i> Sobre mí</p>
+                <p class="perfil-field-label text-slate-500 mb-2">Sobre mí</p>
                 <p class="text-sm text-slate-600 leading-relaxed">{{ perfil.descripcion }}</p>
             </div>
             {% endif %}
@@ -276,46 +286,46 @@
         {% if clinica %}
         <div class="perfil-card">
             <div class="perfil-card-head perfil-card-head--centro">
-                <i class='bx bx-clinic text-lg'></i> Tu centro en KenkoMed
+                 Tu centro en KenkoMed
             </div>
             <div>
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-buildings'></i> Nombre</p>
+                    <p class="perfil-field-label">Nombre</p>
                     <p class="perfil-field-value">{{ clinica.nombre }}</p>
                 </div>
                 {% if clinica.rut_empresa %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-id-card'></i> RUT empresa</p>
+                    <p class="perfil-field-label">RUT empresa</p>
                     <p class="perfil-field-value">{{ clinica.rut_empresa }}</p>
                 </div>
                 {% endif %}
                 {% if clinica.direccion %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-map-pin'></i> Dirección</p>
+                    <p class="perfil-field-label">Dirección</p>
                     <p class="perfil-field-value">{{ clinica.direccion }}</p>
                 </div>
                 {% endif %}
                 {% if clinica.ciudad %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-map'></i> Ciudad</p>
+                    <p class="perfil-field-label">Ciudad</p>
                     <p class="perfil-field-value">{{ clinica.ciudad }}</p>
                 </div>
                 {% endif %}
                 {% if clinica.telefono %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-phone'></i> Teléfono del centro</p>
+                    <p class="perfil-field-label">Teléfono del centro</p>
                     <p class="perfil-field-value">{{ clinica.telefono }}</p>
                 </div>
                 {% endif %}
                 {% if clinica.correo %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-envelope'></i> Correo del centro</p>
+                    <p class="perfil-field-label">Correo del centro</p>
                     <p class="perfil-field-value">{{ clinica.correo }}</p>
                 </div>
                 {% endif %}
                 {% if total_miembros %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-group'></i> Equipo</p>
+                    <p class="perfil-field-label">Equipo</p>
                     <p class="perfil-field-value">
                         {{ total_miembros }} profesional{{ total_miembros|pluralize:"es" }}
                         {% if es_centro_compartido %}· centro compartido{% else %}· consulta individual{% endif %}
@@ -324,7 +334,7 @@
                 {% endif %}
                 {% if clinica.fecha_creacion %}
                 <div class="perfil-field">
-                    <p class="perfil-field-label"><i class='bx bx-calendar-check'></i> Centro creado</p>
+                    <p class="perfil-field-label">Centro creado</p>
                     <p class="perfil-field-value">{{ clinica.fecha_creacion|date:"d \d\e F, Y" }}</p>
                 </div>
                 {% endif %}

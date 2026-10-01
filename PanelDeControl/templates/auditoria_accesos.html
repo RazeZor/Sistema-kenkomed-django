@@ -2,7 +2,17 @@
 {% load static %}
 
 {% block title %}Auditoría clínica — KenkoMed{% endblock %}
-{% block header_title %}Registro de Auditoría Clínica{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Registro de Auditoría Clínica</div>
+        <div class="text-xs text-gray-500 font-normal">Trazabilidad y registro de accesos</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto space-y-6 fade-in-up">
@@ -10,7 +20,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
             <h1 class="text-xl font-bold text-gray-900">
-                <i class='bx bx-shield-quarter text-medical-blue mr-2'></i>Trazabilidad de Accesos
+                Trazabilidad de Accesos
             </h1>
             {% if clinica %}
             <p class="text-sm font-medium text-gray-600 mt-1">{{ clinica.nombre }}</p>

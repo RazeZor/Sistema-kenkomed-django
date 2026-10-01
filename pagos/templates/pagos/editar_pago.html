@@ -2,7 +2,17 @@
 {% load static %}
 
 {% block title %}Editar Pago — {{ paciente.nombre }} {{ paciente.apellido }} — KenkoMed{% endblock %}
-{% block header_title %}Editar Pago — {{ paciente.nombre }} {{ paciente.apellido }}{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Pagos & Packs</div>
+        <div class="text-xs text-gray-500 font-normal">Editar pago · {{ paciente.nombre }} {{ paciente.apellido }}</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block extra_head %}
 <style>

@@ -2,7 +2,17 @@
 {% load static %}
 
 {% block title %}Pagos & Packs — KenkoMed{% endblock %}
-{% block header_title %}Pagos & Packs de Atención{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Pagos & Packs</div>
+        <div class="text-xs text-gray-500 font-normal">Control financiero y paquetes de atención</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -61,7 +71,7 @@
 {% block content %}
 <div class="pagos-header">
   <div>
-    <h1><i class='bx bx-wallet'></i> Pagos & Packs de Atención</h1>
+    <h1> Pagos & Packs de Atención</h1>
     <p style="font-size:12px;color:#64748b;margin:4px 0 0;">Control de pagos, saldos y packs de atención del centro</p>
   </div>
   <div class="acciones-bar" style="margin-bottom:0;">
@@ -74,22 +84,18 @@
 <!-- Métricas -->
 <div class="metricas-grid">
   <div class="metrica-card mc-danger">
-    <div class="mc-icon">🔴</div>
     <div class="mc-valor">{{ resumen.pacientes_con_deuda }}</div>
     <div class="mc-label">Pacientes con deuda</div>
   </div>
   <div class="metrica-card mc-amber">
-    <div class="mc-icon">🟡</div>
     <div class="mc-valor">{{ resumen.bonos_pendientes }}</div>
     <div class="mc-label">Bonos por recibir</div>
   </div>
   <div class="metrica-card mc-blue">
-    <div class="mc-icon">📦</div>
     <div class="mc-valor">{{ resumen.packs_activos }}</div>
     <div class="mc-label">Packs activos</div>
   </div>
   <div class="metrica-card mc-green">
-    <div class="mc-icon">💰</div>
     <div class="mc-valor">${{ resumen.ingresos_mes|floatformat:0 }}</div>
     <div class="mc-label">Ingresos este mes</div>
   </div>
@@ -97,7 +103,7 @@
 
 <!-- Tabla pacientes con deuda -->
 <div class="pagos-section">
-  <h2><i class='bx bx-error-circle'></i> Pacientes con Pagos Pendientes</h2>
+  <h2>Pacientes con Pagos Pendientes</h2>
   {% if deudas %}
   <table class="pagos-table">
     <thead>
@@ -194,7 +200,7 @@
 
 <!-- Packs activos -->
 <div class="pagos-section">
-  <h2><i class='bx bx-package'></i> Packs Activos</h2>
+  <h2>Packs Activos</h2>
   {% if packs_activos %}
   <table class="pagos-table">
     <thead>
@@ -280,7 +286,7 @@
 
 <!-- Pagos recientes -->
 <div class="pagos-section">
-  <h2><i class='bx bx-list-ul'></i> Últimos Pagos Registrados</h2>
+  <h2>Últimos Pagos Registrados</h2>
   {% if pagos_recientes %}
   <table class="pagos-table">
     <thead>

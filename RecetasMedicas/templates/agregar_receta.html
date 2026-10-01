@@ -177,7 +177,17 @@
 </style>
 {% endblock %}
 
-{% block header_title %}Gestión de Recetas Médicas{% endblock %}
+{% block header_title %}
+<div class="flex items-center gap-2.5">
+    <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
+        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
+    </a>
+    <div>
+        <div class="text-sm sm:text-base font-semibold text-gray-800 leading-tight">Gestión de Recetas Médicas</div>
+        <div class="text-xs text-gray-500 font-normal">Emisión y control de recetas para pacientes</div>
+    </div>
+</div>
+{% endblock %}
 
 {% block header_actions %}
 <button onclick="window.history.back();"
