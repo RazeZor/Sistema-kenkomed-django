@@ -40,7 +40,7 @@
                     <p class="text-xs text-gray-500">Alta manual · campos con * son obligatorios</p>
                 </div>
             </div>
-            <a href="{% url 'pacientes' %}" class="btn btn-outline btn-sm shrink-0 self-start sm:self-auto">
+            <a href="{% url 'pacientes' %}" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="btn btn-outline btn-sm shrink-0 self-start sm:self-auto">
                 <i class='bx bx-arrow-back'></i> Volver
             </a>
         </div>
@@ -194,7 +194,7 @@
         </div>
 
         <div class="px-4 sm:px-6 py-3 bg-gray-50 border-t border-gray-100 flex flex-wrap items-center justify-between gap-3">
-            <a href="{% url 'pacientes' %}" class="btn btn-outline btn-sm">
+            <a href="{% url 'pacientes' %}" onclick="if (document.referrer && document.referrer.indexOf(window.location.host) !== -1) { history.back(); return false; }" class="btn btn-outline btn-sm">
                 <i class='bx bx-x'></i> Cancelar
             </a>
             <button type="submit" class="btn btn-primary btn-sm">

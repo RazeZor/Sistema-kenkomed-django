@@ -13,7 +13,7 @@
             {% elif v == 'drawer' %}h-10 max-w-[140px] rounded-md bg-white p-1 shadow-sm
             {% else %}h-8 sm:h-9 max-w-[130px] sm:max-w-[150px]{% endif %}">
     {% if nombre and v == 'sidebar' %}
-    <span class="hidden xl:block text-sm font-medium text-gray-700 truncate max-w-[9rem]">{{ nombre }}</span>
+    <span class="sidebar-brand-text hidden xl:block text-sm font-medium text-gray-700 truncate max-w-[9rem]">{{ nombre }}</span>
     {% elif nombre and v == 'drawer' %}
     <span class="text-white font-semibold text-sm leading-tight truncate max-w-[140px]">{{ nombre }}</span>
     {% endif %}
@@ -25,7 +25,7 @@
         {% if v == 'drawer' %}w-9 h-9 bg-white/20 text-white{% else %}w-8 h-8 bg-medical-blue/10 text-medical-blue{% endif %}">
         <i class='bx bx-buildings text-lg'></i>
     </div>
-    <span class="font-semibold truncate
+    <span class="sidebar-brand-text font-semibold truncate
         {% if v == 'drawer' %}text-white text-sm{% elif v == 'sidebar' %}hidden xl:block text-sm text-gray-800 max-w-[9rem]{% else %}text-xs sm:text-sm text-gray-700 max-w-[120px] sm:max-w-[150px]{% endif %}">{{ nombre }}</span>
 </div>
 
@@ -38,7 +38,7 @@
             {% elif v == 'drawer' %}h-7 max-w-[100px]
             {% else %}h-8 max-w-[120px]{% endif %}">
     {% if v == 'sidebar' or v == 'drawer' %}
-    <span class="{% if v == 'drawer' %}text-white font-bold text-base{% else %}hidden xl:block text-sm font-semibold text-gray-800{% endif %}">KenkoMed</span>
+    <span class="sidebar-brand-text {% if v == 'drawer' %}text-white font-bold text-base{% else %}text-gray-800 font-bold text-base{% endif %}">KenkoMed</span>
     {% endif %}
 </div>
 {% endif %}
