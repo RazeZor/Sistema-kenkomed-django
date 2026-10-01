@@ -194,8 +194,8 @@
                 <a href="{% url 'panel' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if request.path == '/panel/' %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Inicio">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if request.path == '/panel/' %}bg-medical-blue/20 text-medical-blue{% else %}bg-indigo-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-home-alt {% if request.path == "/panel/" %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if request.path == '/panel/' %}bg-medical-blue text-white shadow-sm{% else %}bg-indigo-50 text-indigo-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-home-alt'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Inicio</span>
@@ -207,8 +207,8 @@
                 <a href="{% url 'calendario_personal' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Mi Agenda">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue/20 text-medical-blue{% else %}bg-sky-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-calendar {% if "/calendario/personal" in request.path or request.path == "/calendario/" %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue text-white shadow-sm{% else %}bg-sky-50 text-sky-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-calendar'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Mi Agenda</span>
@@ -221,8 +221,8 @@
                 <a href="{% url 'calendario_clinica' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/calendario/clinica' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Agenda Centro">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/clinica' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-teal-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-buildings {% if "/calendario/clinica" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-teal-50 text-teal-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-buildings'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Agenda Centro</span>
@@ -234,8 +234,8 @@
                 <a href="{% url 'pacientes' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/ListaPacientes' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Mis Pacientes">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/ListaPacientes' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-purple-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-folder-open {% if "/ListaPacientes" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/ListaPacientes' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-purple-50 text-purple-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-folder-open'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Mis Pacientes</span>
@@ -247,8 +247,8 @@
                 <a href="{% url 'pagos:dashboard' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/pagos/' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Pagos & Packs">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/pagos/' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-amber-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-wallet {% if "/pagos/" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/pagos/' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-amber-50 text-amber-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-wallet'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Pagos & Packs</span>
@@ -261,8 +261,8 @@
                 <a href="{% url 'mi_centro' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Mi Centro">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-emerald-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-store-alt {% if "/clinicas/mi-centro" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-emerald-50 text-emerald-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-store-alt'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Mi Centro</span>
@@ -275,8 +275,8 @@
                 <a href="{% url 'estadisticas' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Estadísticas">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-cyan-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-bar-chart-alt-2 {% if "/estadisticas/" in request.path and "paciente" not in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-cyan-50 text-cyan-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-bar-chart-alt-2'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">
@@ -291,8 +291,8 @@
                 <a href="{% url 'auditoria_accesos' %}" 
                    class="sidebar-item-link flex items-center p-2 rounded-xl transition-all group relative {% if 'auditoria-accesos' in request.path %}bg-medical-blue/10 text-medical-blue font-semibold{% else %}text-gray-700 hover:bg-gray-50 hover:text-gray-900{% endif %}"
                    data-tooltip="Auditoría">
-                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if 'auditoria-accesos' in request.path %}bg-medical-blue/20 text-medical-blue{% else %}bg-blue-500/40 text-black/50{% endif %} shadow-xs group-hover:scale-105 transition-transform">
-                        <i class='text-xl bx bx-shield-quarter {% if "auditoria-accesos" in request.path %}text-medical-blue{% else %}text-black/50{% endif %}'></i>
+                    <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-blue-50 text-blue-600{% endif %} group-hover:scale-105 transition-transform">
+                        <i class='text-xl bx bx-shield-quarter'></i>
                     </div>
                     <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                         <span class="text-sm font-medium leading-none truncate block">Auditoría</span>
@@ -305,8 +305,8 @@
                     <a href="{% url 'cerrarSesion' %}" 
                        class="sidebar-item-link flex items-center p-2 rounded-xl text-red-600 hover:bg-red-50 transition-all group relative"
                        data-tooltip="Cerrar Sesión">
-                        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl bg-rose-500/40 text-black/50 shadow-xs group-hover:scale-105 transition-transform">
-                            <i class='text-xl bx bx-log-out text-black/50'></i>
+                        <div class="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-xl bg-rose-50 text-rose-600 shadow-xs group-hover:scale-105 transition-transform">
+                            <i class='text-xl bx bx-log-out'></i>
                         </div>
                         <div class="sidebar-text-content ml-3 flex-1 min-w-0">
                             <span class="text-sm font-medium leading-none truncate block">Cerrar Sesión</span>
@@ -392,7 +392,7 @@
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">Navegación</p>
 
             <a href="{% url 'panel' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if request.path == '/panel/' %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if request.path == '/panel/' %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if request.path == '/panel/' %}bg-medical-blue text-white shadow-sm{% else %}bg-indigo-50 text-indigo-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-home'></i>
                 </div>
                 <div>
@@ -402,7 +402,7 @@
             </a>
 
             <a href="{% url 'pacientes' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/ListaPacientes' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/ListaPacientes' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/ListaPacientes' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-purple-50 text-purple-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-folder-open'></i>
                 </div>
                 <div>
@@ -413,7 +413,7 @@
 
             {% if features.gestion_pagos %}
             <a href="{% url 'pagos:dashboard' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/pagos/' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/pagos/' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/pagos/' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-amber-50 text-amber-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-wallet'></i>
                 </div>
                 <div>
@@ -423,11 +423,9 @@
             </a>
             {% endif %}
 
-
-
             {% if puede_ver_estadisticas_centro or estadisticas_globales %}
             <a href="{% url 'estadisticas' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/estadisticas/' in request.path and 'paciente' not in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-cyan-50 text-cyan-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-bar-chart-alt-2'></i>
                 </div>
                 <div>
@@ -437,10 +435,8 @@
             </a>
             {% endif %}
 
-
-
             <a href="{% url 'mi_centro' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/clinicas/mi-centro' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-emerald-50 text-emerald-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-buildings'></i>
                 </div>
                 <div>
@@ -450,7 +446,7 @@
             </a>
 
             <a href="{% url 'calendario_personal' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/calendario/personal' in request.path or request.path == '/calendario/' %}bg-medical-blue text-white shadow-sm{% else %}bg-sky-50 text-sky-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-calendar'></i>
                 </div>
                 <div>
@@ -461,7 +457,7 @@
 
             {% if puede_ver_agenda_centro %}
             <a href="{% url 'calendario_clinica' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if '/calendario/clinica' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if '/calendario/clinica' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-teal-50 text-teal-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-buildings'></i>
                 </div>
                 <div>
@@ -473,7 +469,7 @@
 
             {% if puede_ver_auditoria %}
             <a href="{% url 'auditoria_accesos' %}" onclick="closeDrawer()" class="flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-all {% if 'auditoria-accesos' in request.path %}bg-medical-blue/10 text-medical-blue{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white{% else %}bg-gray-100 text-gray-500{% endif %} flex-shrink-0">
+                <div class="w-9 h-9 flex items-center justify-center rounded-lg {% if 'auditoria-accesos' in request.path %}bg-medical-blue text-white shadow-sm{% else %}bg-blue-50 text-blue-600{% endif %} flex-shrink-0">
                     <i class='text-lg bx bx-shield-quarter'></i>
                 </div>
                 <div>
