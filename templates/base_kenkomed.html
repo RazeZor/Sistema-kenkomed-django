@@ -433,20 +433,8 @@
                     {% endblock %}
                 </div>
 
-                <!-- Derecha: Marca del centro + KenkoMed + perfil -->
+                <!-- Derecha: Notificaciones + perfil -->
                 <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-                    <div class="hidden sm:flex items-center">
-                        {% include 'partials/marca_dual.html' with variant='header' %}
-                    </div>
-                    <div class="sm:hidden flex items-center">
-                        {% if clinica_logo_url %}
-                        <img src="{{ clinica_logo_url }}" alt="{{ clinica_nombre }}" class="h-8 max-w-[110px] object-contain">
-                        {% elif clinica_nombre %}
-                        <span class="text-xs font-semibold text-gray-700 truncate max-w-[100px]">{{ clinica_nombre }}</span>
-                        {% else %}
-                        <img src="{% static 'image/LogoKenkoMed.png' %}" alt="KenkoMed" class="h-6 object-contain">
-                        {% endif %}
-                    </div>
                     {% block header_actions %}
                     <div class="relative" id="novedades-dropdown-container">
                         <button id="novedades-btn" class="header-btn relative text-gray-500 hover:text-medical-blue transition-colors focus:outline-none" aria-label="Notificaciones">
