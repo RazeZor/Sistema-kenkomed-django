@@ -327,7 +327,7 @@ def pago_masivo_deuda(
                 p.fecha_registro = timezone.now()
                 p.notas = (p.notas + f" | Saldado. {notas}").strip()
                 p.save()
-                monto_restante -= p.monto_total
+                monto_restante -= monto_aplicar
                 pago_afectado = True
             else:
                 RegistroPago.objects.create(
@@ -342,8 +342,10 @@ def pago_masivo_deuda(
                     registrado_por=registrado_por, notas=f"Abono parcial a deuda. {notas}".strip()
                 )
                 p.monto = max(Decimal('0'), p_total - monto_aplicar)
-                p.save(update_fields=['monto'])
-                monto_restante = Decimal('0')
+                p.monto_2 = Decimal('0')
+                p.medio_pago_2 = ''
+                p.save(update_fields=['monto', 'monto_2', 'medio_pago_2'])
+                monto_restante -= monto_aplicar
                 pago_afectado = True
 
         # 2. Buscar sesiones con deuda (huérfanas o sin pago)
@@ -377,6 +379,16 @@ def pago_masivo_deuda(
                         comprobante=comprobante, adjunto=adjunto,
                         registrado_por=registrado_por, notas=f"Pago deuda sesión #{sesion.numero_sesion}. {notas}".strip()
                     )
+                    saldo_restante = deuda_sesion - monto_aplicar
+                    if saldo_restante > 0:
+                        RegistroPago.objects.create(
+                            paciente=paciente, clinica=clinica, sesion_kinesica=sesion,
+                            medio_pago=RegistroPago.MEDIO_EFECTIVO,
+                            monto=saldo_restante,
+                            estado=RegistroPago.ESTADO_PENDIENTE,
+                            registrado_por=registrado_por,
+                            notas=f"Saldo pendiente sesión #{sesion.numero_sesion}",
+                        )
                     monto_restante -= (monto_aplicar if not (m2 > 0 and medio_pago_2) else (m1 + m2))
                     pago_afectado = True
                     
@@ -449,25 +461,29 @@ def recalcular_deuda(paciente, clinica):
         # Si fue pagada con pack, la sesión está completamente cubierta
         if pagos_sesion.filter(medio_pago=RegistroPago.MEDIO_PACK).exists():
             continue
-            
+
+        # A. Si la sesión tiene un saldo pendiente explícito (o registro de deuda pendiente)
+        deuda_pendiente_sesion = pagos_sesion.filter(
+            estado=RegistroPago.ESTADO_PENDIENTE
+        ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
+
+        if deuda_pendiente_sesion > 0:
+            monto_pendiente_sesiones += deuda_pendiente_sesion
+            sesiones_sin_pago_completo += 1
+            continue
+
+        # B. Si no tiene deuda pendiente explícita, verificar si ya fue pagada directamente
         pagado_a_sesion = pagos_sesion.filter(
             estado__in=[RegistroPago.ESTADO_PAGADO, RegistroPago.ESTADO_BONO_POR_LLEGAR]
         ).aggregate(total=Sum(F('monto') + F('monto_2')))['total'] or Decimal('0')
-        
+
         if pagado_a_sesion > 0:
-            # La sesión fue pagada directamente. NO tiene deuda.
-            # Su pago pertenece a esta sesión y NUNCA se descuenta de la deuda de otras sesiones ni packs.
+            # Sesión cubierta o pagada de inmediato
             continue
 
-        # Si no tiene pago confirmado, verificar si tiene un registro de pago pendiente explícito
-        pago_pendiente = pagos_sesion.filter(estado=RegistroPago.ESTADO_PENDIENTE).first()
-        if pago_pendiente and (pago_pendiente.monto + pago_pendiente.monto_2) > 0:
-            monto_pendiente_sesiones += (pago_pendiente.monto + pago_pendiente.monto_2)
-            sesiones_sin_pago_completo += 1
-        else:
-            # Sesión sin ningún pago asociado
-            monto_pendiente_sesiones += costo_referencia
-            sesiones_sin_pago_completo += 1
+        # C. Sesión sin ningún registro de pago asociado (huérfana)
+        monto_pendiente_sesiones += costo_referencia
+        sesiones_sin_pago_completo += 1
 
     # 4. Cálculo final: solo los abonos explícitamente libres disminuyen la deuda
     monto_pendiente_total = monto_pendiente_sesiones + deuda_explicita_sin_sesion - abonos_libres
