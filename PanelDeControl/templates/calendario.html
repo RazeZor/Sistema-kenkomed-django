@@ -726,6 +726,9 @@
             <!-- Navigation -->
             <header class="nav">
                 <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="openDrawer()" class="lg:hidden p-1 text-gray-600 hover:text-medical-blue rounded-lg transition-colors shrink-0" aria-label="Abrir menú">
+                        <i class='text-2xl bx bx-menu'></i>
+                    </button>
                     <a class="w-8 h-8 flex items-center justify-center flex-shrink-0" href="{% url 'panel' %}">
                         <img src="{% static 'image/LogoKenkoMed.png' %}" alt="Logo KenkoMed" class="w-full h-full object-contain">
                     </a>

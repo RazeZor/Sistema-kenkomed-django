@@ -1,206 +1,169 @@
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KenkoMed Menu</title>
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        medical: {
-                            blue: '#0284c7',
-                            'blue-light': '#38bdf8',
-                            'blue-dark': '#0369a1',
-                            green: '#10b981',
-                            red: '#ef4444',
-                            orange: '#f59e0b',
-                            teal: '#14b8a6'
-                        }
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
-                    },
-                    screens: {
-                        'xs': '480px',
-                    }
-                }
+<style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Prevent animated transitions during initial page load to eliminate flicker */
+    .sidebar-initial-load,
+    .sidebar-initial-load * {
+        transition: none !important;
+    }
+
+    /* Sidebar collapse transitions & styles */
+    #sidebar {
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
+    }
+
+    #sidebar.sidebar-collapsed {
+        width: 90px !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-text-content,
+    #sidebar.sidebar-collapsed .sidebar-brand-text {
+        display: none !important;
+        opacity: 0;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-item-link {
+        justify-content: center !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-header-title {
+        display: flex !important;
+        justify-content: center !important;
+    }
+
+    #sidebar.sidebar-collapsed .sidebar-header-box {
+        justify-content: center !important;
+        padding-left: 0.25rem !important;
+        padding-right: 0.25rem !important;
+    }
+
+    /* Tooltip on hover when collapsed */
+    #sidebar.sidebar-collapsed .sidebar-item-link:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        margin-left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #18181b;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 6px 12px;
+        border-radius: 8px;
+        white-space: nowrap;
+        z-index: 100;
+        box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+        border: 1px solid rgba(255,255,255,0.15);
+        pointer-events: none;
+    }
+
+    /* Hover micro-interactions for menu items */
+    .sidebar-item-link {
+        transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-item-link:hover {
+        background-color: rgba(2, 132, 199, 0.08) !important;
+        transform: translateX(4px);
+    }
+
+    .sidebar-item-link:hover .sidebar-text-content span {
+        color: #0284c7 !important;
+        font-weight: 600;
+    }
+
+    .sidebar-item-link:hover i {
+        color: #0284c7 !important;
+        transform: scale(1.15);
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-item-link:hover div:first-child {
+        background-color: rgba(2, 132, 199, 0.2) !important;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+    }
+
+    /* Bottom nav item */
+    .bottom-nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 6px 4px 8px;
+        min-width: 0;
+        transition: all 0.2s ease;
+        border-radius: 10px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .bottom-nav-item:active {
+        transform: scale(0.92);
+        background-color: #f0f9ff;
+    }
+    .bottom-nav-item.active-bottom {
+        color: #0284c7;
+    }
+    .bottom-nav-item.active-bottom .bottom-nav-icon {
+        background-color: #0284c7;
+        color: white;
+    }
+    .bottom-nav-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background-color: transparent;
+        margin-bottom: 2px;
+        transition: all 0.2s ease;
+    }
+    .bottom-nav-label {
+        font-size: 10px;
+        font-weight: 500;
+        line-height: 1;
+        color: inherit;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 60px;
+        text-align: center;
+    }
+
+    /* Drawer overlay */
+    #drawerOverlay {
+        transition: opacity 0.3s ease;
+    }
+
+    /* Drawer */
+    #sideDrawer {
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Safe area bottom for devices with home indicator */
+    .bottom-nav-safe {
+        padding-bottom: env(safe-area-inset-bottom, 8px);
+    }
+</style>
+
+<!-- Immediate inline check to prevent any layout shift or flicker on page load -->
+<script>
+    (function() {
+        try {
+            if (localStorage.getItem('kenko_sidebar_collapsed') === 'true') {
+                document.write('<style id="sidebar-preload-style">#sidebar{width:90px!important;padding-left:0.5rem!important;padding-right:0.5rem!important;}#sidebar .sidebar-text-content,#sidebar .sidebar-brand-text{display:none!important;}#sidebar .sidebar-item-link,#sidebar .sidebar-header-box{justify-content:center!important;padding-left:0.25rem!important;padding-right:0.25rem!important;}</style>');
             }
-        }
-    </script>
-    <style>
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Prevent animated transitions during initial page load to eliminate flicker */
-        .sidebar-initial-load,
-        .sidebar-initial-load * {
-            transition: none !important;
-        }
-
-        /* Sidebar collapse transitions & styles */
-        #sidebar {
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease;
-        }
-
-        #sidebar.sidebar-collapsed {
-            width: 90px !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
-        }
-
-        #sidebar.sidebar-collapsed .sidebar-text-content,
-        #sidebar.sidebar-collapsed .sidebar-brand-text {
-            display: none !important;
-            opacity: 0;
-        }
-
-        #sidebar.sidebar-collapsed .sidebar-item-link {
-            justify-content: center !important;
-            padding-left: 0.25rem !important;
-            padding-right: 0.25rem !important;
-        }
-
-        #sidebar.sidebar-collapsed .sidebar-header-title {
-            display: flex !important;
-            justify-content: center !important;
-        }
-
-        #sidebar.sidebar-collapsed .sidebar-header-box {
-            justify-content: center !important;
-            padding-left: 0.25rem !important;
-            padding-right: 0.25rem !important;
-        }
-
-        /* Tooltip on hover when collapsed */
-        #sidebar.sidebar-collapsed .sidebar-item-link:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: 100%;
-            margin-left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: #18181b;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 8px;
-            white-space: nowrap;
-            z-index: 100;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.15);
-            pointer-events: none;
-        }
-
-        /* Hover micro-interactions for menu items */
-        .sidebar-item-link {
-            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
-        }
-
-        .sidebar-item-link:hover {
-            background-color: rgba(2, 132, 199, 0.08) !important;
-            transform: translateX(4px);
-        }
-
-        .sidebar-item-link:hover .sidebar-text-content span {
-            color: #0284c7 !important;
-            font-weight: 600;
-        }
-
-        .sidebar-item-link:hover i {
-            color: #0284c7 !important;
-            transform: scale(1.15);
-            transition: transform 0.2s ease, color 0.2s ease;
-        }
-
-        .sidebar-item-link:hover div:first-child {
-            background-color: rgba(2, 132, 199, 0.2) !important;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
-        }
-
-        /* Bottom nav item */
-        .bottom-nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            padding: 6px 4px 8px;
-            min-width: 0;
-            transition: all 0.2s ease;
-            border-radius: 10px;
-            cursor: pointer;
-            text-decoration: none;
-        }
-        .bottom-nav-item:active {
-            transform: scale(0.92);
-            background-color: #f0f9ff;
-        }
-        .bottom-nav-item.active-bottom {
-            color: #0284c7;
-        }
-        .bottom-nav-item.active-bottom .bottom-nav-icon {
-            background-color: #0284c7;
-            color: white;
-        }
-        .bottom-nav-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background-color: transparent;
-            margin-bottom: 2px;
-            transition: all 0.2s ease;
-        }
-        .bottom-nav-label {
-            font-size: 10px;
-            font-weight: 500;
-            line-height: 1;
-            color: inherit;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60px;
-            text-align: center;
-        }
-
-        /* Drawer overlay */
-        #drawerOverlay {
-            transition: opacity 0.3s ease;
-        }
-
-        /* Drawer */
-        #sideDrawer {
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Safe area bottom for devices with home indicator */
-        .bottom-nav-safe {
-            padding-bottom: env(safe-area-inset-bottom, 8px);
-        }
-    </style>
-</head>
-<body class="font-sans">
-
-    <!-- Immediate inline check to prevent any layout shift or flicker on page load -->
-    <script>
-        (function() {
-            try {
-                if (localStorage.getItem('kenko_sidebar_collapsed') === 'true') {
-                    document.write('<style id="sidebar-preload-style">#sidebar{width:90px!important;padding-left:0.5rem!important;padding-right:0.5rem!important;}#sidebar .sidebar-text-content,#sidebar .sidebar-brand-text{display:none!important;}#sidebar .sidebar-item-link,#sidebar .sidebar-header-box{justify-content:center!important;padding-left:0.25rem!important;padding-right:0.25rem!important;}</style>');
-                }
-            } catch(e) {}
-        })();
-    </script>
+        } catch(e) {}
+    })();
+</script>
 
     <!-- ============================================================ -->
     <!-- SIDEBAR DESKTOP (lg+) - Estilo Blanco Desplegable / Colapsable -->
@@ -611,5 +574,3 @@
             }, { passive: true });
         }
     </script>
-</body>
-</html>
