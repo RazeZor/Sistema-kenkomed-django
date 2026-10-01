@@ -104,7 +104,7 @@
                                                 <i class='bx bx-wallet'></i> Pagos
                                             </a>
                                             <a href="{% url 'estadisticas_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-block text-sm">
-                                                <i class='bx bx-line-chart'></i> Estadísticas
+                                                <i class='bx bx-line-chart'></i> Evolución Clínica
                                             </a>
                                         </div>
                                     </div>
@@ -136,7 +136,7 @@
                                         <a href="{% url 'pagos:detalle_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver pagos del paciente">
                                             <i class='bx bx-wallet text-lg'></i>
                                         </a>
-                                        <a href="{% url 'estadisticas_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver estadísticas del paciente">
+                                        <a href="{% url 'estadisticas_paciente' %}?rut={{ paciente.rut }}" class="btn btn-outline btn-sm px-2" title="Ver evolución del paciente">
                                             <i class='bx bx-line-chart text-lg'></i>
                                         </a>
                                     </div>

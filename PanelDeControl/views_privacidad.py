@@ -2,6 +2,7 @@
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseForbidden
 from django.shortcuts import redirect, render
+from django.core.paginator import Paginator
 from django.utils import timezone
 
 from Login.auditoria import registrar_auditoria
@@ -33,13 +34,13 @@ def _dias_desde_request(request):
 
 def _queryset_auditoria(request, dias):
     desde = timezone.now() - timezone.timedelta(days=dias)
-    return list(
+    return (
         filtrar_auditoria_por_sesion(
             request,
             AuditoriaAcceso.objects.select_related('paciente', 'clinico', 'clinica'),
         )
         .filter(fecha__gte=desde)
-        .order_by('-fecha')[:1000]
+        .order_by('-fecha')
     )
 
 
@@ -89,15 +90,21 @@ def auditoria_accesos(request):
     """Lista acciones clínicas auditadas del centro activo."""
     dias = _dias_desde_request(request)
     registros = _queryset_auditoria(request, dias)
+    
+    paginator = Paginator(registros, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     clinica = obtener_clinica_de_sesion(request)
 
     registrar_auditoria(
         request, 'consulta_auditoria', paciente=None,
-        detalle=f'Consultó auditoría — últimos {dias} días',
+        detalle=f'Consultó auditoría — últimos {dias} días (Página {page_obj.number})',
     )
 
     return render(request, 'auditoria_accesos.html', {
-        'registros': registros,
+        'registros': page_obj,
+        'page_obj': page_obj,
         'clinica': clinica,
         'dias': dias,
         'dias_opciones': DIAS_PERMITIDOS,

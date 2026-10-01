@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .forms import ClinicoAdminForm
-from .models import AuditoriaAcceso, Clinico, Paciente
+from .models import AuditoriaAcceso, Clinico, Paciente, InvitacionRegistro
 from clinicas.models import MembresiaClinica
 from clinicas.admin import _procesar_membresia_formset
 
@@ -94,3 +94,10 @@ class AuditoriaAccesoAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+@admin.register(InvitacionRegistro)
+class InvitacionRegistroAdmin(admin.ModelAdmin):
+    list_display = ('token', 'email', 'plan_recomendado', 'usado', 'fecha_creacion')
+    list_filter = ('usado', 'fecha_creacion')
+    search_fields = ('email', 'token')
+    readonly_fields = ('token', 'fecha_creacion')

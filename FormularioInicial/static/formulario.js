@@ -577,78 +577,146 @@ function CrearPartesDelCuerpo() {
   })
 }
 
-/**
- * Actualiza el color de una parte del cuerpo según la intensidad del dolor
- */
-function actualizarColorParte(elemento, intensidad) {
-  elemento.classList.remove("dolor-baja", "dolor-media", "dolor-alta")
+let dolorSeleccionadoActual = null;
+const mapaDolores = {};
 
-  if (intensidad) {
-    elemento.classList.add(`dolor-${intensidad.toLowerCase()}`)
-  }
+/**
+ * Actualiza el color de una parte del cuerpo según la intensidad (1-10)
+ */
+function actualizarColorParte(elemento, intensidadNum) {
+  elemento.classList.remove("dolor-baja", "dolor-media", "dolor-alta");
+  if (!intensidadNum) return;
+  
+  const v = parseInt(intensidadNum);
+  if (v <= 3) elemento.classList.add("dolor-baja");
+  else if (v <= 6) elemento.classList.add("dolor-media");
+  else elemento.classList.add("dolor-alta");
 }
 
 /**
- * Agrega una fila al mapa de dolor (opcionalmente con intensidad precargada).
+ * Actualiza la tabla de resumen y los inputs ocultos
  */
-function agregarFilaMapaDolor(nombreParte, intensidadPreset) {
-  const minitablita = document.getElementById("minitablita")
-  if (!minitablita) return false
-
-  const elemento = elementosPorNombre[nombreParte]
-  if (!elemento) return false
-
-  const filaExistente = Array.from(document.querySelectorAll("#minitablita tr")).find(
-    (tr) => tr.cells[0] && tr.cells[0].textContent === nombreParte,
-  )
-  if (filaExistente) return false
-
-  const intensidades = ["Baja", "Media", "Alta"]
-  const tr = document.createElement("tr")
-  tr.innerHTML = `
-        <td>${nombreParte}</td>
-        <input type="hidden" name="ubicacionDolor" value="${nombreParte}">
-        <td>
-            <select class="form-select" name="intensidad">
-                <option value="">Seleccionar intensidad</option>
-                ${intensidades
-                  .map((intensidad) => `<option value="${intensidad.toLowerCase()}">${intensidad}</option>`)
-                  .join("")}
-            </select>
-        </td>
-        <td>
-            <button type="button" class="btn btn-danger btn-sm eliminar-fila">Eliminar</button>
-        </td>
-    `
-
-  const select = tr.querySelector("select")
-  select.addEventListener("change", (e) => {
-    actualizarColorParte(elemento, e.target.value)
-  })
-
-  if (intensidadPreset) {
-    select.value = String(intensidadPreset).toLowerCase()
-    actualizarColorParte(elemento, select.value)
+function renderizarResumenDolor() {
+  const tbody = document.getElementById("minitablita");
+  const table = document.getElementById("painSummaryTable");
+  const emptyMsg = document.getElementById("painSummaryEmpty");
+  const inputsContainer = document.getElementById("hiddenInputsContainer");
+  
+  if (!tbody || !table || !emptyMsg || !inputsContainer) return;
+  
+  tbody.innerHTML = "";
+  inputsContainer.innerHTML = "";
+  
+  const partes = Object.keys(mapaDolores);
+  
+  if (partes.length === 0) {
+    table.style.display = "none";
+    emptyMsg.style.display = "block";
+    return;
   }
+  
+  table.style.display = "table";
+  emptyMsg.style.display = "none";
+  
+  partes.forEach(parte => {
+    const intNum = mapaDolores[parte];
+    
+    // Convertir a texto para la tabla de resumen y backend (mantener compatibilidad si backend espera texto, 
+    // pero guardaremos el string de número y el backend lo lee)
+    // El backend maneja json de strings: ["8", "5"]
+    let intText = "Leve";
+    let badgeStyle = "background-color: #fef08a; color: #854d0e;";
+    if(intNum > 3 && intNum <= 6) { 
+      intText = "Moderado"; 
+      badgeStyle = "background-color: #fed7aa; color: #9a3412;"; 
+    }
+    else if(intNum > 6) { 
+      intText = "Severo"; 
+      badgeStyle = "background-color: #fecaca; color: #991b1b;"; 
+    }
 
-  const btnEliminar = tr.querySelector("button")
-  btnEliminar.addEventListener("click", () => {
-    tr.remove()
-    actualizarColorParte(elemento, null)
-  })
-
-  minitablita.appendChild(tr)
-  return true
+    // Visual table row
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="fw-medium">${parte}</td>
+      <td class="text-center"><span class="badge" style="${badgeStyle}">${intNum}/10 - ${intText}</span></td>
+    `;
+    tbody.appendChild(tr);
+    
+    // Hidden inputs for Django
+    const inputUbicacion = document.createElement("input");
+    inputUbicacion.type = "hidden";
+    inputUbicacion.name = "ubicacionDolor";
+    inputUbicacion.value = parte;
+    
+    const inputIntensidad = document.createElement("input");
+    inputIntensidad.type = "hidden";
+    inputIntensidad.name = "intensidad";
+    // Pasamos el número directamente para que las estadísticas (views.py) lo lean
+    inputIntensidad.value = intNum;
+    
+    inputsContainer.appendChild(inputUbicacion);
+    inputsContainer.appendChild(inputIntensidad);
+  });
 }
 
 /**
- * Muestra el selector de intensidad de dolor para una parte del cuerpo
+ * Muestra el modal de intensidad de dolor para una parte del cuerpo
  */
 function mostrarSelectorIntensidad(nombreParte, elemento) {
-  const agregado = agregarFilaMapaDolor(nombreParte, null)
-  if (!agregado) {
-    alert("Esta parte del cuerpo ya ha sido seleccionada")
+  dolorSeleccionadoActual = { nombre: nombreParte, elemento: elemento };
+  
+  // Clean up the modal state for new clicks
+  const modal = document.getElementById("painModal");
+  const title = document.getElementById("painModalTitle");
+  const btnRemove = document.getElementById("btnRemovePain");
+  
+  title.textContent = nombreParte;
+  
+  if (mapaDolores[nombreParte]) {
+    // Ya existe, mostrar botón quitar
+    btnRemove.style.display = "block";
+  } else {
+    // Nuevo
+    btnRemove.style.display = "none";
   }
+  
+  // Mostrar modal
+  modal.style.display = "block";
+  // Pequeño timeout para la transición CSS
+  setTimeout(() => modal.classList.add("show"), 10);
+}
+
+function seleccionarIntensidad(val) {
+  if (!dolorSeleccionadoActual) return;
+  mapaDolores[dolorSeleccionadoActual.nombre] = val;
+  actualizarColorParte(dolorSeleccionadoActual.elemento, val);
+  renderizarResumenDolor();
+  cerrarModalDolor();
+}
+
+function cerrarModalDolor() {
+  const modal = document.getElementById("painModal");
+  modal.classList.remove("show");
+  setTimeout(() => modal.style.display = "none", 200);
+  dolorSeleccionadoActual = null;
+}
+
+function guardarIntensidad() {
+  if (!dolorSeleccionadoActual) return;
+  const val = document.getElementById("painScaleInput").value;
+  mapaDolores[dolorSeleccionadoActual.nombre] = val;
+  actualizarColorParte(dolorSeleccionadoActual.elemento, val);
+  renderizarResumenDolor();
+  cerrarModalDolor();
+}
+
+function quitarDolor() {
+  if (!dolorSeleccionadoActual) return;
+  delete mapaDolores[dolorSeleccionadoActual.nombre];
+  actualizarColorParte(dolorSeleccionadoActual.elemento, null);
+  renderizarResumenDolor();
+  cerrarModalDolor();
 }
 
 // ============================================================================

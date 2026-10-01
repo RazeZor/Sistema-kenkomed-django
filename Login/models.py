@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password, check_password
+import uuid
 
 class Clinico(models.Model):
     # --- Identificación principal ---
@@ -604,3 +605,20 @@ class AuditoriaAcceso(models.Model):
             return '—'
         return f'{self.paciente.nombre} {self.paciente.apellido} ({self.paciente.rut})'
 
+
+import uuid
+
+class InvitacionRegistro(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    email = models.EmailField(blank=True, null=True, help_text="Opcional. Si se define, solo este email puede usar el link.")
+    usado = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    # opcional: plan recomendado
+    plan_recomendado = models.ForeignKey('planes.Plan', on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Invitación de Registro"
+        verbose_name_plural = "Invitaciones de Registro"
+
+    def __str__(self):
+        return f"Invitación {self.token} - {'Usada' if self.usado else 'Pendiente'}"

@@ -296,9 +296,12 @@
                     
                     <div class="space-y-3">
                         {% if tiene_anamnesis_ciclo %}
-                        <a href="{% url 'informe' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
-                            <i class='bx bx-file-medical text-lg'></i> Informe DSS (Anamnesis)
+                        <a href="{% url 'informe' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" id="informe-button" target="_blank" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-lg hover:shadow-lg transition-all shadow-md transform hover:-translate-y-0.5 border border-indigo-400" style="background-size: 200% auto; animation: gradientPulse 3s ease infinite;">
+                            <i class='bx bxs-magic-wand text-lg'></i> Análisis Inteligente (DSS)
                         </a>
+                        <style>
+                            @keyframes gradientPulse { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+                        </style>
                         {% if not ciclo_solo_lectura %}
                         <a href="{% url 'formularioInicial' %}?rut={{ paciente.rut }}{% if ciclo_id %}&ciclo_id={{ ciclo_id }}{% endif %}" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors shadow-sm">
                             <i class='bx bx-edit text-lg'></i> Editar Anamnesis
@@ -306,7 +309,7 @@
                         {% endif %}
                         {% else %}
                         <button type="button" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-white bg-gray-400 rounded-lg cursor-not-allowed shadow-sm" title="Requiere completar la Evaluación Inicial">
-                            <i class='bx bx-file-medical text-lg'></i> Informe DSS (Bloqueado)
+                            <i class='bx bx-lock-alt text-lg'></i> Análisis Inteligente (Bloqueado)
                         </button>
                         {% endif %}
                         
