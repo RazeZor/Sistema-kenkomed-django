@@ -931,6 +931,7 @@ def estadisticas(request):
         'total_formularios': total_formularios,
         'distribucion_genero': json.dumps(distribucion_genero),
         'top_ubicaciones': json.dumps({'labels': list(top_ubicaciones.keys()), 'data': list(top_ubicaciones.values())}),
+        'mapa_calor_data': json.dumps(ubicaciones_dolor),
         'intensidad_promedio': round(intensidad_promedio, 1),
         'distribucion_intensidad': json.dumps({'labels': list(distribucion_intensidad.keys()), 'data': list(distribucion_intensidad.values())}),
         'top_condiciones': json.dumps({'labels': list(top_condiciones.keys()), 'data': list(top_condiciones.values())}),

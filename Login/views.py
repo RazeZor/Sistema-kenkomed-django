@@ -74,9 +74,9 @@ def validarLogin(request):
                 logger.error(f"Error inesperado en login: {type(e).__name__}", exc_info=True)
                 messages.error(request, 'Error inesperado. Por favor intente nuevamente.')
 
-        return render(request, 'Login.html')
+        return render(request, 'Login/Login.html')
 
     except Exception as e:
         logger.error(f"Error crítico en validarLogin: {type(e).__name__}", exc_info=True)
         messages.error(request, 'Error inesperado. Por favor intente nuevamente.')
-        return render(request, 'Login.html')
+        return render(request, 'Login/Login.html')

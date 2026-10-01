@@ -1,105 +1,174 @@
+{% extends 'base_kenkomed.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría clínica — KenkoMed</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-</head>
-<body class="bg-gray-50 min-h-screen">
-    <div class="max-w-7xl mx-auto p-6">
-        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Registro de auditoría clínica</h1>
-                {% if clinica %}
-                <p class="text-sm text-gray-600 mt-1"><strong>{{ clinica.nombre }}</strong></p>
-                {% endif %}
-                <p class="text-sm text-gray-500 mt-1">
-                    Trazabilidad de consultas, ediciones y exportaciones sobre fichas de pacientes (Ley 21.719).
-                </p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <a href="{% url 'panel' %}" class="text-sm text-indigo-600 hover:text-indigo-800 px-3 py-2">← Panel</a>
-                {% if features.auditoria_pdf %}
-                <a href="{% url 'exportar_auditoria_pdf' %}?dias={{ dias }}"
-                   class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 shadow-sm">
-                    <i class='bx bxs-file-pdf text-lg'></i>
-                    Exportar PDF
-                </a>
-                {% endif %}
-            </div>
-        </div>
 
-        <form method="get" class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-4 flex flex-wrap items-end gap-4">
-            <div>
-                <label for="dias" class="block text-xs font-medium text-gray-500 mb-1">Período</label>
-                <select name="dias" id="dias" class="rounded-lg border-gray-300 text-sm">
+{% block title %}Auditoría clínica — KenkoMed{% endblock %}
+{% block header_title %}Registro de Auditoría Clínica{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Encabezado y Explicación -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-bold text-gray-900">
+                <i class='bx bx-shield-quarter text-medical-blue mr-2'></i>Trazabilidad de Accesos
+            </h2>
+            {% if clinica %}
+            <p class="text-sm font-medium text-gray-600 mt-1">{{ clinica.nombre }}</p>
+            {% endif %}
+            <p class="text-sm text-gray-500 mt-1">
+                Registro inmutable de consultas, ediciones y exportaciones sobre fichas de pacientes (Cumplimiento Ley 21.719 / Ley 20.584).
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+            {% if features.auditoria_pdf %}
+            <a href="{% url 'exportar_auditoria_pdf' %}?dias={{ dias }}"
+               class="btn btn-outline hover:bg-red-50 hover:text-red-700 hover:border-red-200 transition-colors shadow-sm">
+                <i class='bx bxs-file-pdf text-lg mr-2'></i> Exportar a PDF
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex flex-col sm:flex-row items-end gap-4">
+        <div class="w-full sm:w-auto">
+            <label for="dias" class="block text-xs font-medium text-gray-500 mb-1.5">Período de auditoría</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i class='text-gray-400 bx bx-calendar'></i>
+                </div>
+                <select name="dias" id="dias" class="bg-white border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-medical-blue focus:border-medical-blue block w-full pl-10 p-2.5">
                     {% for d in dias_opciones %}
                     <option value="{{ d }}" {% if d == dias %}selected{% endif %}>Últimos {{ d }} días</option>
                     {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">
-                Filtrar
-            </button>
-            <p class="text-sm text-gray-500 ml-auto">{{ registros|length }} registro(s)</p>
-        </form>
+        </div>
+        <button type="submit" class="btn btn-primary w-full sm:w-auto h-[42px]">
+            <i class='bx bx-filter-alt mr-2'></i> Filtrar Registros
+        </button>
+        <div class="text-sm text-gray-500 ml-auto font-medium hidden sm:block">
+            Mostrando página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        </div>
+    </form>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+    <!-- Tabla -->
+    <div class="overflow-hidden bg-white border border-gray-100 shadow-sm rounded-xl">
+        <div class="overflow-x-auto">
             <table class="min-w-full text-sm">
-                <thead class="bg-slate-800 text-left text-white">
+                <thead class="bg-gray-50/80 text-left text-gray-600 border-b border-gray-100 uppercase tracking-wider text-[11px] font-bold">
                     <tr>
-                        <th class="px-4 py-3 font-medium whitespace-nowrap">Fecha / Hora</th>
-                        <th class="px-4 py-3 font-medium">Acción</th>
-                        <th class="px-4 py-3 font-medium">Detalle</th>
-                        <th class="px-4 py-3 font-medium">Paciente</th>
-                        <th class="px-4 py-3 font-medium">Profesional</th>
-                        <th class="px-4 py-3 font-medium">IP</th>
+                        <th class="px-6 py-4">Fecha / Hora</th>
+                        <th class="px-6 py-4">Acción</th>
+                        <th class="px-6 py-4">Detalle</th>
+                        <th class="px-6 py-4">Paciente Afectado</th>
+                        <th class="px-6 py-4">Profesional Responsable</th>
+                        <th class="px-6 py-4">Dirección IP</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     {% for r in registros %}
-                    <tr class="hover:bg-gray-50 align-top">
-                        <td class="px-4 py-3 whitespace-nowrap text-gray-700">{{ r.fecha|date:"d/m/Y H:i" }}</td>
-                        <td class="px-4 py-3 text-gray-900 font-medium">{{ r.get_accion_display }}</td>
-                        <td class="px-4 py-3 text-gray-600 max-w-xs">{{ r.detalle|default:"—" }}</td>
-                        <td class="px-4 py-3 text-gray-800">
-                            {% if r.paciente %}
-                            {{ r.paciente.nombre }} {{ r.paciente.apellido }}
-                            <span class="text-gray-400 block text-xs">{{ r.paciente.rut }}</span>
-                            {% else %}—{% endif %}
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-gray-900">{{ r.profesional_display }}</span>
-                            {% if r.es_admin_sistema or r.es_admin_centro %}
-                            <div class="flex flex-wrap gap-1 mt-1">
-                                {% if r.es_admin_sistema %}
-                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">KenkoMed</span>
-                                {% endif %}
-                                {% if r.es_admin_centro %}
-                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">Admin centro</span>
-                                {% endif %}
+                    <tr class="hover:bg-gray-50/80 transition-colors duration-150 align-top">
+                        <td class="px-6 py-4 whitespace-nowrap text-gray-700 font-medium">
+                            <div class="flex items-center gap-2">
+                                <i class='bx bx-time-five text-gray-400'></i>
+                                {{ r.fecha|date:"d/m/Y H:i" }}
                             </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-900">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 uppercase tracking-wide inline-block">
+                                {{ r.get_accion_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 max-w-xs break-words">
+                            {{ r.detalle|default:"—" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if r.paciente %}
+                            <div class="font-semibold text-gray-800">{{ r.paciente.nombre }} {{ r.paciente.apellido }}</div>
+                            <div class="text-gray-400 text-xs mt-0.5">{{ r.paciente.rut }}</div>
+                            {% else %}
+                            <span class="text-gray-400">—</span>
                             {% endif %}
                         </td>
-                        <td class="px-4 py-3 text-gray-500 text-xs whitespace-nowrap">{{ r.ip_address|default:"—" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold text-xs">
+                                    {{ r.profesional_display|slice:":1" }}
+                                </div>
+                                <div>
+                                    <span class="text-gray-900 font-medium">{{ r.profesional_display }}</span>
+                                    {% if r.es_admin_sistema or r.es_admin_centro %}
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        {% if r.es_admin_sistema %}
+                                        <span class="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 font-bold">KenkoMed Admin</span>
+                                        {% endif %}
+                                        {% if r.es_admin_centro %}
+                                        <span class="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-medical-blue/10 text-medical-blue border border-medical-blue/20 font-bold">Admin Centro</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-400 text-xs font-mono">
+                            {{ r.ip_address|default:"—" }}
+                        </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-4 py-12 text-center text-gray-500">
-                            No hay registros de auditoría en este período.
+                        <td colspan="6" class="px-6 py-16 text-center text-gray-500 bg-gray-50/50">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100 mb-4">
+                                    <i class='bx bx-search-alt text-3xl text-gray-300'></i>
+                                </div>
+                                <p class="text-base font-semibold text-gray-700">No hay registros de auditoría</p>
+                                <p class="text-sm text-gray-400 mt-1 max-w-sm">No se encontraron acciones registradas en el período de los últimos {{ dias }} días para esta clínica.</p>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    </div>
+    
+    <!-- Controles de Paginación -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex flex-col sm:flex-row items-center justify-between mt-4 bg-white border border-gray-100 rounded-xl p-4 shadow-sm gap-4">
+        <div class="text-sm text-gray-500 order-2 sm:order-1">
+            Mostrando <span class="font-semibold text-gray-900">{{ page_obj.start_index }}</span> a <span class="font-semibold text-gray-900">{{ page_obj.end_index }}</span> de <span class="font-semibold text-gray-900">{{ page_obj.paginator.count }}</span> registros
+        </div>
+        <div class="flex gap-2 order-1 sm:order-2">
+            {% if page_obj.has_previous %}
+                <a href="?dias={{ dias }}&page=1" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-sm transition-colors shadow-sm hidden sm:block"><i class='bx bx-chevrons-left'></i></a>
+                <a href="?dias={{ dias }}&page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-sm transition-colors shadow-sm"><i class='bx bx-chevron-left'></i> Anterior</a>
+            {% else %}
+                <span class="px-3 py-1.5 rounded-lg border border-gray-100 text-gray-300 text-sm cursor-not-allowed shadow-sm hidden sm:block"><i class='bx bx-chevrons-left'></i></span>
+                <span class="px-3 py-1.5 rounded-lg border border-gray-100 text-gray-300 text-sm cursor-not-allowed shadow-sm"><i class='bx bx-chevron-left'></i> Anterior</span>
+            {% endif %}
+            
+            <span class="px-4 py-1.5 rounded-lg bg-medical-blue text-white font-semibold text-sm shadow-sm">Página {{ page_obj.number }}</span>
+            
+            {% if page_obj.has_next %}
+                <a href="?dias={{ dias }}&page={{ page_obj.next_page_number }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-sm transition-colors shadow-sm">Siguiente <i class='bx bx-chevron-right'></i></a>
+                <a href="?dias={{ dias }}&page={{ page_obj.paginator.num_pages }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900 text-sm transition-colors shadow-sm hidden sm:block"><i class='bx bx-chevrons-right'></i></a>
+            {% else %}
+                <span class="px-3 py-1.5 rounded-lg border border-gray-100 text-gray-300 text-sm cursor-not-allowed shadow-sm">Siguiente <i class='bx bx-chevron-right'></i></span>
+                <span class="px-3 py-1.5 rounded-lg border border-gray-100 text-gray-300 text-sm cursor-not-allowed shadow-sm hidden sm:block"><i class='bx bx-chevrons-right'></i></span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
 
-        <p class="text-xs text-gray-400 mt-4 text-center">
-            Los administradores que también ejercen como kinesiólogos quedan identificados con su nombre y rol en cada acción.
+    <div class="flex items-start gap-3 p-4 bg-blue-50/80 rounded-xl border border-blue-100/50 text-sm text-blue-800">
+        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm border border-blue-100">
+            <i class='bx bx-info-circle text-lg text-medical-blue'></i>
+        </div>
+        <p class="mt-1">
+            <strong>Acerca del registro:</strong> 
+            Los administradores que también ejercen como kinesiólogos quedan identificados con su nombre y rol en cada acción realizada dentro de la clínica. Este registro asegura el cumplimiento de la Ley 20.584 y no puede ser alterado ni borrado.
         </p>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

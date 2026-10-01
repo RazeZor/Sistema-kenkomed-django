@@ -1,0 +1,604 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KenkoMed · Crea tu cuenta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="shortcut icon" href="{% static 'images/favicon.png' %}" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --kenko-blue:    #115b9c;
+    --kenko-dark:    #0d4175;
+    --kenko-darker:  #092d52;
+    --kenko-teal:    #0e7ea8;
+    --surface:       #f4f7fb;
+    --white:         #ffffff;
+    --text:          #0f172a;
+    --muted:         #6b7280;
+    --border:        #dde4ed;
+    --radius:        12px;
+    --radius-sm:     8px;
+    
+    --ff-display: 'Plus Jakarta Sans', sans-serif;
+    --ff-body:    'Inter', sans-serif;
+  }
+
+  body {
+    font-family: var(--ff-body);
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .page { display: flex; animation: fadeIn .35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  #login {
+    min-height: 100vh;
+    align-items: stretch;
+  }
+
+  .login-left {
+    position: relative;
+    overflow: hidden;
+    width: 420px;
+    flex-shrink: 0;
+    background: var(--kenko-darker);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 40px;
+    color: #fff;
+  }
+  .login-left::before, .login-left::after {
+    content: ''; position: absolute; border-radius: 50%; filter: blur(80px); z-index: 0;
+    animation: floatOrb 10s infinite alternate ease-in-out;
+  }
+  .login-left::before {
+    width: 350px; height: 350px; background: rgba(14,126,168,0.4); top: -100px; left: -100px;
+  }
+  .login-left::after {
+    width: 450px; height: 450px; background: rgba(17,91,156,0.3); bottom: -150px; right: -150px;
+    animation-delay: -5s;
+  }
+  @keyframes floatOrb {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(30px, 40px) scale(1.1); }
+  }
+  .login-left > * { position: relative; z-index: 1; }
+
+  .login-brand { display: flex; align-items: center; gap: 12px; }
+  .login-logo { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+  .login-logo img { width: 100%; height: 100%; object-fit: contain; }
+  .login-brand-name { font-family: var(--ff-display); font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .login-brand-name span { color: var(--kenko-teal); }
+
+  .login-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .login-hero h2 { font-family: var(--ff-display); font-size: 32px; line-height: 1.25; margin-bottom: 14px; font-weight: 500; letter-spacing: -0.5px; }
+  .login-hero p { font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.7; max-width: 300px; }
+
+  .login-footer { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+  .login-right {
+    flex: 1;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    overflow-y: auto;
+  }
+
+  .login-form { width: 100%; max-width: 540px; }
+  .login-form h1 { font-family: var(--ff-display); font-size: 28px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.5px; color: var(--text); }
+  .login-form .subtitle { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+
+  /* WIZARD STEPS */
+  .step-indicator { display: flex; gap: 8px; margin-bottom: 24px; }
+  .step-dot { flex: 1; height: 4px; background: var(--border); border-radius: 4px; transition: background 0.3s; }
+  .step-dot.active { background: var(--kenko-blue); }
+
+  .wizard-step { display: none; animation: fadeIn .3s; }
+  .wizard-step.active { display: block; }
+
+  .field-group { display: flex; gap: 14px; }
+  .field-group .field { flex: 1; }
+
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 7px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .field-wrap { position: relative; display: flex; align-items: center; }
+  
+  .field-wrap input, .field-wrap select {
+    width: 100%; height: 44px;
+    padding: 0 14px;
+    border: 1.5px solid transparent;
+    border-radius: var(--radius-sm);
+    background: #f8fafc;
+    font-family: var(--ff-body);
+    font-size: 14px; color: var(--text);
+    transition: all .25s ease;
+    outline: none;
+  }
+  .field-wrap input[type="password"] { padding-right: 40px; }
+  .field-wrap input:hover, .field-wrap select:hover { background: #fff; border-color: var(--border); }
+  .field-wrap input:focus, .field-wrap select:focus { background: #fff; border-color: var(--kenko-blue); box-shadow: 0 0 0 4px rgba(17,91,156,0.1); }
+  
+  .eye-btn { position: absolute; right: 12px; background: none; border: none; cursor: pointer; padding: 0; display: flex; color: #9ca3af; transition: color .2s; }
+  .eye-btn:hover { color: var(--kenko-blue); }
+  .eye-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+  .plan-card {
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .plan-card:hover { border-color: var(--kenko-blue); background: var(--surface); }
+  .plan-card.selected { border-color: var(--kenko-blue); background: rgba(17,91,156,0.05); }
+  .plan-card h3 { font-size: 16px; margin-bottom: 4px; font-weight: 600; }
+  .plan-card p { font-size: 13px; color: var(--muted); }
+
+  .actions { display: flex; justify-content: space-between; margin-top: 30px; gap: 12px; }
+  .btn-primary, .btn-secondary {
+    height: 44px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--ff-body);
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: transform .15s, background .2s;
+    padding: 0 24px;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .btn-primary { background: var(--kenko-darker); color: #fff; width: 100%; }
+  .btn-primary:hover { background: var(--kenko-blue); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(1px); }
+  
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: #e2e8f0; }
+
+  .messages { margin-bottom: 16px; }
+  .alert { padding: 12px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 8px; }
+  .alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+
+  .checkbox-card {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--surface); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .checkbox-card input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--kenko-blue); }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    #login { flex-direction: column; }
+    .login-left { width: 100%; padding: 30px 20px; flex: none; align-items: center; text-align: center; }
+    .login-hero, .login-features { display: none; }
+    .login-footer { margin-top: 20px; }
+    .login-right { padding: 30px 20px; align-items: flex-start; }
+    .field-group { flex-direction: column; gap: 0; }
+  }
+</style>
+</head>
+<body>
+
+<main class="page" id="login">
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-logo">
+        <img src="{% static 'image/logoblanco.png' %}" alt="Logo" />
+      </div>
+      <div class="login-brand-name">Kenko<span>Med</span></div>
+    </div>
+    <div class="login-hero">
+      <h2>Transforma la gestión de tu clínica</h2>
+      <p>Personaliza tu experiencia configurando tu espacio de trabajo. Solo te tomará un minuto.</p>
+    </div>
+    <div class="login-footer">© 2026 KenkoMed SpA. Todos los derechos reservados.</div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-form">
+      <h1>Crea tu cuenta</h1>
+      <p class="subtitle">Personaliza tu perfil y centro de atención.</p>
+
+      {% if messages %}
+        <div class="messages">
+          {% for msg in messages %}
+            <div class="alert {{ msg.tags }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="step-indicator" id="step-dots">
+        <div class="step-dot active" id="dot-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+      </div>
+
+      <form method="POST" id="onboarding-form">
+        {% csrf_token %}
+
+        <!-- STEP 1: Datos Personales -->
+        <div class="wizard-step active" id="step-1">
+          <div class="field-group">
+            <div class="field">
+              <label>RUT</label>
+              <div class="field-wrap">
+                <input type="text" name="rut" class="rut-input" placeholder="12.345.678-9" required />
+              </div>
+            </div>
+            <div class="field">
+              <label>Profesión</label>
+              <div class="field-wrap">
+                <input type="text" name="profesion" placeholder="Ej. Kinesiólogo" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Nombre</label>
+              <div class="field-wrap">
+                <input type="text" name="nombre" placeholder="Ej. Juan" required />
+              </div>
+            </div>
+            <div class="field">
+              <label>Apellido</label>
+              <div class="field-wrap">
+                <input type="text" name="apellido" placeholder="Ej. Pérez" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Correo Electrónico</label>
+              <div class="field-wrap">
+                <input type="email" name="correo" placeholder="correo@ejemplo.com" required value="{{ invitacion.email|default:'' }}" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Teléfono</label>
+              <div class="field-wrap">
+                <input type="text" name="telefono" placeholder="+56 9 1234 5678" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Contraseña</label>
+              <div class="field-wrap">
+                <input type="password" name="password" id="pass1" placeholder="Mínimo 8 caracteres" required minlength="8" />
+                <button type="button" class="eye-btn" onclick="togglePassword(this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+            <div class="field">
+              <label>Confirmar Contraseña</label>
+              <div class="field-wrap">
+                <input type="password" name="confirm_password" id="pass2" placeholder="Repite tu contraseña" required minlength="8" />
+                <button type="button" class="eye-btn" onclick="togglePassword(this)">
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="pass-error" style="color: #991b1b; font-size: 13px; display: none; margin-bottom: 15px;">
+            Las contraseñas no coinciden.
+          </div>
+
+          <div class="actions" style="justify-content: flex-end;">
+            <button type="button" class="btn-primary" onclick="nextStep(2)" style="width: auto;">Siguiente</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Planes -->
+        <div class="wizard-step" id="step-2">
+          <input type="hidden" name="plan_id" id="plan_id" required>
+          <input type="hidden" id="plan_codigo" value="">
+          <input type="hidden" id="plan_roles" value="false">
+          
+          <div style="margin-bottom: 20px;">
+            <label style="font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase;">Selecciona un Plan</label>
+          </div>
+
+          {% for plan in planes %}
+          <div class="plan-card" onclick="selectPlan('{{ plan.id }}', '{{ plan.codigo }}', '{{ plan.permite_roles_avanzados|yesno:"true,false" }}', this)">
+            <h3>{{ plan.nombre }}</h3>
+            <p>Hasta {{ plan.max_kinesiologos }} profesional{{ plan.max_kinesiologos|pluralize:"es" }}.
+               {% if plan.permite_roles_avanzados %}Incluye acceso a Secretaria.{% endif %}
+            </p>
+          </div>
+          {% endfor %}
+
+          <div class="actions">
+            <button type="button" class="btn-secondary" onclick="prevStep(1)">Atrás</button>
+            <button type="button" class="btn-primary" id="btn-step-2" onclick="handlePlanNext()" style="width: auto;" disabled>Siguiente</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Datos Clínica/Consulta -->
+        <div class="wizard-step" id="step-3">
+          <div style="margin-bottom: 20px;">
+            <label style="font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase;">Datos de tu Consulta o Centro</label>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Nombre de la Consulta / Clínica</label>
+              <div class="field-wrap">
+                <input type="text" name="nombre_clinica" id="nombre_clinica" placeholder="Ej. KineSalud o Consulta Privada" required />
+              </div>
+            </div>
+            <div class="field" id="field_rut_empresa" style="display: none;">
+              <label>RUT Empresa</label>
+              <div class="field-wrap">
+                <input type="text" name="rut_empresa" class="rut-input" placeholder="76.543.210-K" />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Ciudad / Comuna</label>
+              <div class="field-wrap">
+                <input type="text" name="ciudad_clinica" placeholder="Ej. Santiago" required />
+              </div>
+            </div>
+            <div class="field">
+              <label>Dirección</label>
+              <div class="field-wrap">
+                <input type="text" name="direccion_clinica" placeholder="Av. Providencia 1234, Of 501" required />
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <div class="field">
+              <label>Correo de la Consulta</label>
+              <div class="field-wrap">
+                <input type="email" name="correo_clinica" placeholder="contacto@kinesalud.cl" />
+              </div>
+            </div>
+            <div class="field">
+              <label>Teléfono de la Consulta</label>
+              <div class="field-wrap">
+                <input type="text" name="telefono_clinica" placeholder="+56 9 1234 5678" />
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn-secondary" onclick="prevStep(2)">Atrás</button>
+            <button type="button" class="btn-primary" id="btn-step-3-next" onclick="handleClinicNext()" style="width: auto;">Siguiente</button>
+            <button type="submit" class="btn-primary" id="btn-step-3-finish" style="width: auto; display: none;">Finalizar y Entrar</button>
+          </div>
+        </div>
+
+        <!-- STEP 4: Secretaría (Solo si el plan permite roles avanzados) -->
+        <div class="wizard-step" id="step-4">
+          <div style="margin-bottom: 20px;">
+            <label style="font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase;">Cuenta de Secretaría</label>
+            <p style="font-size: 13px; color: var(--muted); margin-top: 6px;">Tu plan te permite tener acceso exclusivo para secretaria/recepcionista. Puedes crear la cuenta ahora o más tarde.</p>
+          </div>
+
+          <label class="checkbox-card" style="margin-bottom: 20px;">
+            <input type="checkbox" name="crear_secretaria" id="chk-crear-secretaria" onchange="toggleSecretariaFields()">
+            <div>
+              <div style="font-weight: 600; font-size: 14px;">Quiero crear la cuenta de Secretaría ahora</div>
+              <div style="font-size: 13px; color: var(--muted); margin-top: 2px;">El sistema creará el usuario y le asignará el rol correspondiente en tu clínica.</div>
+            </div>
+          </label>
+
+          <div id="secretaria-fields" style="display: none; border-top: 1px solid var(--border); padding-top: 20px; margin-top: 10px;">
+            <div class="field-group">
+              <div class="field">
+                <label>RUT Secretaria</label>
+                <div class="field-wrap">
+                  <input type="text" name="rut_secretaria" class="rut-input" id="rut_secretaria" placeholder="12.345.678-9" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Contraseña</label>
+                <div class="field-wrap">
+                  <input type="password" name="password_secretaria" id="password_secretaria" placeholder="Mínimo 8 caracteres" />
+                  <button type="button" class="eye-btn" onclick="togglePassword(this)">
+                    <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="field-group">
+              <div class="field">
+                <label>Nombre</label>
+                <div class="field-wrap">
+                  <input type="text" name="nombre_secretaria" id="nombre_secretaria" placeholder="Nombre" />
+                </div>
+              </div>
+              <div class="field">
+                <label>Apellido</label>
+                <div class="field-wrap">
+                  <input type="text" name="apellido_secretaria" id="apellido_secretaria" placeholder="Apellido" />
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label>Correo Electrónico</label>
+              <div class="field-wrap">
+                <input type="email" name="correo_secretaria" id="correo_secretaria" placeholder="secre@ejemplo.com" />
+              </div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="btn-secondary" onclick="prevStep(3)">Atrás</button>
+            <button type="submit" class="btn-primary" style="width: auto;">Finalizar y Entrar</button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+  function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    const svg = btn.querySelector('svg');
+    if (input.type === 'password') {
+      input.type = 'text';
+      // Icono ojo tachado
+      svg.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+    } else {
+      input.type = 'password';
+      // Icono ojo normal
+      svg.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+    }
+  }
+
+  // RUT Formatting para todos los inputs class rut-input
+  document.querySelectorAll('.rut-input').forEach(input => {
+    input.addEventListener('input', function(e) {
+      let valor = e.target.value.replace(/[^0-9kK]/g, '');
+      if (valor.length > 1) {
+        valor = valor.slice(0, -1) + '-' + valor.slice(-1);
+      }
+      if (valor.length > 5) {
+        valor = valor.slice(0, -5) + '.' + valor.slice(-5);
+      }
+      if (valor.length > 9) {
+        valor = valor.slice(0, -9) + '.' + valor.slice(-9);
+      }
+      e.target.value = valor;
+    });
+  });
+
+  function nextStep(step) {
+    const currentStep = document.querySelector('.wizard-step.active');
+    
+    // Validación si estamos en el paso 1
+    if (currentStep.id === 'step-1') {
+      const pass1 = document.getElementById('pass1').value;
+      const pass2 = document.getElementById('pass2').value;
+      const errorMsg = document.getElementById('pass-error');
+      
+      if (pass1 !== pass2) {
+        errorMsg.style.display = 'block';
+        return; // No avanzar
+      } else {
+        errorMsg.style.display = 'none';
+      }
+    }
+
+    // Validación HTML nativa
+    const inputs = currentStep.querySelectorAll('input[required]');
+    let valid = true;
+    inputs.forEach(input => {
+      if (!input.reportValidity()) valid = false;
+    });
+
+    if (!valid) return;
+
+    document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-' + step).classList.add('active');
+    updateDots(step);
+  }
+
+  function prevStep(step) {
+    document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
+    document.getElementById('step-' + step).classList.add('active');
+    updateDots(step);
+  }
+  
+  function updateDots(step) {
+    const dotsContainer = document.getElementById('step-dots');
+    const totalDots = dotsContainer.children.length;
+    
+    for(let i=0; i<totalDots; i++) {
+        if(i < step) {
+            dotsContainer.children[i].classList.add('active');
+        } else {
+            dotsContainer.children[i].classList.remove('active');
+        }
+    }
+  }
+
+  function selectPlan(id, codigo, rolesAvanzados, element) {
+    document.getElementById('plan_id').value = id;
+    document.getElementById('plan_codigo').value = codigo;
+    document.getElementById('plan_roles').value = rolesAvanzados;
+    
+    document.querySelectorAll('.plan-card').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    
+    document.getElementById('btn-step-2').disabled = false;
+  }
+
+  function handlePlanNext() {
+    const codigo = document.getElementById('plan_codigo').value;
+    const rolesAvanzados = document.getElementById('plan_roles').value === 'true';
+    
+    if (codigo === 'clinica') {
+      document.getElementById('field_rut_empresa').style.display = 'block';
+    } else {
+      document.getElementById('field_rut_empresa').style.display = 'none';
+    }
+    
+    if (rolesAvanzados) {
+      document.getElementById('btn-step-3-next').style.display = 'inline-flex';
+      document.getElementById('btn-step-3-finish').style.display = 'none';
+      
+      if(document.getElementById('step-dots').children.length === 3) {
+          const dot = document.createElement('div');
+          dot.className = 'step-dot';
+          document.getElementById('step-dots').appendChild(dot);
+      }
+    } else {
+      document.getElementById('btn-step-3-next').style.display = 'none';
+      document.getElementById('btn-step-3-finish').style.display = 'inline-flex';
+      
+      const dots = document.getElementById('step-dots');
+      if(dots.children.length === 4) {
+          dots.removeChild(dots.lastChild);
+      }
+    }
+    
+    nextStep(3);
+  }
+  
+  function handleClinicNext() {
+      nextStep(4);
+  }
+
+  function toggleSecretariaFields() {
+      const isChecked = document.getElementById('chk-crear-secretaria').checked;
+      const fieldsContainer = document.getElementById('secretaria-fields');
+      const inputs = fieldsContainer.querySelectorAll('input');
+      
+      if(isChecked) {
+          fieldsContainer.style.display = 'block';
+          inputs.forEach(i => i.setAttribute('required', 'required'));
+      } else {
+          fieldsContainer.style.display = 'none';
+          inputs.forEach(i => i.removeAttribute('required'));
+      }
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const planCards = document.querySelectorAll('.plan-card');
+    if (planCards.length === 1) {
+      planCards[0].click();
+    }
+  });
+</script>
+</body>
+</html>

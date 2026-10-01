@@ -288,8 +288,20 @@
                                     </h3>
                                     <span class="badge bg-danger-50 text-danger-700">Top 10</span>
                                 </div>
-                                <div class="chart-container-lg">
-                                    <canvas id="ubicacionesChart"></canvas>
+                                <div class="chart-container-lg flex justify-center items-center py-4 overflow-hidden" id="heatmapContainer">
+                                    <style>
+                                        .cuerpoHumano { position: relative; display: inline-block; max-width: 100%; transform: scale(1.1); transform-origin: top center; }
+                                        .cuerpoHumano img { max-width: 300px; height: auto; }
+                                        .parteCuerpo { position: absolute; border-radius: 4px; transition: background-color 0.3s; cursor: pointer; }
+                                        .parteCuerpo:hover { opacity: 0.9 !important; border: 1px solid #000; }
+                                        /* Ajuste de escala responsiva */
+                                        @media (max-width: 600px) {
+                                            .cuerpoHumano { transform: scale(1); }
+                                        }
+                                    </style>
+                                    <div class="cuerpoHumano" id="cuerpoHumanoStats">
+                                        <img src="{% static 'image/cuerpo.png' %}" alt="Mapa Corporal" draggable="false">
+                                    </div>
                                 </div>
                             </div>
 
@@ -430,6 +442,7 @@
         const consumoComidaRapida = {{ consumo_comida_rapida|safe }};
         const problemasSueno = {{ problemas_sueno|safe }};
         const patronesConducta = {{ patrones_conducta|safe }};
+        const mapaCalorData = {{ mapa_calor_data|safe }};
         const pacientesPorMes = {{ pacientes_por_mes|safe }};
 
         // Gráfico de Género (Doughnut mejorado)
@@ -567,70 +580,96 @@
             }
         });
 
-        // Gráfico de Ubicaciones (Bar horizontal mejorado)
-        new Chart(document.getElementById('ubicacionesChart'), {
-            type: 'bar',
-            data: {
-                labels: topUbicaciones.labels,
-                datasets: [{
-                    label: 'Pacientes',
-                    data: topUbicaciones.data,
-                    backgroundColor: topUbicaciones.data.map((value, index) => {
-                        const maxValue = Math.max(...topUbicaciones.data);
-                        const intensity = value / maxValue;
-                        if (intensity > 0.7) return colors.danger[0];
-                        if (intensity > 0.4) return colors.warning[0];
-                        return colors.primary[0];
-                    }),
-                    borderRadius: 8,
-                    borderSkipped: false
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                        padding: 16,
-                        titleFont: { size: 15, weight: 'bold' },
-                        bodyFont: { size: 14 },
-                        cornerRadius: 8,
-                        displayColors: false
-                    },
-                    datalabels: {
-                        anchor: 'end',
-                        align: 'end',
-                        offset: 4,
-                        color: '#475569',
-                        font: { size: 13, weight: 'bold' },
-                        formatter: (value) => value
-                    }
-                },
-                scales: {
-                    x: { 
-                        beginAtZero: true,
-                        grid: { color: '#f1f5f9', drawBorder: false },
-                        border: { display: false },
-                        ticks: { 
-                            font: { size: 12, weight: '500' },
-                            padding: 8
-                        }
-                    },
-                    y: {
-                        grid: { display: false, drawBorder: false },
-                        border: { display: false },
-                        ticks: { 
-                            font: { size: 13, weight: '500' },
-                            padding: 10
-                        }
-                    }
+        // === MAPA DE CALOR GLOBAL (CUERPO HUMANO) ===
+        const partesDelCuerpo = [
+            // VISTA FRONTAL
+            { nombre: "VFCara", x: 42, y: 0, ancho: 34, alto: 51 },
+            { nombre: "VFCuello ", x: 29, y: 50, ancho: 52, alto: 20 },
+            { nombre: "VFPectoral derecho", x: 23, y: 70, ancho: 35, alto: 39 },
+            { nombre: "VFPectoral izquierdo", x: 58, y: 70, ancho: 35, alto: 39 },
+            { nombre: "VFHombro derecho", x: 4, y: 70, ancho: 19, alto: 39 },
+            { nombre: "VFHombro izquierdo", x: 92, y: 70, ancho: 19, alto: 39 },
+            { nombre: "VFBrazo derecho", x: 4, y: 108, ancho: 22, alto: 40 },
+            { nombre: "VFBrazo izquierdo", x: 92, y: 108, ancho: 21, alto: 40 },
+            { nombre: "VFAntebrazo derecho", x: 1, y: 148, ancho: 24, alto: 60 },
+            { nombre: "VFAntebrazo izquierdo", x: 92, y: 148, ancho: 24, alto: 60 },
+            { nombre: "VFMano derecha", x: 0, y: 207, ancho: 20, alto: 39 },
+            { nombre: "VFMano izquierda", x: 97, y: 207, ancho: 20, alto: 39 },
+            { nombre: "VFAbdomen Superior derecho", x: 28, y: 109, ancho: 31, alto: 40 },
+            { nombre: "VFAbdomen Superior izquierdo", x: 58, y: 109, ancho: 32, alto: 40 },
+            { nombre: "VFAbdomen Inferior derecho", x: 28, y: 149, ancho: 31, alto: 28 },
+            { nombre: "VFAbdomen Inferior izquierdo", x: 58, y: 149, ancho: 32, alto: 28 },
+            { nombre: "VFPelvis", x: 27, y: 176, ancho: 63, alto: 27 },
+            { nombre: "VFGenitales", x: 52, y: 202, ancho: 13, alto: 8 },
+            { nombre: "VFMuslo derecho", x: 24, y: 202, ancho: 29, alto: 85 },
+            { nombre: "VFMuslo izquierdo", x: 64, y: 202, ancho: 29, alto: 85 },
+            { nombre: "VFRodilla derecha", x: 27, y: 287, ancho: 29, alto: 20 },
+            { nombre: "VFRodilla izquierda", x: 64, y: 287, ancho: 29, alto: 20 },
+            { nombre: "VFPierna derecha", x: 27, y: 307, ancho: 26, alto: 93 },
+            { nombre: "VFPierna izquierda", x: 64, y: 307, ancho: 26, alto: 93 },
+            { nombre: "VFTalon derecha", x: 29, y: 400, ancho: 24, alto: 12 },
+            { nombre: "VFTalon izquierda", x: 64, y: 400, ancho: 26, alto: 12 },
+            { nombre: "VFPie derec", x: 29, y: 412, ancho: 24, alto: 37 },
+            { nombre: "VFPie izquierdo", x: 64, y: 412, ancho: 26, alto: 37 },
+            // VISTA TRASERA
+            { nombre: "VTCabeza", x: 211, y: 0, ancho: 34, alto: 51 },
+            { nombre: "VTcuello", x: 198, y: 50, ancho: 52, alto: 20 },
+            { nombre: "VTEspalda Alta", x: 192, y: 70, ancho: 70, alto: 70 },
+            { nombre: "VTHombro izquierdo", x: 173, y: 70, ancho: 19, alto: 39 },
+            { nombre: "VTHombro derecho", x: 261, y: 70, ancho: 19, alto: 39 },
+            { nombre: "VTBrazo izquierdo", x: 173, y: 108, ancho: 22, alto: 40 },
+            { nombre: "VTBrazo derecho", x: 261, y: 108, ancho: 21, alto: 40 },
+            { nombre: "VTAntebrazo izquierdo", x: 170, y: 148, ancho: 24, alto: 60 },
+            { nombre: "VTAntebrazo derecho", x: 261, y: 148, ancho: 24, alto: 60 },
+            { nombre: "VTMano izquierda", x: 169, y: 207, ancho: 20, alto: 39 },
+            { nombre: "VTMano derecha", x: 266, y: 207, ancho: 20, alto: 39 },
+            { nombre: "VTEspalda Baja", x: 197, y: 140, ancho: 63, alto: 32 },
+            { nombre: "VTGluteo Izquierdo", x: 196, y: 176, ancho: 30, alto: 27 },
+            { nombre: "VTGluteo Derecho", x: 226, y: 176, ancho: 33, alto: 27 },
+            { nombre: "VTMuslo Izquierdo", x: 193, y: 202, ancho: 29, alto: 105 },
+            { nombre: "VTMuslo Derecho", x: 233, y: 202, ancho: 29, alto: 105 },
+            { nombre: "VTPierna Izquierda", x: 196, y: 307, ancho: 26, alto: 93 },
+            { nombre: "VTPierna Derecha", x: 233, y: 307, ancho: 26, alto: 93 },
+            { nombre: "VTPie Izquierdo", x: 198, y: 398, ancho: 24, alto: 50 },
+            { nombre: "VTPie Derecho", x: 233, y: 398, ancho: 26, alto: 50 },
+        ];
+
+        const cuerpoStats = document.getElementById("cuerpoHumanoStats");
+        if (cuerpoStats) {
+            // Find max frequency for color scaling
+            let maxFreq = 0;
+            Object.values(mapaCalorData).forEach(val => { if (val > maxFreq) maxFreq = val; });
+
+            partesDelCuerpo.forEach((parte) => {
+                const freq = mapaCalorData[parte.nombre] || 0;
+                
+                const div = document.createElement("div");
+                div.classList.add("parteCuerpo");
+                div.style.left = `${parte.x}px`;
+                div.style.top = `${parte.y}px`;
+                div.style.width = `${parte.ancho}px`;
+                div.style.height = `${parte.alto}px`;
+                
+                if (freq > 0) {
+                    const intensity = maxFreq > 0 ? freq / maxFreq : 0;
+                    let color = colors.primary[0]; // low (blue)
+                    if (intensity > 0.4) color = colors.warning[0]; // med (orange)
+                    if (intensity > 0.7) color = colors.danger[0]; // high (red)
+                    
+                    // The more frequency, the more opaque it is (up to 0.8)
+                    const opacity = 0.3 + (intensity * 0.5);
+                    
+                    div.style.backgroundColor = color;
+                    div.style.opacity = opacity;
+                    div.title = `${parte.nombre} (${freq} pacientes)`;
+                } else {
+                    div.style.backgroundColor = "transparent";
                 }
-            },
-            plugins: [ChartDataLabels]
-        });
+
+                cuerpoStats.appendChild(div);
+            });
+        }
+
 
         // Gráfico de Intensidad del Dolor (Bar con gradiente)
         new Chart(document.getElementById('intensidadChart'), {

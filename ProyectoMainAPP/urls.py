@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import RedirectView
 from Login import views as l
+from Login import onboarding_views
 from PanelDeControl import views as v 
 from PanelDeControl import views_pacientes as vp
 from PanelDeControl import views_informe as vi
@@ -30,6 +31,7 @@ from RecetasMedicas import views as recetaViews
 
 urlpatterns = [
     path('administradordjangogeneral', admin.site.urls), 
+    path('registro/<uuid:token>/', onboarding_views.onboarding_wizard, name='onboarding_wizard'),
     path('', l.validarLogin,name='login'),  
     path('panel/', v.panel, name="panel"),  
     path('panel/FormularioInicial/', vistaClinicos.FormularioInicial,name='formularioInicial'),
